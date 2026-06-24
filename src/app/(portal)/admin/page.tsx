@@ -16,7 +16,7 @@ import { StatCard } from "@/components/portal/stat-card";
 import { adminNav } from "@/components/portal/navs";
 import { trustBand } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
-import { reviewVerificationAction } from "@/lib/booking-actions";
+import { reviewSpaceAction, reviewVerificationAction } from "@/lib/booking-actions";
 import {
   getAirport,
   getAllBookings,
@@ -50,6 +50,14 @@ export default async function AdminDashboard() {
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout + p.split.driverPayout, 0);
   const liveCount = spaces.filter((s) => s.status === "live").length;
+  const pendingListings = spaces.filter(
+    (s) => s.status === "pending_review" || s.status === "draft"
+  ).length;
+  const listingRank = (status: string) =>
+    status === "pending_review" || status === "draft" ? 0 : status === "live" ? 1 : 2;
+  const sortedSpaces = [...spaces].sort(
+    (a, b) => listingRank(a.status) - listingRank(b.status)
+  );
 
   const trustRows = [
     ...getAllHosts().map((h) => ({
@@ -193,20 +201,49 @@ export default async function AdminDashboard() {
 
         {/* Listings */}
         <section id="listings" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Listings &amp; users</h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-navy-900">Listings &amp; users</h3>
+            {pendingListings > 0 && (
+              <Badge tone="accent">{pendingListings} awaiting review</Badge>
+            )}
+          </div>
           <Card className="divide-y divide-navy-100">
-            {spaces.map((s) => {
+            {sortedSpaces.map((s) => {
               const host = getHost(s.hostId);
               const airport = getAirport(s.airportSlug);
+              const needsReview = s.status === "pending_review" || s.status === "draft";
               return (
-                <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 p-4">
+                <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div>
                     <div className="font-semibold text-navy-900">{s.title}</div>
                     <div className="text-xs text-navy-400">
                       {host?.displayName} · {airport?.name} · {formatMoney(s.pricePerDay)}/day
                     </div>
                   </div>
-                  <StatusBadge status={s.status} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={s.status} />
+                    {needsReview && (
+                      <form action={reviewSpaceAction} className="flex gap-2">
+                        <input type="hidden" name="spaceId" value={s.id} />
+                        <button
+                          type="submit"
+                          name="decision"
+                          value="approved"
+                          className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+                        </button>
+                        <button
+                          type="submit"
+                          name="decision"
+                          value="rejected"
+                          className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                        >
+                          <XCircle className="h-3.5 w-3.5" /> Reject
+                        </button>
+                      </form>
+                    )}
+                  </div>
                 </div>
               );
             })}

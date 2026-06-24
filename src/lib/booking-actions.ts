@@ -10,6 +10,7 @@ import {
   createBooking,
   getBooking,
   getSpace,
+  reviewSpace,
   reviewVerification,
   setBookingStatus,
 } from "@/lib/data/store";
@@ -119,4 +120,18 @@ export async function reviewVerificationAction(formData: FormData) {
   if (decision !== "approved" && decision !== "rejected") return;
   reviewVerification(id, decision, admin.id, String(formData.get("notes") || "") || undefined);
   revalidatePath("/admin");
+  revalidatePath("/host");
+}
+
+/** Admin: approve or reject a single listing (goes live / rejected + notifies host). */
+export async function reviewSpaceAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const spaceId = String(formData.get("spaceId") || "");
+  const decision = String(formData.get("decision") || "") as "approved" | "rejected";
+  if (decision !== "approved" && decision !== "rejected") return;
+  const space = reviewSpace(spaceId, decision, admin.id);
+  revalidatePath("/admin");
+  revalidatePath("/host");
+  revalidatePath("/app/search");
+  if (space) revalidatePath(`/airports/${space.airportSlug}`);
 }

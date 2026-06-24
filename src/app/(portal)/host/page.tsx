@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import {
   BadgeCheck,
   Banknote,
+  Bell,
   Camera,
   CalendarCheck,
+  CheckCircle2,
   PlusCircle,
   Star,
   Warehouse,
@@ -24,22 +26,29 @@ import {
   getAirport,
   getBookingsForHost,
   getHostByUserId,
+  getNotifications,
   getPaymentsForHost,
   getSpacesByHost,
   getUser,
   trustScoreFor,
 } from "@/lib/data/store";
-import { formatDate, formatMoney, initials } from "@/lib/utils";
+import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Host dashboard", path: "/host", noindex: true });
 
-export default async function HostDashboard() {
+export default async function HostDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ listed?: string }>;
+}) {
   const user = await requireRole("host");
+  const { listed } = await searchParams;
   const host = getHostByUserId(user.id)!;
   const spaces = getSpacesByHost(host.id);
   const bookings = getBookingsForHost(host.id);
   const payments = getPaymentsForHost(host.id);
+  const notifications = getNotifications(user.id).slice(0, 5);
   const trust = trustScoreFor(host.id, "host");
   const band = trustBand(trust.score);
 
@@ -62,6 +71,13 @@ export default async function HostDashboard() {
           </Link>
         </div>
 
+        {listed && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> Listing submitted — it&apos;s now in
+            compliance review. You&apos;ll be notified the moment it goes live.
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Lifetime earnings" value={formatMoney(lifetimeEarnings)} sub="after commission" icon={Banknote} tone="go" />
@@ -69,6 +85,35 @@ export default async function HostDashboard() {
           <StatCard label="Live listings" value={String(liveCount)} sub={`${spaces.length} total`} icon={Warehouse} tone="brand" />
           <StatCard label="Trust score" value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" />
         </div>
+
+        {/* Notifications */}
+        {notifications.length > 0 && (
+          <section>
+            <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Bell className="h-5 w-5 text-navy-500" /> Notifications
+            </h3>
+            <Card className="divide-y divide-navy-100">
+              {notifications.map((n) => (
+                <div key={n.id} className="flex items-start gap-3 p-4">
+                  <span
+                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                      n.read ? "bg-navy-200" : "bg-go-500"
+                    }`}
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-navy-900">{n.title}</span>
+                      <span className="shrink-0 text-xs text-navy-400">
+                        {formatDateTime(n.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-navy-600">{n.body}</p>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          </section>
+        )}
 
         {/* Listings */}
         <section id="listings" className="scroll-mt-20">

@@ -2,11 +2,32 @@ import { describe, it, expect } from "vitest";
 import {
   confirmHandover,
   createBooking,
+  createSpace,
   getAirports,
   getBooking,
+  getNotifications,
   getTransferByBooking,
+  reviewSpace,
   searchSpaces,
 } from "@/lib/data/store";
+
+function pendingSpace(title: string) {
+  return createSpace({
+    hostId: "host_tom",
+    title,
+    airportSlug: "heathrow",
+    approxArea: "Test area",
+    exactAddress: "1 Test Road",
+    pricePerDay: 1000,
+    maxVehicleSize: "large",
+    cctv: true,
+    liveCamera: false,
+    evCharger: null,
+    accessRules: "",
+    lengthM: 5,
+    widthM: 2.5,
+  });
+}
 
 describe("searchSpaces", () => {
   it("returns only live spaces for the airport", () => {
@@ -87,6 +108,35 @@ describe("confirmHandover", () => {
     // cannot confirm twice
     const again = confirmHandover(transfer.id, transfer.handoverCode);
     expect(again.ok).toBe(false);
+  });
+});
+
+describe("createSpace + reviewSpace (host listing lifecycle)", () => {
+  it("new listings start pending_review and are not yet searchable", () => {
+    const space = pendingSpace("Brand new bay");
+    expect(space.status).toBe("pending_review");
+    const live = searchSpaces({ airportSlug: "heathrow" }).map((r) => r.space.id);
+    expect(live).not.toContain(space.id);
+  });
+
+  it("admin approval flips it to live and notifies the host", () => {
+    const space = pendingSpace("Approve me");
+    const before = getNotifications("user_host").length;
+    const reviewed = reviewSpace(space.id, "approved", "user_admin");
+    expect(reviewed?.status).toBe("live");
+    // now searchable
+    expect(searchSpaces({ airportSlug: "heathrow" }).map((r) => r.space.id)).toContain(space.id);
+    // host got a notification
+    const after = getNotifications("user_host");
+    expect(after.length).toBe(before + 1);
+    expect(after[0].title).toMatch(/approved/i);
+  });
+
+  it("admin rejection marks it rejected (and not searchable)", () => {
+    const space = pendingSpace("Reject me");
+    const reviewed = reviewSpace(space.id, "rejected", "user_admin");
+    expect(reviewed?.status).toBe("rejected");
+    expect(searchSpaces({ airportSlug: "heathrow" }).map((r) => r.space.id)).not.toContain(space.id);
   });
 });
 

@@ -34,7 +34,7 @@ import type {
 import * as seed from "@/lib/data/seed";
 import { priceBundle } from "@/lib/pricing";
 import { averageRating, computeTrustScore } from "@/lib/trust";
-import { accessCode, shortRef } from "@/lib/utils";
+import { accessCode, nextId, shortRef } from "@/lib/utils";
 
 interface DB {
   airports: Airport[];
@@ -419,11 +419,61 @@ export function reviewVerification(
         .filter((s) => s.hostId === v.subjectId && s.status === "pending_review")
         .forEach((s) => (s.status = "live"));
     }
+    notifySubjectUser(host?.userId, decision, "Host verification");
   } else if (v.subjectType === "transfer") {
     const provider = getTransferProvider(v.subjectId);
     if (provider) provider.verificationStatus = decision;
+    notifySubjectUser(provider?.userId, decision, "Operator verification");
   }
   return v;
+}
+
+function notifySubjectUser(
+  userId: string | undefined,
+  decision: "approved" | "rejected",
+  subject: string
+) {
+  if (!userId) return;
+  addNotification({
+    userId,
+    title: decision === "approved" ? `${subject} approved` : `${subject} declined`,
+    body:
+      decision === "approved"
+        ? `${subject} is approved — you're good to go.`
+        : `${subject} needs attention. Please review and resubmit.`,
+    kind: "verification",
+  });
+}
+
+/**
+ * Admin decision on a single listing (works for any host, including those
+ * already verified). Approving flips the space to `live`; rejecting marks it
+ * `rejected`. Either way the host is notified.
+ */
+export function reviewSpace(
+  spaceId: string,
+  decision: "approved" | "rejected",
+  _reviewerId: string,
+  notes?: string
+): Space | undefined {
+  const space = getSpace(spaceId);
+  if (!space) return undefined;
+  space.status = decision === "approved" ? "live" : "rejected";
+
+  const host = getHost(space.hostId);
+  const hostUser = host ? getUser(host.userId) : undefined;
+  if (hostUser) {
+    addNotification({
+      userId: hostUser.id,
+      title: decision === "approved" ? "Listing approved 🎉" : "Listing needs changes",
+      body:
+        decision === "approved"
+          ? `“${space.title}” is now live and visible to travellers in search.`
+          : `“${space.title}” wasn't approved.${notes ? ` ${notes}` : " Please update the details and resubmit."}`,
+      kind: "verification",
+    });
+  }
+  return space;
 }
 
 // -----------------------------------------------------------------------------
@@ -439,9 +489,24 @@ export const getAllPayments = () => db.payments;
 // Notifications
 // -----------------------------------------------------------------------------
 export const getNotifications = (userId: string) =>
-  db.notifications.filter((n) => n.userId === userId);
+  db.notifications
+    .filter((n) => n.userId === userId)
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 export const unreadCount = (userId: string) =>
   db.notifications.filter((n) => n.userId === userId && !n.read).length;
+
+export function addNotification(
+  input: Omit<Notification, "id" | "createdAt" | "read"> & { read?: boolean }
+): Notification {
+  const n: Notification = {
+    ...input,
+    id: nextId("ntf"),
+    read: input.read ?? false,
+    createdAt: new Date().toISOString(),
+  };
+  db.notifications.unshift(n);
+  return n;
+}
 
 // -----------------------------------------------------------------------------
 // Waitlist (marketing)
