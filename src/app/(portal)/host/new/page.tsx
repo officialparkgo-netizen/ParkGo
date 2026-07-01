@@ -19,7 +19,7 @@ export default async function NewSpacePage() {
   const airports = getAirports();
 
   return (
-    <PortalShell user={user} nav={hostNav} title="List a new space">
+    <PortalShell user={user} nav={hostNav} title="host.new.pageTitle">
       <div className="mx-auto max-w-2xl">
         <Link href="/host" className="text-sm font-semibold text-brand-600">
           ← {t("host.new.back")}

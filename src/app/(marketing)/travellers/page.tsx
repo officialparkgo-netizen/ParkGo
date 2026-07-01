@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { pageMetadata } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "For travellers",
@@ -32,70 +33,32 @@ export const metadata = pageMetadata({
   path: "/travellers",
 });
 
-const benefits = [
-  {
-    icon: CreditCard,
-    tone: "brand" as const,
-    title: "One price, one booking",
-    body: "Parking, a licensed transfer and EV charging in a single transparent checkout. No juggling apps, no hidden extras.",
-  },
-  {
-    icon: ShieldCheck,
-    tone: "go" as const,
-    title: "Verified & secure",
-    body: "Every host is ID-checked and every driver is licensed and insured. CCTV and verified handovers throughout.",
-  },
-  {
-    icon: Radio,
-    tone: "accent" as const,
-    title: "Live tracking & camera",
-    body: "Follow your driver on a live map and watch your parked car on an in-app camera with a LIVE badge.",
-  },
-  {
-    icon: Zap,
-    tone: "navy" as const,
-    title: "EV charging",
-    body: "Add a top-up while you travel at hosts that offer a charger. Land back to a car that&apos;s ready to go.",
-  },
-  {
-    icon: Languages,
-    tone: "brand" as const,
-    title: "Multilingual",
-    body: "Use ParkGo in your language — four launch languages across the UK & Ireland, with more to follow.",
-  },
-  {
-    icon: Users,
-    tone: "go" as const,
-    title: "Corporate accounts",
-    body: "Travelling for work? Centralised bookings, monthly invoicing and priority support for teams.",
-  },
-  {
-    icon: Gift,
-    tone: "accent" as const,
-    title: "Referral programme",
-    body: "Share ParkGo with friends and family and you both get rewarded when they take their first trip.",
-  },
-  {
-    icon: Wallet,
-    tone: "navy" as const,
-    title: "Often cheaper",
-    body: "Verified driveways near the terminal frequently undercut official long-stay car parks — without the shuttle wait.",
-  },
-];
+export default async function TravellersPage() {
+  const { t } = await getI18n();
 
-const journey = [
-  { n: "1", icon: MapPin, title: "Search & compare", body: "Pick your airport and dates. See verified spaces with price, distance, EV and ratings." },
-  { n: "2", icon: CarTaxiFront, title: "Build your bundle", body: "Add a licensed transfer and EV charging. One price, one secure checkout." },
-  { n: "3", icon: QrCode, title: "Park, track, fly", body: "Get your QR, track your driver live, watch your car and confirm a verified handover." },
-];
+  const benefits = [
+    { icon: CreditCard, tone: "brand" as const, title: t("travellers.benefit.oneprice.title"), body: t("travellers.benefit.oneprice.body") },
+    { icon: ShieldCheck, tone: "go" as const, title: t("travellers.benefit.verified.title"), body: t("travellers.benefit.verified.body") },
+    { icon: Radio, tone: "accent" as const, title: t("travellers.benefit.tracking.title"), body: t("travellers.benefit.tracking.body") },
+    { icon: Zap, tone: "navy" as const, title: t("travellers.benefit.ev.title"), body: t("travellers.benefit.ev.body") },
+    { icon: Languages, tone: "brand" as const, title: t("travellers.benefit.multilingual.title"), body: t("travellers.benefit.multilingual.body") },
+    { icon: Users, tone: "go" as const, title: t("travellers.benefit.corporate.title"), body: t("travellers.benefit.corporate.body") },
+    { icon: Gift, tone: "accent" as const, title: t("travellers.benefit.referral.title"), body: t("travellers.benefit.referral.body") },
+    { icon: Wallet, tone: "navy" as const, title: t("travellers.benefit.cheaper.title"), body: t("travellers.benefit.cheaper.body") },
+  ];
 
-const faqs = [
-  { q: "Is my car safe while I&apos;m away?", a: "Hosts are ID-verified, spaces can include CCTV, and you can watch a live in-app camera. Drop-off and collection both use a verified, logged handover." },
-  { q: "What if my flight is delayed?", a: "Your booking and return transfer are tied to your trip, so a delay is handled gracefully — you won&apos;t lose your space or your ride home." },
-  { q: "Can I pay in one go?", a: "Yes. Parking, transfer and EV charging are combined into a single transparent price with a small, clearly shown service fee." },
-];
+  const journey = [
+    { n: "1", icon: MapPin, title: t("travellers.how.step1.title"), body: t("travellers.how.step1.body") },
+    { n: "2", icon: CarTaxiFront, title: t("travellers.how.step2.title"), body: t("travellers.how.step2.body") },
+    { n: "3", icon: QrCode, title: t("travellers.how.step3.title"), body: t("travellers.how.step3.body") },
+  ];
 
-export default function TravellersPage() {
+  const faqs = [
+    { q: t("travellers.faq.q1"), a: t("travellers.faq.a1") },
+    { q: t("travellers.faq.q2"), a: t("travellers.faq.a2") },
+    { q: t("travellers.faq.q3"), a: t("travellers.faq.a3") },
+  ];
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -103,32 +66,31 @@ export default function TravellersPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-16 text-center lg:py-20">
           <Badge tone="brand" className="mb-5">
-            <Sparkles className="h-3.5 w-3.5" /> For travellers
+            <Sparkles className="h-3.5 w-3.5" /> {t("travellers.badge")}
           </Badge>
           <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-            Park, transfer and charge — sorted in a single booking
+            {t("travellers.hero.title")}
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            ParkGo turns the most stressful part of flying into the easiest. One transparent price,
-            verified people and live tracking from your driveway search to landing back home.
+            {t("travellers.hero.subtitle")}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/app" className={buttonVariants({ variant: "primary", size: "lg" })}>
-              Start a booking <ArrowRight className="h-4 w-4" />
+              {t("travellers.hero.cta.book")} <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/how-it-works" className={buttonVariants({ variant: "outline", size: "lg" })}>
-              See how it works
+              {t("travellers.hero.cta.how")}
             </Link>
           </div>
           <p className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-navy-500">
             <span className="inline-flex items-center gap-1.5">
-              <BadgeCheck className="h-4 w-4 text-go-500" /> Verified hosts
+              <BadgeCheck className="h-4 w-4 text-go-500" /> {t("travellers.trust.hosts")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-go-500" /> Licensed drivers
+              <ShieldCheck className="h-4 w-4 text-go-500" /> {t("travellers.trust.drivers")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Camera className="h-4 w-4 text-go-500" /> Live camera &amp; CCTV
+              <Camera className="h-4 w-4 text-go-500" /> {t("travellers.trust.camera")}
             </span>
           </p>
         </Container>
@@ -137,13 +99,12 @@ export default function TravellersPage() {
       {/* ---------------------------------------------------------- Benefits */}
       <Section>
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Why travellers choose ParkGo</Eyebrow>
+          <Eyebrow>{t("travellers.benefits.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Everything the trip needs, none of the hassle
+            {t("travellers.benefits.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            We bundled the things you used to book separately — and added the trust and visibility that
-            airport parking has always been missing.
+            {t("travellers.benefits.body")}
           </p>
         </div>
 
@@ -176,9 +137,9 @@ export default function TravellersPage() {
       {/* ------------------------------------------------------ How it works */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>How it works</Eyebrow>
+          <Eyebrow>{t("travellers.how.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Booked in minutes, sorted for the whole trip
+            {t("travellers.how.title")}
           </h2>
         </div>
         <ol className="mt-12 grid gap-6 md:grid-cols-3">
@@ -197,7 +158,7 @@ export default function TravellersPage() {
         </ol>
         <div className="mt-8 text-center">
           <Link href="/how-it-works" className={buttonVariants({ variant: "outline" })}>
-            See the full journey <ArrowRight className="h-4 w-4" />
+            {t("travellers.how.cta")} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </Section>
@@ -206,15 +167,16 @@ export default function TravellersPage() {
       <Section>
         <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr] lg:items-start">
           <div>
-            <Eyebrow>Good to know</Eyebrow>
+            <Eyebrow>{t("travellers.faq.eyebrow")}</Eyebrow>
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-              Questions travellers ask first
+              {t("travellers.faq.title")}
             </h2>
-            <p className="mt-4 text-navy-600">
-              A few quick answers before you book. There&apos;s plenty more in our full FAQ.
-            </p>
+            <p
+              className="mt-4 text-navy-600"
+              dangerouslySetInnerHTML={{ __html: t("travellers.faq.body") }}
+            />
             <Link href="/faq" className={buttonVariants({ variant: "outline", className: "mt-6" })}>
-              <HelpCircle className="h-4 w-4" /> Read the full FAQ
+              <HelpCircle className="h-4 w-4" /> {t("travellers.faq.cta")}
             </Link>
           </div>
           <div className="space-y-4">
@@ -241,18 +203,17 @@ export default function TravellersPage() {
           <div className="mx-auto max-w-2xl">
             <MapPin className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Be first to book at your airport
+              {t("travellers.waitlist.title")}
             </h2>
             <p className="mt-3 text-brand-100">
-              We&apos;re launching across the UK &amp; Ireland. Join the waitlist and we&apos;ll let you know
-              the moment ParkGo goes live where you fly from.
+              {t("travellers.waitlist.body")}
             </p>
             <div className="mx-auto mt-7 max-w-lg">
               <WaitlistForm role="traveller" dark />
             </div>
             <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-200">
               <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
-              No spam — just a heads-up when we go live at your airport.
+              {t("waitlist.nospam")}
             </p>
           </div>
         </Container>

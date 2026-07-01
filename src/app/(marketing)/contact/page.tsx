@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ContactForm } from "@/components/marketing/contact-form";
 import { pageMetadata } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "Contact",
@@ -25,38 +26,40 @@ export const metadata = pageMetadata({
   path: "/contact",
 });
 
-const channels = [
-  {
-    icon: LifeBuoy,
-    tone: "go" as const,
-    title: "Support",
-    body: "Questions about a booking, your account or payments.",
-    action: { label: "support@parkgo.app", href: "mailto:support@parkgo.app" },
-  },
-  {
-    icon: Building2,
-    tone: "brand" as const,
-    title: "Partnerships",
-    body: "Hosting at scale or corporate travel for your team.",
-    action: { label: "partners@parkgo.app", href: "mailto:partners@parkgo.app" },
-  },
-  {
-    icon: MessageCircle,
-    tone: "accent" as const,
-    title: "Press & general",
-    body: "Media enquiries and everything else.",
-    action: { label: "hello@parkgo.app", href: "mailto:hello@parkgo.app" },
-  },
-];
+export default async function ContactPage() {
+  const { t } = await getI18n();
 
-const quickLinks = [
-  { icon: HelpCircle, title: "Read the FAQ", body: "Most questions are answered here.", href: "/faq" },
-  { icon: MapPin, title: "For travellers", body: "How booking and travel day work.", href: "/travellers" },
-  { icon: Building2, title: "For hosts", body: "List a space and start earning.", href: "/hosts" },
-  { icon: ShieldCheck, title: "Trust & safety", body: "How we keep every booking safe.", href: "/trust-safety" },
-];
+  const channels = [
+    {
+      icon: LifeBuoy,
+      tone: "go" as const,
+      title: t("contact.channel.support.title"),
+      body: t("contact.channel.support.body"),
+      action: { label: "support@parkgo.app", href: "mailto:support@parkgo.app" },
+    },
+    {
+      icon: Building2,
+      tone: "brand" as const,
+      title: t("contact.channel.partnerships.title"),
+      body: t("contact.channel.partnerships.body"),
+      action: { label: "partners@parkgo.app", href: "mailto:partners@parkgo.app" },
+    },
+    {
+      icon: MessageCircle,
+      tone: "accent" as const,
+      title: t("contact.channel.press.title"),
+      body: t("contact.channel.press.body"),
+      action: { label: "hello@parkgo.app", href: "mailto:hello@parkgo.app" },
+    },
+  ];
 
-export default function ContactPage() {
+  const quickLinks = [
+    { icon: HelpCircle, title: t("contact.quick.faq.title"), body: t("contact.quick.faq.body"), href: "/faq" },
+    { icon: MapPin, title: t("contact.quick.travellers.title"), body: t("contact.quick.travellers.body"), href: "/travellers" },
+    { icon: Building2, title: t("contact.quick.hosts.title"), body: t("contact.quick.hosts.body"), href: "/hosts" },
+    { icon: ShieldCheck, title: t("contact.quick.trust.title"), body: t("contact.quick.trust.body"), href: "/trust-safety" },
+  ];
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -64,14 +67,13 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-16 text-center lg:py-20">
           <Badge tone="brand" className="mb-5">
-            <Mail className="h-3.5 w-3.5" /> Contact us
+            <Mail className="h-3.5 w-3.5" /> {t("contact.hero.badge")}
           </Badge>
           <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-            We&apos;d love to hear from you
+            {t("contact.hero.title")}
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            Travellers, hosts and teams — whatever you need, our support team across
-            the UK &amp; Ireland is here to help.
+            {t("contact.hero.subtitle")}
           </p>
         </Container>
       </section>
@@ -81,14 +83,12 @@ export default function ContactPage() {
         <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-start">
           {/* Left: blurb + contact methods */}
           <div>
-            <Eyebrow>Get in touch</Eyebrow>
+            <Eyebrow>{t("contact.channels.eyebrow")}</Eyebrow>
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-              Pick the right inbox, or just send us a message
+              {t("contact.channels.title")}
             </h2>
             <p className="mt-4 text-navy-600">
-              ParkGo is building integrated airport access for the UK &amp; Ireland. We aim to reply to
-              every enquiry quickly — choose the team that fits, or use the form and we&apos;ll route it for
-              you.
+              {t("contact.channels.body")}
             </p>
 
             <div className="mt-8 space-y-4">
@@ -122,20 +122,20 @@ export default function ContactPage() {
             <div className="mt-8 flex items-center gap-3 rounded-2xl bg-navy-50 p-5">
               <Users className="h-6 w-6 shrink-0 text-navy-700" />
               <p className="text-sm text-navy-600">
-                Setting up travel for a team?{" "}
+                {t("contact.teams.text")}{" "}
                 <Link href="/pricing" className="font-semibold text-brand-600 hover:text-brand-700">
-                  See corporate accounts
+                  {t("contact.teams.link")}
                 </Link>{" "}
-                for monthly invoicing and priority support.
+                {t("contact.teams.suffix")}
               </p>
             </div>
           </div>
 
           {/* Right: the form */}
           <Card className="p-7 sm:p-8">
-            <h2 className="text-xl font-bold text-navy-900">Send us a message</h2>
+            <h2 className="text-xl font-bold text-navy-900">{t("contact.form.title")}</h2>
             <p className="mt-1.5 text-sm text-navy-600">
-              Fill in the form and we&apos;ll get back to you by email.
+              {t("contact.form.subtitle")}
             </p>
             <div className="mt-6">
               <ContactForm />
@@ -147,9 +147,9 @@ export default function ContactPage() {
       {/* ----------------------------------------------------- Quick links */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Before you write</Eyebrow>
+          <Eyebrow>{t("contact.quick.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            You might find your answer faster here
+            {t("contact.quick.title")}
           </h2>
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -177,15 +177,14 @@ export default function ContactPage() {
           <div className="mx-auto max-w-2xl">
             <ShieldCheck className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to park smart and travel easy?
+              {t("contact.cta.title")}
             </h2>
             <p className="mt-3 text-brand-100">
-              Start a booking or explore how ParkGo brings parking, transfers and EV charging into one
-              trusted journey.
+              {t("contact.cta.body")}
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link href="/app" className={buttonVariants({ variant: "white", size: "lg" })}>
-                Start a booking <ArrowRight className="h-4 w-4" />
+                {t("contact.cta.start")} <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/how-it-works"
@@ -195,12 +194,12 @@ export default function ContactPage() {
                   className: "border-white/30 bg-white/10 text-white hover:bg-white/20",
                 })}
               >
-                How it works
+                {t("contact.cta.how")}
               </Link>
             </div>
             <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-200">
               <Sparkles className="h-3.5 w-3.5 text-accent-300" />
-              8 launch airports across the UK &amp; Ireland.
+              {t("contact.cta.note")}
             </p>
           </div>
         </Container>

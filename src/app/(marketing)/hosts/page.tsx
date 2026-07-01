@@ -27,6 +27,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { pageMetadata } from "@/lib/seo";
 import { COMMISSION } from "@/lib/pricing";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "For hosts",
@@ -38,24 +39,26 @@ export const metadata = pageMetadata({
 // Host keeps everything minus commission. parkingBps 1800 -> keeps ~82%.
 const hostKeepPct = Math.round((10_000 - COMMISSION.parkingBps) / 100);
 
-const onboarding = [
-  { icon: IdCard, title: "Verify your identity", body: "A quick KYC check confirms who you are. Documents are encrypted and stored separately from your profile." },
-  { icon: MapPin, title: "Verify your address", body: "We confirm the location of the space you want to list so travellers know exactly where they&apos;re parking." },
-  { icon: Ruler, title: "Add property details", body: "Photos, bay dimensions, access notes and whether you offer EV charging or CCTV — the things travellers filter on." },
-  { icon: ScrollText, title: "Right-to-list declaration", body: "Confirm you&apos;re entitled to rent the space (owner or with permission) and that it&apos;s safe and legal to use." },
-  { icon: Landmark, title: "Add bank details", body: "Tell us where to send your payouts. Bank details are encrypted and never shown to travellers." },
-  { icon: FileCheck2, title: "Compliance review", body: "Our team reviews your listing against our trust and safety standards before it can go live." },
-  { icon: CheckCircle2, title: "Go live & earn", body: "Set your availability and price. Your space starts appearing in traveller searches straight away." },
-];
+export default async function HostsPage() {
+  const { t } = await getI18n();
 
-const trust = [
-  { icon: BadgeCheck, title: "Verified travellers", body: "Bookings come from real, registered ParkGo customers — and you can review them too." },
-  { icon: Camera, title: "Optional CCTV & live camera", body: "Add a camera to your listing for extra reassurance, for you and the traveller alike." },
-  { icon: ShieldCheck, title: "Verified handovers", body: "Every drop-off and collection is confirmed with a one-time code, timestamped and logged." },
-  { icon: ScrollText, title: "Clear terms", body: "Transparent host terms, a defined right-to-list declaration and platform support if anything goes wrong." },
-];
+  const onboarding = [
+    { icon: IdCard, title: t("hosts.onboarding.identity.title"), body: t("hosts.onboarding.identity.body") },
+    { icon: MapPin, title: t("hosts.onboarding.address.title"), body: t("hosts.onboarding.address.body") },
+    { icon: Ruler, title: t("hosts.onboarding.details.title"), body: t("hosts.onboarding.details.body") },
+    { icon: ScrollText, title: t("hosts.onboarding.declaration.title"), body: t("hosts.onboarding.declaration.body") },
+    { icon: Landmark, title: t("hosts.onboarding.bank.title"), body: t("hosts.onboarding.bank.body") },
+    { icon: FileCheck2, title: t("hosts.onboarding.review.title"), body: t("hosts.onboarding.review.body") },
+    { icon: CheckCircle2, title: t("hosts.onboarding.golive.title"), body: t("hosts.onboarding.golive.body") },
+  ];
 
-export default function HostsPage() {
+  const trust = [
+    { icon: BadgeCheck, title: t("hosts.trust.travellers.title"), body: t("hosts.trust.travellers.body") },
+    { icon: Camera, title: t("hosts.trust.cctv.title"), body: t("hosts.trust.cctv.body") },
+    { icon: ShieldCheck, title: t("hosts.trust.handover.title"), body: t("hosts.trust.handover.body") },
+    { icon: ScrollText, title: t("hosts.trust.terms.title"), body: t("hosts.trust.terms.body") },
+  ];
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -64,29 +67,28 @@ export default function HostsPage() {
         <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div>
             <Badge tone="go" className="mb-5">
-              <Sparkles className="h-3.5 w-3.5" /> For hosts &amp; landlords
+              <Sparkles className="h-3.5 w-3.5" /> {t("hosts.badge")}
             </Badge>
             <h1 className="text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-              Earn from a driveway near the airport
+              {t("hosts.hero.title")}
             </h1>
             <p className="mt-5 max-w-xl text-lg text-navy-600">
-              If you live near a UK or Irish airport, your empty driveway, yard or spare space could be
-              earning. Get verified, list it in minutes and keep the large majority of every booking.
+              {t("hosts.hero.subtitle")}
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link href="/app" className={buttonVariants({ variant: "primary", size: "lg" })}>
-                List your space <ArrowRight className="h-4 w-4" />
+                {t("hosts.hero.cta.list")} <ArrowRight className="h-4 w-4" />
               </Link>
               <Link href="#onboarding" className={buttonVariants({ variant: "outline", size: "lg" })}>
-                How onboarding works
+                {t("hosts.hero.cta.onboarding")}
               </Link>
             </div>
             <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-500">
               <span className="inline-flex items-center gap-1.5">
-                <Wallet className="h-4 w-4 text-go-500" /> Keep ~{hostKeepPct}% of parking
+                <Wallet className="h-4 w-4 text-go-500" /> {t("hosts.hero.keep").replace("{pct}", String(hostKeepPct))}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-go-500" /> Verified travellers
+                <ShieldCheck className="h-4 w-4 text-go-500" /> {t("hosts.hero.travellers")}
               </span>
             </p>
           </div>
@@ -97,35 +99,34 @@ export default function HostsPage() {
               <div className="flex items-center gap-2">
                 <PiggyBank className="h-5 w-5 text-go-600" />
                 <span className="text-sm font-bold uppercase tracking-wide text-navy-500">
-                  What you keep
+                  {t("hosts.earnings.label")}
                 </span>
               </div>
               <div className="mt-5 flex items-end justify-between">
                 <div>
                   <div className="text-5xl font-extrabold text-navy-900">~{hostKeepPct}%</div>
-                  <div className="mt-1 text-sm text-navy-500">of every parking booking</div>
+                  <div className="mt-1 text-sm text-navy-500">{t("hosts.earnings.ofBooking")}</div>
                 </div>
-                <Badge tone="go">Indicative</Badge>
+                <Badge tone="go">{t("hosts.earnings.indicative")}</Badge>
               </div>
               <div className="mt-6 space-y-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-navy-600">Traveller pays for parking</span>
+                  <span className="text-navy-600">{t("hosts.earnings.travellerPays")}</span>
                   <span className="font-semibold text-navy-900">100%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-navy-600">ParkGo commission</span>
+                  <span className="text-navy-600">{t("hosts.earnings.commission")}</span>
                   <span className="font-semibold text-navy-900">
                     ~{100 - hostKeepPct}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-t border-navy-100 pt-3">
-                  <span className="font-bold text-navy-700">You receive</span>
+                  <span className="font-bold text-navy-700">{t("hosts.earnings.youReceive")}</span>
                   <span className="text-lg font-extrabold text-go-700">~{hostKeepPct}%</span>
                 </div>
               </div>
               <p className="mt-4 text-xs text-navy-500">
-                EV charging revenue follows the same split — you own the charger. Figures are indicative
-                and to be confirmed at launch.
+                {t("hosts.earnings.note")}
               </p>
             </Card>
           </div>
@@ -135,21 +136,20 @@ export default function HostsPage() {
       {/* ----------------------------------------------------- Earnings angle */}
       <Section>
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Why host with ParkGo</Eyebrow>
+          <Eyebrow>{t("hosts.why.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Put unused space to work
+            {t("hosts.why.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            Travellers want a secure, convenient place to leave the car. If you&apos;re near a terminal,
-            that&apos;s exactly what your space already is.
+            {t("hosts.why.body")}
           </p>
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: Banknote, tone: "go", title: "Strong economics", body: `Keep around ${hostKeepPct}% of each parking booking, with EV charging on top where you offer it.` },
-            { icon: Home, tone: "brand", title: "Use what you have", body: "A driveway, a yard, a spare bay — no building work, no new equipment required to start." },
-            { icon: Zap, tone: "accent", title: "Earn more with EV", body: "List a charger and capture EV charging revenue while travellers are away." },
-            { icon: ShieldCheck, tone: "navy", title: "Lower risk", body: "Verified travellers, optional CCTV and verified handovers mean fewer surprises." },
+            { icon: Banknote, tone: "go", title: t("hosts.why.economics.title"), body: t("hosts.why.economics.body").replace("{pct}", String(hostKeepPct)) },
+            { icon: Home, tone: "brand", title: t("hosts.why.usewhat.title"), body: t("hosts.why.usewhat.body") },
+            { icon: Zap, tone: "accent", title: t("hosts.why.ev.title"), body: t("hosts.why.ev.body") },
+            { icon: ShieldCheck, tone: "navy", title: t("hosts.why.risk.title"), body: t("hosts.why.risk.body") },
           ].map((f) => (
             <Card key={f.title} className="p-6">
               <div
@@ -175,13 +175,12 @@ export default function HostsPage() {
       {/* -------------------------------------------------------- Onboarding */}
       <Section className="bg-navy-50/50" id="onboarding">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Getting set up</Eyebrow>
+          <Eyebrow>{t("hosts.onboarding.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            From sign-up to go-live in a few clear steps
+            {t("hosts.onboarding.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            Onboarding is built around trust on both sides. Every host is verified before a single
-            traveller can book.
+            {t("hosts.onboarding.body")}
           </p>
         </div>
 
@@ -212,13 +211,12 @@ export default function HostsPage() {
       <Section>
         <div className="grid items-start gap-12 lg:grid-cols-2">
           <div>
-            <Eyebrow>Trust &amp; protection</Eyebrow>
+            <Eyebrow>{t("hosts.trust.eyebrow")}</Eyebrow>
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-              Built to protect hosts as much as travellers
+              {t("hosts.trust.title")}
             </h2>
             <p className="mt-4 text-navy-600">
-              You&apos;re inviting someone to use your space, so trust matters. ParkGo verifies both sides
-              and keeps a clear, logged record of every booking.
+              {t("hosts.trust.body")}
             </p>
             <ul className="mt-6 space-y-4">
               {trust.map((f) => (
@@ -234,7 +232,7 @@ export default function HostsPage() {
               ))}
             </ul>
             <Link href="/trust-safety" className={buttonVariants({ variant: "outline", className: "mt-6" })}>
-              <ShieldCheck className="h-4 w-4" /> Read trust &amp; safety
+              <ShieldCheck className="h-4 w-4" /> {t("hosts.trust.cta")}
             </Link>
           </div>
 
@@ -244,14 +242,14 @@ export default function HostsPage() {
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
                 <Landmark className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-bold text-navy-900">Simple, secure payouts</h3>
+              <h3 className="text-xl font-bold text-navy-900">{t("hosts.payouts.title")}</h3>
             </div>
             <ul className="mt-5 space-y-4 text-sm">
               {[
-                { t: "Paid per completed booking", b: "Earnings are released after each trip completes — no chasing, no invoicing on your side." },
-                { t: "Straight to your bank", b: "Payouts go to the encrypted bank details you add during onboarding." },
-                { t: "Clear statements", b: "See every booking, the commission taken and your payout in one place." },
-                { t: "You set the price", b: "Choose your per-day rate and availability — raise it for peak periods whenever you like." },
+                { t: t("hosts.payouts.percompleted.title"), b: t("hosts.payouts.percompleted.body") },
+                { t: t("hosts.payouts.tobank.title"), b: t("hosts.payouts.tobank.body") },
+                { t: t("hosts.payouts.statements.title"), b: t("hosts.payouts.statements.body") },
+                { t: t("hosts.payouts.setprice.title"), b: t("hosts.payouts.setprice.body") },
               ].map((row) => (
                 <li key={row.t} className="flex gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
@@ -263,7 +261,7 @@ export default function HostsPage() {
               ))}
             </ul>
             <Link href="/pricing" className={buttonVariants({ variant: "primary", className: "mt-6 w-full" })}>
-              See host economics <ArrowRight className="h-4 w-4" />
+              {t("hosts.payouts.cta")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
         </div>
@@ -276,18 +274,17 @@ export default function HostsPage() {
           <div className="mx-auto max-w-2xl">
             <Building2 className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to earn from your space?
+              {t("hosts.waitlist.title")}
             </h2>
             <p className="mt-3 text-brand-100">
-              Join the host waitlist and we&apos;ll invite you to get verified and list as soon as we launch
-              near you.
+              {t("hosts.waitlist.body")}
             </p>
             <div className="mx-auto mt-7 max-w-lg">
               <WaitlistForm role="host" dark />
             </div>
             <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-200">
               <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
-              No obligation — list only when you&apos;re ready.
+              {t("hosts.waitlist.nospam")}
             </p>
           </div>
         </Container>

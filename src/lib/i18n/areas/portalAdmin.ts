@@ -19,6 +19,7 @@ export const portalAdmin: AreaDict = {
     "login.blurb.admin": "Verify, monitor, payouts",
 
     // --- Host dashboard ---
+    "host.pageTitle": "Host dashboard",
     "host.subtitle": "Manage your spaces, bookings and payouts.",
     "host.listNewSpace": "List a new space",
     "host.listedBanner":
@@ -55,6 +56,7 @@ export const portalAdmin: AreaDict = {
     "host.verif.bank": "Bank / payout details",
 
     // --- Host: list a new space ---
+    "host.new.pageTitle": "List a new space",
     "host.new.back": "Back to dashboard",
     "host.new.intro":
       "Add your space details. Once submitted it enters compliance review and goes live after approval.",
@@ -88,6 +90,7 @@ export const portalAdmin: AreaDict = {
     "host.new.submit": "Submit for review",
 
     // --- Admin dashboard ---
+    "admin.pageTitle": "Admin & compliance",
     "admin.stat.hostReview": "Host review",
     "admin.stat.hostReviewSub": "verification queue",
     "admin.stat.liveListings": "Live listings",
@@ -146,6 +149,7 @@ export const portalAdmin: AreaDict = {
     "login.blurb.admin": "تصدیق، نگرانی، ادائیگیاں",
 
     // --- Host dashboard ---
+    "host.pageTitle": "میزبان ڈیش بورڈ",
     "host.subtitle": "اپنی جگہوں، بکنگز اور ادائیگیوں کا انتظام کریں۔",
     "host.listNewSpace": "نئی جگہ درج کریں",
     "host.listedBanner":
@@ -182,6 +186,7 @@ export const portalAdmin: AreaDict = {
     "host.verif.bank": "بینک / ادائیگی کی تفصیلات",
 
     // --- Host: list a new space ---
+    "host.new.pageTitle": "نئی جگہ درج کریں",
     "host.new.back": "ڈیش بورڈ پر واپس",
     "host.new.intro":
       "اپنی جگہ کی تفصیلات شامل کریں۔ جمع ہونے پر یہ کمپلائنس جائزے میں جاتی ہے اور منظوری کے بعد لائیو ہو جاتی ہے۔",
@@ -215,6 +220,7 @@ export const portalAdmin: AreaDict = {
     "host.new.submit": "جائزے کے لیے جمع کریں",
 
     // --- Admin dashboard ---
+    "admin.pageTitle": "ایڈمن اور کمپلائنس",
     "admin.stat.hostReview": "میزبان جائزہ",
     "admin.stat.hostReviewSub": "تصدیقی قطار",
     "admin.stat.liveListings": "لائیو لسٹنگز",
@@ -273,6 +279,7 @@ export const portalAdmin: AreaDict = {
     "login.blurb.admin": "सत्यापन, निगरानी, भुगतान",
 
     // --- Host dashboard ---
+    "host.pageTitle": "होस्ट डैशबोर्ड",
     "host.subtitle": "अपने स्थानों, बुकिंग और भुगतानों का प्रबंधन करें।",
     "host.listNewSpace": "नया स्थान सूचीबद्ध करें",
     "host.listedBanner":
@@ -309,6 +316,7 @@ export const portalAdmin: AreaDict = {
     "host.verif.bank": "बैंक / भुगतान विवरण",
 
     // --- Host: list a new space ---
+    "host.new.pageTitle": "नया स्थान सूचीबद्ध करें",
     "host.new.back": "डैशबोर्ड पर वापस",
     "host.new.intro":
       "अपने स्थान का विवरण जोड़ें। जमा होने पर यह अनुपालन समीक्षा में जाता है और अनुमोदन के बाद लाइव हो जाता है।",
@@ -342,6 +350,7 @@ export const portalAdmin: AreaDict = {
     "host.new.submit": "समीक्षा के लिए जमा करें",
 
     // --- Admin dashboard ---
+    "admin.pageTitle": "एडमिन और अनुपालन",
     "admin.stat.hostReview": "होस्ट समीक्षा",
     "admin.stat.hostReviewSub": "सत्यापन कतार",
     "admin.stat.liveListings": "लाइव लिस्टिंग",
@@ -400,6 +409,7 @@ export const portalAdmin: AreaDict = {
     "login.blurb.admin": "Prüfen, überwachen, Auszahlungen",
 
     // --- Host dashboard ---
+    "host.pageTitle": "Gastgeber-Dashboard",
     "host.subtitle": "Verwalten Sie Ihre Plätze, Buchungen und Auszahlungen.",
     "host.listNewSpace": "Neuen Platz anbieten",
     "host.listedBanner":
@@ -436,6 +446,7 @@ export const portalAdmin: AreaDict = {
     "host.verif.bank": "Bank- / Auszahlungsdaten",
 
     // --- Host: list a new space ---
+    "host.new.pageTitle": "Neuen Platz anbieten",
     "host.new.back": "Zurück zum Dashboard",
     "host.new.intro":
       "Fügen Sie die Details Ihres Platzes hinzu. Nach dem Einreichen geht er in die Compliance-Prüfung und wird nach Genehmigung live geschaltet.",
@@ -469,6 +480,7 @@ export const portalAdmin: AreaDict = {
     "host.new.submit": "Zur Prüfung einreichen",
 
     // --- Admin dashboard ---
+    "admin.pageTitle": "Admin & Compliance",
     "admin.stat.hostReview": "Gastgeber-Prüfung",
     "admin.stat.hostReviewSub": "Verifizierungswarteschlange",
     "admin.stat.liveListings": "Live-Angebote",
@@ -527,6 +539,7 @@ export const portalAdmin: AreaDict = {
     "login.blurb.admin": "验证、监控、付款",
 
     // --- Host dashboard ---
+    "host.pageTitle": "房东仪表板",
     "host.subtitle": "管理您的车位、预订和付款。",
     "host.listNewSpace": "发布新车位",
     "host.listedBanner":
@@ -563,6 +576,7 @@ export const portalAdmin: AreaDict = {
     "host.verif.bank": "银行 / 付款详情",
 
     // --- Host: list a new space ---
+    "host.new.pageTitle": "发布新车位",
     "host.new.back": "返回仪表板",
     "host.new.intro":
       "填写您的车位详情。提交后将进入合规审核，批准后即上线。",
@@ -596,6 +610,7 @@ export const portalAdmin: AreaDict = {
     "host.new.submit": "提交审核",
 
     // --- Admin dashboard ---
+    "admin.pageTitle": "管理与合规",
     "admin.stat.hostReview": "房东审核",
     "admin.stat.hostReviewSub": "验证队列",
     "admin.stat.liveListings": "已上线房源",

@@ -5,8 +5,10 @@ import { CheckCircle2, Star } from "lucide-react";
 import { submitReviewAction, type ReviewState } from "@/lib/booking-actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/client";
 
 export function ReviewForm({ bookingId }: { bookingId: string }) {
+  const t = useT();
   const [state, action, pending] = useActionState<ReviewState, FormData>(
     submitReviewAction,
     {}
@@ -16,15 +18,15 @@ export function ReviewForm({ bookingId }: { bookingId: string }) {
   if (state.ok) {
     return (
       <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 p-5 font-semibold text-go-700">
-        <CheckCircle2 className="h-5 w-5" /> Thanks for your review!
+        <CheckCircle2 className="h-5 w-5" /> {t("app.review.thanks")}
       </div>
     );
   }
 
   return (
     <form action={action} className="rounded-2xl border border-navy-100 bg-white p-5 shadow-card">
-      <h3 className="font-bold text-navy-900">Leave a review</h3>
-      <p className="text-sm text-navy-500">Help other travellers and reward great hosts.</p>
+      <h3 className="font-bold text-navy-900">{t("app.review.leaveReview")}</h3>
+      <p className="text-sm text-navy-500">{t("app.review.leaveReviewSub")}</p>
       <input type="hidden" name="bookingId" value={bookingId} />
       <input type="hidden" name="rating" value={rating} />
       <div className="mt-3 flex gap-1">
@@ -48,11 +50,11 @@ export function ReviewForm({ bookingId }: { bookingId: string }) {
       <textarea
         name="comment"
         rows={3}
-        placeholder="How was the space, security and handover?"
+        placeholder={t("app.review.placeholder")}
         className="mt-3 w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
       />
       <Button type="submit" disabled={pending} className="mt-3">
-        {pending ? "Submitting…" : "Submit review"}
+        {pending ? t("app.review.submitting") : t("app.review.submitReview")}
       </Button>
       {state.error && <p className="mt-2 text-sm text-red-600">{state.error}</p>}
     </form>

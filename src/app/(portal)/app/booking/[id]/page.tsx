@@ -67,7 +67,7 @@ export default async function BookingPage({
             </div>
             <StatusBadge status={booking.status} />
             <p className="mt-3 text-xs text-navy-400">
-              Show this QR at the space for keyless access.
+              {t("app.booking.showQr")}
             </p>
           </Card>
 
@@ -77,14 +77,14 @@ export default async function BookingPage({
             <p className="text-sm text-navy-500">{airport?.name}</p>
 
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Detail label="Drop off" value={formatDateTime(booking.startAt)} />
-              <Detail label="Pick up" value={formatDateTime(booking.endAt)} />
+              <Detail label={t("app.booking.dropOff")} value={formatDateTime(booking.startAt)} />
+              <Detail label={t("app.booking.pickUp")} value={formatDateTime(booking.endAt)} />
             </dl>
 
             {/* Released after payment */}
             <div className="mt-4 rounded-xl border border-go-200 bg-go-50/60 p-4">
               <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
-                <KeyRound className="h-4 w-4 text-go-600" /> Released after payment
+                <KeyRound className="h-4 w-4 text-go-600" /> {t("app.booking.releasedAfterPayment")}
               </h3>
               {paid ? (
                 <div className="mt-2 space-y-1.5 text-sm text-navy-700">
@@ -98,23 +98,23 @@ export default async function BookingPage({
                   <p className="text-navy-500">{space.accessRules}</p>
                 </div>
               ) : (
-                <p className="mt-1 text-sm text-navy-500">Complete payment to reveal.</p>
+                <p className="mt-1 text-sm text-navy-500">{t("app.booking.completeToReveal")}</p>
               )}
             </div>
 
             {/* Price */}
             <dl className="mt-4 space-y-1.5 text-sm">
-              <Row label="Parking" value={formatMoney(booking.price.parking, currency)} />
+              <Row label={t("app.booking.parking")} value={formatMoney(booking.price.parking, currency)} />
               {booking.bundle.transfer && (
-                <Row label="Licensed transfer" value={formatMoney(booking.price.transfer, currency)} />
+                <Row label={t("app.booking.licensedTransfer")} value={formatMoney(booking.price.transfer, currency)} />
               )}
               {booking.bundle.ev && (
-                <Row label="EV charging" value={formatMoney(booking.price.ev, currency)} />
+                <Row label={t("app.booking.evCharging")} value={formatMoney(booking.price.ev, currency)} />
               )}
-              <Row label="Service fee" value={formatMoney(booking.price.serviceFee, currency)} />
+              <Row label={t("app.booking.serviceFee")} value={formatMoney(booking.price.serviceFee, currency)} />
               <div className="my-1.5 border-t border-navy-100" />
               <div className="flex items-center justify-between text-base font-bold text-navy-900">
-                <dt>Total paid</dt>
+                <dt>{t("app.booking.totalPaid")}</dt>
                 <dd>{formatMoney(booking.price.total, currency)}</dd>
               </div>
             </dl>
@@ -122,7 +122,7 @@ export default async function BookingPage({
             <div className="mt-5 flex flex-wrap gap-2">
               {(booking.status === "active" || booking.status === "paid") && (
                 <Link href={`/app/booking/${booking.id}/track`} className={buttonVariants()}>
-                  <Radio className="h-4 w-4" /> Track live
+                  <Radio className="h-4 w-4" /> {t("app.booking.trackLive")}
                 </Link>
               )}
               {booking.status === "completed" && (
@@ -130,11 +130,11 @@ export default async function BookingPage({
                   href={`/app/booking/${booking.id}/track`}
                   className={buttonVariants({ variant: "outline" })}
                 >
-                  <Star className="h-4 w-4" /> View trip &amp; review
+                  <Star className="h-4 w-4" /> {t("app.booking.viewReview")}
                 </Link>
               )}
               <Link href="/app" className={buttonVariants({ variant: "ghost" })}>
-                Back to dashboard
+                {t("common.backToDash")}
               </Link>
             </div>
           </Card>

@@ -6,12 +6,13 @@ import type { Space } from "@/types";
 import { priceBundle } from "@/lib/pricing";
 import { formatMoney } from "@/lib/utils";
 import { createBookingAction } from "@/lib/booking-actions";
+import { useT } from "@/lib/i18n/client";
 import { Button } from "@/components/ui/button";
 
 const METHODS = [
-  { id: "card", label: "Card", icon: CreditCard },
-  { id: "wallet", label: "Wallet", icon: Wallet },
-  { id: "crypto", label: "Crypto", icon: Bitcoin },
+  { id: "card", labelKey: "app.checkout.card", icon: CreditCard },
+  { id: "wallet", labelKey: "app.checkout.wallet", icon: Wallet },
+  { id: "crypto", labelKey: "app.checkout.crypto", icon: Bitcoin },
 ] as const;
 
 export function Checkout({
@@ -29,6 +30,7 @@ export function Checkout({
   initialTransfer?: boolean;
   initialEv?: boolean;
 }) {
+  const t = useT();
   const [transfer, setTransfer] = useState(initialTransfer);
   const [ev, setEv] = useState(initialEv && !!space.evCharger);
   const [method, setMethod] = useState<(typeof METHODS)[number]["id"]>("card");
@@ -51,9 +53,9 @@ export function Checkout({
     <div className="grid gap-6 lg:grid-cols-5">
       {/* Bundle builder */}
       <div className="lg:col-span-3">
-        <h2 className="text-lg font-bold text-navy-900">Build your bundle</h2>
+        <h2 className="text-lg font-bold text-navy-900">{t("common.buildBundle")}</h2>
         <p className="text-sm text-navy-500">
-          One price, one secure checkout — parking is included, add what you need.
+          {t("app.checkout.buildBundleSub")}
         </p>
 
         <div className="mt-4 space-y-3">
@@ -61,33 +63,33 @@ export function Checkout({
             checked
             disabled
             icon={ShieldCheck}
-            title="Verified parking"
-            subtitle={`${space.title} · ${space.driveMinutes} min to terminal`}
+            title={t("app.checkout.verifiedParking")}
+            subtitle={`${space.title} · ${space.driveMinutes} ${t("app.checkout.minToTerminal")}`}
           />
           <Line
             checked={transfer}
             onChange={setTransfer}
             icon={CarTaxiFront}
-            title="Licensed terminal transfer"
-            subtitle="PHV/taxi door-to-terminal, live-tracked & verified handover"
+            title={t("app.checkout.licensedTransfer")}
+            subtitle={t("app.checkout.transferSub")}
           />
           <Line
             checked={ev}
             onChange={(v) => setEv(v && !!space.evCharger)}
             disabled={!space.evCharger}
             icon={Zap}
-            title="EV charging on site"
+            title={t("app.checkout.evOnSite")}
             subtitle={
               space.evCharger
                 ? `${space.evCharger.connector} · ${space.evCharger.kw}kW`
-                : "Not available at this space"
+                : t("app.checkout.evNotAvailable")
             }
           />
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-navy-500">Drop off</span>
+            <span className="text-xs font-semibold text-navy-500">{t("app.checkout.dropOff")}</span>
             <input
               type="date"
               value={start}
@@ -96,7 +98,7 @@ export function Checkout({
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-navy-500">Pick up</span>
+            <span className="text-xs font-semibold text-navy-500">{t("app.checkout.pickUp")}</span>
             <input
               type="date"
               value={end}
@@ -107,7 +109,7 @@ export function Checkout({
           </label>
         </div>
 
-        <h3 className="mt-6 text-sm font-bold text-navy-900">Payment method</h3>
+        <h3 className="mt-6 text-sm font-bold text-navy-900">{t("app.checkout.paymentMethod")}</h3>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {METHODS.map((m) => (
             <button
@@ -120,7 +122,7 @@ export function Checkout({
                   : "border-navy-200 text-navy-600 hover:bg-navy-50"
               }`}
             >
-              <m.icon className="h-4 w-4" /> {m.label}
+              <m.icon className="h-4 w-4" /> {t(m.labelKey)}
             </button>
           ))}
         </div>
@@ -129,15 +131,15 @@ export function Checkout({
       {/* Summary */}
       <div className="lg:col-span-2">
         <div className="sticky top-20 rounded-2xl border border-navy-100 bg-white p-5 shadow-card">
-          <h3 className="font-bold text-navy-900">Order summary</h3>
+          <h3 className="font-bold text-navy-900">{t("app.checkout.orderSummary")}</h3>
           <dl className="mt-4 space-y-2 text-sm">
-            <Row label="Parking" value={formatMoney(price.parking, currency)} />
-            {transfer && <Row label="Licensed transfer" value={formatMoney(price.transfer, currency)} />}
-            {ev && <Row label="EV charging" value={formatMoney(price.ev, currency)} />}
-            <Row label="Service fee" value={formatMoney(price.serviceFee, currency)} />
+            <Row label={t("app.checkout.parking")} value={formatMoney(price.parking, currency)} />
+            {transfer && <Row label={t("app.checkout.licensedTransferRow")} value={formatMoney(price.transfer, currency)} />}
+            {ev && <Row label={t("app.checkout.evCharging")} value={formatMoney(price.ev, currency)} />}
+            <Row label={t("app.checkout.serviceFee")} value={formatMoney(price.serviceFee, currency)} />
             <div className="my-2 border-t border-navy-100" />
             <div className="flex items-center justify-between">
-              <dt className="text-base font-bold text-navy-900">Total</dt>
+              <dt className="text-base font-bold text-navy-900">{t("common.total")}</dt>
               <dd className="text-xl font-extrabold text-navy-900">
                 {formatMoney(price.total, currency)}
               </dd>
@@ -152,12 +154,11 @@ export function Checkout({
             <input type="hidden" name="ev" value={ev ? "1" : ""} />
             <input type="hidden" name="method" value={method} />
             <Button type="submit" size="lg" className="w-full">
-              <Lock className="h-4 w-4" /> Pay {formatMoney(price.total, currency)}
+              <Lock className="h-4 w-4" /> {t("app.checkout.pay")} {formatMoney(price.total, currency)}
             </Button>
           </form>
           <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-navy-400">
-            <ShieldCheck className="h-3.5 w-3.5" /> Exact address &amp; host contact
-            released after payment
+            <ShieldCheck className="h-3.5 w-3.5" /> {t("app.checkout.releaseNote")}
           </p>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { BadgeCheck, CheckCircle2 } from "lucide-react";
 import { confirmHandoverAction, type HandoverState } from "@/lib/booking-actions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
+import { useT } from "@/lib/i18n/client";
 
 /**
  * Verified driver↔customer handover. Both parties share a one-time code; either
@@ -22,6 +23,7 @@ export function HandoverPanel({
   expectedCode: string;
   initialConfirmedAt?: string;
 }) {
+  const t = useT();
   const [state, action, pending] = useActionState<HandoverState, FormData>(
     confirmHandoverAction,
     initialConfirmedAt ? { ok: true, confirmedAt: initialConfirmedAt } : {}
@@ -31,12 +33,12 @@ export function HandoverPanel({
     return (
       <div className="rounded-2xl border border-go-200 bg-go-50 p-5">
         <div className="flex items-center gap-2 font-bold text-go-700">
-          <CheckCircle2 className="h-5 w-5" /> Handover confirmed
+          <CheckCircle2 className="h-5 w-5" /> {t("app.handover.confirmed")}
         </div>
         <p className="mt-1 text-sm text-navy-600">
-          Verified and timestamped
-          {state.confirmedAt ? ` at ${formatDateTime(state.confirmedAt)}` : ""}. A
-          record has been added to the audit log.
+          {t("app.handover.confirmedNote")}
+          {state.confirmedAt ? ` ${t("app.handover.confirmedAt")} ${formatDateTime(state.confirmedAt)}` : ""}
+          {t("app.handover.auditNote")}
         </p>
       </div>
     );
@@ -45,14 +47,13 @@ export function HandoverPanel({
   return (
     <div className="rounded-2xl border border-navy-100 bg-white p-5 shadow-card">
       <div className="flex items-center gap-2 font-bold text-navy-900">
-        <BadgeCheck className="h-5 w-5 text-brand-600" /> Verified handover
+        <BadgeCheck className="h-5 w-5 text-brand-600" /> {t("app.handover.verifiedHandover")}
       </div>
       <p className="mt-1 text-sm text-navy-500">
-        Enter the one-time code shown on your driver&apos;s screen to confirm the
-        handover.
+        {t("app.handover.enterCode")}
       </p>
       <div className="mt-3 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-500">
-        Demo code (driver&apos;s screen):{" "}
+        {t("app.handover.demoCode")}{" "}
         <span className="font-mono font-bold text-navy-800">{expectedCode}</span>
       </div>
       <form action={action} className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -62,12 +63,12 @@ export function HandoverPanel({
           name="code"
           required
           maxLength={6}
-          placeholder="6-digit code"
+          placeholder={t("app.handover.codePlaceholder")}
           autoComplete="off"
           className="h-11 flex-1 rounded-xl border border-navy-200 px-4 font-mono text-lg uppercase tracking-widest text-navy-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
         <Button type="submit" disabled={pending} className="h-11">
-          {pending ? "Confirming…" : "Confirm handover"}
+          {pending ? t("app.handover.confirming") : t("app.handover.confirmHandover")}
         </Button>
       </form>
       {state.error && <p className="mt-2 text-sm text-red-600">{state.error}</p>}

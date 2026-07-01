@@ -74,21 +74,21 @@ export default async function AdminDashboard() {
   const audit = buildAuditFeed({ bookings, verifications: allVerifications, reviews: getAllReviews() });
 
   return (
-    <PortalShell user={user} nav={adminNav} title="Admin & compliance">
+    <PortalShell user={user} nav={adminNav} title="admin.pageTitle">
       <div className="space-y-8">
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Host review" value={String(pending.length)} sub="verification queue" icon={ShieldAlert} tone="accent" />
-          <StatCard label="Live listings" value={String(liveCount)} sub={`${spaces.length} total`} icon={Warehouse} tone="brand" />
-          <StatCard label="GMV" value={formatMoney(gmv)} sub={`${formatMoney(platformRevenue)} platform`} icon={Banknote} tone="go" />
-          <StatCard label="Payouts due" value={formatMoney(payoutsDue)} sub="to hosts & operator" icon={Banknote} tone="navy" />
+          <StatCard label={t("admin.stat.hostReview")} value={String(pending.length)} sub={t("admin.stat.hostReviewSub")} icon={ShieldAlert} tone="accent" />
+          <StatCard label={t("admin.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("admin.total")}`} icon={Warehouse} tone="brand" />
+          <StatCard label={t("admin.stat.gmv")} value={formatMoney(gmv)} sub={`${formatMoney(platformRevenue)} ${t("admin.stat.gmvSub")}`} icon={Banknote} tone="go" />
+          <StatCard label={t("admin.stat.payoutsDue")} value={formatMoney(payoutsDue)} sub={t("admin.stat.payoutsDueSub")} icon={Banknote} tone="navy" />
         </div>
 
         {/* Host verification queue (driver/vehicle/insurance compliance sits with the operator) */}
         <section id="verification" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Host verification queue</h3>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.verificationQueue")}</h3>
           {pending.length === 0 ? (
-            <Card className="p-6 text-center text-navy-500">Queue clear — nothing awaiting review.</Card>
+            <Card className="p-6 text-center text-navy-500">{t("admin.queueClear")}</Card>
           ) : (
             <div className="space-y-4">
               {pending.map((v) => {
@@ -103,7 +103,7 @@ export default async function AdminDashboard() {
                           <StatusBadge status={v.status} />
                         </div>
                         <p className="mt-0.5 text-sm text-navy-500">
-                          Submitted {v.submittedAt ? formatDate(v.submittedAt) : "—"}
+                          {t("admin.submitted")} {v.submittedAt ? formatDate(v.submittedAt) : "—"}
                         </p>
                         <ul className="mt-3 flex flex-wrap gap-2">
                           {v.documents.map((d) => (
@@ -123,7 +123,7 @@ export default async function AdminDashboard() {
                           value="approved"
                           className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2 text-sm font-semibold text-white hover:bg-go-600"
                         >
-                          <CheckCircle2 className="h-4 w-4" /> Approve
+                          <CheckCircle2 className="h-4 w-4" /> {t("admin.approve")}
                         </button>
                         <button
                           type="submit"
@@ -131,7 +131,7 @@ export default async function AdminDashboard() {
                           value="rejected"
                           className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
                         >
-                          <XCircle className="h-4 w-4" /> Reject
+                          <XCircle className="h-4 w-4" /> {t("admin.reject")}
                         </button>
                       </form>
                     </div>
@@ -144,7 +144,7 @@ export default async function AdminDashboard() {
 
         {/* Transfer operator — API integration & monitoring (replaces driver verification) */}
         <section id="operator" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Transfer operator (API)</h3>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.operator")}</h3>
           <Card className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -161,28 +161,28 @@ export default async function AdminDashboard() {
                           <span className="relative inline-flex h-2 w-2 rounded-full bg-go-500" />
                         </span>
                       )}
-                      {operator.connected ? "Connected" : "Offline"}
+                      {operator.connected ? t("admin.connected") : t("admin.offline")}
                     </Badge>
                   </div>
                   <p className="text-sm text-navy-500">
-                    Independent licensed operator · integrated by API
+                    {t("admin.operatorSubtitle")}
                   </p>
                 </div>
               </div>
               <div className="flex gap-6 text-sm">
-                <Metric value={String(operator.activeJobs)} label="Active jobs" />
-                <Metric value={`${operator.slaMinutes}m`} label="Pickup SLA" />
-                <Metric value={`${operator.rating.toFixed(1)}★`} label="Rating" />
-                <Metric value={String(operator.handoversConfirmed)} label="Handovers" />
+                <Metric value={String(operator.activeJobs)} label={t("admin.metric.activeJobs")} />
+                <Metric value={`${operator.slaMinutes}m`} label={t("admin.metric.pickupSla")} />
+                <Metric value={`${operator.rating.toFixed(1)}★`} label={t("admin.metric.rating")} />
+                <Metric value={String(operator.handoversConfirmed)} label={t("admin.metric.handovers")} />
               </div>
             </div>
           </Card>
 
           <div className="mt-4">
-            <h4 className="mb-2 text-sm font-bold text-navy-700">Live jobs (from operator API)</h4>
+            <h4 className="mb-2 text-sm font-bold text-navy-700">{t("admin.liveJobs")}</h4>
             <Card className="divide-y divide-navy-100">
               {operatorJobs.length === 0 && (
-                <div className="p-6 text-center text-navy-500">No jobs from the operator.</div>
+                <div className="p-6 text-center text-navy-500">{t("admin.noJobs")}</div>
               )}
               {operatorJobs.map((job) => (
                 <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
@@ -192,7 +192,7 @@ export default async function AdminDashboard() {
                       <StatusBadge status={job.status} />
                       {job.handoverConfirmed && (
                         <Badge tone="go">
-                          <CheckCircle2 className="h-3 w-3" /> Handover
+                          <CheckCircle2 className="h-3 w-3" /> {t("admin.handover")}
                         </Badge>
                       )}
                     </div>
@@ -206,7 +206,7 @@ export default async function AdminDashboard() {
                   <div className="text-right text-sm">
                     {job.etaMinutes !== null ? (
                       <span className="inline-flex items-center gap-1 font-semibold text-navy-800">
-                        <Clock className="h-3.5 w-3.5" /> ETA {job.etaMinutes} min
+                        <Clock className="h-3.5 w-3.5" /> {t("admin.eta")} {job.etaMinutes} {t("admin.min")}
                       </span>
                     ) : (
                       <span className="text-navy-400">—</span>
@@ -216,8 +216,7 @@ export default async function AdminDashboard() {
               ))}
             </Card>
             <p className="mt-2 text-xs text-navy-400">
-              Driver, vehicle, licensing &amp; insurance compliance is held by the
-              operator and surfaced here via their API — ParkGo does not onboard drivers.
+              {t("admin.operatorNote")}
             </p>
           </div>
         </section>
@@ -225,7 +224,7 @@ export default async function AdminDashboard() {
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Trust scores */}
           <section className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">Trust &amp; quality scores</h3>
+            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.trustScores")}</h3>
             <Card className="divide-y divide-navy-100">
               {trustRows.map((row) => {
                 const band = trustBand(row.score.score);
@@ -233,7 +232,7 @@ export default async function AdminDashboard() {
                   <div key={row.type + row.name} className="flex items-center justify-between p-4">
                     <div>
                       <div className="font-semibold text-navy-900">{row.name}</div>
-                      <div className="text-xs text-navy-400">{row.type}</div>
+                      <div className="text-xs text-navy-400">{row.type === "Host" ? t("admin.hostType") : row.type}</div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="h-2 w-24 overflow-hidden rounded-full bg-navy-100">
@@ -253,7 +252,7 @@ export default async function AdminDashboard() {
 
           {/* Payments */}
           <section id="payments" className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">Payments &amp; payouts</h3>
+            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.payments")}</h3>
             <Card className="divide-y divide-navy-100">
               {payments.map((p) => (
                 <div key={p.id} className="p-4">
@@ -264,9 +263,9 @@ export default async function AdminDashboard() {
                     <StatusBadge status={p.payoutStatus} />
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-navy-400">
-                    <span>Platform {formatMoney(p.split.platform, p.currency)}</span>
-                    <span>Host {formatMoney(p.split.hostPayout, p.currency)}</span>
-                    <span>Driver {formatMoney(p.split.driverPayout, p.currency)}</span>
+                    <span>{t("admin.pay.platform")} {formatMoney(p.split.platform, p.currency)}</span>
+                    <span>{t("admin.pay.host")} {formatMoney(p.split.hostPayout, p.currency)}</span>
+                    <span>{t("admin.pay.driver")} {formatMoney(p.split.driverPayout, p.currency)}</span>
                     <span className="capitalize">· {p.method}</span>
                   </div>
                 </div>
@@ -278,9 +277,9 @@ export default async function AdminDashboard() {
         {/* Listings */}
         <section id="listings" className="scroll-mt-20">
           <div className="mb-3 flex items-center gap-2">
-            <h3 className="text-lg font-bold text-navy-900">Listings &amp; users</h3>
+            <h3 className="text-lg font-bold text-navy-900">{t("admin.section.listingsUsers")}</h3>
             {pendingListings > 0 && (
-              <Badge tone="accent">{pendingListings} awaiting review</Badge>
+              <Badge tone="accent">{pendingListings} {t("admin.awaitingReview")}</Badge>
             )}
           </div>
           <Card className="divide-y divide-navy-100">
@@ -307,7 +306,7 @@ export default async function AdminDashboard() {
                           value="approved"
                           className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Approve
+                          <CheckCircle2 className="h-3.5 w-3.5" /> {t("admin.approve")}
                         </button>
                         <button
                           type="submit"
@@ -315,7 +314,7 @@ export default async function AdminDashboard() {
                           value="rejected"
                           className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
                         >
-                          <XCircle className="h-3.5 w-3.5" /> Reject
+                          <XCircle className="h-3.5 w-3.5" /> {t("admin.reject")}
                         </button>
                       </form>
                     )}
@@ -329,7 +328,7 @@ export default async function AdminDashboard() {
         {/* Audit log */}
         <section id="audit" className="scroll-mt-20">
           <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
-            <ScrollText className="h-5 w-5 text-navy-500" /> Audit log
+            <ScrollText className="h-5 w-5 text-navy-500" /> {t("admin.section.audit")}
           </h3>
           <Card className="divide-y divide-navy-100">
             {audit.map((e, i) => (
@@ -340,8 +339,7 @@ export default async function AdminDashboard() {
             ))}
           </Card>
           <p className="mt-2 text-xs text-navy-400">
-            Every state change is append-only and immutable in live mode (see the
-            audit_log table + RLS).
+            {t("admin.auditNote")}
           </p>
         </section>
       </div>

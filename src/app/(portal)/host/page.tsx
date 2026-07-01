@@ -64,7 +64,7 @@ export default async function HostDashboard({
   const liveCount = spaces.filter((s) => s.status === "live").length;
 
   return (
-    <PortalShell user={user} nav={hostNav} title="Host dashboard">
+    <PortalShell user={user} nav={hostNav} title="host.pageTitle">
       <div className="space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

@@ -23,6 +23,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata } from "@/lib/seo";
 import { COMMISSION, SERVICE_FEE } from "@/lib/pricing";
 import { formatMoneyShort } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "Pricing",
@@ -41,44 +42,46 @@ const exampleTransfer = 2400;
 const exampleEv = 1000;
 const exampleTotal = exampleParking + exampleTransfer + exampleEv + SERVICE_FEE;
 
-const exampleLines = [
-  { icon: MapPin, label: "Verified parking", note: "host driveway near the terminal", amount: exampleParking },
-  { icon: CarTaxiFront, label: "Licensed transfer", note: "both ways, licensed driver", amount: exampleTransfer },
-  { icon: Zap, label: "EV charging", note: "optional top-up", amount: exampleEv },
-  { icon: Receipt, label: "Service fee", note: "flat platform fee", amount: SERVICE_FEE },
-];
+export default async function PricingPage() {
+  const { t } = await getI18n();
 
-const economics = [
-  {
-    icon: MapPin,
-    tone: "go" as const,
-    who: "Hosts",
-    commission: `~${parkingPct}%`,
-    line: "on parking & EV",
-    keep: `Keep ~${hostKeepPct}%`,
-    body: "Commission is taken per parking booking; EV charging revenue follows the same split because the host owns the charger.",
-  },
-  {
-    icon: CarTaxiFront,
-    tone: "accent" as const,
-    who: "Licensed transfer",
-    commission: "Included",
-    line: "in your bundle price",
-    keep: "No partner onboarding",
-    body: "The terminal transfer is provided by an independent, licensed and insured operator, integrated with ParkGo by API. There is no fleet to onboard — it is simply bundled into your one price.",
-  },
-  {
-    icon: Receipt,
-    tone: "brand" as const,
-    who: "Service fee",
-    commission: serviceFee,
-    line: "flat, per booking",
-    keep: "Shown at checkout",
-    body: "A small flat platform fee added once per booking. It is never hidden — travellers see it before they pay.",
-  },
-];
+  const exampleLines = [
+    { icon: MapPin, label: t("pricing.receipt.parking"), note: t("pricing.receipt.parkingNote"), amount: exampleParking },
+    { icon: CarTaxiFront, label: t("pricing.receipt.transfer"), note: t("pricing.receipt.transferNote"), amount: exampleTransfer },
+    { icon: Zap, label: t("pricing.receipt.ev"), note: t("pricing.receipt.evNote"), amount: exampleEv },
+    { icon: Receipt, label: t("pricing.receipt.fee"), note: t("pricing.receipt.feeNote"), amount: SERVICE_FEE },
+  ];
 
-export default function PricingPage() {
+  const economics = [
+    {
+      icon: MapPin,
+      tone: "go" as const,
+      who: t("pricing.econ.hosts.who"),
+      commission: `~${parkingPct}%`,
+      line: t("pricing.econ.hosts.line"),
+      keep: t("pricing.econ.hosts.keep").replace("{pct}", String(hostKeepPct)),
+      body: t("pricing.econ.hosts.body"),
+    },
+    {
+      icon: CarTaxiFront,
+      tone: "accent" as const,
+      who: t("pricing.econ.transfer.who"),
+      commission: t("pricing.econ.transfer.commission"),
+      line: t("pricing.econ.transfer.line"),
+      keep: t("pricing.econ.transfer.keep"),
+      body: t("pricing.econ.transfer.body"),
+    },
+    {
+      icon: Receipt,
+      tone: "brand" as const,
+      who: t("pricing.econ.fee.who"),
+      commission: serviceFee,
+      line: t("pricing.econ.fee.line"),
+      keep: t("pricing.econ.fee.keep"),
+      body: t("pricing.econ.fee.body"),
+    },
+  ];
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -86,21 +89,20 @@ export default function PricingPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-16 text-center lg:py-20">
           <Badge tone="go" className="mb-5">
-            <Sparkles className="h-3.5 w-3.5" /> Transparent by design
+            <Sparkles className="h-3.5 w-3.5" /> {t("pricing.hero.badge")}
           </Badge>
           <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-            One clear price. No surprises at the gate.
+            {t("pricing.hero.title")}
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            ParkGo bundles parking, a licensed transfer and EV charging into a single price with one
-            small, clearly shown service fee. Hosts earn on fair, transparent terms.
+            {t("pricing.hero.subtitle")}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/app" className={buttonVariants({ variant: "primary", size: "lg" })}>
-              Start a booking <ArrowRight className="h-4 w-4" />
+              {t("pricing.hero.ctaStart")} <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="#economics" className={buttonVariants({ variant: "outline", size: "lg" })}>
-              How the bundle adds up
+              {t("pricing.hero.ctaHow")}
             </Link>
           </div>
         </Container>
@@ -110,20 +112,19 @@ export default function PricingPage() {
       <Section>
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <Eyebrow>The bundle price</Eyebrow>
+            <Eyebrow>{t("pricing.bundle.eyebrow")}</Eyebrow>
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-              Four services, one price you can read in seconds
+              {t("pricing.bundle.title")}
             </h2>
             <p className="mt-4 text-navy-600">
-              Instead of three checkouts and a mental sum, ParkGo shows you a single total before you
-              pay. Here&apos;s how an indicative bundle breaks down.
+              {t("pricing.bundle.body")}
             </p>
             <ul className="mt-6 space-y-3 text-sm">
               {[
-                "Per-day parking from your chosen verified host",
-                "A licensed terminal transfer, both ways",
-                "Optional EV charging where the host offers it",
-                `A flat ${serviceFee} service fee, shown before you pay`,
+                t("pricing.bundle.point1"),
+                t("pricing.bundle.point2"),
+                t("pricing.bundle.point3"),
+                t("pricing.bundle.point4").replace("{fee}", serviceFee),
               ].map((p) => (
                 <li key={p} className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
@@ -138,7 +139,7 @@ export default function PricingPage() {
             <div className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-brand-600" />
               <span className="text-sm font-bold uppercase tracking-wide text-navy-500">
-                Indicative bundle
+                {t("pricing.receipt.label")}
               </span>
             </div>
             <dl className="mt-5 divide-y divide-navy-100">
@@ -160,14 +161,14 @@ export default function PricingPage() {
               ))}
             </dl>
             <div className="mt-5 flex items-center justify-between rounded-xl bg-go-50 px-4 py-3">
-              <span className="text-sm font-bold text-go-700">One price at checkout</span>
+              <span className="text-sm font-bold text-go-700">{t("pricing.receipt.total")}</span>
               <span className="text-2xl font-extrabold text-navy-900">
                 {formatMoneyShort(exampleTotal)}
               </span>
             </div>
             <p className="mt-3 flex items-start gap-1.5 text-xs text-navy-500">
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              Indicative example only. Your price depends on airport, dates and the add-ons you choose.
+              {t("pricing.receipt.disclaimer")}
             </p>
           </Card>
         </div>
@@ -176,13 +177,12 @@ export default function PricingPage() {
       {/* ------------------------------------------------------- Economics */}
       <Section className="bg-navy-50/50" id="economics">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>How the bundle adds up</Eyebrow>
+          <Eyebrow>{t("pricing.economics.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Fair economics, clearly explained
+            {t("pricing.economics.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            ParkGo takes a commission on parking and a small flat service fee. The licensed transfer is
-            included via an integrated operator. Everyone can see exactly where the money goes.
+            {t("pricing.economics.body")}
           </p>
         </div>
 
@@ -215,25 +215,25 @@ export default function PricingPage() {
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/hosts" className={buttonVariants({ variant: "primary" })}>
-            <MapPin className="h-4 w-4" /> Earn as a host
+            <MapPin className="h-4 w-4" /> {t("pricing.econ.ctaHost")}
           </Link>
           <Link href="/how-it-works" className={buttonVariants({ variant: "outline" })}>
-            <CarTaxiFront className="h-4 w-4" /> How the transfer works
+            <CarTaxiFront className="h-4 w-4" /> {t("pricing.econ.ctaTransfer")}
           </Link>
         </div>
 
         <p className="mx-auto mt-8 flex max-w-2xl items-start justify-center gap-1.5 text-center text-xs text-navy-500">
           <Percent className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Indicative commission of ~{parkingPct}% on parking. Rates are to be confirmed at launch.
+          {t("pricing.econ.note").replace("{pct}", String(parkingPct))}
         </p>
       </Section>
 
       {/* --------------------------------------- Corporate + referral */}
       <Section>
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>More ways to save</Eyebrow>
+          <Eyebrow>{t("pricing.more.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Built for teams and for sharing
+            {t("pricing.more.title")}
           </h2>
         </div>
 
@@ -243,17 +243,17 @@ export default function PricingPage() {
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                 <Building2 className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-bold text-navy-900">Corporate accounts</h3>
+              <h3 className="text-xl font-bold text-navy-900">{t("pricing.corporate.title")}</h3>
             </div>
             <p className="mt-3 text-navy-600">
-              Centralise travel for your team with one account, consolidated billing and priority support.
+              {t("pricing.corporate.body")}
             </p>
             <ul className="mt-5 space-y-3 text-sm">
               {[
-                "Monthly invoicing instead of per-trip cards",
-                "Centralised bookings across your travellers",
-                "Priority support for time-critical trips",
-                "Clear statements for easy expensing",
+                t("pricing.corporate.point1"),
+                t("pricing.corporate.point2"),
+                t("pricing.corporate.point3"),
+                t("pricing.corporate.point4"),
               ].map((p) => (
                 <li key={p} className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
@@ -262,7 +262,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <Link href="/contact" className={buttonVariants({ variant: "navy", className: "mt-6 w-full" })}>
-              Talk to us about teams <ArrowRight className="h-4 w-4" />
+              {t("pricing.corporate.cta")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
 
@@ -271,29 +271,26 @@ export default function PricingPage() {
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
                 <Gift className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-bold text-navy-900">Referral programme</h3>
+              <h3 className="text-xl font-bold text-navy-900">{t("pricing.referral.title")}</h3>
             </div>
             <p className="mt-3 text-navy-600">
-              Love ParkGo? Share it. When a friend takes their first trip, you both get rewarded.
+              {t("pricing.referral.body")}
             </p>
             <ul className="mt-5 space-y-3 text-sm">
               {[
-                "Share your personal referral link",
-                "Your friend gets a welcome reward",
-                "You&apos;re rewarded after their first completed trip",
-                "Refer as many people as you like",
+                t("pricing.referral.point1"),
+                t("pricing.referral.point2"),
+                t("pricing.referral.point3"),
+                t("pricing.referral.point4"),
               ].map((p) => (
                 <li key={p} className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
-                  <span
-                    className="text-navy-700"
-                    dangerouslySetInnerHTML={{ __html: p }}
-                  />
+                  <span className="text-navy-700">{p}</span>
                 </li>
               ))}
             </ul>
             <Link href="/travellers" className={buttonVariants({ variant: "accent", className: "mt-6 w-full" })}>
-              Start travelling <ArrowRight className="h-4 w-4" />
+              {t("pricing.referral.cta")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
         </div>
@@ -302,17 +299,17 @@ export default function PricingPage() {
       {/* --------------------------------------------------- What you get */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Included in every booking</Eyebrow>
+          <Eyebrow>{t("pricing.included.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            The price always includes the important parts
+            {t("pricing.included.title")}
           </h2>
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: ShieldCheck, tone: "go", title: "Verified people", body: "ID-checked hosts and licensed, insured drivers — always." },
-            { icon: Wallet, tone: "brand", title: "Secure payment", body: "One transparent checkout with the total shown up front." },
-            { icon: Banknote, tone: "accent", title: "No hidden fees", body: "The only platform fee is the flat service fee, shown before you pay." },
-            { icon: MapPin, tone: "navy", title: "Live travel day", body: "Live tracking, in-app camera and verified handovers at no extra cost." },
+            { icon: ShieldCheck, tone: "go", title: t("pricing.included.verified.title"), body: t("pricing.included.verified.body") },
+            { icon: Wallet, tone: "brand", title: t("pricing.included.secure.title"), body: t("pricing.included.secure.body") },
+            { icon: Banknote, tone: "accent", title: t("pricing.included.noFees.title"), body: t("pricing.included.noFees.body") },
+            { icon: MapPin, tone: "navy", title: t("pricing.included.live.title"), body: t("pricing.included.live.body") },
           ].map((f) => (
             <Card key={f.title} className="p-6">
               <div
@@ -342,15 +339,14 @@ export default function PricingPage() {
           <div className="mx-auto max-w-2xl">
             <CreditCard className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              See your price before you commit
+              {t("pricing.cta.title")}
             </h2>
             <p className="mt-3 text-brand-100">
-              Start a booking to get a single transparent total for your airport and dates — no account
-              required to look.
+              {t("pricing.cta.body")}
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link href="/app" className={buttonVariants({ variant: "white", size: "lg" })}>
-                Start a booking <ArrowRight className="h-4 w-4" />
+                {t("pricing.cta.start")} <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/how-it-works"
@@ -360,7 +356,7 @@ export default function PricingPage() {
                   className: "border-white/30 bg-white/10 text-white hover:bg-white/20",
                 })}
               >
-                How it works
+                {t("pricing.cta.how")}
               </Link>
             </div>
           </div>

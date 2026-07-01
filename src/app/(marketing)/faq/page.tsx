@@ -4,6 +4,7 @@ import { Section, Container, Eyebrow } from "@/components/ui/section";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata, SITE } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "FAQ",
@@ -12,101 +13,118 @@ export const metadata = pageMetadata({
   path: "/faq",
 });
 
-type Faq = { q: string; a: string };
-type FaqGroup = { category: string; items: Faq[] };
-
-const groups: FaqGroup[] = [
+// English source of truth for the FAQPage JSON-LD (kept in English for SEO,
+// regardless of the on-screen locale). The visible Q&A is rendered via t().
+const faqJsonLdSource: { q: string; a: string }[] = [
   {
-    category: "For travellers",
-    items: [
-      {
-        q: "What exactly is included in a ParkGo booking?",
-        a: "A ParkGo booking bundles a verified private parking space, a licensed terminal transfer (both ways), optional EV charging and live security — CCTV, an in-app camera and verified handovers — into one price and one checkout.",
-      },
-      {
-        q: "Is my car safe while I am away?",
-        a: "Yes. Hosts are ID-verified, spaces can include CCTV, and you can watch your parked car on a live in-app camera with a LIVE badge and timestamp. Both drop-off and collection use a verified, logged handover with a one-time code.",
-      },
-      {
-        q: "Are transfers run by ParkGo's own drivers?",
-        a: "No. ParkGo does not run a fleet or onboard drivers. Your terminal transfer is provided by an independent, licensed and insured operator, integrated with ParkGo by API. You still get the same experience — a bundled booking, live driver location and ETA, and a verified handover — powered by the operator's API.",
-      },
-      {
-        q: "What happens if my flight is delayed?",
-        a: "Your parking and your return transfer are tied to your trip, so a delay is handled gracefully — you will not lose your space or your ride home. If plans change significantly, you can manage your booking in the app.",
-      },
-      {
-        q: "Which airports does ParkGo cover?",
-        a: "We are launching at eight airports across the UK and Ireland: Heathrow, Gatwick, Stansted, Luton, Manchester, Birmingham, Edinburgh and Dublin — with more to follow. Join the waitlist to hear when we reach yours.",
-      },
-    ],
+    q: "What exactly is included in a ParkGo booking?",
+    a: "A ParkGo booking bundles a verified private parking space, a licensed terminal transfer (both ways), optional EV charging and live security — CCTV, an in-app camera and verified handovers — into one price and one checkout.",
   },
   {
-    category: "For hosts",
-    items: [
-      {
-        q: "Who can become a host?",
-        a: "Anyone with a legal right to rent out a suitable space near a launch airport — a driveway, yard or spare bay. You complete identity and address verification and a right-to-list declaration before your space can go live.",
-      },
-      {
-        q: "How much can I earn as a host?",
-        a: "You keep the large majority of every parking booking — indicatively around 80 to 85 percent, with EV charging revenue on top where you offer it. You set your own per-day price and availability. Figures are indicative and to be confirmed at launch.",
-      },
-      {
-        q: "How and when do I get paid?",
-        a: "Payouts are released after each completed booking and sent to the bank details you add during onboarding. Your bank details are encrypted and never shown to travellers, and you get clear statements for every booking.",
-      },
-    ],
+    q: "Is my car safe while I am away?",
+    a: "Yes. Hosts are ID-verified, spaces can include CCTV, and you can watch your parked car on a live in-app camera with a LIVE badge and timestamp. Both drop-off and collection use a verified, logged handover with a one-time code.",
   },
   {
-    category: "Payments & pricing",
-    items: [
-      {
-        q: "How does ParkGo pricing work?",
-        a: "Parking, the licensed transfer and EV charging are combined into a single transparent price, plus a small flat service fee of £2.99 that is always shown before you pay. There are no hidden extras.",
-      },
-      {
-        q: "How much commission does ParkGo take?",
-        a: "Indicatively around 18 percent on parking, plus the flat service fee, shown clearly in host payout statements. The terminal transfer is provided by an independent licensed operator and is included in your bundle price. Figures are indicative and to be confirmed.",
-      },
-      {
-        q: "Do you offer corporate accounts?",
-        a: "Yes. Corporate accounts add centralised bookings, monthly invoicing instead of per-trip cards, priority support and clear statements for expensing. Contact us to set your team up.",
-      },
-    ],
+    q: "Are transfers run by ParkGo's own drivers?",
+    a: "No. ParkGo does not run a fleet or onboard drivers. Your terminal transfer is provided by an independent, licensed and insured operator, integrated with ParkGo by API. You still get the same experience — a bundled booking, live driver location and ETA, and a verified handover — powered by the operator's API.",
   },
   {
-    category: "Security & languages",
-    items: [
-      {
-        q: "How does ParkGo protect my data?",
-        a: "We align with UK GDPR and ICO guidance: data minimisation, a lawful basis for every use, defined retention, and easy data-subject requests. Identity and bank documents are encrypted and stored separately, with audit logging and least-privilege access controls.",
-      },
-      {
-        q: "What does a verified handover mean?",
-        a: "At drop-off and collection, both parties confirm a one-time code in the app. Each confirmation is timestamped and written to an audit log, creating a clear chain of custody for your vehicle.",
-      },
-      {
-        q: "What languages is ParkGo available in?",
-        a: "ParkGo launches in four languages across the UK and Ireland, with more planned. You can switch language at any time from the site header.",
-      },
-    ],
+    q: "What happens if my flight is delayed?",
+    a: "Your parking and your return transfer are tied to your trip, so a delay is handled gracefully — you will not lose your space or your ride home. If plans change significantly, you can manage your booking in the app.",
+  },
+  {
+    q: "Which airports does ParkGo cover?",
+    a: "We are launching at eight airports across the UK and Ireland: Heathrow, Gatwick, Stansted, Luton, Manchester, Birmingham, Edinburgh and Dublin — with more to follow. Join the waitlist to hear when we reach yours.",
+  },
+  {
+    q: "Who can become a host?",
+    a: "Anyone with a legal right to rent out a suitable space near a launch airport — a driveway, yard or spare bay. You complete identity and address verification and a right-to-list declaration before your space can go live.",
+  },
+  {
+    q: "How much can I earn as a host?",
+    a: "You keep the large majority of every parking booking — indicatively around 80 to 85 percent, with EV charging revenue on top where you offer it. You set your own per-day price and availability. Figures are indicative and to be confirmed at launch.",
+  },
+  {
+    q: "How and when do I get paid?",
+    a: "Payouts are released after each completed booking and sent to the bank details you add during onboarding. Your bank details are encrypted and never shown to travellers, and you get clear statements for every booking.",
+  },
+  {
+    q: "How does ParkGo pricing work?",
+    a: "Parking, the licensed transfer and EV charging are combined into a single transparent price, plus a small flat service fee of £2.99 that is always shown before you pay. There are no hidden extras.",
+  },
+  {
+    q: "How much commission does ParkGo take?",
+    a: "Indicatively around 18 percent on parking, plus the flat service fee, shown clearly in host payout statements. The terminal transfer is provided by an independent licensed operator and is included in your bundle price. Figures are indicative and to be confirmed.",
+  },
+  {
+    q: "Do you offer corporate accounts?",
+    a: "Yes. Corporate accounts add centralised bookings, monthly invoicing instead of per-trip cards, priority support and clear statements for expensing. Contact us to set your team up.",
+  },
+  {
+    q: "How does ParkGo protect my data?",
+    a: "We align with UK GDPR and ICO guidance: data minimisation, a lawful basis for every use, defined retention, and easy data-subject requests. Identity and bank documents are encrypted and stored separately, with audit logging and least-privilege access controls.",
+  },
+  {
+    q: "What does a verified handover mean?",
+    a: "At drop-off and collection, both parties confirm a one-time code in the app. Each confirmation is timestamped and written to an audit log, creating a clear chain of custody for your vehicle.",
+  },
+  {
+    q: "What languages is ParkGo available in?",
+    a: "ParkGo launches in four languages across the UK and Ireland, with more planned. You can switch language at any time from the site header.",
   },
 ];
 
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: groups.flatMap((g) =>
-    g.items.map((item) => ({
-      "@type": "Question",
-      name: item.q,
-      acceptedAnswer: { "@type": "Answer", text: item.a },
-    }))
-  ),
+  mainEntity: faqJsonLdSource.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
 };
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const { t } = await getI18n();
+
+  // Visible Q&A, translated via t(). JSON-LD above stays English for SEO.
+  const groups: { category: string; items: { q: string; a: string }[] }[] = [
+    {
+      category: t("faq.cat.travellers"),
+      items: [
+        { q: t("faq.t1.q"), a: t("faq.t1.a") },
+        { q: t("faq.t2.q"), a: t("faq.t2.a") },
+        { q: t("faq.t3.q"), a: t("faq.t3.a") },
+        { q: t("faq.t4.q"), a: t("faq.t4.a") },
+        { q: t("faq.t5.q"), a: t("faq.t5.a") },
+      ],
+    },
+    {
+      category: t("faq.cat.hosts"),
+      items: [
+        { q: t("faq.h1.q"), a: t("faq.h1.a") },
+        { q: t("faq.h2.q"), a: t("faq.h2.a") },
+        { q: t("faq.h3.q"), a: t("faq.h3.a") },
+      ],
+    },
+    {
+      category: t("faq.cat.payments"),
+      items: [
+        { q: t("faq.p1.q"), a: t("faq.p1.a") },
+        { q: t("faq.p2.q"), a: t("faq.p2.a") },
+        { q: t("faq.p3.q"), a: t("faq.p3.a") },
+      ],
+    },
+    {
+      category: t("faq.cat.security"),
+      items: [
+        { q: t("faq.s1.q"), a: t("faq.s1.a") },
+        { q: t("faq.s2.q"), a: t("faq.s2.a") },
+        { q: t("faq.s3.q"), a: t("faq.s3.a") },
+      ],
+    },
+  ];
+
   return (
     <>
       <script
@@ -119,14 +137,13 @@ export default function FaqPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-16 text-center lg:py-20">
           <Badge tone="brand" className="mb-5">
-            <HelpCircle className="h-3.5 w-3.5" /> Frequently asked questions
+            <HelpCircle className="h-3.5 w-3.5" /> {t("faq.hero.badge")}
           </Badge>
           <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-            Everything you wanted to ask about ParkGo
+            {t("faq.hero.title")}
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            Answers for travellers and hosts. Can&apos;t find what you need? Our team is
-            one message away.
+            {t("faq.hero.subtitle")}
           </p>
         </Container>
       </section>
@@ -163,15 +180,14 @@ export default function FaqPage() {
           <div className="mx-auto max-w-2xl">
             <MessageCircle className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Still have a question?
+              {t("faq.cta.title")}
             </h2>
             <p className="mt-3 text-brand-100">
-              We&apos;re happy to help with anything about bookings, hosting, partnering or your data. Send
-              us a message and we&apos;ll get back to you.
+              {t("faq.cta.body")}
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link href="/contact" className={buttonVariants({ variant: "white", size: "lg" })}>
-                Contact us <ArrowRight className="h-4 w-4" />
+                {t("faq.cta.contact")} <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/how-it-works"
@@ -181,7 +197,7 @@ export default function FaqPage() {
                   className: "border-white/30 bg-white/10 text-white hover:bg-white/20",
                 })}
               >
-                How it works
+                {t("faq.cta.how")}
               </Link>
             </div>
             <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-200">

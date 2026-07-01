@@ -28,6 +28,7 @@ import {
 import { resolveStream } from "@/lib/services/camera";
 import { getOperatorJob } from "@/lib/services/transfer-operator";
 import { projectToViewport } from "@/lib/services/maps";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 /** Deterministic mock EV charge level for the demo. */
@@ -41,6 +42,7 @@ export const metadata: Metadata = pageMetadata({ title: "Live", path: "/app/book
 
 export default async function TrackPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireRole("traveller");
+  const { t } = await getI18n();
   const { id } = await params;
   const booking = getBooking(id);
   if (!booking || booking.travellerId !== user.id) notFound();
@@ -81,7 +83,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
             </p>
           </div>
           <Link href={`/app/booking/${booking.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-            Booking &amp; QR
+            {t("app.track.bookingQr")}
           </Link>
         </div>
 
@@ -94,12 +96,12 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-go-500 opacity-75" />
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-go-500" />
                 </span>
-                Live location
+                {t("app.track.liveLocation")}
               </h3>
               <LiveMap
                 showDriver={driverActive}
-                space={{ x: sPos.x * 100, y: sPos.y * 100, label: "Your car" }}
-                terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? "Terminal" }}
+                space={{ x: sPos.x * 100, y: sPos.y * 100, label: t("app.track.yourCar") }}
+                terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? t("app.track.terminal") }}
                 className="h-72"
               />
             </div>
@@ -113,15 +115,15 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                     </div>
                     <div>
                       <div className="font-bold text-navy-900">
-                        {driver?.name ?? "Driver assigning…"}
+                        {driver?.name ?? t("app.track.driverAssigning")}
                       </div>
                       <div className="text-sm text-navy-500">
-                        Licensed driver · {provider?.companyName}
+                        {t("app.track.licensedDriver")} · {provider?.companyName}
                         {vehicle ? ` · ${vehicle.colour} ${vehicle.make} ${vehicle.reg}` : ""}
                       </div>
                       {driverActive && opJob?.etaMinutes != null && (
                         <div className="mt-0.5 text-sm font-semibold text-go-600">
-                          {opJob.etaMinutes} min away
+                          {opJob.etaMinutes} {t("app.track.minAway")}
                         </div>
                       )}
                     </div>
@@ -137,13 +139,12 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                   href="tel:+447700900789"
                   className={buttonVariants({ variant: "outline", size: "sm", className: "mt-3 w-full" })}
                 >
-                  <Phone className="h-4 w-4" /> Call driver
+                  <Phone className="h-4 w-4" /> {t("common.callDriver")}
                 </a>
               </Card>
             ) : (
               <Card className="p-4 text-sm text-navy-500">
-                No transfer on this booking. Add one next time at checkout for
-                door-to-terminal pickup.
+                {t("app.track.noTransfer")}
               </Card>
             )}
           </div>
@@ -152,13 +153,13 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 flex items-center gap-2 font-bold text-navy-900">
-                <CameraIcon className="h-4 w-4 text-brand-600" /> Live camera
+                <CameraIcon className="h-4 w-4 text-brand-600" /> {t("app.track.liveCamera")}
               </h3>
               {space.liveCamera && stream ? (
                 <CameraView label={stream.label} protocol={stream.protocol} className="aspect-video" />
               ) : (
                 <Card className="flex aspect-video items-center justify-center text-center text-sm text-navy-500">
-                  This space has CCTV but no in-app live camera.
+                  {t("app.track.noLiveCamera")}
                 </Card>
               )}
             </div>
@@ -170,8 +171,8 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                     <Zap className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="font-bold text-navy-900">EV charging · {evPercent}%</div>
-                    <div className="text-sm text-navy-500">Topping up while you fly</div>
+                    <div className="font-bold text-navy-900">{t("app.track.evCharging")} · {evPercent}%</div>
+                    <div className="text-sm text-navy-500">{t("app.track.toppingUp")}</div>
                   </div>
                 </div>
                 <div className="hidden w-28 sm:block">
@@ -201,7 +202,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
         )}
         {booking.status === "reviewed" && (
           <div className="mx-auto flex max-w-xl items-center gap-2 rounded-2xl border border-go-200 bg-go-50 p-5 font-semibold text-go-700">
-            <Star className="h-5 w-5 fill-current" /> Thanks — you&apos;ve reviewed this trip.
+            <Star className="h-5 w-5 fill-current" /> {t("app.track.reviewedThanks")}
           </div>
         )}
       </div>

@@ -3,6 +3,11 @@ import type { AreaDict } from "@/lib/i18n/config";
 // Traveller portal (search, space, checkout, booking, track). Keys namespaced "app.*".
 export const portalTraveller: AreaDict = {
   en: {
+    // Page titles (portal shell header)
+    "app.checkout.title": "Checkout",
+    "app.booking.title": "Booking",
+    "app.track.title": "Live travel day",
+
     // Dashboard
     "app.dash.welcome": "Welcome back,",
     "app.dash.sub": "Find a space or jump back into a trip.",
@@ -142,6 +147,11 @@ export const portalTraveller: AreaDict = {
   },
 
   ur: {
+    // Page titles (portal shell header)
+    "app.checkout.title": "چیک آؤٹ",
+    "app.booking.title": "بکنگ",
+    "app.track.title": "لائیو سفر کا دن",
+
     // Dashboard
     "app.dash.welcome": "واپسی پر خوش آمدید،",
     "app.dash.sub": "کوئی جگہ تلاش کریں یا کسی سفر میں واپس جائیں۔",
@@ -281,6 +291,11 @@ export const portalTraveller: AreaDict = {
   },
 
   hi: {
+    // Page titles (portal shell header)
+    "app.checkout.title": "चेकआउट",
+    "app.booking.title": "बुकिंग",
+    "app.track.title": "लाइव यात्रा दिवस",
+
     // Dashboard
     "app.dash.welcome": "वापसी पर स्वागत है,",
     "app.dash.sub": "कोई स्थान खोजें या किसी यात्रा में वापस जाएं।",
@@ -420,6 +435,11 @@ export const portalTraveller: AreaDict = {
   },
 
   de: {
+    // Page titles (portal shell header)
+    "app.checkout.title": "Checkout",
+    "app.booking.title": "Buchung",
+    "app.track.title": "Live-Reisetag",
+
     // Dashboard
     "app.dash.welcome": "Willkommen zurück,",
     "app.dash.sub": "Finden Sie einen Platz oder setzen Sie eine Reise fort.",
@@ -559,6 +579,11 @@ export const portalTraveller: AreaDict = {
   },
 
   zh: {
+    // Page titles (portal shell header)
+    "app.checkout.title": "结账",
+    "app.booking.title": "预订",
+    "app.track.title": "实时出行日",
+
     // Dashboard
     "app.dash.welcome": "欢迎回来，",
     "app.dash.sub": "查找车位或返回某段行程。",

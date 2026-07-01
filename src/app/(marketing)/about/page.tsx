@@ -20,6 +20,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { pageMetadata } from "@/lib/seo";
 import { initials } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "About & team",
@@ -27,20 +28,6 @@ export const metadata = pageMetadata({
     "ParkGo is on a mission to make airport access seamless across the UK & Ireland — bundling parking, licensed transfers, EV charging and live security into one trusted booking. Meet the team building it.",
   path: "/about",
 });
-
-const values = [
-  { icon: ShieldCheck, tone: "go" as const, title: "Trust first", body: "Verification, visibility and clear records sit at the heart of every decision we make." },
-  { icon: Layers, tone: "brand" as const, title: "Genuinely integrated", body: "One booking, one price, one app — we refuse to ship another disconnected experience." },
-  { icon: Heart, tone: "accent" as const, title: "Human by default", body: "Multilingual, accessible and supportive. Travel is stressful enough already." },
-  { icon: Globe2, tone: "navy" as const, title: "Open & fair", body: "Transparent pricing for travellers and fair, configurable economics for hosts and partners." },
-];
-
-const team = [
-  { name: "Alex Morgan", role: "Founder & CEO", tone: "brand" as const },
-  { name: "Priya Shah", role: "Head of Product", tone: "go" as const },
-  { name: "Daniel Okoye", role: "Head of Engineering", tone: "accent" as const },
-  { name: "Sofia Lindqvist", role: "Trust & Safety Lead", tone: "navy" as const },
-];
 
 function avatarClasses(tone: "brand" | "go" | "accent" | "navy") {
   switch (tone) {
@@ -55,7 +42,23 @@ function avatarClasses(tone: "brand" | "go" | "accent" | "navy") {
   }
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { t } = await getI18n();
+
+  const values = [
+    { icon: ShieldCheck, tone: "go" as const, title: t("about.value.trust.title"), body: t("about.value.trust.body") },
+    { icon: Layers, tone: "brand" as const, title: t("about.value.integrated.title"), body: t("about.value.integrated.body") },
+    { icon: Heart, tone: "accent" as const, title: t("about.value.human.title"), body: t("about.value.human.body") },
+    { icon: Globe2, tone: "navy" as const, title: t("about.value.fair.title"), body: t("about.value.fair.body") },
+  ];
+
+  const team = [
+    { name: "Alex Morgan", role: t("about.team.role.ceo"), tone: "brand" as const },
+    { name: "Priya Shah", role: t("about.team.role.product"), tone: "go" as const },
+    { name: "Daniel Okoye", role: t("about.team.role.engineering"), tone: "accent" as const },
+    { name: "Sofia Lindqvist", role: t("about.team.role.trust"), tone: "navy" as const },
+  ];
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -63,14 +66,13 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-16 text-center lg:py-20">
           <Badge tone="brand" className="mb-5">
-            <Sparkles className="h-3.5 w-3.5" /> About ParkGo
+            <Sparkles className="h-3.5 w-3.5" /> {t("about.badge")}
           </Badge>
           <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-            Making airport access seamless for the UK &amp; Ireland
+            {t("about.hero.title")}
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            ParkGo brings parking, licensed transfers, EV charging and live security into one trusted
-            booking — so getting to your flight is the easy part of the trip.
+            {t("about.hero.subtitle")}
           </p>
         </Container>
       </section>
@@ -78,15 +80,12 @@ export default function AboutPage() {
       {/* ----------------------------------------------------------- Mission */}
       <Section>
         <div className="mx-auto max-w-3xl text-center">
-          <Eyebrow>Our mission</Eyebrow>
+          <Eyebrow>{t("about.mission.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Integrated airport access, built on trust
+            {t("about.mission.title")}
           </h2>
           <p className="mt-5 text-lg text-navy-600">
-            We believe getting to the airport should be as well designed as the flight itself. Our
-            mission is to connect verified hosts, an independent licensed transfer operator and
-            travellers in a single, transparent journey — across the UK &amp; Ireland and in your
-            language.
+            {t("about.mission.body")}
           </p>
         </div>
       </Section>
@@ -98,17 +97,15 @@ export default function AboutPage() {
             <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
               <TriangleAlert className="h-5 w-5" />
             </div>
-            <h3 className="mt-4 text-xl font-bold text-navy-900">The problem</h3>
+            <h3 className="mt-4 text-xl font-bold text-navy-900">{t("about.problem.title")}</h3>
             <p className="mt-3 text-navy-600">
-              Airport travel is fragmented. You book parking on one site, a transfer on another, hunt for
-              EV charging separately, and just hope your car is safe while you&apos;re away. Prices are
-              opaque, shuttles are slow, and there&apos;s no real visibility on the day it matters.
+              {t("about.problem.body")}
             </p>
             <ul className="mt-5 space-y-2 text-sm text-navy-600">
               {[
-                "Multiple bookings, multiple prices",
-                "No clear view of where your car or driver is",
-                "Limited trust and patchy verification",
+                t("about.problem.point1"),
+                t("about.problem.point2"),
+                t("about.problem.point3"),
               ].map((p) => (
                 <li key={p} className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent-400" /> {p}
@@ -121,17 +118,15 @@ export default function AboutPage() {
             <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
               <Compass className="h-5 w-5" />
             </div>
-            <h3 className="mt-4 text-xl font-bold text-navy-900">Our approach</h3>
+            <h3 className="mt-4 text-xl font-bold text-navy-900">{t("about.approach.title")}</h3>
             <p className="mt-3 text-navy-600">
-              ParkGo bundles the whole journey into one checkout, then makes it visible and verifiable.
-              Verified hosts, licensed drivers, a single transparent price, and live tracking with an
-              in-app camera and verified handovers from start to finish.
+              {t("about.approach.body")}
             </p>
             <ul className="mt-5 space-y-2 text-sm text-navy-600">
               {[
-                "One booking, one price, one app",
-                "Two-sided verification and trust scoring",
-                "Live tracking, camera and verified handovers",
+                t("about.approach.point1"),
+                t("about.approach.point2"),
+                t("about.approach.point3"),
               ].map((p) => (
                 <li key={p} className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-go-500" /> {p}
@@ -145,9 +140,9 @@ export default function AboutPage() {
       {/* ------------------------------------------------------------ Values */}
       <Section>
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>What we value</Eyebrow>
+          <Eyebrow>{t("about.values.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            The principles behind the product
+            {t("about.values.title")}
           </h2>
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -176,13 +171,12 @@ export default function AboutPage() {
       {/* -------------------------------------------------------------- Team */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Our team</Eyebrow>
+          <Eyebrow>{t("about.team.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            The people building ParkGo
+            {t("about.team.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            A small, focused team obsessed with trust, design and getting travellers to their flight
-            without the stress.
+            {t("about.team.body")}
           </p>
         </div>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -202,9 +196,9 @@ export default function AboutPage() {
           ))}
         </div>
         <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-sm text-navy-500">
-          <Users className="h-4 w-4" /> We&apos;re growing — see open roles on our{" "}
+          <Users className="h-4 w-4" /> {t("about.team.growing")}{" "}
           <Link href="/contact" className="font-semibold text-brand-600 hover:text-brand-700">
-            contact page
+            {t("about.team.contactPage")}
           </Link>
           .
         </p>
@@ -214,10 +208,10 @@ export default function AboutPage() {
       <Section>
         <div className="grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: Target, k: "1 mission", v: "Seamless airport access" },
-            { icon: Globe2, k: "UK & Ireland", v: "Where we&apos;re launching first" },
-            { icon: Handshake, k: "3 sides", v: "Travellers, hosts & partners" },
-            { icon: Lightbulb, k: "Built to trust", v: "Verification at every step" },
+            { icon: Target, k: t("about.vision.mission.k"), v: t("about.vision.mission.v") },
+            { icon: Globe2, k: t("about.vision.region.k"), v: t("about.vision.region.v") },
+            { icon: Handshake, k: t("about.vision.sides.k"), v: t("about.vision.sides.v") },
+            { icon: Lightbulb, k: t("about.vision.trust.k"), v: t("about.vision.trust.v") },
           ].map((s) => (
             <div key={s.v}>
               <s.icon className="mx-auto mb-3 h-7 w-7 text-go-300" />
@@ -238,11 +232,10 @@ export default function AboutPage() {
           <div className="mx-auto max-w-2xl">
             <Sparkles className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Come along for the journey
+              {t("about.waitlist.title")}
             </h2>
             <p className="mt-3 text-brand-100">
-              We&apos;re building ParkGo in the open and launching airport by airport. Join the waitlist
-              and grow with us.
+              {t("about.waitlist.body")}
             </p>
             <div className="mx-auto mt-7 max-w-lg">
               <WaitlistForm dark />
@@ -255,7 +248,7 @@ export default function AboutPage() {
                   className: "border-white/30 bg-white/10 text-white hover:bg-white/20",
                 })}
               >
-                See how it works <ArrowRight className="h-4 w-4" />
+                {t("about.waitlist.cta")} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
