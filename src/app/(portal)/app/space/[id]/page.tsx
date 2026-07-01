@@ -25,6 +25,7 @@ import { getAirport, getHost, getReviewsForSpace, getSpace, getUser } from "@/li
 import { priceBundle } from "@/lib/pricing";
 import { projectToViewport } from "@/lib/services/maps";
 import { daysBetween, formatDate, formatMoneyShort, initials } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Space", path: "/app/space", noindex: true });
@@ -37,6 +38,7 @@ export default async function SpaceDetail({
   searchParams: Promise<{ from?: string; to?: string; ev?: string; transfer?: string }>;
 }) {
   const user = await requireRole("traveller");
+  const { t } = await getI18n();
   const { id } = await params;
   const sp = await searchParams;
   const space = getSpace(id);
@@ -81,7 +83,7 @@ export default async function SpaceDetail({
     <PortalShell user={user} nav={travellerNav} title={space.title}>
       <div className="mx-auto max-w-5xl space-y-6">
         <Link href="/app/search" className="text-sm font-semibold text-brand-600">
-          ← Back to results
+          ← {t("common.backToResults")}
         </Link>
 
         {/* Gallery */}
@@ -104,17 +106,17 @@ export default async function SpaceDetail({
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-navy-900">
-                Hosted by {hostUser?.name ?? host?.displayName}
+                {t("app.space.hostedBy")} {hostUser?.name ?? host?.displayName}
               </span>
               {host?.verificationStatus === "approved" && (
                 <Badge tone="go">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Verified host
+                  <BadgeCheck className="h-3.5 w-3.5" /> {t("app.space.verifiedHost")}
                 </Badge>
               )}
             </div>
             <p className="text-sm text-navy-500">
               {host?.displayName}
-              {host ? ` · host since ${formatDate(host.joinedAt)}` : ""}
+              {host ? ` · ${t("app.space.hostSince")} ${formatDate(host.joinedAt)}` : ""}
             </p>
             {host?.bio && <p className="mt-2 text-sm text-navy-600">{host.bio}</p>}
           </div>
@@ -127,7 +129,7 @@ export default async function SpaceDetail({
                 <h2 className="text-2xl font-extrabold text-navy-900">{space.title}</h2>
                 {host?.verificationStatus === "approved" && (
                   <Badge tone="go">
-                    <BadgeCheck className="h-3.5 w-3.5" /> Verified host
+                    <BadgeCheck className="h-3.5 w-3.5" /> {t("app.space.verifiedHost")}
                   </Badge>
                 )}
               </div>
@@ -140,54 +142,54 @@ export default async function SpaceDetail({
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge tone="navy">
-                  <Clock className="h-3 w-3" /> {space.driveMinutes} min to terminal
+                  <Clock className="h-3 w-3" /> {space.driveMinutes} {t("app.space.minToTerminal")}
                 </Badge>
                 {(space.cctv || space.liveCamera) && (
                   <Badge tone="go">
-                    <ShieldCheck className="h-3 w-3" /> CCTV monitored
+                    <ShieldCheck className="h-3 w-3" /> {t("app.space.cctvMonitored")}
                   </Badge>
                 )}
                 {space.evCharger && (
                   <Badge tone="brand">
-                    <Zap className="h-3 w-3" /> EV charging
+                    <Zap className="h-3 w-3" /> {t("app.space.evCharging")}
                   </Badge>
                 )}
                 <Badge tone="accent">
-                  <CarTaxiFront className="h-3 w-3" /> Transfer available
+                  <CarTaxiFront className="h-3 w-3" /> {t("app.space.transferAvailable")}
                 </Badge>
               </div>
             </div>
 
             {/* Features */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Feature icon={Clock} label={`${space.driveMinutes} min`} sub="to terminal" />
-              <Feature icon={Car} label={`Fits ${space.maxVehicleSize}`} sub={`${space.dimensions.lengthM}×${space.dimensions.widthM}m`} />
+              <Feature icon={Clock} label={`${space.driveMinutes} ${t("app.space.min")}`} sub={t("app.space.toTerminal")} />
+              <Feature icon={Car} label={`${t("app.space.fits")} ${space.maxVehicleSize}`} sub={`${space.dimensions.lengthM}×${space.dimensions.widthM}m`} />
               <Feature
                 icon={space.evCharger ? Zap : ShieldCheck}
-                label={space.evCharger ? `${space.evCharger.kw}kW EV` : space.cctv ? "CCTV" : "Secure"}
-                sub={space.evCharger ? space.evCharger.connector : "monitored"}
+                label={space.evCharger ? `${space.evCharger.kw}${t("app.space.evKw")}` : space.cctv ? t("app.space.cctv") : t("app.space.secure")}
+                sub={space.evCharger ? space.evCharger.connector : t("app.space.monitored")}
               />
-              <Feature icon={Camera} label={space.liveCamera ? "Live camera" : "CCTV"} sub={space.liveCamera ? "in-app" : "on site"} />
+              <Feature icon={Camera} label={space.liveCamera ? t("app.space.liveCamera") : t("app.space.cctv")} sub={space.liveCamera ? t("app.space.inApp") : t("app.space.onSite")} />
             </div>
 
             <Card className="p-5">
               <h3 className="flex items-center gap-2 font-bold text-navy-900">
-                <Ruler className="h-4 w-4 text-brand-600" /> Access &amp; rules
+                <Ruler className="h-4 w-4 text-brand-600" /> {t("app.space.accessRules")}
               </h3>
               <p className="mt-2 text-sm text-navy-600">{space.accessRules}</p>
               <p className="mt-3 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-500">
                 <ShieldCheck className="mr-1 inline h-3.5 w-3.5" />
-                The exact address and host contact are shared only after payment.
+                {t("app.space.releasedNote")}
               </p>
             </Card>
 
             {/* Map */}
             <div>
-              <h3 className="mb-2 font-bold text-navy-900">Location</h3>
+              <h3 className="mb-2 font-bold text-navy-900">{t("app.space.location")}</h3>
               <LiveMap
                 showDriver={false}
-                space={{ x: sPos.x * 100, y: sPos.y * 100, label: "Your space" }}
-                terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? "Terminal" }}
+                space={{ x: sPos.x * 100, y: sPos.y * 100, label: t("app.space.yourSpace") }}
+                terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? t("app.space.terminal") }}
                 className="h-64"
               />
             </div>
@@ -195,10 +197,10 @@ export default async function SpaceDetail({
             {/* Reviews */}
             <div>
               <h3 className="mb-3 font-bold text-navy-900">
-                Reviews ({reviews.length})
+                {t("app.space.reviews")} ({reviews.length})
               </h3>
               {reviews.length === 0 ? (
-                <p className="text-sm text-navy-500">No reviews yet — be the first.</p>
+                <p className="text-sm text-navy-500">{t("app.space.noReviews")}</p>
               ) : (
                 <div className="space-y-3">
                   {reviews.map((r) => {
@@ -207,7 +209,7 @@ export default async function SpaceDetail({
                       <Card key={r.id} className="p-4">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-navy-900">
-                            {author?.name ?? "Traveller"}
+                            {author?.name ?? t("app.space.traveller")}
                           </span>
                           <Stars rating={r.rating} />
                         </div>
@@ -229,27 +231,27 @@ export default async function SpaceDetail({
                   {formatMoneyShort(priceTotal, currency)}
                 </span>
                 <span className="text-navy-500">
-                  total · {nights} {nights === 1 ? "day" : "days"}
+                  {t("common.total")} · {nights} {nights === 1 ? t("common.day") : t("common.days")}
                 </span>
               </div>
               <div className="mt-1 flex items-center justify-between">
                 <span className="text-sm text-navy-500">
-                  {formatMoneyShort(space.pricePerDay, currency)} / day
+                  {formatMoneyShort(space.pricePerDay, currency)} {t("common.perDay")}
                 </span>
                 <Stars rating={space.rating} count={space.reviewCount} />
               </div>
               <Link href={bookHref} className={buttonVariants({ size: "lg", className: "mt-4 w-full" })}>
-                Book this space
+                {t("common.bookSpace")}
               </Link>
               <ul className="mt-4 space-y-2 text-sm text-navy-600">
                 <li className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-go-500" /> Free cancellation window
+                  <BadgeCheck className="h-4 w-4 text-go-500" /> {t("app.space.freeCancellation")}
                 </li>
                 <li className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-go-500" /> Verified &amp; insured host
+                  <ShieldCheck className="h-4 w-4 text-go-500" /> {t("app.space.verifiedInsured")}
                 </li>
                 <li className="flex items-center gap-2">
-                  <Camera className="h-4 w-4 text-go-500" /> {space.liveCamera ? "Live camera in-app" : "CCTV monitored"}
+                  <Camera className="h-4 w-4 text-go-500" /> {space.liveCamera ? t("app.space.liveCameraInApp") : t("app.space.cctvMonitoredShort")}
                 </li>
               </ul>
             </div>

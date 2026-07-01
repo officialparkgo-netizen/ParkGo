@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { DEMO_LOGINS } from "@/lib/auth";
 import { loginAs } from "@/lib/auth-actions";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -27,6 +28,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
+  const { t } = await getI18n();
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-navy-50/70 to-white">
@@ -36,7 +38,7 @@ export default async function LoginPage({
           href="/"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-600 hover:text-navy-900"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to site
+          <ArrowLeft className="h-4 w-4" /> {t("nav.backToSite")}
         </Link>
       </div>
 
@@ -44,14 +46,13 @@ export default async function LoginPage({
         <div className="w-full max-w-2xl">
           <div className="text-center">
             <Badge tone="go" className="mb-3">
-              Demo mode
+              {t("login.demoMode")}
             </Badge>
             <h1 className="text-3xl font-extrabold tracking-tight text-navy-900">
-              Choose a role to explore
+              {t("login.chooseRole")}
             </h1>
             <p className="mt-2 text-navy-600">
-              ParkGo runs fully in mock mode — pick any demo account below. No
-              password needed. Each role sees only its own data.
+              {t("login.blurbIntro")}
             </p>
           </div>
 
@@ -66,8 +67,8 @@ export default async function LoginPage({
                       <Icon className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="font-bold text-navy-900">{demo.label}</h2>
-                      <p className="text-sm text-navy-500">{demo.blurb}</p>
+                      <h2 className="font-bold text-navy-900">{t(`login.role.${demo.role}`)}</h2>
+                      <p className="text-sm text-navy-500">{t(`login.blurb.${demo.role}`)}</p>
                     </div>
                   </div>
                   <form action={action} className="mt-4">
@@ -78,7 +79,7 @@ export default async function LoginPage({
                         className: "w-full",
                       })}
                     >
-                      Enter as {demo.label} <ArrowRight className="h-4 w-4" />
+                      {t("login.enterAs")} {t(`login.role.${demo.role}`)} <ArrowRight className="h-4 w-4" />
                     </button>
                   </form>
                 </Card>
@@ -87,8 +88,7 @@ export default async function LoginPage({
           </div>
 
           <p className="mt-6 text-center text-sm text-navy-400">
-            In production this screen is replaced by Supabase Auth (email/OAuth) —
-            the role-based access and routing stay identical.
+            {t("login.productionNote")}
           </p>
         </div>
       </div>

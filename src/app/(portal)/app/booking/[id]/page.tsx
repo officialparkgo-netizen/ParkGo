@@ -19,6 +19,7 @@ import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirport, getBooking, getHost, getSpace, getUser } from "@/lib/data/store";
 import { formatDateTime, formatMoney } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Booking", path: "/app/booking", noindex: true });
@@ -31,6 +32,7 @@ export default async function BookingPage({
   searchParams: Promise<{ new?: string }>;
 }) {
   const user = await requireRole("traveller");
+  const { t } = await getI18n();
   const { id } = await params;
   const { new: isNew } = await searchParams;
   const booking = getBooking(id);
@@ -48,15 +50,14 @@ export default async function BookingPage({
       <div className="mx-auto max-w-4xl space-y-5">
         {isNew && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
-            <CheckCircle2 className="h-5 w-5" /> Booking confirmed — your QR access
-            code is ready below.
+            <CheckCircle2 className="h-5 w-5" /> {t("app.booking.confirmed")}
           </div>
         )}
 
         <div className="grid gap-5 lg:grid-cols-3">
           {/* QR / access */}
           <Card className="flex flex-col items-center p-6 text-center">
-            <Badge tone="brand">Access code</Badge>
+            <Badge tone="brand">{t("app.booking.accessCode")}</Badge>
             <div className="mt-4">
               {/* async server component */}
               <QrCode value={booking.qrToken} size={190} />

@@ -36,6 +36,7 @@ import {
 } from "@/lib/data/store";
 import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
 import { updateHostProfileAction } from "@/lib/host-actions";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Host dashboard", path: "/host", noindex: true });
@@ -46,6 +47,7 @@ export default async function HostDashboard({
   searchParams: Promise<{ listed?: string }>;
 }) {
   const user = await requireRole("host");
+  const { t } = await getI18n();
   const { listed } = await searchParams;
   const host = getHostByUserId(user.id)!;
   const spaces = getSpacesByHost(host.id);
@@ -67,33 +69,32 @@ export default async function HostDashboard({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-extrabold text-navy-900">{host.displayName}</h2>
-            <p className="text-navy-500">Manage your spaces, bookings and payouts.</p>
+            <p className="text-navy-500">{t("host.subtitle")}</p>
           </div>
           <Link href="/host/new" className={buttonVariants()}>
-            <PlusCircle className="h-4 w-4" /> List a new space
+            <PlusCircle className="h-4 w-4" /> {t("host.listNewSpace")}
           </Link>
         </div>
 
         {listed && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
-            <CheckCircle2 className="h-5 w-5" /> Listing submitted — it&apos;s now in
-            compliance review. You&apos;ll be notified the moment it goes live.
+            <CheckCircle2 className="h-5 w-5" /> {t("host.listedBanner")}
           </div>
         )}
 
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Lifetime earnings" value={formatMoney(lifetimeEarnings)} sub="after commission" icon={Banknote} tone="go" />
-          <StatCard label="Pending payouts" value={formatMoney(pendingPayouts)} sub="next 2 working days" icon={CalendarCheck} tone="accent" />
-          <StatCard label="Live listings" value={String(liveCount)} sub={`${spaces.length} total`} icon={Warehouse} tone="brand" />
-          <StatCard label="Trust score" value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" />
+          <StatCard label={t("host.stat.lifetimeEarnings")} value={formatMoney(lifetimeEarnings)} sub={t("host.stat.lifetimeEarningsSub")} icon={Banknote} tone="go" />
+          <StatCard label={t("host.stat.pendingPayouts")} value={formatMoney(pendingPayouts)} sub={t("host.stat.pendingPayoutsSub")} icon={CalendarCheck} tone="accent" />
+          <StatCard label={t("host.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("host.total")}`} icon={Warehouse} tone="brand" />
+          <StatCard label={t("host.stat.trustScore")} value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" />
         </div>
 
         {/* Notifications */}
         {notifications.length > 0 && (
           <section>
             <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
-              <Bell className="h-5 w-5 text-navy-500" /> Notifications
+              <Bell className="h-5 w-5 text-navy-500" /> {t("portal.notifications")}
             </h3>
             <Card className="divide-y divide-navy-100">
               {notifications.map((n) => (
@@ -120,7 +121,7 @@ export default async function HostDashboard({
 
         {/* Listings */}
         <section id="listings" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Listings</h3>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.listings")}</h3>
           <div className="grid gap-4 md:grid-cols-2">
             {spaces.map((s) => {
               const airport = getAirport(s.airportSlug);
@@ -136,22 +137,22 @@ export default async function HostDashboard({
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {s.status === "live" && (
                         <Badge tone="go">
-                          <span className="h-1.5 w-1.5 rounded-full bg-go-500" /> Live
+                          <span className="h-1.5 w-1.5 rounded-full bg-go-500" /> {t("host.badge.live")}
                         </Badge>
                       )}
                       {s.cctv && (
                         <Badge tone="go">
-                          <ShieldCheck className="h-3 w-3" /> CCTV
+                          <ShieldCheck className="h-3 w-3" /> {t("host.badge.cctv")}
                         </Badge>
                       )}
                       {s.evCharger && (
                         <Badge tone="brand">
-                          <Zap className="h-3 w-3" /> EV
+                          <Zap className="h-3 w-3" /> {t("host.badge.ev")}
                         </Badge>
                       )}
                       {s.photos.length > 0 && (
                         <Badge tone="neutral">
-                          <ImageIcon className="h-3 w-3" /> Photos live
+                          <ImageIcon className="h-3 w-3" /> {t("host.badge.photosLive")}
                         </Badge>
                       )}
                       <Badge tone="neutral">{formatMoney(s.pricePerDay)}/day</Badge>
@@ -165,7 +166,7 @@ export default async function HostDashboard({
 
         {/* Profile shown to guests (Airbnb-style) */}
         <section id="profile" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Your profile</h3>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.yourProfile")}</h3>
           <Card className="p-5">
             <div className="flex items-start gap-4">
               <span
@@ -178,31 +179,31 @@ export default async function HostDashboard({
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-bold text-navy-900">{user.name}</span>
                   <Badge tone="go">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Profile shown to guests
+                    <CheckCircle2 className="h-3.5 w-3.5" /> {t("host.profileShownToGuests")}
                   </Badge>
                 </div>
                 <p className="text-sm text-navy-500">
-                  Your photo, bio and property photos appear on your listings before guests book.
+                  {t("host.profileBlurb")}
                 </p>
               </div>
             </div>
             <form action={updateHostProfileAction} className="mt-4">
               <label htmlFor="bio" className="mb-1.5 block text-sm font-semibold text-navy-700">
-                Your introduction (bio)
+                {t("host.bioLabel")}
               </label>
               <textarea
                 id="bio"
                 name="bio"
                 rows={3}
                 defaultValue={host.bio ?? ""}
-                placeholder="A friendly line about you and your space."
+                placeholder={t("host.bioPlaceholder")}
                 className="w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
               />
               <button
                 type="submit"
                 className={buttonVariants({ variant: "outline", size: "sm", className: "mt-2" })}
               >
-                Save profile
+                {t("host.saveProfile")}
               </button>
             </form>
           </Card>
@@ -210,10 +211,10 @@ export default async function HostDashboard({
 
         {/* Bookings */}
         <section id="bookings" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Recent bookings</h3>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.recentBookings")}</h3>
           <Card className="divide-y divide-navy-100">
             {bookings.length === 0 && (
-              <div className="p-6 text-center text-navy-500">No bookings yet.</div>
+              <div className="p-6 text-center text-navy-500">{t("host.noBookings")}</div>
             )}
             {bookings.map((b) => {
               const traveller = getUser(b.travellerId);
@@ -248,7 +249,7 @@ export default async function HostDashboard({
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Earnings / payouts */}
           <section id="earnings" className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">Payouts</h3>
+            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.payouts")}</h3>
             <Card className="divide-y divide-navy-100">
               {payments.map((p) => (
                 <div key={p.id} className="flex items-center justify-between p-4">
@@ -263,28 +264,27 @@ export default async function HostDashboard({
               ))}
             </Card>
             <p className="mt-2 text-xs text-navy-400">
-              Payouts run via Stripe Connect in live mode (commission deducted
-              automatically at the source).
+              {t("host.payoutsNote")}
             </p>
           </section>
 
           {/* Verification */}
           <section id="verification" className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">Verification</h3>
+            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.verification")}</h3>
             <Card className="p-5">
               <div className="flex items-center gap-2">
                 <BadgeCheck className="h-5 w-5 text-go-600" />
-                <span className="font-bold text-navy-900">Status</span>
+                <span className="font-bold text-navy-900">{t("host.verifStatus")}</span>
                 <span className="ml-auto">
                   <StatusBadge status={host.verificationStatus} />
                 </span>
               </div>
               <ul className="mt-4 space-y-2 text-sm">
                 {[
-                  ["ID verified", true],
-                  ["Address verified", true],
-                  ["Right-to-list declaration", true],
-                  ["Bank / payout details", !!host.payoutAccountRef],
+                  [t("host.verif.id"), true],
+                  [t("host.verif.address"), true],
+                  [t("host.verif.rightToList"), true],
+                  [t("host.verif.bank"), !!host.payoutAccountRef],
                 ].map(([label, done]) => (
                   <li key={String(label)} className="flex items-center gap-2 text-navy-700">
                     <span

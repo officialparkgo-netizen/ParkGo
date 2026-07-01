@@ -8,39 +8,40 @@ import { hostNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirports } from "@/lib/data/store";
 import { createSpaceAction } from "@/lib/host-actions";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "List a space", path: "/host/new", noindex: true });
 
 export default async function NewSpacePage() {
   const user = await requireRole("host");
+  const { t } = await getI18n();
   const airports = getAirports();
 
   return (
     <PortalShell user={user} nav={hostNav} title="List a new space">
       <div className="mx-auto max-w-2xl">
         <Link href="/host" className="text-sm font-semibold text-brand-600">
-          ← Back to dashboard
+          ← {t("host.new.back")}
         </Link>
         <Card className="mt-3 p-6">
           <p className="text-sm text-navy-500">
-            Add your space details. Once submitted it enters compliance review and
-            goes live after approval.
+            {t("host.new.intro")}
           </p>
           <form action={createSpaceAction} className="mt-5 space-y-5">
             <div>
-              <Label htmlFor="title">Listing title</Label>
-              <Input id="title" name="title" required placeholder="Secure driveway · 5 min to terminal" />
+              <Label htmlFor="title">{t("host.new.titleLabel")}</Label>
+              <Input id="title" name="title" required placeholder={t("host.new.titlePh")} />
             </div>
 
             <div>
-              <Label htmlFor="bio">About you — shown to guests (Airbnb-style)</Label>
-              <Textarea id="bio" name="bio" rows={2} placeholder="A friendly line about you and your space — builds trust with travellers." />
+              <Label htmlFor="bio">{t("host.new.bioLabel")}</Label>
+              <Textarea id="bio" name="bio" rows={2} placeholder={t("host.new.bioPh")} />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="airportSlug">Airport</Label>
+                <Label htmlFor="airportSlug">{t("host.new.airport")}</Label>
                 <Select id="airportSlug" name="airportSlug" defaultValue="heathrow">
                   {airports.map((a) => (
                     <option key={a.slug} value={a.slug}>
@@ -50,46 +51,46 @@ export default async function NewSpacePage() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="pricePerDay">Price per day (£)</Label>
+                <Label htmlFor="pricePerDay">{t("host.new.pricePerDay")}</Label>
                 <Input id="pricePerDay" name="pricePerDay" type="number" min="1" step="0.5" defaultValue="10" required />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="approxArea">Public area (shown before booking)</Label>
-              <Input id="approxArea" name="approxArea" required placeholder="Longford, near T5" />
+              <Label htmlFor="approxArea">{t("host.new.publicArea")}</Label>
+              <Input id="approxArea" name="approxArea" required placeholder={t("host.new.publicAreaPh")} />
             </div>
             <div>
-              <Label htmlFor="exactAddress">Exact address (released after payment)</Label>
-              <Input id="exactAddress" name="exactAddress" required placeholder="14 Bath Road, Longford UB7 0EX" />
+              <Label htmlFor="exactAddress">{t("host.new.exactAddress")}</Label>
+              <Input id="exactAddress" name="exactAddress" required placeholder={t("host.new.exactAddressPh")} />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
-                <Label htmlFor="maxVehicleSize">Max vehicle</Label>
+                <Label htmlFor="maxVehicleSize">{t("host.new.maxVehicle")}</Label>
                 <Select id="maxVehicleSize" name="maxVehicleSize" defaultValue="large">
-                  <option value="small">Small</option>
-                  <option value="medium">Medium</option>
-                  <option value="large">Large</option>
-                  <option value="van">Van</option>
+                  <option value="small">{t("host.new.vehicle.small")}</option>
+                  <option value="medium">{t("host.new.vehicle.medium")}</option>
+                  <option value="large">{t("host.new.vehicle.large")}</option>
+                  <option value="van">{t("host.new.vehicle.van")}</option>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="lengthM">Length (m)</Label>
+                <Label htmlFor="lengthM">{t("host.new.lengthM")}</Label>
                 <Input id="lengthM" name="lengthM" type="number" step="0.1" defaultValue="5.5" />
               </div>
               <div>
-                <Label htmlFor="widthM">Width (m)</Label>
+                <Label htmlFor="widthM">{t("host.new.widthM")}</Label>
                 <Input id="widthM" name="widthM" type="number" step="0.1" defaultValue="2.6" />
               </div>
             </div>
 
             <fieldset className="space-y-2">
-              <legend className="mb-1 text-sm font-semibold text-navy-700">Facilities</legend>
+              <legend className="mb-1 text-sm font-semibold text-navy-700">{t("host.new.facilities")}</legend>
               {[
-                { name: "cctv", label: "CCTV monitored" },
-                { name: "liveCamera", label: "In-app live camera" },
-                { name: "ev", label: "EV charger on site" },
+                { name: "cctv", label: t("host.new.facility.cctv") },
+                { name: "liveCamera", label: t("host.new.facility.liveCamera") },
+                { name: "ev", label: t("host.new.facility.ev") },
               ].map((f) => (
                 <label key={f.name} className="flex items-center gap-2 text-sm text-navy-700">
                   <input type="checkbox" name={f.name} value="1" className="h-4 w-4 rounded border-navy-300 text-go-500 focus:ring-go-400" />
@@ -97,23 +98,22 @@ export default async function NewSpacePage() {
                 </label>
               ))}
               <div className="pt-1">
-                <Label htmlFor="evKw">EV charger power (kW)</Label>
+                <Label htmlFor="evKw">{t("host.new.evKw")}</Label>
                 <Input id="evKw" name="evKw" type="number" defaultValue="7" className="max-w-32" />
               </div>
             </fieldset>
 
             <div>
-              <Label htmlFor="accessRules">Access rules</Label>
-              <Textarea id="accessRules" name="accessRules" rows={3} placeholder="Park on the marked bay. Keep your keys." />
+              <Label htmlFor="accessRules">{t("host.new.accessRules")}</Label>
+              <Textarea id="accessRules" name="accessRules" rows={3} placeholder={t("host.new.accessRulesPh")} />
             </div>
 
             <div className="rounded-xl bg-navy-50 p-3 text-xs text-navy-500">
-              Photo upload, ID &amp; address verification and the right-to-list
-              declaration are handled in the full onboarding (mocked here).
+              {t("host.new.onboardingNote")}
             </div>
 
             <Button type="submit" size="lg" className="w-full">
-              Submit for review
+              {t("host.new.submit")}
             </Button>
           </form>
         </Card>

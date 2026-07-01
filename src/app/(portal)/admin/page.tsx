@@ -34,12 +34,14 @@ import {
   trustScoreFor,
 } from "@/lib/data/store";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Admin", path: "/admin", noindex: true });
 
 export default async function AdminDashboard() {
   const user = await requireRole("admin");
+  const { t } = await getI18n();
   const pending = getPendingVerifications();
   const allVerifications = getVerifications();
   const spaces = getAllSpaces();

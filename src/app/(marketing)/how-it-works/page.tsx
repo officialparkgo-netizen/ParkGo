@@ -23,6 +23,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "How it works",
@@ -31,62 +32,64 @@ export const metadata = pageMetadata({
   path: "/how-it-works",
 });
 
-const steps = [
-  {
-    n: "1",
-    icon: Search,
-    tone: "brand" as const,
-    title: "Search & compare",
-    body: "Tell us your airport and dates. ParkGo shows verified private spaces with price, distance to the terminal, EV charging, CCTV and real traveller ratings — side by side, no hidden extras.",
-    points: ["Verified, ID-checked hosts only", "Transparent per-day pricing", "Filter by EV, CCTV and distance"],
-  },
-  {
-    n: "2",
-    icon: CarTaxiFront,
-    tone: "go" as const,
-    title: "Build your bundle",
-    body: "Add a licensed terminal transfer, EV charging and live security to your parking — then pay once. Explainable AI suggests the right combination for your trip, with a single transparent price.",
-    points: ["Parking + transfer + EV + security", "One checkout, one price", "AI suggestions you can understand"],
-  },
-  {
-    n: "3",
-    icon: QrCode,
-    tone: "accent" as const,
-    title: "Pay & get your QR",
-    body: "Check out securely and receive a QR access code instantly. It is everything you need for the parking gate, your driver and the verified handover — all stored in your booking.",
-    points: ["Secure card payment", "Instant QR access code", "Booking saved offline in-app"],
-  },
-  {
-    n: "4",
-    icon: Radio,
-    tone: "brand" as const,
-    title: "Travel day",
-    body: "Watch it all happen. Track your licensed driver on a live map, see your parked car on a live in-app camera, and confirm a verified handover with a one-time code — timestamped and logged.",
-    points: ["Live map of customer, host & driver", "Live camera of your car", "Verified, logged handover"],
-  },
-  {
-    n: "5",
-    icon: RotateCcw,
-    tone: "go" as const,
-    title: "Return & review",
-    body: "Land, get picked up and collect your car with another verified handover. Then rate your host and driver — two-sided trust scoring keeps the whole network honest and high quality.",
-    points: ["Return transfer on landing", "Collect with verified handover", "Two-sided reviews"],
-  },
-];
+export default async function HowItWorksPage() {
+  const { t } = await getI18n();
 
-const liveFeatures = [
-  { icon: Radio, title: "Live location sharing", body: "You, your host and your licensed driver share one live map on travel day." },
-  { icon: Camera, title: "Live camera of your car", body: "Open the app to watch your parked vehicle with a LIVE badge and timestamp." },
-  { icon: BadgeCheck, title: "Verified handover", body: "Both parties confirm a one-time code at drop-off and collection — every event logged." },
-];
+  const steps = [
+    {
+      n: "1",
+      icon: Search,
+      tone: "brand" as const,
+      title: t("how.step1.title"),
+      body: t("how.step1.body"),
+      points: [t("how.step1.point1"), t("how.step1.point2"), t("how.step1.point3")],
+    },
+    {
+      n: "2",
+      icon: CarTaxiFront,
+      tone: "go" as const,
+      title: t("how.step2.title"),
+      body: t("how.step2.body"),
+      points: [t("how.step2.point1"), t("how.step2.point2"), t("how.step2.point3")],
+    },
+    {
+      n: "3",
+      icon: QrCode,
+      tone: "accent" as const,
+      title: t("how.step3.title"),
+      body: t("how.step3.body"),
+      points: [t("how.step3.point1"), t("how.step3.point2"), t("how.step3.point3")],
+    },
+    {
+      n: "4",
+      icon: Radio,
+      tone: "brand" as const,
+      title: t("how.step4.title"),
+      body: t("how.step4.body"),
+      points: [t("how.step4.point1"), t("how.step4.point2"), t("how.step4.point3")],
+    },
+    {
+      n: "5",
+      icon: RotateCcw,
+      tone: "go" as const,
+      title: t("how.step5.title"),
+      body: t("how.step5.body"),
+      points: [t("how.step5.point1"), t("how.step5.point2"), t("how.step5.point3")],
+    },
+  ];
 
-const hostSteps = [
-  { title: "Get verified", body: "Confirm your identity and address, then add your space — dimensions, EV, CCTV and photos." },
-  { title: "Go live", body: "Pass a quick compliance review, set availability and your driveway starts earning." },
-  { title: "Get paid", body: "Receive secure payouts after each completed booking — you keep the large majority." },
-];
+  const liveFeatures = [
+    { icon: Radio, title: t("how.live.feat1.title"), body: t("how.live.feat1.body") },
+    { icon: Camera, title: t("how.live.feat2.title"), body: t("how.live.feat2.body") },
+    { icon: BadgeCheck, title: t("how.live.feat3.title"), body: t("how.live.feat3.body") },
+  ];
 
-export default function HowItWorksPage() {
+  const hostSteps = [
+    { title: t("how.hosts.step1.title"), body: t("how.hosts.step1.body") },
+    { title: t("how.hosts.step2.title"), body: t("how.hosts.step2.body") },
+    { title: t("how.hosts.step3.title"), body: t("how.hosts.step3.body") },
+  ];
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -94,21 +97,20 @@ export default function HowItWorksPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-16 text-center lg:py-20">
           <Badge tone="go" className="mb-5">
-            <Sparkles className="h-3.5 w-3.5" /> One booking · one price · one app
+            <Sparkles className="h-3.5 w-3.5" /> {t("how.hero.badge")}
           </Badge>
           <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-            How ParkGo works, from search to verified handover
+            {t("how.hero.title")}
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            Most travellers juggle parking, a transfer and EV charging across three apps and prices.
-            ParkGo brings them into a single trusted journey you can watch the whole way.
+            {t("how.hero.subtitle")}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/app" className={buttonVariants({ variant: "primary", size: "lg" })}>
-              Start a booking <ArrowRight className="h-4 w-4" />
+              {t("how.hero.cta")} <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/pricing" className={buttonVariants({ variant: "outline", size: "lg" })}>
-              See pricing
+              {t("how.hero.pricing")}
             </Link>
           </div>
         </Container>
@@ -117,12 +119,12 @@ export default function HowItWorksPage() {
       {/* ----------------------------------------------- The traveller journey */}
       <Section>
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>The traveller journey</Eyebrow>
+          <Eyebrow>{t("how.journey.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Five steps from your driveway search to landing back home
+            {t("how.journey.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            Every step is verified, transparent and tracked. No surprises at the gate, no guessing where your car is.
+            {t("how.journey.body")}
           </p>
         </div>
 
@@ -166,13 +168,12 @@ export default function HowItWorksPage() {
       {/* ------------------------------------------------ Live on travel day */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Live on travel day</Eyebrow>
+          <Eyebrow>{t("how.live.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Peace of mind you can actually watch
+            {t("how.live.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            ParkGo&apos;s differentiators come alive the day you fly. These three features turn a stressful
-            morning into something you can follow in real time.
+            {t("how.live.body")}
           </p>
         </div>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
@@ -192,20 +193,19 @@ export default function HowItWorksPage() {
       <Section>
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <Eyebrow>One transparent price</Eyebrow>
+            <Eyebrow>{t("how.bundle.eyebrow")}</Eyebrow>
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-              Four services, bundled into a single checkout
+              {t("how.bundle.title")}
             </h2>
             <p className="mt-4 text-navy-600">
-              No bouncing between providers or comparing apples with oranges. ParkGo combines everything
-              into one price you can understand, with a small, clearly shown service fee.
+              {t("how.bundle.body")}
             </p>
             <ul className="mt-6 space-y-4">
               {[
-                { icon: MapPin, tone: "brand", title: "Verified private parking", body: "An ID-checked host&apos;s driveway or yard near your terminal." },
-                { icon: CarTaxiFront, tone: "go", title: "Licensed terminal transfer", body: "A licensed, insured driver to and from the airport door." },
-                { icon: Zap, tone: "accent", title: "EV charging", body: "Top up while you travel where the host offers a charger." },
-                { icon: ShieldCheck, tone: "navy", title: "Live security", body: "CCTV, a live camera and verified handovers throughout." },
+                { icon: MapPin, tone: "brand", title: t("how.bundle.item1.title"), body: t("how.bundle.item1.body") },
+                { icon: CarTaxiFront, tone: "go", title: t("how.bundle.item2.title"), body: t("how.bundle.item2.body") },
+                { icon: Zap, tone: "accent", title: t("how.bundle.item3.title"), body: t("how.bundle.item3.body") },
+                { icon: ShieldCheck, tone: "navy", title: t("how.bundle.item4.title"), body: t("how.bundle.item4.body") },
               ].map((f) => (
                 <li key={f.title} className="flex gap-4">
                   <div
@@ -223,10 +223,7 @@ export default function HowItWorksPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-navy-900">{f.title}</h3>
-                    <p
-                      className="text-sm text-navy-600"
-                      dangerouslySetInnerHTML={{ __html: f.body }}
-                    />
+                    <p className="text-sm text-navy-600">{f.body}</p>
                   </div>
                 </li>
               ))}
@@ -237,15 +234,15 @@ export default function HowItWorksPage() {
             <div className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-brand-600" />
               <span className="text-sm font-bold uppercase tracking-wide text-navy-500">
-                Example bundle
+                {t("how.example.label")}
               </span>
             </div>
             <dl className="mt-5 divide-y divide-navy-100 text-sm">
               {[
-                { k: "Airport parking", v: "from your chosen host" },
-                { k: "Licensed transfer", v: "both ways" },
-                { k: "EV charging", v: "optional add-on" },
-                { k: "Service fee", v: "£2.99" },
+                { k: t("how.example.parking"), v: t("how.example.parkingV") },
+                { k: t("how.example.transfer"), v: t("how.example.transferV") },
+                { k: t("how.example.ev"), v: t("how.example.evV") },
+                { k: t("how.example.fee"), v: "£2.99" },
               ].map((row) => (
                 <div key={row.k} className="flex items-center justify-between py-3">
                   <dt className="font-medium text-navy-700">{row.k}</dt>
@@ -254,17 +251,17 @@ export default function HowItWorksPage() {
               ))}
             </dl>
             <div className="mt-5 flex items-center justify-between rounded-xl bg-navy-50 px-4 py-3">
-              <span className="text-sm font-bold text-navy-700">One price at checkout</span>
+              <span className="text-sm font-bold text-navy-700">{t("how.example.onePrice")}</span>
               <span className="text-2xl font-extrabold text-navy-900">~£49</span>
             </div>
             <p className="mt-3 text-xs text-navy-500">
-              Indicative example. Your price depends on airport, dates and the add-ons you choose.
+              {t("how.example.note")}
             </p>
             <Link
               href="/pricing"
               className={buttonVariants({ variant: "outline", className: "mt-5 w-full" })}
             >
-              How pricing works <ArrowRight className="h-4 w-4" />
+              {t("how.example.cta")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
         </div>
@@ -273,13 +270,12 @@ export default function HowItWorksPage() {
       {/* ----------------------------------------------- For hosts & transfers */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>The other side of the network</Eyebrow>
+          <Eyebrow>{t("how.other.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            How hosting works, and who runs your transfer
+            {t("how.other.title")}
           </h2>
           <p className="mt-4 text-navy-600">
-            Travellers get a seamless trip because hosts are verified and the terminal transfer is
-            handled by a licensed operator. Here is the short version of each.
+            {t("how.other.body")}
           </p>
         </div>
 
@@ -289,7 +285,7 @@ export default function HowItWorksPage() {
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
                 <Building2 className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-bold text-navy-900">For hosts</h3>
+              <h3 className="text-xl font-bold text-navy-900">{t("how.hosts.title")}</h3>
             </div>
             <ol className="mt-5 space-y-4">
               {hostSteps.map((s, i) => (
@@ -308,7 +304,7 @@ export default function HowItWorksPage() {
               href="/hosts"
               className={buttonVariants({ variant: "primary", className: "mt-6 w-full" })}
             >
-              List your space <ArrowRight className="h-4 w-4" />
+              {t("how.hosts.cta")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
 
@@ -317,23 +313,19 @@ export default function HowItWorksPage() {
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
                 <CarTaxiFront className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-bold text-navy-900">Who runs your transfer</h3>
+              <h3 className="text-xl font-bold text-navy-900">{t("how.transfer.title")}</h3>
             </div>
             <p className="mt-5 text-navy-600">
-              ParkGo does not run a fleet or onboard drivers. Your terminal transfer is provided by an
-              independent, licensed and insured operator, integrated with ParkGo by API. It comes
-              pre-attached to your parking booking, so you still get one price at checkout.
+              {t("how.transfer.body1")}
             </p>
             <p className="mt-4 text-navy-600">
-              The customer experience stays exactly the same — a bundled booking, live driver location
-              and ETA on travel day, and a verified handover — all powered by the operator&apos;s API
-              rather than a ParkGo-built driver app.
+              {t("how.transfer.body2")}
             </p>
             <Link
               href="/trust-safety"
               className={buttonVariants({ variant: "outline", className: "mt-6 w-full" })}
             >
-              How we keep it safe <ArrowRight className="h-4 w-4" />
+              {t("how.transfer.cta")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
         </div>
@@ -346,14 +338,14 @@ export default function HowItWorksPage() {
           <div className="mx-auto max-w-2xl">
             <Banknote className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to park smart and travel easy?
+              {t("how.cta.title")}
             </h2>
             <p className="mt-3 text-brand-100">
-              Start a booking in minutes, or join the waitlist for your airport and we&apos;ll let you know the moment we go live.
+              {t("how.cta.body")}
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link href="/app" className={buttonVariants({ variant: "white", size: "lg" })}>
-                Start a booking <ArrowRight className="h-4 w-4" />
+                {t("how.cta.start")} <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/travellers"
@@ -363,12 +355,12 @@ export default function HowItWorksPage() {
                   className: "border-white/30 bg-white/10 text-white hover:bg-white/20",
                 })}
               >
-                For travellers
+                {t("how.cta.travellers")}
               </Link>
             </div>
             <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-200">
               <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
-              8 launch airports across the UK &amp; Ireland.
+              {t("how.cta.airports")}
             </p>
           </div>
         </Container>

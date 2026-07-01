@@ -16,12 +16,14 @@ import {
   getSpace,
 } from "@/lib/data/store";
 import { formatDate, formatMoney } from "@/lib/utils";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Dashboard", path: "/app", noindex: true });
 
 export default async function TravellerDashboard() {
   const user = await requireRole("traveller");
+  const { t } = await getI18n();
   const bookings = getBookingsByTraveller(user.id);
   const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code }));
   const active = bookings.find((b) => b.status === "active");
@@ -31,9 +33,9 @@ export default async function TravellerDashboard() {
       <div className="mx-auto max-w-5xl space-y-8">
         <div>
           <h2 className="text-2xl font-extrabold text-navy-900">
-            Welcome back, {user.name.split(" ")[0]} 👋
+            {t("app.dash.welcome")} {user.name.split(" ")[0]} 👋
           </h2>
-          <p className="text-navy-500">Find a space or jump back into a trip.</p>
+          <p className="text-navy-500">{t("app.dash.sub")}</p>
         </div>
 
         {/* Quick search */}
@@ -44,20 +46,20 @@ export default async function TravellerDashboard() {
         {/* Active trip highlight */}
         {active && (
           <section>
-            <ActiveTrip bookingId={active.id} />
+            <ActiveTrip bookingId={active.id} t={t} />
           </section>
         )}
 
         {/* Trips */}
         <section id="trips" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Your trips</h3>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("app.dash.yourTrips")}</h3>
           {bookings.length === 0 ? (
             <Card className="p-8 text-center text-navy-500">
-              No trips yet.{" "}
+              {t("app.dash.noTrips")}{" "}
               <Link href="/app/search" className="font-semibold text-brand-600">
-                Find parking
+                {t("nav.findParking")}
               </Link>{" "}
-              to get started.
+              {t("app.dash.toStart")}
             </Card>
           ) : (
             <div className="space-y-3">
@@ -86,12 +88,12 @@ export default async function TravellerDashboard() {
                         <div className="mt-2 flex gap-1.5">
                           {b.bundle.transfer && (
                             <Badge tone="brand">
-                              <CarTaxiFront className="h-3 w-3" /> Transfer
+                              <CarTaxiFront className="h-3 w-3" /> {t("search.transfer")}
                             </Badge>
                           )}
                           {b.bundle.ev && (
                             <Badge tone="go">
-                              <Zap className="h-3 w-3" /> EV
+                              <Zap className="h-3 w-3" /> {t("app.ev")}
                             </Badge>
                           )}
                         </div>
@@ -105,14 +107,14 @@ export default async function TravellerDashboard() {
                             href={`/app/booking/${b.id}`}
                             className={buttonVariants({ variant: "outline", size: "sm" })}
                           >
-                            <QrCode className="h-4 w-4" /> Booking
+                            <QrCode className="h-4 w-4" /> {t("app.dash.booking")}
                           </Link>
                           {canTrack && (
                             <Link
                               href={`/app/booking/${b.id}/track`}
                               className={buttonVariants({ size: "sm" })}
                             >
-                              <Radio className="h-4 w-4" /> Track
+                              <Radio className="h-4 w-4" /> {t("app.dash.track")}
                             </Link>
                           )}
                         </div>
@@ -129,23 +131,23 @@ export default async function TravellerDashboard() {
   );
 }
 
-function ActiveTrip({ bookingId }: { bookingId: string }) {
+function ActiveTrip({ bookingId, t }: { bookingId: string; t: (key: string) => string }) {
   return (
     <Card className="overflow-hidden border-go-200 bg-gradient-to-br from-go-50 to-white">
       <div className="flex flex-wrap items-center justify-between gap-4 p-5">
         <div>
           <Badge tone="go">
-            <Radio className="h-3 w-3" /> Trip in progress
+            <Radio className="h-3 w-3" /> {t("app.dash.tripInProgress")}
           </Badge>
           <h3 className="mt-2 text-lg font-bold text-navy-900">
-            Your car is being looked after
+            {t("app.dash.carLookedAfter")}
           </h3>
           <p className="text-sm text-navy-600">
-            Track your driver live, watch your car on camera and confirm the handover.
+            {t("app.dash.trackDesc")}
           </p>
         </div>
         <Link href={`/app/booking/${bookingId}/track`} className={buttonVariants()}>
-          Open live view <ArrowRight className="h-4 w-4" />
+          {t("app.dash.openLive")} <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     </Card>

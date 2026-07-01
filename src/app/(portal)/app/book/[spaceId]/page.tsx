@@ -8,6 +8,7 @@ import { Checkout } from "@/components/portal/checkout";
 import { Photo } from "@/components/common/photo";
 import { requireRole } from "@/lib/auth";
 import { getAirport, getSpace } from "@/lib/data/store";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Checkout", path: "/app/book", noindex: true });
@@ -26,6 +27,7 @@ export default async function BookPage({
   searchParams: Promise<{ from?: string; to?: string; ev?: string; transfer?: string }>;
 }) {
   const user = await requireRole("traveller");
+  const { t } = await getI18n();
   const { spaceId } = await params;
   const sp = await searchParams;
   const space = getSpace(spaceId);
@@ -37,7 +39,7 @@ export default async function BookPage({
     <PortalShell user={user} nav={travellerNav} title="Checkout">
       <div className="mx-auto max-w-5xl space-y-5">
         <Link href={`/app/space/${space.id}`} className="text-sm font-semibold text-brand-600">
-          ← Back to space
+          ← {t("app.space.backToSpace")}
         </Link>
 
         <Card className="flex items-center gap-4 p-4">

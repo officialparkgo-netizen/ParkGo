@@ -12,6 +12,7 @@ import { ResultsMap } from "@/components/portal/results-map";
 import { requireRole } from "@/lib/auth";
 import { getAirport, getAirports, searchSpaces } from "@/lib/data/store";
 import { optimiseJourney } from "@/lib/services/ai";
+import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Search", path: "/app/search", noindex: true });
@@ -30,6 +31,7 @@ export default async function SearchPage({
   }>;
 }) {
   const user = await requireRole("traveller");
+  const { t } = await getI18n();
   const sp = await searchParams;
   const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code }));
   const airportSlug = sp.airport || "heathrow";
@@ -58,11 +60,11 @@ export default async function SearchPage({
 
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-navy-900">
-            {results.length} spaces near {airport?.name ?? "your airport"}
+            {results.length} {t("app.search.spacesNear")} {airport?.name ?? t("app.search.yourAirport")}
           </h2>
           <div className="flex gap-2">
-            {sp.cctv === "1" && <Badge tone="go">CCTV / camera</Badge>}
-            {sp.transfer === "1" && <Badge tone="brand">+ licensed transfer</Badge>}
+            {sp.cctv === "1" && <Badge tone="go">{t("app.search.cctvCamera")}</Badge>}
+            {sp.transfer === "1" && <Badge tone="brand">{t("app.search.plusTransfer")}</Badge>}
           </div>
         </div>
 
@@ -78,7 +80,7 @@ export default async function SearchPage({
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-navy-900">{suggestion.headline}</h3>
                       <Badge tone="go">
-                        AI pick · {Math.round(suggestion.confidence * 100)}%
+                        {t("app.search.aiPick")} · {Math.round(suggestion.confidence * 100)}%
                       </Badge>
                     </div>
                     <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-navy-600">
@@ -92,7 +94,7 @@ export default async function SearchPage({
                       href={`/app/space/${suggestion.spaceId}`}
                       className={buttonVariants({ size: "sm", className: "mt-3" })}
                     >
-                      View recommended space <ArrowRight className="h-4 w-4" />
+                      {t("app.search.viewRecommended")} <ArrowRight className="h-4 w-4" />
                     </Link>
                   </div>
                 </div>
@@ -101,7 +103,7 @@ export default async function SearchPage({
 
             {results.length === 0 ? (
               <Card className="p-10 text-center text-navy-500">
-                No spaces match yet. Try another airport or remove the EV filter.
+                {t("app.search.empty")}
               </Card>
             ) : (
               results.map((r) => <SpaceCard key={r.space.id} result={r} />)
