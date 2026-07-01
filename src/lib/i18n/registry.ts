@@ -7,6 +7,9 @@ import { marketingB } from "@/lib/i18n/areas/marketingB";
 import { marketingC } from "@/lib/i18n/areas/marketingC";
 import { portalTraveller } from "@/lib/i18n/areas/portalTraveller";
 import { portalAdmin } from "@/lib/i18n/areas/portalAdmin";
+import { legal } from "@/lib/i18n/areas/legal";
+import { blog } from "@/lib/i18n/areas/blog";
+import { airports } from "@/lib/i18n/areas/airports";
 
 /** All translation areas. Add new area modules here. */
 const AREAS: AreaDict[] = [
@@ -17,6 +20,9 @@ const AREAS: AreaDict[] = [
   marketingC,
   portalTraveller,
   portalAdmin,
+  legal,
+  blog,
+  airports,
 ];
 
 /** Merge every area into one flat dict for a locale, with English fallback. */

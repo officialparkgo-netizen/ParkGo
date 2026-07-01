@@ -124,6 +124,9 @@ export const core: AreaDict = {
     "status.draft": "Draft",
     "status.paused": "Paused",
     "status.not_started": "Not started",
+    "err.email": "Please enter a valid email address.",
+    "err.message": "Please add a short message.",
+    "err.rating": "Please choose a rating.",
   },
 
   ur: {
@@ -235,6 +238,9 @@ export const core: AreaDict = {
     "status.draft": "مسودہ",
     "status.paused": "روکا ہوا",
     "status.not_started": "شروع نہیں ہوا",
+    "err.email": "براہ کرم درست ای میل ایڈریس درج کریں۔",
+    "err.message": "براہ کرم ایک مختصر پیغام شامل کریں۔",
+    "err.rating": "براہ کرم ریٹنگ منتخب کریں۔",
   },
 
   hi: {
@@ -346,6 +352,9 @@ export const core: AreaDict = {
     "status.draft": "ड्राफ्ट",
     "status.paused": "रोका गया",
     "status.not_started": "शुरू नहीं हुआ",
+    "err.email": "कृपया एक मान्य ईमेल पता दर्ज करें।",
+    "err.message": "कृपया एक छोटा संदेश जोड़ें।",
+    "err.rating": "कृपया एक रेटिंग चुनें।",
   },
 
   de: {
@@ -457,6 +466,9 @@ export const core: AreaDict = {
     "status.draft": "Entwurf",
     "status.paused": "Pausiert",
     "status.not_started": "Nicht begonnen",
+    "err.email": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+    "err.message": "Bitte fügen Sie eine kurze Nachricht hinzu.",
+    "err.rating": "Bitte wählen Sie eine Bewertung.",
   },
 
   zh: {
@@ -568,5 +580,8 @@ export const core: AreaDict = {
     "status.draft": "草稿",
     "status.paused": "已暂停",
     "status.not_started": "未开始",
+    "err.email": "请输入有效的电子邮箱地址。",
+    "err.message": "请添加一条简短留言。",
+    "err.rating": "请选择评分。",
   },
 };

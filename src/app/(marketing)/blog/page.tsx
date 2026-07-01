@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { pageMetadata } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 import { getAllPosts } from "@/content/blog";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "Blog — smarter airport parking & travel",
@@ -14,7 +15,17 @@ export const metadata = pageMetadata({
   path: "/blog",
 });
 
-export default function BlogIndexPage() {
+const DATE_LOCALE: Record<string, string> = {
+  en: "en-GB",
+  ur: "ur-PK",
+  hi: "hi-IN",
+  de: "de-DE",
+  zh: "zh-CN",
+};
+
+export default async function BlogIndexPage() {
+  const { t, locale } = await getI18n();
+  const dateLocale = DATE_LOCALE[locale] ?? "en-GB";
   const posts = getAllPosts();
   const [featured, ...rest] = posts;
 
@@ -25,14 +36,11 @@ export default function BlogIndexPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-14 lg:py-20">
           <div className="mx-auto max-w-2xl text-center">
-            <Eyebrow>The ParkGo blog</Eyebrow>
+            <Eyebrow>{t("blog.hero.eyebrow")}</Eyebrow>
             <h1 className="text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-              Smarter airport parking &amp; travel
+              {t("blog.hero.title")}
             </h1>
-            <p className="mt-5 text-lg text-navy-600">
-              Practical guides on parking, licensed transfers, EV charging and the trust and
-              safety that holds it all together.
-            </p>
+            <p className="mt-5 text-lg text-navy-600">{t("blog.hero.subtitle")}</p>
           </div>
         </Container>
       </section>
@@ -55,18 +63,18 @@ export default function BlogIndexPage() {
               <div className="flex flex-col justify-center p-7 sm:p-9">
                 <p className="flex items-center gap-x-4 text-sm text-navy-500">
                   <span className="inline-flex items-center gap-1.5">
-                    <CalendarDays className="h-4 w-4" /> {formatDate(featured.date)}
+                    <CalendarDays className="h-4 w-4" /> {formatDate(featured.date, dateLocale)}
                   </span>
                   <span className="inline-flex items-center gap-1.5">
-                    <Clock className="h-4 w-4" /> {featured.readMins} min read
+                    <Clock className="h-4 w-4" /> {featured.readMins} {t("blog.minRead")}
                   </span>
                 </p>
                 <h2 className="mt-3 text-2xl font-bold tracking-tight text-navy-900 group-hover:text-brand-600 sm:text-3xl">
-                  {featured.title}
+                  {t("blog.post." + featured.slug + ".title")}
                 </h2>
-                <p className="mt-3 text-navy-600">{featured.excerpt}</p>
+                <p className="mt-3 text-navy-600">{t("blog.post." + featured.slug + ".excerpt")}</p>
                 <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-brand-600">
-                  Read article <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  {t("blog.readArticle")} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
             </Card>
@@ -93,18 +101,18 @@ export default function BlogIndexPage() {
                 <div className="flex flex-1 flex-col p-6">
                   <p className="flex items-center gap-x-3 text-xs text-navy-500">
                     <span className="inline-flex items-center gap-1">
-                      <CalendarDays className="h-3.5 w-3.5" /> {formatDate(post.date)}
+                      <CalendarDays className="h-3.5 w-3.5" /> {formatDate(post.date, dateLocale)}
                     </span>
                     <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" /> {post.readMins} min
+                      <Clock className="h-3.5 w-3.5" /> {post.readMins} {t("blog.min")}
                     </span>
                   </p>
                   <h3 className="mt-2 text-lg font-bold leading-snug text-navy-900 group-hover:text-brand-600">
-                    {post.title}
+                    {t("blog.post." + post.slug + ".title")}
                   </h3>
-                  <p className="mt-2 flex-1 text-sm text-navy-600">{post.excerpt}</p>
+                  <p className="mt-2 flex-1 text-sm text-navy-600">{t("blog.post." + post.slug + ".excerpt")}</p>
                   <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600">
-                    Read more <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    {t("blog.readMore")} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </div>
               </Card>

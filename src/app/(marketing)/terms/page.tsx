@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ScrollText } from "lucide-react";
 import { Container, Eyebrow } from "@/components/ui/section";
-import { pageMetadata, SITE } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
   title: "Terms of Service",
@@ -12,7 +13,9 @@ export const metadata = pageMetadata({
 
 const LAST_UPDATED = "1 June 2026";
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const { t } = await getI18n();
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -20,15 +23,16 @@ export default function TermsPage() {
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <Container className="relative py-14 lg:py-16">
           <div className="mx-auto max-w-3xl">
-            <Eyebrow>Legal</Eyebrow>
+            <Eyebrow>{t("footer.legal")}</Eyebrow>
             <h1 className="flex items-center gap-3 text-4xl font-extrabold tracking-tight text-navy-900">
-              <ScrollText className="h-9 w-9 text-brand-600" /> Terms of Service
+              <ScrollText className="h-9 w-9 text-brand-600" /> {t("terms.hero.title")}
             </h1>
             <p className="mt-4 text-lg text-navy-600">
-              These terms set out the agreement between you and {SITE.name} when you use our
-              marketplace to book parking, transfers and EV charging, or to list a space as a host.
+              {t("terms.hero.intro")}
             </p>
-            <p className="mt-4 text-sm font-semibold text-navy-400">Last updated: {LAST_UPDATED}</p>
+            <p className="mt-4 text-sm font-semibold text-navy-400">
+              {t("terms.lastUpdated")} {LAST_UPDATED}
+            </p>
           </div>
         </Container>
       </section>
@@ -36,158 +40,89 @@ export default function TermsPage() {
       {/* -------------------------------------------------------- Terms */}
       <Container className="py-12 sm:py-16">
         <article className="mx-auto max-w-3xl space-y-8 text-navy-700 leading-relaxed [&_li]:pl-1 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6 [&_ul]:marker:text-brand-400">
-          <Section title="1. Our role as a marketplace">
-            <p>
-              {SITE.name} operates an online marketplace that connects travellers with independent
-              hosts who provide private parking spaces, and with an independent licensed transfer
-              operator who provides terminal transfers. Unless we state otherwise in writing,
-              {SITE.name} is not the provider of the parking space or the transfer; we facilitate the
-              booking, take payment and provide the supporting technology.
-            </p>
-            <p>
-              The contract for parking is between you and the host; the transfer is delivered by the
-              independent licensed transfer operator, whose service is integrated with {SITE.name} by
-              API. {SITE.name} verifies hosts before they join, and you acknowledge that hosts and the
-              transfer operator are independent businesses responsible for their own licensing,
-              insurance and compliance.
-            </p>
+          <Section title={t("terms.role.title")}>
+            <p>{t("terms.role.p1")}</p>
+            <p>{t("terms.role.p2")}</p>
           </Section>
 
-          <Section title="2. Eligibility and your account">
-            <p>
-              You must be at least 18 and able to enter a legally binding contract. You agree to
-              provide accurate information, keep your account secure, and not share your access
-              credentials. You are responsible for activity that takes place under your account.
-            </p>
+          <Section title={t("terms.eligibility.title")}>
+            <p>{t("terms.eligibility.body")}</p>
           </Section>
 
-          <Section title="3. Bookings and payments">
-            <p>
-              When you book, you purchase a bundle that may include parking, a licensed transfer
-              and EV charging at a single transparent price shown before you pay. The price you see
-              at checkout is the price you pay. Prices are shown in pounds sterling for UK airports
-              and euro for Irish airports.
-            </p>
+          <Section title={t("terms.bookings.title")}>
+            <p>{t("terms.bookings.intro")}</p>
             <ul>
-              <li>A booking is confirmed once payment has been successfully taken.</li>
-              <li>
-                Payments are processed by our regulated payment provider; {SITE.name} collects
-                payment and distributes the host and transfer operator shares, retaining its service
-                and commission fees.
-              </li>
-              <li>
-                EV charging, where included, is priced per kilowatt-hour as shown on the listing
-                and forms part of your total.
-              </li>
+              <li>{t("terms.bookings.confirm")}</li>
+              <li>{t("terms.bookings.payments")}</li>
+              <li>{t("terms.bookings.ev")}</li>
             </ul>
           </Section>
 
-          <Section title="4. Changes and cancellations">
-            <p>
-              Travel plans change, and our cancellation terms aim to be fair to everyone. The
-              cancellation window and any applicable fee are shown at checkout and in your booking
-              confirmation. Where you cancel within the free-cancellation window, you receive a
-              full refund of the cancellable amount; the service fee may be non-refundable. If a
-              host or the transfer operator cancels, or cannot honour a confirmed booking, you are
-              entitled to a full refund and we will help you find an alternative where possible.
-            </p>
+          <Section title={t("terms.cancellations.title")}>
+            <p>{t("terms.cancellations.body")}</p>
           </Section>
 
-          <Section title="5. Host obligations">
-            <p>If you list a space, you agree that you will:</p>
+          <Section title={t("terms.hostObligations.title")}>
+            <p>{t("terms.hostObligations.intro")}</p>
             <ul>
-              <li>have the legal right to offer the space and comply with any tenancy, mortgage, lease or planning conditions;</li>
-              <li>complete identity and right-to-list verification and keep your details current;</li>
-              <li>describe the space accurately, including distance, size, security features and any EV charging;</li>
-              <li>make the space available for confirmed bookings and provide safe, lawful access;</li>
-              <li>hold appropriate insurance for offering your space to third parties.</li>
+              <li>{t("terms.hostObligations.right")}</li>
+              <li>{t("terms.hostObligations.verify")}</li>
+              <li>{t("terms.hostObligations.describe")}</li>
+              <li>{t("terms.hostObligations.available")}</li>
+              <li>{t("terms.hostObligations.insurance")}</li>
             </ul>
           </Section>
 
-          <Section title="6. The transfer operator">
-            <p>
-              Terminal transfers are provided by an independent licensed transfer operator whose
-              service is integrated with {SITE.name} by API. {SITE.name} does not operate a fleet or
-              engage drivers directly. The operator is solely responsible for:
-            </p>
+          <Section title={t("terms.operator.title")}>
+            <p>{t("terms.operator.intro")}</p>
             <ul>
-              <li>holding and maintaining a valid private-hire operator licence and the required commercial passenger insurance;</li>
-              <li>ensuring every driver is correctly licensed, badged and verified, and every vehicle is roadworthy and insured;</li>
-              <li>its own compliance, record-keeping and periodic re-verification;</li>
-              <li>completing the verified handover process and meeting the service standards shown to travellers.</li>
+              <li>{t("terms.operator.licence")}</li>
+              <li>{t("terms.operator.drivers")}</li>
+              <li>{t("terms.operator.compliance")}</li>
+              <li>{t("terms.operator.handover")}</li>
             </ul>
           </Section>
 
-          <Section title="7. Verified handover and live features">
-            <p>
-              On travel day, the licensed driver, host and traveller may share a live location and
-              must confirm a one-time handover code. This code is timestamped and logged as a
-              security record. Live camera features, where offered by a host, are provided to give
-              travellers reassurance and must not be misused.
-            </p>
+          <Section title={t("terms.handover.title")}>
+            <p>{t("terms.handover.body")}</p>
           </Section>
 
-          <Section title="8. Prohibited use">
-            <p>You agree not to:</p>
+          <Section title={t("terms.prohibited.title")}>
+            <p>{t("terms.prohibited.intro")}</p>
             <ul>
-              <li>use the platform for any unlawful purpose or to facilitate fraud;</li>
-              <li>list a space you have no right to offer;</li>
-              <li>circumvent {SITE.name} to take bookings or payments off-platform;</li>
-              <li>misrepresent identity, vehicle or verification details;</li>
-              <li>interfere with the platform&apos;s security, scrape data, or misuse live location or camera features.</li>
+              <li>{t("terms.prohibited.unlawful")}</li>
+              <li>{t("terms.prohibited.noRight")}</li>
+              <li>{t("terms.prohibited.circumvent")}</li>
+              <li>{t("terms.prohibited.misrepresent")}</li>
+              <li>{t("terms.prohibited.interfere")}</li>
             </ul>
-            <p>We may suspend or remove accounts that breach these terms or threaten the safety of our community.</p>
+            <p>{t("terms.prohibited.note")}</p>
           </Section>
 
-          <Section title="9. Fees and taxes">
-            <p>
-              {SITE.name} charges a service fee to travellers and a commission to hosts, as disclosed
-              at the point of booking or in your host agreement. The transfer operator is remunerated
-              under its own commercial agreement with {SITE.name}. You are responsible for your own
-              tax obligations arising from income earned through the platform.
-            </p>
+          <Section title={t("terms.fees.title")}>
+            <p>{t("terms.fees.body")}</p>
           </Section>
 
-          <Section title="10. Liability">
-            <p>
-              Nothing in these terms limits liability that cannot be limited by law, including for
-              death or personal injury caused by negligence, or for fraud. Subject to that, {SITE.name}
-              is not liable for the acts or omissions of independent hosts or the independent licensed
-              transfer operator, and
-              our total liability to you for any claim connected with a booking is limited to the
-              amount you paid for that booking. We are not liable for indirect or consequential
-              loss. These terms do not affect the statutory rights of consumers.
-            </p>
+          <Section title={t("terms.liability.title")}>
+            <p>{t("terms.liability.body")}</p>
           </Section>
 
-          <Section title="11. Disputes and complaints">
+          <Section title={t("terms.disputes.title")}>
             <p>
-              If something goes wrong, please contact our support team first via{" "}
+              {t("terms.disputes.pre")}{" "}
               <Link href="/contact" className="font-semibold text-brand-600">
-                our contact page
+                {t("terms.disputes.link")}
               </Link>{" "}
-              so we can help resolve it quickly. We operate a clear process for booking disputes,
-              refunds and handover issues.
+              {t("terms.disputes.post")}
             </p>
           </Section>
 
-          <Section title="12. Governing law">
-            <p>
-              For travellers and hosts in the United Kingdom, these terms are governed by
-              the laws of England and Wales, and the courts of England and Wales have non-exclusive
-              jurisdiction. For users of our Irish service, these terms are governed by the laws of
-              Ireland, and the Irish courts have non-exclusive jurisdiction. Consumers may also have
-              the right to bring proceedings in their country of residence.
-            </p>
+          <Section title={t("terms.governingLaw.title")}>
+            <p>{t("terms.governingLaw.body")}</p>
           </Section>
 
-          <Section title="13. Changes to these terms">
-            <p>
-              We may update these terms to reflect changes to the service or the law. We will
-              revise the &ldquo;last updated&rdquo; date above and, for material changes, give you
-              reasonable notice. Continued use of {SITE.name} after changes take effect means you
-              accept the updated terms.
-            </p>
+          <Section title={t("terms.changes.title")}>
+            <p>{t("terms.changes.body")}</p>
           </Section>
         </article>
       </Container>

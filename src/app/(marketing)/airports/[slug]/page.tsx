@@ -22,6 +22,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Photo } from "@/components/common/photo";
 import { Stars } from "@/components/common/stars";
 import { pageMetadata, SITE } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n";
 import { getAirport, getAirports, searchSpaces } from "@/lib/data/store";
 import { formatMoneyShort } from "@/lib/utils";
 import type { SearchResult } from "@/types";
@@ -65,6 +66,7 @@ export default async function AirportPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const { t } = await getI18n();
   const { slug } = await params;
   const airport = getAirport(slug);
   if (!airport) notFound();
@@ -74,7 +76,11 @@ export default async function AirportPage({
   const min = minPrice(results);
   const evCount = results.filter((r) => r.space.evCharger).length;
   const camCount = results.filter((r) => r.space.liveCamera).length;
+  const countryLabel = airport.country === "IE" ? t("airport.countryIE") : t("airport.countryUK");
+  // English FAQs for JSON-LD (SEO). Kept in English on purpose.
   const faqs = buildFaqs(airport.name, airport.code, min, currency, evCount);
+  // Localized FAQs for the visible section.
+  const faqsLocalized = buildFaqsLocalized(t, airport.name, airport.code, min, currency, evCount);
 
   // --- Structured data (Breadcrumb + Place with aggregateOffer) -------------
   const breadcrumbLd = {
@@ -147,35 +153,39 @@ export default async function AirportPage({
             <ol className="flex flex-wrap items-center gap-1.5">
               <li>
                 <Link href="/" className="hover:text-brand-600">
-                  Home
+                  {t("airport.home")}
                 </Link>
               </li>
               <li aria-hidden>/</li>
-              <li className="font-semibold text-navy-600">{airport.name} parking</li>
+              <li className="font-semibold text-navy-600">
+                {airport.name} {t("airport.parkingSuffix")}
+              </li>
             </ol>
           </nav>
 
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <div>
               <Badge tone="brand" className="mb-5">
-                <Plane className="h-3.5 w-3.5" /> {airport.code} · {airport.city},{" "}
-                {airport.country === "IE" ? "Ireland" : "UK"}
+                <Plane className="h-3.5 w-3.5" /> {airport.code} · {airport.city}, {countryLabel}
               </Badge>
               <h1 className="text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
-                {airport.name} airport parking
+                {airport.name} {t("airport.heroTitleSuffix")}
               </h1>
               <p className="mt-5 max-w-xl text-lg text-navy-600">
-                Verified private parking near {airport.name}, bundled with a licensed terminal
-                transfer, EV charging and live security — one booking, one transparent price.
+                {t("airport.heroSubtitleA")}
+                {airport.name}
+                {t("airport.heroSubtitleB")}
               </p>
 
               {min != null && (
                 <p className="mt-6 flex items-baseline gap-2">
-                  <span className="text-sm font-semibold text-navy-500">Parking from</span>
+                  <span className="text-sm font-semibold text-navy-500">
+                    {t("airport.parkingFrom")}
+                  </span>
                   <span className="text-3xl font-extrabold text-go-600">
                     {formatMoneyShort(min, currency)}
                   </span>
-                  <span className="text-sm font-semibold text-navy-500">/ day</span>
+                  <span className="text-sm font-semibold text-navy-500">{t("common.perDay")}</span>
                 </p>
               )}
 
@@ -184,54 +194,58 @@ export default async function AirportPage({
                   href={`/app/search?airport=${slug}`}
                   className={buttonVariants({ variant: "primary", size: "lg" })}
                 >
-                  Find parking at {airport.code} <ArrowRight className="h-4 w-4" />
+                  {t("airport.findParkingAt")} {airport.code} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a href="#spaces" className={buttonVariants({ variant: "outline", size: "lg" })}>
-                  See available spaces
+                  {t("airport.seeAvailableSpaces")}
                 </a>
               </div>
 
               <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-500">
                 <span className="inline-flex items-center gap-1.5">
-                  <BadgeCheck className="h-4 w-4 text-go-500" /> Verified hosts
+                  <BadgeCheck className="h-4 w-4 text-go-500" /> {t("airport.verifiedHosts")}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-go-500" /> Licensed drivers
+                  <ShieldCheck className="h-4 w-4 text-go-500" /> {t("airport.licensedDrivers")}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Camera className="h-4 w-4 text-go-500" /> Live camera &amp; CCTV
+                  <Camera className="h-4 w-4 text-go-500" /> {t("airport.liveCameraCctv")}
                 </span>
               </p>
             </div>
 
             {/* At-a-glance facts card */}
             <Card className="p-6 sm:p-8">
-              <Eyebrow>At a glance</Eyebrow>
+              <Eyebrow>{t("airport.atAGlance")}</Eyebrow>
               <h2 className="text-xl font-bold text-navy-900">
-                Parking near {airport.name} ({airport.code})
+                {t("airport.parkingNear")} {airport.name} ({airport.code})
               </h2>
               <dl className="mt-6 grid grid-cols-2 gap-5">
                 <div>
-                  <dt className="text-sm text-navy-500">Verified spaces</dt>
+                  <dt className="text-sm text-navy-500">{t("airport.factSpaces")}</dt>
                   <dd className="text-2xl font-extrabold text-navy-900">{results.length}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-navy-500">From</dt>
+                  <dt className="text-sm text-navy-500">{t("airport.factFrom")}</dt>
                   <dd className="text-2xl font-extrabold text-navy-900">
-                    {min != null ? `${formatMoneyShort(min, currency)}/day` : "Coming soon"}
+                    {min != null
+                      ? `${formatMoneyShort(min, currency)}/${t("common.day")}`
+                      : t("airport.comingSoon")}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-navy-500">With EV charging</dt>
+                  <dt className="text-sm text-navy-500">{t("airport.factEv")}</dt>
                   <dd className="text-2xl font-extrabold text-navy-900">{evCount}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-navy-500">With live camera</dt>
+                  <dt className="text-sm text-navy-500">{t("airport.factCamera")}</dt>
                   <dd className="text-2xl font-extrabold text-navy-900">{camCount}</dd>
                 </div>
               </dl>
               <div className="mt-6 border-t border-navy-100 pt-5">
-                <dt className="text-sm font-semibold text-navy-500">Terminals served</dt>
+                <dt className="text-sm font-semibold text-navy-500">
+                  {t("airport.terminalsServed")}
+                </dt>
                 <dd className="mt-2 flex flex-wrap gap-2">
                   {airport.terminals.map((t) => (
                     <Badge key={t} tone="navy">
@@ -248,28 +262,24 @@ export default async function AirportPage({
       {/* ----------------------------------------------------- Available spaces */}
       <Section id="spaces">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Available now</Eyebrow>
+          <Eyebrow>{t("airport.availableNow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Verified parking spaces near {airport.name}
+            {t("airport.spacesHeadingA")} {airport.name}
           </h2>
-          <p className="mt-4 text-navy-600">
-            Every space is ID-verified, with the real distance to your terminal, transparent
-            pricing and ratings from travellers who have parked here.
-          </p>
+          <p className="mt-4 text-navy-600">{t("airport.spacesBody")}</p>
         </div>
 
         {results.length === 0 ? (
           <Card className="mx-auto mt-12 max-w-xl p-8 text-center">
             <Plane className="mx-auto h-8 w-8 text-brand-500" />
             <h3 className="mt-4 text-lg font-bold text-navy-900">
-              We are lining up spaces at {airport.name}
+              {t("airport.emptyTitleA")} {airport.name}
             </h3>
             <p className="mt-2 text-navy-600">
-              Listings here are launching soon. Join the waitlist and we will let you know the
-              moment {airport.code} goes live.
+              {t("airport.emptyBodyA")} {airport.code} {t("airport.emptyBodyB")}
             </p>
             <Link href="/#waitlist" className={buttonVariants({ variant: "navy", className: "mt-5" })}>
-              Join the waitlist <ArrowRight className="h-4 w-4" />
+              {t("waitlist.join")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
         ) : (
@@ -285,12 +295,12 @@ export default async function AirportPage({
                   <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
                     {space.evCharger && (
                       <Badge tone="navy" className="bg-white/95">
-                        <Zap className="h-3 w-3" /> EV {space.evCharger.kw}kW
+                        <Zap className="h-3 w-3" /> {t("app.ev")} {space.evCharger.kw}kW
                       </Badge>
                     )}
                     {space.liveCamera && (
                       <Badge tone="go" className="bg-white/95">
-                        <Radio className="h-3 w-3" /> Live camera
+                        <Radio className="h-3 w-3" /> {t("app.card.liveCam")}
                       </Badge>
                     )}
                   </div>
@@ -313,14 +323,15 @@ export default async function AirportPage({
                       <MapPin className="h-3.5 w-3.5 text-brand-500" /> {space.distanceMiles} mi
                     </span>
                     <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-brand-500" /> {space.driveMinutes} min drive
+                      <Clock className="h-3.5 w-3.5 text-brand-500" /> {space.driveMinutes}{" "}
+                      {t("app.card.minToTerminal")}
                     </span>
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {space.cctv && (
                       <Badge tone="neutral">
-                        <Camera className="h-3 w-3" /> CCTV
+                        <Camera className="h-3 w-3" /> {t("search.cctv")}
                       </Badge>
                     )}
                     {space.evCharger && (
@@ -329,7 +340,7 @@ export default async function AirportPage({
                       </Badge>
                     )}
                     <Badge tone="neutral" className="capitalize">
-                      Fits {space.maxVehicleSize}
+                      {t("app.card.fits")} {space.maxVehicleSize}
                     </Badge>
                   </div>
 
@@ -338,13 +349,13 @@ export default async function AirportPage({
                       <span className="text-2xl font-extrabold text-navy-900">
                         {formatMoneyShort(space.pricePerDay, currency)}
                       </span>
-                      <span className="text-sm font-semibold text-navy-500"> / day</span>
+                      <span className="text-sm font-semibold text-navy-500"> {t("common.perDay")}</span>
                     </div>
                     <Link
                       href={`/app/space/${space.id}`}
                       className={buttonVariants({ variant: "primary", size: "sm" })}
                     >
-                      View &amp; book <ArrowRight className="h-3.5 w-3.5" />
+                      {t("common.viewBook")} <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                 </div>
@@ -357,9 +368,9 @@ export default async function AirportPage({
       {/* ------------------------------------------------ Why ParkGo here */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Why ParkGo</Eyebrow>
+          <Eyebrow>{t("airport.whyEyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Why book {airport.name} parking with ParkGo
+            {t("airport.whyHeadingA")} {airport.name} {t("airport.whyHeadingB")}
           </h2>
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -367,26 +378,26 @@ export default async function AirportPage({
             {
               icon: MapPin,
               tone: "brand" as const,
-              title: "One booking, one price",
-              body: `Parking, a licensed transfer to your ${airport.code} terminal, EV charging and security — combined at a single transparent price.`,
+              title: t("airport.why1.title"),
+              body: `${t("airport.why1.bodyA")} ${airport.code} ${t("airport.why1.bodyB")}`,
             },
             {
               icon: ShieldCheck,
               tone: "go" as const,
-              title: "Verified & licensed",
-              body: "Every host is ID-verified and every transfer driver is licensed and insured. No anonymous listings.",
+              title: t("airport.why2.title"),
+              body: t("airport.why2.body"),
             },
             {
               icon: Radio,
               tone: "accent" as const,
-              title: "Watch it live",
-              body: "Track your licensed driver on a live map and check your parked car on camera, right from the departure lounge.",
+              title: t("airport.why3.title"),
+              body: t("airport.why3.body"),
             },
             {
               icon: CarTaxiFront,
               tone: "navy" as const,
-              title: "Minutes from the terminal",
-              body: `Private spaces sit close to ${airport.name}, so your transfer is short, predictable and stress-free.`,
+              title: t("airport.why4.title"),
+              body: `${t("airport.why4.bodyA")} ${airport.name}${t("airport.why4.bodyB")}`,
             },
           ].map((f) => (
             <Card key={f.title} className="p-6">
@@ -414,16 +425,16 @@ export default async function AirportPage({
       <Section>
         <div className="grid gap-12 lg:grid-cols-[1fr_2fr]">
           <div>
-            <Eyebrow>Good to know</Eyebrow>
+            <Eyebrow>{t("airport.faqEyebrow")}</Eyebrow>
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-              {airport.name} parking FAQs
+              {airport.name} {t("airport.faqHeadingA")}
             </h2>
             <p className="mt-4 text-navy-600">
-              The questions travellers ask most about parking at {airport.code}.
+              {t("airport.faqIntroA")} {airport.code}.
             </p>
           </div>
           <dl className="space-y-4">
-            {faqs.map((f) => (
+            {faqsLocalized.map((f) => (
               <Card key={f.q} className="p-6">
                 <dt className="flex items-start gap-3 font-bold text-navy-900">
                   <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-brand-500" />
@@ -443,23 +454,64 @@ export default async function AirportPage({
           <div className="mx-auto max-w-2xl">
             <Sparkles className="mx-auto mb-4 h-8 w-8 text-go-300" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to park at {airport.name}?
+              {t("airport.ctaHeadingA")} {airport.name}
+              {t("airport.ctaHeadingB")}
             </h2>
-            <p className="mt-3 text-brand-100">
-              Compare verified spaces, add a licensed transfer and EV charging, and pay one
-              transparent price.
-            </p>
+            <p className="mt-3 text-brand-100">{t("airport.ctaBody")}</p>
             <Link
               href={`/app/search?airport=${slug}`}
               className={buttonVariants({ variant: "white", size: "lg", className: "mt-7" })}
             >
-              Find parking at {airport.code} <ArrowRight className="h-4 w-4" />
+              {t("airport.findParkingAt")} {airport.code} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </Container>
       </section>
     </>
   );
+}
+
+// Localized FAQs for the visible section. Dynamic tokens (airport name / IATA
+// code / count / price) are glued to the following fragment, which carries its
+// own leading space or punctuation per locale — the translator has no
+// interpolation, so composition happens here.
+function buildFaqsLocalized(
+  t: (key: string) => string,
+  name: string,
+  code: string,
+  min: number | null,
+  currency: "GBP" | "EUR",
+  evCount: number
+): { q: string; a: string }[] {
+  const fromPriceText =
+    min != null
+      ? `${t("airport.faq1.fromPrice")} ${formatMoneyShort(min, currency)} ${t("airport.faq1.perDay")}`
+      : t("airport.faq1.competitive");
+  const spaceWord =
+    evCount === 1 ? t("airport.faq4ev.aSpace") : t("airport.faq4ev.aSpaces");
+  return [
+    {
+      q: `${t("airport.faq1.qA")} ${name}${t("airport.faq1.qB")}`,
+      a: `${t("airport.faq1.aA")} ${name} ${fromPriceText}${t("airport.faq1.aB")}`,
+    },
+    {
+      q: `${t("airport.faq2.qA")} ${code}${t("airport.faq2.qB")}`,
+      a: `${t("airport.faq2.aA")} ${name}${t("airport.faq2.aB")}`,
+    },
+    {
+      q: t("airport.faq3.q"),
+      a: `${t("airport.faq3.aA")} ${name}${t("airport.faq3.aB")}`,
+    },
+    evCount > 0
+      ? {
+          q: `${t("airport.faq4ev.qA")} ${name}${t("airport.faq4ev.qB")}`,
+          a: `${t("airport.faq4ev.aA")} ${evCount} ${spaceWord} ${t("airport.faq4ev.aNear")} ${name}${t("airport.faq4ev.aB")}`,
+        }
+      : {
+          q: `${t("airport.faq4t.qA")} ${name}${t("airport.faq4t.qB")}`,
+          a: `${t("airport.faq4t.aA")} ${name}${t("airport.faq4t.aB")}`,
+        },
+  ];
 }
 
 function buildFaqs(

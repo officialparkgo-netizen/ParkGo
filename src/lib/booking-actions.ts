@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { BookingBundle, PaymentMethod } from "@/types";
 import { requireUser, requireRole } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n";
 import {
   addReview,
   confirmHandover,
@@ -95,7 +96,10 @@ export async function submitReviewAction(
   const comment = String(formData.get("comment") || "").trim();
   const booking = getBooking(bookingId);
   if (!booking || booking.travellerId !== user.id) return { error: "Booking not found." };
-  if (rating < 1 || rating > 5) return { error: "Please choose a rating." };
+  if (rating < 1 || rating > 5) {
+    const { t } = await getI18n();
+    return { error: t("err.rating") };
+  }
 
   addReview({
     bookingId,

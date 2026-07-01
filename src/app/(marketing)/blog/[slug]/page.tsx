@@ -8,6 +8,15 @@ import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata, SITE } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 import { getAllPosts, getPost } from "@/content/blog";
+import { getI18n } from "@/lib/i18n";
+
+const DATE_LOCALE: Record<string, string> = {
+  en: "en-GB",
+  ur: "ur-PK",
+  hi: "hi-IN",
+  de: "de-DE",
+  zh: "zh-CN",
+};
 
 export async function generateStaticParams() {
   return getAllPosts().map((p) => ({ slug: p.slug }));
@@ -38,6 +47,10 @@ export default async function BlogPostPage({
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) notFound();
+
+  const { t, locale } = await getI18n();
+  const dateLocale = DATE_LOCALE[locale] ?? "en-GB";
+  const body = t("blog.post." + slug + ".body").split("\n\n");
 
   const url = new URL(`/blog/${slug}`, SITE.url).toString();
   const articleLd = {
@@ -74,28 +87,28 @@ export default async function BlogPostPage({
               href="/blog"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-500 hover:text-brand-600"
             >
-              <ArrowLeft className="h-4 w-4" /> All articles
+              <ArrowLeft className="h-4 w-4" /> {t("blog.backToBlog")}
             </Link>
             <div className="mt-5 flex flex-wrap gap-1.5">
-              {post.tags.map((t) => (
-                <Badge key={t} tone="brand">
-                  {t}
+              {post.tags.map((tag) => (
+                <Badge key={tag} tone="brand">
+                  {tag}
                 </Badge>
               ))}
             </div>
             <h1 className="mt-4 text-balance text-3xl font-extrabold leading-[1.12] tracking-tight text-navy-900 sm:text-4xl">
-              {post.title}
+              {t("blog.post." + slug + ".title")}
             </h1>
-            <p className="mt-4 text-lg text-navy-600">{post.excerpt}</p>
+            <p className="mt-4 text-lg text-navy-600">{t("blog.post." + slug + ".excerpt")}</p>
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-navy-100 pt-5 text-sm text-navy-500">
               <span className="inline-flex items-center gap-1.5">
-                <UserRound className="h-4 w-4" /> {post.author}
+                <UserRound className="h-4 w-4" /> {t("blog.by")} {post.author}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="h-4 w-4" /> {formatDate(post.date)}
+                <CalendarDays className="h-4 w-4" /> {formatDate(post.date, dateLocale)}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Clock className="h-4 w-4" /> {post.readMins} min read
+                <Clock className="h-4 w-4" /> {post.readMins} {t("blog.minRead")}
               </span>
             </div>
           </div>
@@ -105,7 +118,7 @@ export default async function BlogPostPage({
       {/* -------------------------------------------------------- Article */}
       <Container className="py-12 sm:py-16">
         <article className="mx-auto max-w-2xl space-y-4 text-navy-700 leading-relaxed">
-          {post.body.map((para, i) =>
+          {body.map((para, i) =>
             para.startsWith("## ") ? (
               <h2
                 key={i}
@@ -121,19 +134,15 @@ export default async function BlogPostPage({
 
         {/* CTA */}
         <div className="mx-auto mt-12 max-w-2xl rounded-2xl bg-navy-800 p-8 text-center">
-          <Eyebrow className="text-go-300">Park Smart. Travel Easy.</Eyebrow>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
-            One booking for parking, transfer &amp; EV
-          </h2>
-          <p className="mt-2 text-navy-200">
-            See verified spaces near your airport at one transparent price.
-          </p>
+          <Eyebrow className="text-go-300">{t("blog.cta.eyebrow")}</Eyebrow>
+          <h2 className="text-2xl font-bold tracking-tight text-white">{t("blog.cta.title")}</h2>
+          <p className="mt-2 text-navy-200">{t("blog.cta.body")}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link href="/travellers" className={buttonVariants({ variant: "primary" })}>
-              Start a booking <ArrowRight className="h-4 w-4" />
+              {t("blog.cta.start")} <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/blog" className={buttonVariants({ variant: "white" })}>
-              More articles
+              {t("blog.cta.more")}
             </Link>
           </div>
         </div>
