@@ -7,7 +7,9 @@ import {
   Camera,
   CalendarCheck,
   CheckCircle2,
+  Image as ImageIcon,
   PlusCircle,
+  ShieldCheck,
   Star,
   Warehouse,
   Zap,
@@ -33,6 +35,7 @@ import {
   trustScoreFor,
 } from "@/lib/data/store";
 import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
+import { updateHostProfileAction } from "@/lib/host-actions";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Host dashboard", path: "/host", noindex: true });
@@ -131,14 +134,24 @@ export default async function HostDashboard({
                     </div>
                     <p className="text-sm text-navy-500">{airport?.name}</p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
+                      {s.status === "live" && (
+                        <Badge tone="go">
+                          <span className="h-1.5 w-1.5 rounded-full bg-go-500" /> Live
+                        </Badge>
+                      )}
+                      {s.cctv && (
+                        <Badge tone="go">
+                          <ShieldCheck className="h-3 w-3" /> CCTV
+                        </Badge>
+                      )}
                       {s.evCharger && (
                         <Badge tone="brand">
                           <Zap className="h-3 w-3" /> EV
                         </Badge>
                       )}
-                      {s.liveCamera && (
-                        <Badge tone="go">
-                          <Camera className="h-3 w-3" /> Live cam
+                      {s.photos.length > 0 && (
+                        <Badge tone="neutral">
+                          <ImageIcon className="h-3 w-3" /> Photos live
                         </Badge>
                       )}
                       <Badge tone="neutral">{formatMoney(s.pricePerDay)}/day</Badge>
@@ -148,6 +161,51 @@ export default async function HostDashboard({
               );
             })}
           </div>
+        </section>
+
+        {/* Profile shown to guests (Airbnb-style) */}
+        <section id="profile" className="scroll-mt-20">
+          <h3 className="mb-3 text-lg font-bold text-navy-900">Your profile</h3>
+          <Card className="p-5">
+            <div className="flex items-start gap-4">
+              <span
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
+                style={{ backgroundColor: user.avatarColor ?? "#F26A1B" }}
+              >
+                {initials(user.name)}
+              </span>
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-navy-900">{user.name}</span>
+                  <Badge tone="go">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Profile shown to guests
+                  </Badge>
+                </div>
+                <p className="text-sm text-navy-500">
+                  Your photo, bio and property photos appear on your listings before guests book.
+                </p>
+              </div>
+            </div>
+            <form action={updateHostProfileAction} className="mt-4">
+              <label htmlFor="bio" className="mb-1.5 block text-sm font-semibold text-navy-700">
+                Your introduction (bio)
+              </label>
+              <textarea
+                id="bio"
+                name="bio"
+                rows={3}
+                defaultValue={host.bio ?? ""}
+                placeholder="A friendly line about you and your space."
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline", size: "sm", className: "mt-2" })}
+              >
+                Save profile
+              </button>
+            </form>
+          </Card>
         </section>
 
         {/* Bookings */}

@@ -42,6 +42,12 @@ describe("searchSpaces", () => {
     expect(evResults.every((r) => r.space.evCharger !== null)).toBe(true);
   });
 
+  it("filters to CCTV/camera spaces when CCTV is required", () => {
+    const cctvResults = searchSpaces({ airportSlug: "heathrow", needsCctv: true });
+    expect(cctvResults.length).toBeGreaterThan(0);
+    expect(cctvResults.every((r) => r.space.cctv || r.space.liveCamera)).toBe(true);
+  });
+
   it("returns nothing for an unknown airport", () => {
     expect(searchSpaces({ airportSlug: "nowhere" })).toHaveLength(0);
   });

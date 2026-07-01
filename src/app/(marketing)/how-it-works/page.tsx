@@ -86,12 +86,6 @@ const hostSteps = [
   { title: "Get paid", body: "Receive secure payouts after each completed booking — you keep the large majority." },
 ];
 
-const partnerSteps = [
-  { title: "Onboard your fleet", body: "Add drivers, vehicles, licences and insurance. We verify before you receive jobs." },
-  { title: "Receive bundled jobs", body: "Accept terminal transfers that come pre-attached to a parking booking." },
-  { title: "Confirm & get paid", body: "Share live location, complete a verified handover and get paid per completed job." },
-];
-
 export default function HowItWorksPage() {
   return (
     <>
@@ -276,16 +270,16 @@ export default function HowItWorksPage() {
         </div>
       </Section>
 
-      {/* ----------------------------------------------- For hosts & partners */}
+      {/* ----------------------------------------------- For hosts & transfers */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>The other side of the network</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            How it works for hosts and transfer partners
+            How hosting works, and who runs your transfer
           </h2>
           <p className="mt-4 text-navy-600">
-            Travellers only get a seamless trip because hosts and licensed partners are verified and
-            paid fairly. Here is the short version of each.
+            Travellers get a seamless trip because hosts are verified and the terminal transfer is
+            handled by a licensed operator. Here is the short version of each.
           </p>
         </div>
 
@@ -323,26 +317,23 @@ export default function HowItWorksPage() {
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
                 <CarTaxiFront className="h-5 w-5" />
               </div>
-              <h3 className="text-xl font-bold text-navy-900">For transfer partners</h3>
+              <h3 className="text-xl font-bold text-navy-900">Who runs your transfer</h3>
             </div>
-            <ol className="mt-5 space-y-4">
-              {partnerSteps.map((s, i) => (
-                <li key={s.title} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-100 text-xs font-bold text-accent-700">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <p className="font-bold text-navy-900">{s.title}</p>
-                    <p className="text-sm text-navy-600">{s.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <p className="mt-5 text-navy-600">
+              ParkGo does not run a fleet or onboard drivers. Your terminal transfer is provided by an
+              independent, licensed and insured operator, integrated with ParkGo by API. It comes
+              pre-attached to your parking booking, so you still get one price at checkout.
+            </p>
+            <p className="mt-4 text-navy-600">
+              The customer experience stays exactly the same — a bundled booking, live driver location
+              and ETA on travel day, and a verified handover — all powered by the operator&apos;s API
+              rather than a ParkGo-built driver app.
+            </p>
             <Link
-              href="/transfer-partners"
-              className={buttonVariants({ variant: "accent", className: "mt-6 w-full" })}
+              href="/trust-safety"
+              className={buttonVariants({ variant: "outline", className: "mt-6 w-full" })}
             >
-              Become a partner <ArrowRight className="h-4 w-4" />
+              How we keep it safe <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
         </div>

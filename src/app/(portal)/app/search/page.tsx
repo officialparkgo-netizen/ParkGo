@@ -25,6 +25,8 @@ export default async function SearchPage({
     to?: string;
     ev?: string;
     transfer?: string;
+    cctv?: string;
+    vehicle?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
@@ -39,6 +41,8 @@ export default async function SearchPage({
     endAt: sp.to ? new Date(sp.to).toISOString() : undefined,
     needsEv: sp.ev === "1",
     needsTransfer: sp.transfer === "1",
+    needsCctv: sp.cctv === "1",
+    vehicleSize: (sp.vehicle as "small" | "medium" | "large" | "van" | undefined) || undefined,
   });
 
   const suggestion = optimiseJourney(results, {
@@ -56,7 +60,10 @@ export default async function SearchPage({
           <h2 className="text-lg font-bold text-navy-900">
             {results.length} spaces near {airport?.name ?? "your airport"}
           </h2>
-          {sp.transfer === "1" && <Badge tone="brand">+ licensed transfer</Badge>}
+          <div className="flex gap-2">
+            {sp.cctv === "1" && <Badge tone="go">CCTV / camera</Badge>}
+            {sp.transfer === "1" && <Badge tone="brand">+ licensed transfer</Badge>}
+          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">

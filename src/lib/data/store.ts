@@ -98,6 +98,17 @@ export const getUserByEmail = (email: string) =>
 export const getHost = (id: string) => db.hosts.find((h) => h.id === id);
 export const getHostByUserId = (userId: string) =>
   db.hosts.find((h) => h.userId === userId);
+
+/** Host profile edit (Airbnb-style intro shown to guests). */
+export function updateHostProfile(
+  hostId: string,
+  patch: { bio?: string }
+): Host | undefined {
+  const host = getHost(hostId);
+  if (!host) return undefined;
+  if (patch.bio !== undefined) host.bio = patch.bio;
+  return host;
+}
 export const getSpace = (id: string) => db.spaces.find((s) => s.id === id);
 export const getSpacesByHost = (hostId: string) =>
   db.spaces.filter((s) => s.hostId === hostId);
@@ -107,6 +118,7 @@ export const getAllBookings = () => db.bookings;
 export const getAllReviews = () => db.reviews;
 export const getAllHosts = () => db.hosts;
 export const getAllDrivers = () => db.drivers;
+export const getAllTransfers = () => db.transfers;
 
 export interface CreateSpaceInput {
   hostId: string;
@@ -162,6 +174,7 @@ export function searchSpaces(query: SearchQuery): SearchResult[] {
   return db.spaces
     .filter((s) => s.airportSlug === query.airportSlug && s.status === "live")
     .filter((s) => (query.needsEv ? !!s.evCharger : true))
+    .filter((s) => (query.needsCctv ? s.cctv || s.liveCamera : true))
     .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true))
     .map((space) => {
       const start = query.startAt ?? new Date().toISOString();

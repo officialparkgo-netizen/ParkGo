@@ -20,6 +20,11 @@ export function SpaceCard({ result }: { result: SearchResult }) {
               <Camera className="h-3 w-3" /> Live cam
             </Badge>
           )}
+          {!space.liveCamera && space.cctv && (
+            <Badge tone="go" className="bg-white/90">
+              <ShieldCheck className="h-3 w-3" /> CCTV
+            </Badge>
+          )}
           {space.evCharger && (
             <Badge tone="brand" className="bg-white/90">
               <Zap className="h-3 w-3" /> EV

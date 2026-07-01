@@ -8,7 +8,7 @@ import { pageMetadata, SITE } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "FAQ",
   description:
-    "Answers to common questions about ParkGo — for travellers, hosts and transfer partners. Payments, security, languages, verification and how the bundle works.",
+    "Answers to common questions about ParkGo — for travellers and hosts. Payments, security, languages, verification and how the bundle works.",
   path: "/faq",
 });
 
@@ -26,6 +26,10 @@ const groups: FaqGroup[] = [
       {
         q: "Is my car safe while I am away?",
         a: "Yes. Hosts are ID-verified, spaces can include CCTV, and you can watch your parked car on a live in-app camera with a LIVE badge and timestamp. Both drop-off and collection use a verified, logged handover with a one-time code.",
+      },
+      {
+        q: "Are transfers run by ParkGo's own drivers?",
+        a: "No. ParkGo does not run a fleet or onboard drivers. Your terminal transfer is provided by an independent, licensed and insured operator, integrated with ParkGo by API. You still get the same experience — a bundled booking, live driver location and ETA, and a verified handover — powered by the operator's API.",
       },
       {
         q: "What happens if my flight is delayed?",
@@ -55,19 +59,6 @@ const groups: FaqGroup[] = [
     ],
   },
   {
-    category: "For transfer partners",
-    items: [
-      {
-        q: "How do transfer partners receive work?",
-        a: "Transfers arrive pre-attached to confirmed parking bookings, so you receive qualified jobs rather than cold leads. You assign each job to a verified driver and vehicle and manage everything from one dashboard.",
-      },
-      {
-        q: "What do I need to become a transfer partner?",
-        a: "A valid taxi or private hire operator licence, licensed and background-checked drivers, appropriately insured vehicles, and a commitment to our service-level standards. We verify all documents before you go live and re-check them periodically.",
-      },
-    ],
-  },
-  {
     category: "Payments & pricing",
     items: [
       {
@@ -76,7 +67,7 @@ const groups: FaqGroup[] = [
       },
       {
         q: "How much commission does ParkGo take?",
-        a: "Indicatively around 18 percent on parking and around 12 percent on transfers, plus the flat service fee. Commission is configurable for partners at scale and is shown clearly in payout statements. Figures are indicative and to be confirmed.",
+        a: "Indicatively around 18 percent on parking, plus the flat service fee, shown clearly in host payout statements. The terminal transfer is provided by an independent licensed operator and is included in your bundle price. Figures are indicative and to be confirmed.",
       },
       {
         q: "Do you offer corporate accounts?",
@@ -134,7 +125,7 @@ export default function FaqPage() {
             Everything you wanted to ask about ParkGo
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            Answers for travellers, hosts and transfer partners. Can&apos;t find what you need? Our team is
+            Answers for travellers and hosts. Can&apos;t find what you need? Our team is
             one message away.
           </p>
         </Container>

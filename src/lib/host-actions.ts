@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
-import { createSpace, getHostByUserId } from "@/lib/data/store";
+import { createSpace, getHostByUserId, updateHostProfile } from "@/lib/data/store";
 
 /** Host: create a new listing (enters admin verification as pending_review). */
 export async function createSpaceAction(formData: FormData) {
@@ -37,7 +37,20 @@ export async function createSpaceAction(formData: FormData) {
     widthM: Number(formData.get("widthM") || 2.5),
   });
 
+  // Host profile (Airbnb-style intro) captured during onboarding.
+  const bio = String(formData.get("bio") || "").trim();
+  if (bio) updateHostProfile(host.id, { bio });
+
   revalidatePath("/host");
   revalidatePath("/admin");
   redirect("/host?listed=1");
+}
+
+/** Host: update the public profile shown to guests (bio). */
+export async function updateHostProfileAction(formData: FormData) {
+  const user = await requireRole("host");
+  const host = getHostByUserId(user.id);
+  if (!host) throw new Error("No host profile");
+  updateHostProfile(host.id, { bio: String(formData.get("bio") || "").trim() });
+  revalidatePath("/host");
 }

@@ -71,7 +71,7 @@ export function LiveMap({
         <path
           d={`M ${start.x} ${start.y} Q ${cx} ${cy} ${terminal.x} ${terminal.y}`}
           fill="none"
-          stroke="#36B24A"
+          stroke="#F26A1B"
           strokeWidth="0.8"
           strokeDasharray="1 2"
           strokeLinecap="round"

@@ -86,14 +86,14 @@ function CarSilhouette() {
       className="absolute bottom-6 left-1/2 w-3/5 -translate-x-1/2"
       aria-hidden
     >
-      <g fill="#0b1626" stroke="#1d3f63" strokeWidth="2">
+      <g fill="#0C0D0F" stroke="#2A2E34" strokeWidth="2">
         <rect x="20" y="62" width="200" height="34" rx="12" />
         <path d="M55 62 C70 38, 170 38, 185 62 Z" />
       </g>
-      <circle cx="70" cy="98" r="14" fill="#05111f" stroke="#16314d" strokeWidth="3" />
-      <circle cx="170" cy="98" r="14" fill="#05111f" stroke="#16314d" strokeWidth="3" />
-      <rect x="78" y="48" width="40" height="16" rx="4" fill="#16314d" opacity="0.7" />
-      <rect x="124" y="48" width="40" height="16" rx="4" fill="#16314d" opacity="0.7" />
+      <circle cx="70" cy="98" r="14" fill="#0C0D0F" stroke="#2A2E34" strokeWidth="3" />
+      <circle cx="170" cy="98" r="14" fill="#0C0D0F" stroke="#2A2E34" strokeWidth="3" />
+      <rect x="78" y="48" width="40" height="16" rx="4" fill="#2A2E34" opacity="0.7" />
+      <rect x="124" y="48" width="40" height="16" rx="4" fill="#2A2E34" opacity="0.7" />
     </svg>
   );
 }

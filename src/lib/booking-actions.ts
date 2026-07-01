@@ -75,7 +75,7 @@ export async function confirmHandoverAction(
     formData.get("bookingId") ? String(formData.get("bookingId")) : ""
   );
   if (booking) revalidatePath(`/app/booking/${booking.id}/track`);
-  revalidatePath("/transfer");
+  revalidatePath("/admin");
   return { ok: true, confirmedAt: result.transfer.handoverConfirmedAt };
 }
 

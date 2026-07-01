@@ -18,7 +18,6 @@ export interface NavItem {
 const ROLE_LABEL: Record<User["role"], string> = {
   traveller: "Traveller",
   host: "Host",
-  transfer: "Transfer Partner",
   admin: "Admin",
 };
 

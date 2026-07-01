@@ -6,7 +6,7 @@ import { pageMetadata, SITE } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Terms of Service",
   description:
-    "The terms governing your use of the ParkGo marketplace — our role, bookings and payments, cancellations, host and driver obligations, prohibited use, liability and governing law.",
+    "The terms governing your use of the ParkGo marketplace — our role, bookings and payments, cancellations, host obligations, the independent transfer operator, prohibited use, liability and governing law.",
   path: "/terms",
 });
 
@@ -26,8 +26,7 @@ export default function TermsPage() {
             </h1>
             <p className="mt-4 text-lg text-navy-600">
               These terms set out the agreement between you and {SITE.name} when you use our
-              marketplace to book parking, transfers and EV charging, or to list a space or provide
-              transfers.
+              marketplace to book parking, transfers and EV charging, or to list a space as a host.
             </p>
             <p className="mt-4 text-sm font-semibold text-navy-400">Last updated: {LAST_UPDATED}</p>
           </div>
@@ -40,16 +39,17 @@ export default function TermsPage() {
           <Section title="1. Our role as a marketplace">
             <p>
               {SITE.name} operates an online marketplace that connects travellers with independent
-              hosts who provide private parking spaces and with licensed transfer partners who
-              provide terminal transfers. Unless we state otherwise in writing, {SITE.name} is not
-              the provider of the parking space or the transfer; we facilitate the booking, take
-              payment and provide the supporting technology.
+              hosts who provide private parking spaces, and with an independent licensed transfer
+              operator who provides terminal transfers. Unless we state otherwise in writing,
+              {SITE.name} is not the provider of the parking space or the transfer; we facilitate the
+              booking, take payment and provide the supporting technology.
             </p>
             <p>
-              The contract for parking is between you and the host; the contract for a transfer is
-              between you and the licensed transfer partner. {SITE.name} verifies hosts and
-              partners before they join, but you acknowledge that they operate as independent
-              businesses.
+              The contract for parking is between you and the host; the transfer is delivered by the
+              independent licensed transfer operator, whose service is integrated with {SITE.name} by
+              API. {SITE.name} verifies hosts before they join, and you acknowledge that hosts and the
+              transfer operator are independent businesses responsible for their own licensing,
+              insurance and compliance.
             </p>
           </Section>
 
@@ -72,8 +72,8 @@ export default function TermsPage() {
               <li>A booking is confirmed once payment has been successfully taken.</li>
               <li>
                 Payments are processed by our regulated payment provider; {SITE.name} collects
-                payment and distributes the host and driver shares, retaining its service and
-                commission fees.
+                payment and distributes the host and transfer operator shares, retaining its service
+                and commission fees.
               </li>
               <li>
                 EV charging, where included, is priced per kilowatt-hour as shown on the listing
@@ -88,7 +88,7 @@ export default function TermsPage() {
               cancellation window and any applicable fee are shown at checkout and in your booking
               confirmation. Where you cancel within the free-cancellation window, you receive a
               full refund of the cancellable amount; the service fee may be non-refundable. If a
-              host or transfer partner cancels, or cannot honour a confirmed booking, you are
+              host or the transfer operator cancels, or cannot honour a confirmed booking, you are
               entitled to a full refund and we will help you find an alternative where possible.
             </p>
           </Section>
@@ -104,13 +104,17 @@ export default function TermsPage() {
             </ul>
           </Section>
 
-          <Section title="6. Transfer partner and driver obligations">
-            <p>If you provide transfers, you agree that you will:</p>
+          <Section title="6. The transfer operator">
+            <p>
+              Terminal transfers are provided by an independent licensed transfer operator whose
+              service is integrated with {SITE.name} by API. {SITE.name} does not operate a fleet or
+              engage drivers directly. The operator is solely responsible for:
+            </p>
             <ul>
-              <li>hold and maintain a valid private-hire operator licence and the required commercial passenger insurance;</li>
-              <li>ensure every driver is correctly licensed, badged and verified, and every vehicle is roadworthy and insured;</li>
-              <li>complete periodic re-verification and keep all documents current;</li>
-              <li>complete the verified handover process and meet the service standards shown to travellers.</li>
+              <li>holding and maintaining a valid private-hire operator licence and the required commercial passenger insurance;</li>
+              <li>ensuring every driver is correctly licensed, badged and verified, and every vehicle is roadworthy and insured;</li>
+              <li>its own compliance, record-keeping and periodic re-verification;</li>
+              <li>completing the verified handover process and meeting the service standards shown to travellers.</li>
             </ul>
           </Section>
 
@@ -127,7 +131,7 @@ export default function TermsPage() {
             <p>You agree not to:</p>
             <ul>
               <li>use the platform for any unlawful purpose or to facilitate fraud;</li>
-              <li>list a space you have no right to offer, or provide transfers without the required licences;</li>
+              <li>list a space you have no right to offer;</li>
               <li>circumvent {SITE.name} to take bookings or payments off-platform;</li>
               <li>misrepresent identity, vehicle or verification details;</li>
               <li>interfere with the platform&apos;s security, scrape data, or misuse live location or camera features.</li>
@@ -137,10 +141,10 @@ export default function TermsPage() {
 
           <Section title="9. Fees and taxes">
             <p>
-              {SITE.name} charges a service fee to travellers and a commission to hosts and
-              transfer partners, as disclosed at the point of booking or in your partner agreement.
-              You are responsible for your own tax obligations arising from income earned through
-              the platform.
+              {SITE.name} charges a service fee to travellers and a commission to hosts, as disclosed
+              at the point of booking or in your host agreement. The transfer operator is remunerated
+              under its own commercial agreement with {SITE.name}. You are responsible for your own
+              tax obligations arising from income earned through the platform.
             </p>
           </Section>
 
@@ -148,7 +152,8 @@ export default function TermsPage() {
             <p>
               Nothing in these terms limits liability that cannot be limited by law, including for
               death or personal injury caused by negligence, or for fraud. Subject to that, {SITE.name}
-              is not liable for the acts or omissions of independent hosts or transfer partners, and
+              is not liable for the acts or omissions of independent hosts or the independent licensed
+              transfer operator, and
               our total liability to you for any claim connected with a booking is limited to the
               amount you paid for that booking. We are not liable for indirect or consequential
               loss. These terms do not affect the statutory rights of consumers.
@@ -168,7 +173,7 @@ export default function TermsPage() {
 
           <Section title="12. Governing law">
             <p>
-              For travellers, hosts and partners in the United Kingdom, these terms are governed by
+              For travellers and hosts in the United Kingdom, these terms are governed by
               the laws of England and Wales, and the courts of England and Wales have non-exclusive
               jurisdiction. For users of our Irish service, these terms are governed by the laws of
               Ireland, and the Irish courts have non-exclusive jurisdiction. Consumers may also have

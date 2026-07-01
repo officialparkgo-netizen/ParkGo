@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, Search, Zap, CarTaxiFront } from "lucide-react";
+import { Plane, Search, Zap, CarTaxiFront, Camera, Car } from "lucide-react";
 import type { Airport } from "@/types";
 import { Button } from "@/components/ui/button";
 
@@ -23,8 +23,10 @@ export function SearchWidget({
   const [airport, setAirport] = useState(airports[0]?.slug ?? "heathrow");
   const [from, setFrom] = useState(isoDay(2));
   const [to, setTo] = useState(isoDay(7));
+  const [vehicle, setVehicle] = useState("");
   const [needsEv, setNeedsEv] = useState(false);
   const [needsTransfer, setNeedsTransfer] = useState(false);
+  const [needsCctv, setNeedsCctv] = useState(false);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,8 +34,10 @@ export function SearchWidget({
       airport,
       from,
       to,
+      ...(vehicle ? { vehicle } : {}),
       ...(needsEv ? { ev: "1" } : {}),
       ...(needsTransfer ? { transfer: "1" } : {}),
+      ...(needsCctv ? { cctv: "1" } : {}),
     });
     router.push(`/app/search?${params.toString()}`);
   }
@@ -43,9 +47,9 @@ export function SearchWidget({
       onSubmit={submit}
       className="rounded-2xl border border-navy-100 bg-white p-3 shadow-card-lg sm:p-4"
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="flex flex-col gap-1">
-          <span className="px-1 text-xs font-semibold text-navy-500">Airport</span>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <label className="flex flex-col gap-1 lg:col-span-2">
+          <span className="px-1 text-xs font-semibold text-navy-500">Destination</span>
           <div className="relative">
             <Plane className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" />
             <select
@@ -86,33 +90,69 @@ export function SearchWidget({
         <div className="flex items-end">
           <Button type="submit" size="lg" className="h-11 w-full">
             <Search className="h-4 w-4" />
-            Find parking
+            Search spaces
           </Button>
         </div>
       </div>
 
       {!compact && (
-        <div className="mt-3 flex flex-wrap items-center gap-4 px-1">
-          <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-navy-700">
-            <input
-              type="checkbox"
-              checked={needsEv}
-              onChange={(e) => setNeedsEv(e.target.checked)}
-              className="h-4 w-4 rounded border-navy-300 text-go-500 focus:ring-go-400"
-            />
-            <Zap className="h-4 w-4 text-go-500" /> EV charging
+        <div className="mt-3 flex flex-wrap items-center gap-3 px-1">
+          <label className="flex items-center gap-1.5 text-sm font-medium text-navy-700">
+            <Car className="h-4 w-4 text-navy-400" />
+            <span className="sr-only">Vehicle size</span>
+            <select
+              value={vehicle}
+              onChange={(e) => setVehicle(e.target.value)}
+              className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm font-medium focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            >
+              <option value="">Any vehicle</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large / SUV</option>
+              <option value="van">Van</option>
+            </select>
           </label>
-          <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-navy-700">
-            <input
-              type="checkbox"
-              checked={needsTransfer}
-              onChange={(e) => setNeedsTransfer(e.target.checked)}
-              className="h-4 w-4 rounded border-navy-300 text-brand-500 focus:ring-brand-400"
-            />
-            <CarTaxiFront className="h-4 w-4 text-brand-500" /> Add licensed transfer
-          </label>
+
+          <Chip active={needsCctv} onClick={() => setNeedsCctv((v) => !v)} icon={Camera} color="go">
+            CCTV
+          </Chip>
+          <Chip active={needsTransfer} onClick={() => setNeedsTransfer((v) => !v)} icon={CarTaxiFront} color="brand">
+            Transfer
+          </Chip>
+          <Chip active={needsEv} onClick={() => setNeedsEv((v) => !v)} icon={Zap} color="go">
+            EV charging
+          </Chip>
         </div>
       )}
     </form>
+  );
+}
+
+function Chip({
+  active,
+  onClick,
+  icon: Icon,
+  color,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  color: "go" | "brand";
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
+        active
+          ? "border-brand-400 bg-brand-50 text-brand-700"
+          : "border-navy-200 text-navy-600 hover:bg-navy-50"
+      }`}
+    >
+      <Icon className={`h-4 w-4 ${active ? "text-brand-600" : "text-navy-400"}`} />
+      {children}
+    </button>
   );
 }

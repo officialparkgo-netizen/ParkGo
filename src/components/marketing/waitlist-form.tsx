@@ -11,7 +11,7 @@ export function WaitlistForm({
   className,
   dark = false,
 }: {
-  role?: "traveller" | "host" | "transfer";
+  role?: "traveller" | "host";
   className?: string;
   dark?: boolean;
 }) {

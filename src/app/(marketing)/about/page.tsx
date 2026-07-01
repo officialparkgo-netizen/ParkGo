@@ -84,8 +84,9 @@ export default function AboutPage() {
           </h2>
           <p className="mt-5 text-lg text-navy-600">
             We believe getting to the airport should be as well designed as the flight itself. Our
-            mission is to connect verified hosts, licensed transfer partners and travellers in a single,
-            transparent journey — across the UK &amp; Ireland and in your language.
+            mission is to connect verified hosts, an independent licensed transfer operator and
+            travellers in a single, transparent journey — across the UK &amp; Ireland and in your
+            language.
           </p>
         </div>
       </Section>

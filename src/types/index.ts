@@ -15,7 +15,9 @@ export type Pence = number;
 // Roles & users
 // -----------------------------------------------------------------------------
 
-export type Role = "traveller" | "host" | "transfer" | "admin";
+// Transfers are provided by an independent licensed operator (API-only), so
+// there is no transfer/driver user role — the user-facing roles are three.
+export type Role = "traveller" | "host" | "admin";
 
 export type Locale = "en" | "ur" | "hi" | "de" | "zh";
 
@@ -114,6 +116,8 @@ export interface Host {
   id: UUID;
   userId: UUID;
   displayName: string;
+  /** Short public introduction shown to travellers on the listing (Airbnb-style). */
+  bio?: string;
   verificationStatus: VerificationStatus;
   payoutAccountRef?: string; // Stripe Connect account id (live mode)
   rating: number; // 0–5
@@ -387,6 +391,7 @@ export interface SearchQuery {
   vehicleSize?: VehicleSize;
   needsEv?: boolean;
   needsTransfer?: boolean;
+  needsCctv?: boolean;
 }
 
 export interface SearchResult {

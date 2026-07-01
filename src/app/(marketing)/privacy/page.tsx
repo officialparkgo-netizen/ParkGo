@@ -62,10 +62,10 @@ export default function PrivacyPage() {
                 car. We do not ask travellers for identity documents.
               </li>
               <li>
-                <strong>Host and driver verification (KYC):</strong> identity documents, proof of
-                address, right-to-list declarations, operator licences, insurance certificates and
-                driver badges. This sensitive material is collected only from hosts and transfer
-                partners, is held in a separate, access-controlled store, and is encrypted.
+                <strong>Host verification (KYC):</strong> identity documents, proof of address and
+                right-to-list declarations. This sensitive material is collected only from hosts, is
+                held in a separate, access-controlled store, and is encrypted. The independent licensed
+                transfer operator manages its own driver and vehicle licensing and insurance.
               </li>
               <li>
                 <strong>Booking and payment data:</strong> the bundle you book, dates, price and a
@@ -91,8 +91,8 @@ export default function PrivacyPage() {
                 and provide transfers and handovers.
               </li>
               <li>
-                <strong>Legal obligation:</strong> to verify hosts and transfer partners, prevent
-                fraud and meet tax and licensing requirements.
+                <strong>Legal obligation:</strong> to verify hosts, prevent fraud and meet tax and
+                licensing requirements.
               </li>
               <li>
                 <strong>Legitimate interests:</strong> to keep the platform safe, calculate trust
@@ -113,10 +113,11 @@ export default function PrivacyPage() {
             <p>
               ParkGo is a marketplace, so some data must be shared to deliver a booking. We share
               the minimum necessary: a host sees the vehicle details and arrival window for a
-              confirmed booking; a licensed driver sees what they need to complete the transfer and
-              handover. We also use trusted processors — for payments, hosting, identity
-              verification and communications — under written contracts that require them to
-              protect your data and use it only on our instructions.
+              confirmed booking; the independent licensed transfer operator receives, via a secure
+              API, only what its driver needs to complete the transfer and handover. We also use
+              trusted processors — for payments, hosting, identity verification and communications —
+              under written contracts that require them to protect your data and use it only on our
+              instructions.
             </p>
             <p>
               We never sell your personal data. We may disclose data where required by law, or to

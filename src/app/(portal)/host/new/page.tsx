@@ -33,6 +33,11 @@ export default async function NewSpacePage() {
               <Input id="title" name="title" required placeholder="Secure driveway · 5 min to terminal" />
             </div>
 
+            <div>
+              <Label htmlFor="bio">About you — shown to guests (Airbnb-style)</Label>
+              <Textarea id="bio" name="bio" rows={2} placeholder="A friendly line about you and your space — builds trust with travellers." />
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="airportSlug">Airport</Label>

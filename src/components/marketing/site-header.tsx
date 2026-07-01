@@ -12,7 +12,6 @@ export async function SiteHeader() {
     { href: "/how-it-works", label: t("nav.how") },
     { href: "/travellers", label: t("nav.travellers") },
     { href: "/hosts", label: t("nav.hosts") },
-    { href: "/transfer-partners", label: t("nav.transfer") },
     { href: "/pricing", label: t("nav.pricing") },
     { href: "/trust-safety", label: t("nav.trust") },
   ];

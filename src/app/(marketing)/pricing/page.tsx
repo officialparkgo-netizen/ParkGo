@@ -27,15 +27,13 @@ import { formatMoneyShort } from "@/lib/utils";
 export const metadata = pageMetadata({
   title: "Pricing",
   description:
-    "Transparent pricing from ParkGo: one bundled price for parking, a licensed transfer and EV charging, with a small flat service fee. Clear commission for hosts and partners, plus corporate accounts and referrals.",
+    "Transparent pricing from ParkGo: one bundled price for parking, a licensed transfer and EV charging, with a small flat service fee. Clear commission for hosts, plus corporate accounts and referrals.",
   path: "/pricing",
 });
 
 const serviceFee = formatMoneyShort(SERVICE_FEE);
 const parkingPct = Math.round(COMMISSION.parkingBps / 100);
-const transferPct = Math.round(COMMISSION.transferBps / 100);
 const hostKeepPct = 100 - parkingPct;
-const driverKeepPct = 100 - transferPct;
 
 // Indicative example bundle lines (pence) that sum to ~£49 including the fee.
 const exampleParking = 3300;
@@ -63,11 +61,11 @@ const economics = [
   {
     icon: CarTaxiFront,
     tone: "accent" as const,
-    who: "Transfer partners",
-    commission: `~${transferPct}%`,
-    line: "on each transfer fare",
-    keep: `Keep ~${driverKeepPct}%`,
-    body: "Commission applies only to the transfer fare. Partners are paid per completed job with the split shown clearly.",
+    who: "Licensed transfer",
+    commission: "Included",
+    line: "in your bundle price",
+    keep: "No partner onboarding",
+    body: "The terminal transfer is provided by an independent, licensed and insured operator, integrated with ParkGo by API. There is no fleet to onboard — it is simply bundled into your one price.",
   },
   {
     icon: Receipt,
@@ -95,14 +93,14 @@ export default function PricingPage() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
             ParkGo bundles parking, a licensed transfer and EV charging into a single price with one
-            small, clearly shown service fee. Hosts and partners earn on fair, transparent terms.
+            small, clearly shown service fee. Hosts earn on fair, transparent terms.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/app" className={buttonVariants({ variant: "primary", size: "lg" })}>
               Start a booking <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="#economics" className={buttonVariants({ variant: "outline", size: "lg" })}>
-              Host &amp; partner economics
+              How the bundle adds up
             </Link>
           </div>
         </Container>
@@ -178,13 +176,13 @@ export default function PricingPage() {
       {/* ------------------------------------------------------- Economics */}
       <Section className="bg-navy-50/50" id="economics">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>Host &amp; partner economics</Eyebrow>
+          <Eyebrow>How the bundle adds up</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Fair commission, clearly explained
+            Fair economics, clearly explained
           </h2>
           <p className="mt-4 text-navy-600">
-            ParkGo takes a commission per line and a small flat service fee. Everyone can see exactly
-            where the money goes — and commission is configurable for partners at scale.
+            ParkGo takes a commission on parking and a small flat service fee. The licensed transfer is
+            included via an integrated operator. Everyone can see exactly where the money goes.
           </p>
         </div>
 
@@ -219,15 +217,14 @@ export default function PricingPage() {
           <Link href="/hosts" className={buttonVariants({ variant: "primary" })}>
             <MapPin className="h-4 w-4" /> Earn as a host
           </Link>
-          <Link href="/transfer-partners" className={buttonVariants({ variant: "accent" })}>
-            <CarTaxiFront className="h-4 w-4" /> Become a transfer partner
+          <Link href="/how-it-works" className={buttonVariants({ variant: "outline" })}>
+            <CarTaxiFront className="h-4 w-4" /> How the transfer works
           </Link>
         </div>
 
         <p className="mx-auto mt-8 flex max-w-2xl items-start justify-center gap-1.5 text-center text-xs text-navy-500">
           <Percent className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Indicative commission of ~{parkingPct}% on parking and ~{transferPct}% on transfers.
-          Rates are configurable and to be confirmed at launch.
+          Indicative commission of ~{parkingPct}% on parking. Rates are to be confirmed at launch.
         </p>
       </Section>
 

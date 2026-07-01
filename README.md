@@ -9,8 +9,10 @@ parking space**, an optional **licensed terminal transfer**, **EV charging**, an
 **one booking and one payment**.
 
 This repository is a full-stack foundation: the **public marketing site** and the
-**four-role portal** (Traveller, Host, Transfer Provider, Admin) in a single
-Next.js codebase, **web-first** and ready to wrap for iOS/Android with Capacitor.
+**three-role portal** (Traveller, Host, Admin) in a single Next.js codebase,
+**web-first** and ready to wrap for iOS/Android with Capacitor. The terminal
+transfer is provided by an **independent licensed operator, integrated by API**
+(there is no driver sign-up or transfer-provider portal).
 
 > It runs **end-to-end with zero API keys** — every integration (payments, maps,
 > live camera, AI, KYC, notifications) has a mock implementation behind a clean
@@ -27,14 +29,17 @@ npm run dev          # http://localhost:3000
 ```
 
 Then open the site and click **Get started → Sign in** (or go to `/login`) and
-pick any of the four **demo accounts** (no password — mock mode):
+pick any of the three **demo accounts** (no password — mock mode):
 
 | Role | What you can do |
 | --- | --- |
-| **Traveller** | Search → bundle → pay → QR → live track + camera + verified handover → review |
-| **Host / Landlord** | List spaces, see bookings, earnings & payouts, verification status |
-| **Transfer Provider** | Manage drivers/vehicles/docs, jobs, confirm handovers, earnings |
-| **Admin / Compliance** | Verification queue (approve/reject), trust scores, payments, audit log |
+| **Traveller** | Search (CCTV/EV/transfer filters) → view host profile → bundle → pay → QR → live track + camera + EV status + verified handover → review |
+| **Host / Landlord** | List spaces, edit the guest-facing profile (photo + bio), see bookings, earnings & payouts, verification status |
+| **Admin / Compliance** | Host verification queue (approve/reject), **Transfer Operator API** monitoring (status, live jobs, ETAs, handovers, SLA), listings, trust scores, payments, audit log |
+
+The terminal transfer is fulfilled by an external licensed operator via API — the
+customer still gets bundled booking, live driver location/ETA and a verified
+handover; there is no ParkGo driver app.
 
 ### Scripts
 
@@ -67,8 +72,8 @@ npm run lint         # next lint
 ## Tech stack
 
 - **Next.js 15** (App Router) + **React 19** + **TypeScript** (strict)
-- **Tailwind CSS** with the ParkGo brand system (navy `#0E2A47`, blue `#1B6CB3`,
-  green `#36B24A`, accent orange `#E8842B`)
+- **Tailwind CSS** with the ParkGo brand system — **orange `#F26A1B`** + **black
+  `#15171A`**, white surfaces and neutral greys (semantic tokens, themed in one place)
 - **Vitest** for unit tests of core logic
 - **lucide-react** icons, **qrcode** for QR generation, **zod** for validation
 - **Supabase** (Postgres + RLS + Auth + Realtime + Storage) for production data —
@@ -99,6 +104,7 @@ point — see `.env.example`.
 | AI | `src/lib/services/ai.ts` | Transparent heuristics | LLM (Anthropic/OpenAI) |
 | Identity / KYC | (documents in data model) | Marked verified | Stripe Identity / Onfido |
 | Notifications | `src/lib/services/notifications.ts` | Console + in-app feed | Expo Push / Resend / SendGrid |
+| Transfer (driver, ETA, handover) | `src/lib/services/transfer-operator.ts` | Derived from booking data | Independent licensed operator REST API |
 
 The **marketplace split** is real logic in both modes (`src/lib/pricing.ts`):
 platform commission (~18% parking / ~12% transfers, configurable) + host/driver
@@ -112,15 +118,14 @@ payouts, with a unit test asserting `platform + host + driver === total`.
 src/
   app/
     (marketing)/        Public site: home, how-it-works, travellers, hosts,
-                        transfer-partners, pricing, trust-safety, about, faq,
-                        contact, blog, airports/[slug], privacy, terms
+                        pricing, trust-safety, about, faq, contact, blog,
+                        airports/[slug], privacy, terms
     (portal)/
-      login/            Demo logins per role
+      login/            Demo logins per role (Traveller, Host, Admin)
       app/              Traveller: dashboard, search, space/[id], book/[spaceId],
-                        booking/[id], booking/[id]/track  (live map + camera + handover)
-      host/             Host dashboard + new listing
-      transfer/         Transfer provider dashboard
-      admin/            Admin & compliance dashboard
+                        booking/[id], booking/[id]/track  (live map + camera + EV + handover)
+      host/             Host dashboard (+ guest-facing profile) + new listing
+      admin/            Admin & compliance + Transfer Operator API monitoring
     sitemap.ts robots.ts layout.tsx globals.css
   components/
     ui/                 Button, Card, Badge, Field, Section (brand primitives)
@@ -131,7 +136,7 @@ src/
                         CameraView, HandoverPanel, Checkout, QR, ReviewForm
   lib/
     data/               seed.ts (demo dataset) + store.ts (data API)
-    services/           payments, maps, camera, ai, notifications
+    services/           payments, maps, camera, ai, notifications, transfer-operator
     i18n/               config, dictionaries (en/ur/hi/de/zh), switcher action
     auth.ts auth-actions.ts pricing.ts trust.ts seo.ts utils.ts
     booking-actions.ts host-actions.ts   (server actions)

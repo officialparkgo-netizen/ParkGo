@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Camera,
   Car,
+  CarTaxiFront,
   Clock,
   MapPin,
   Ruler,
@@ -21,8 +22,9 @@ import { travellerNav } from "@/components/portal/navs";
 import { LiveMap } from "@/components/portal/live-map";
 import { requireRole } from "@/lib/auth";
 import { getAirport, getHost, getReviewsForSpace, getSpace, getUser } from "@/lib/data/store";
+import { priceBundle } from "@/lib/pricing";
 import { projectToViewport } from "@/lib/services/maps";
-import { formatDate, formatMoneyShort } from "@/lib/utils";
+import { daysBetween, formatDate, formatMoneyShort, initials } from "@/lib/utils";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Space", path: "/app/space", noindex: true });
@@ -42,8 +44,21 @@ export default async function SpaceDetail({
 
   const airport = getAirport(space.airportSlug);
   const host = getHost(space.hostId);
+  const hostUser = host ? getUser(host.userId) : undefined;
   const reviews = getReviewsForSpace(space.id);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
+
+  // Total for the selected (or default 7-day) window — shown Airbnb-style.
+  const start = sp.from ? new Date(sp.from).toISOString() : new Date(Date.now() + 2 * 86_400_000).toISOString();
+  const end = sp.to ? new Date(sp.to).toISOString() : new Date(Date.now() + 9 * 86_400_000).toISOString();
+  const nights = daysBetween(start, end);
+  const priceTotal = priceBundle(
+    space,
+    { parking: true, transfer: sp.transfer === "1", ev: sp.ev === "1" && !!space.evCharger },
+    start,
+    end,
+    currency
+  ).total;
 
   // project space + terminal into the schematic map's 0–100 space
   const project = projectToViewport([
@@ -78,6 +93,33 @@ export default async function SpaceDetail({
           </div>
         </div>
 
+        {/* Host profile — shown to guests before booking (Airbnb-style) */}
+        <Card className="flex items-start gap-4 p-5">
+          <span
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
+            style={{ backgroundColor: hostUser?.avatarColor ?? "#F26A1B" }}
+          >
+            {initials(hostUser?.name ?? host?.displayName ?? "PG")}
+          </span>
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-navy-900">
+                Hosted by {hostUser?.name ?? host?.displayName}
+              </span>
+              {host?.verificationStatus === "approved" && (
+                <Badge tone="go">
+                  <BadgeCheck className="h-3.5 w-3.5" /> Verified host
+                </Badge>
+              )}
+            </div>
+            <p className="text-sm text-navy-500">
+              {host?.displayName}
+              {host ? ` · host since ${formatDate(host.joinedAt)}` : ""}
+            </p>
+            {host?.bio && <p className="mt-2 text-sm text-navy-600">{host.bio}</p>}
+          </div>
+        </Card>
+
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <div>
@@ -95,6 +137,24 @@ export default async function SpaceDetail({
               </p>
               <div className="mt-2">
                 <Stars rating={space.rating} count={space.reviewCount} size="md" />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge tone="navy">
+                  <Clock className="h-3 w-3" /> {space.driveMinutes} min to terminal
+                </Badge>
+                {(space.cctv || space.liveCamera) && (
+                  <Badge tone="go">
+                    <ShieldCheck className="h-3 w-3" /> CCTV monitored
+                  </Badge>
+                )}
+                {space.evCharger && (
+                  <Badge tone="brand">
+                    <Zap className="h-3 w-3" /> EV charging
+                  </Badge>
+                )}
+                <Badge tone="accent">
+                  <CarTaxiFront className="h-3 w-3" /> Transfer available
+                </Badge>
               </div>
             </div>
 
@@ -164,17 +224,22 @@ export default async function SpaceDetail({
           {/* Booking rail */}
           <div>
             <div className="sticky top-20 rounded-2xl border border-navy-100 bg-white p-5 shadow-card">
-              <div className="flex items-baseline gap-1">
+              <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-extrabold text-navy-900">
-                  {formatMoneyShort(space.pricePerDay, currency)}
+                  {formatMoneyShort(priceTotal, currency)}
                 </span>
-                <span className="text-navy-500">/ day</span>
+                <span className="text-navy-500">
+                  total · {nights} {nights === 1 ? "day" : "days"}
+                </span>
               </div>
-              <p className="mt-1 text-sm text-navy-500">
-                Add a licensed transfer &amp; EV charging at checkout.
-              </p>
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-sm text-navy-500">
+                  {formatMoneyShort(space.pricePerDay, currency)} / day
+                </span>
+                <Stars rating={space.rating} count={space.reviewCount} />
+              </div>
               <Link href={bookHref} className={buttonVariants({ size: "lg", className: "mt-4 w-full" })}>
-                Build your bundle
+                Book this space
               </Link>
               <ul className="mt-4 space-y-2 text-sm text-navy-600">
                 <li className="flex items-center gap-2">

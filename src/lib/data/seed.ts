@@ -58,7 +58,7 @@ export const users: User[] = [
     email: "traveller@parkgo.demo",
     phone: "+44 7700 900123",
     locale: "en",
-    avatarColor: "#1B6CB3",
+    avatarColor: "#F26A1B",
     vehicle: { make: "Tesla", model: "Model 3", colour: "White", reg: "LV71 OGB", size: "medium", ev: true },
     corporateAccountId: "corp_acme",
     createdAt: iso(-220 * DAY),
@@ -70,18 +70,8 @@ export const users: User[] = [
     email: "host@parkgo.demo",
     phone: "+44 7700 900456",
     locale: "en",
-    avatarColor: "#36B24A",
+    avatarColor: "#15171A",
     createdAt: iso(-410 * DAY),
-  },
-  {
-    id: "user_transfer",
-    role: "transfer",
-    name: "SwiftLink Cars (Operator)",
-    email: "transfer@parkgo.demo",
-    phone: "+44 7700 900789",
-    locale: "en",
-    avatarColor: "#E8842B",
-    createdAt: iso(-300 * DAY),
   },
   {
     id: "user_admin",
@@ -90,21 +80,33 @@ export const users: User[] = [
     email: "admin@parkgo.demo",
     phone: "+44 7700 900000",
     locale: "en",
-    avatarColor: "#0E2A47",
+    avatarColor: "#5B616B",
     createdAt: iso(-500 * DAY),
   },
   // extra hosts for richer listings
-  { id: "user_host2", role: "host", name: "Grace O'Neill", email: "grace@parkgo.demo", locale: "en", avatarColor: "#2a9a3d", createdAt: iso(-260 * DAY) },
-  { id: "user_host3", role: "host", name: "Derek Shaw", email: "derek@parkgo.demo", locale: "en", avatarColor: "#175a96", createdAt: iso(-150 * DAY) },
+  { id: "user_host2", role: "host", name: "Grace O'Neill", email: "grace@parkgo.demo", locale: "en", avatarColor: "#D4560F", createdAt: iso(-260 * DAY) },
+  { id: "user_host3", role: "host", name: "Derek Shaw", email: "derek@parkgo.demo", locale: "en", avatarColor: "#A9430C", createdAt: iso(-150 * DAY) },
 ];
 
 // -----------------------------------------------------------------------------
 // Hosts
 // -----------------------------------------------------------------------------
 export const hosts: Host[] = [
-  { id: "host_tom", userId: "user_host", displayName: "Tom's Driveways", verificationStatus: "approved", payoutAccountRef: "acct_mock_tom", rating: 4.9, joinedAt: iso(-400 * DAY) },
-  { id: "host_grace", userId: "user_host2", displayName: "Grace Secure Parking", verificationStatus: "approved", payoutAccountRef: "acct_mock_grace", rating: 4.7, joinedAt: iso(-255 * DAY) },
-  { id: "host_derek", userId: "user_host3", displayName: "Derek's Yard", verificationStatus: "in_review", rating: 0, joinedAt: iso(-3 * DAY) },
+  {
+    id: "host_tom", userId: "user_host", displayName: "Tom's Driveways",
+    bio: "I've hosted travellers on my secure driveway for over three years — quick keyless access, always spotless, and I'm nearby if you need anything.",
+    verificationStatus: "approved", payoutAccountRef: "acct_mock_tom", rating: 4.9, joinedAt: iso(-400 * DAY),
+  },
+  {
+    id: "host_grace", userId: "user_host2", displayName: "Grace Secure Parking",
+    bio: "Family-run gated parking with 24/7 CCTV and an in-app live camera. We treat every car like our own and love making airport trips stress-free.",
+    verificationStatus: "approved", payoutAccountRef: "acct_mock_grace", rating: 4.7, joinedAt: iso(-255 * DAY),
+  },
+  {
+    id: "host_derek", userId: "user_host3", displayName: "Derek's Yard",
+    bio: "New to ParkGo — offering a well-lit, CCTV-monitored yard space a short hop from the terminal.",
+    verificationStatus: "in_review", rating: 0, joinedAt: iso(-3 * DAY),
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -278,15 +280,6 @@ export const verifications: Verification[] = [
       { id: "doc_4", type: "property_photo", label: "Space photo", fileRef: "kyc://derek/photo", uploadedAt: iso(-2 * DAY) },
     ],
   },
-  {
-    id: "ver_citycabs", subjectId: "tp_citycabs", subjectType: "transfer", status: "in_review",
-    submittedAt: iso(-1 * DAY), reverifyDueAt: iso(20 * DAY),
-    documents: [
-      { id: "doc_5", type: "operator_licence", label: "Operator licence", fileRef: "kyc://citycabs/op", uploadedAt: iso(-1 * DAY) },
-      { id: "doc_6", type: "passenger_insurance", label: "Commercial passenger insurance", fileRef: "kyc://citycabs/ins", uploadedAt: iso(-1 * DAY), expiresAt: iso(300 * DAY) },
-      { id: "doc_7", type: "driver_badge", label: "Driver PHV badge", fileRef: "kyc://citycabs/badge", uploadedAt: iso(-1 * DAY) },
-    ],
-  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -296,7 +289,7 @@ export const notifications: Notification[] = [
   { id: "ntf_1", userId: "user_traveller", title: "Your driver is en route", body: "Marek will reach Heathrow T5 in ~12 min. Tap to track live.", kind: "handover", read: false, createdAt: iso(-1 * HOUR) },
   { id: "ntf_2", userId: "user_traveller", title: "Booking confirmed", body: "PG-2M8Q4 · Gatwick · QR ready in your wallet.", kind: "booking", read: true, createdAt: iso(-1 * DAY) },
   { id: "ntf_3", userId: "user_host", title: "Payout scheduled", body: "£48.50 for PG-7F3K9 will arrive in 2 working days.", kind: "payout", read: false, createdAt: iso(-2 * HOUR) },
-  { id: "ntf_4", userId: "user_admin", title: "2 items awaiting review", body: "Derek's Yard (host) and City Cabs (transfer) need a decision.", kind: "verification", read: false, createdAt: iso(-3 * HOUR) },
+  { id: "ntf_4", userId: "user_admin", title: "Host awaiting review", body: "Derek's Yard (host) needs a verification decision.", kind: "verification", read: false, createdAt: iso(-3 * HOUR) },
 ];
 
 export const corporateAccounts: CorporateAccount[] = [

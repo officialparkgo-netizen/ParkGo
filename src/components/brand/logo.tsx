@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-/** ParkGo mark: navy rounded tile with a "P" and a green location pin. */
+/**
+ * ParkGo mark: black shield containing an orange "P" with a lightning bolt in
+ * its counter. Used as the app icon / favicon (shield-only). Placeholder until
+ * the final brand asset is supplied — swap the SVG paths, keep the API.
+ */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg
@@ -10,13 +14,23 @@ export function LogoMark({ className }: { className?: string }) {
       role="img"
       aria-label="ParkGo"
     >
-      <rect width="40" height="40" rx="11" fill="#0E2A47" />
+      {/* shield */}
       <path
-        d="M13 11h7.2c3.7 0 6.3 2.3 6.3 5.8s-2.6 5.9-6.3 5.9H17V29h-4V11Zm4 8.2h2.8c1.6 0 2.6-.9 2.6-2.4s-1-2.3-2.6-2.3H17v4.7Z"
+        d="M20 3.5 L33.5 8.2 V18.6 C33.5 27.5 27.6 33.6 20 36.6 C12.4 33.6 6.5 27.5 6.5 18.6 V8.2 Z"
+        fill="#15171A"
+      />
+      {/* P (with counter cut out) */}
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        fill="#F26A1B"
+        d="M13.6 10.6h6.8c3.6 0 6.1 2.2 6.1 5.6s-2.5 5.7-6.1 5.7H17.5V29.4h-3.9V10.6Zm3.9 7.9h2.6c1.5 0 2.5-.8 2.5-2.3s-1-2.2-2.5-2.2H17.5v4.5Z"
+      />
+      {/* lightning bolt in the counter */}
+      <path
+        d="M19.2 13.9l-2.7 3.9h1.7l-1.1 2.7 3.2-4.1h-1.7z"
         fill="#fff"
       />
-      <circle cx="29.5" cy="13.5" r="4.5" fill="#36B24A" />
-      <circle cx="29.5" cy="13.5" r="1.7" fill="#fff" />
     </svg>
   );
 }
@@ -38,7 +52,7 @@ export function Logo({
       {withText && (
         <span className="text-xl font-extrabold tracking-tight">
           <span className={inverted ? "text-white" : "text-navy-900"}>Park</span>
-          <span className="text-go-500">Go</span>
+          <span className="text-brand-500">Go</span>
         </span>
       )}
     </span>

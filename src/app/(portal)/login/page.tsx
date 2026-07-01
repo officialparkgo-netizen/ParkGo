@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CarTaxiFront, Home, Plane, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Home, Plane, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { Logo } from "@/components/brand/logo";
 import { Card } from "@/components/ui/card";
@@ -18,7 +18,6 @@ export const metadata: Metadata = pageMetadata({
 const ICONS = {
   traveller: Plane,
   host: Home,
-  transfer: CarTaxiFront,
   admin: ShieldCheck,
 } as const;
 

@@ -11,7 +11,7 @@ export interface WaitlistState {
 
 const schema = z.object({
   email: z.string().email("Please enter a valid email address."),
-  role: z.enum(["traveller", "host", "transfer"]).default("traveller"),
+  role: z.enum(["traveller", "host"]).default("traveller"),
   airport: z.string().optional(),
 });
 

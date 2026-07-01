@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Building2,
-  CarTaxiFront,
   HelpCircle,
   LifeBuoy,
   Mail,
@@ -22,7 +21,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Contact",
   description:
-    "Get in touch with ParkGo. Whether you're a traveller, host, transfer partner or team, our support team is here to help across the UK & Ireland.",
+    "Get in touch with ParkGo. Whether you're a traveller, host or team, our support team is here to help across the UK & Ireland.",
   path: "/contact",
 });
 
@@ -38,7 +37,7 @@ const channels = [
     icon: Building2,
     tone: "brand" as const,
     title: "Partnerships",
-    body: "Hosting at scale or bringing a licensed fleet to ParkGo.",
+    body: "Hosting at scale or corporate travel for your team.",
     action: { label: "partners@parkgo.app", href: "mailto:partners@parkgo.app" },
   },
   {
@@ -54,7 +53,7 @@ const quickLinks = [
   { icon: HelpCircle, title: "Read the FAQ", body: "Most questions are answered here.", href: "/faq" },
   { icon: MapPin, title: "For travellers", body: "How booking and travel day work.", href: "/travellers" },
   { icon: Building2, title: "For hosts", body: "List a space and start earning.", href: "/hosts" },
-  { icon: CarTaxiFront, title: "For partners", body: "Bring your fleet to ParkGo.", href: "/transfer-partners" },
+  { icon: ShieldCheck, title: "Trust & safety", body: "How we keep every booking safe.", href: "/trust-safety" },
 ];
 
 export default function ContactPage() {
@@ -71,7 +70,7 @@ export default function ContactPage() {
             We&apos;d love to hear from you
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
-            Travellers, hosts, transfer partners and teams — whatever you need, our support team across
+            Travellers, hosts and teams — whatever you need, our support team across
             the UK &amp; Ireland is here to help.
           </p>
         </Container>

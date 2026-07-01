@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { getLocale } from "@/lib/i18n";
 import { localeMeta } from "@/lib/i18n/config";
@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: SITE.name }],
   icons: { icon: "/favicon.svg" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#15171A",
 };
 
 export default async function RootLayout({

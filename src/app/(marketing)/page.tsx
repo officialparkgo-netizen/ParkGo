@@ -191,9 +191,9 @@ export default async function HomePage() {
       <Section className="bg-navy-50/50">
         <div className="grid gap-6 md:grid-cols-3">
           {[
-            { href: "/travellers", title: "For travellers", body: "Book parking + transfer + EV in one go. Track everything live.", cta: "Start a booking", tone: "brand" as const },
+            { href: "/travellers", title: "For travellers", body: "Book parking + licensed transfer + EV in one go. Track everything live, watch your car on camera.", cta: "Start a booking", tone: "brand" as const },
             { href: "/hosts", title: "For hosts", body: "List a driveway or yard, get verified, and earn from empty space.", cta: "List your space", tone: "go" as const },
-            { href: "/transfer-partners", title: "For transfer partners", body: "Receive bundled jobs, manage drivers, and confirm handovers in-app.", cta: "Become a partner", tone: "accent" as const },
+            { href: "/contact", title: "For business", body: "Corporate accounts with monthly invoicing, priority support and team bookings.", cta: "Talk to us", tone: "accent" as const },
           ].map((a) => (
             <Card key={a.href} className="flex flex-col p-7">
               <h3 className="text-xl font-bold text-navy-900">{a.title}</h3>
@@ -266,13 +266,13 @@ function TravelDayPreview({ large = false }: { large?: boolean }) {
             <path
               d="M40 180 C 120 160, 140 80, 230 60"
               fill="none"
-              stroke="#36B24A"
+              stroke="#F26A1B"
               strokeWidth="3"
               strokeDasharray="2 8"
               strokeLinecap="round"
             />
             <circle cx="40" cy="180" r="7" fill="#fff" />
-            <circle cx="230" cy="60" r="9" fill="#E8842B" stroke="#fff" strokeWidth="3" />
+            <circle cx="230" cy="60" r="9" fill="#15171A" stroke="#fff" strokeWidth="3" />
           </svg>
           <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-go-700">
             <span className="relative flex h-2 w-2">

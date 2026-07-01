@@ -35,7 +35,7 @@ const pillars = [
     icon: UserCheck,
     tone: "go" as const,
     title: "Two-sided verification",
-    body: "Both sides of every booking are verified. Hosts complete identity and address checks; travellers register real accounts; partners prove their licensing.",
+    body: "Both sides of every booking are verified. Hosts complete identity and address checks; travellers register real accounts; the terminal transfer is handled by a licensed operator.",
   },
   {
     icon: Fingerprint,
@@ -46,8 +46,8 @@ const pillars = [
   {
     icon: BadgeCheck,
     tone: "accent" as const,
-    title: "Licensed & insured drivers",
-    body: "Transfer partners provide operator, vehicle and driver licensing plus insurance — verified and periodically re-checked.",
+    title: "Licensed & insured transfer operator",
+    body: "Your terminal transfer is provided by an independent, licensed and insured operator, integrated by API. Their operator, vehicle and driver compliance sits with them; ParkGo keeps the customer-facing trust — live location and a verified handover.",
   },
   {
     icon: Camera,
@@ -65,7 +65,7 @@ const pillars = [
     icon: Star,
     tone: "brand" as const,
     title: "Two-sided trust scoring",
-    body: "Travellers, hosts and drivers rate each other after every trip. Scores keep the network honest and high quality.",
+    body: "Travellers and hosts rate each other after every trip, and you can rate your transfer too. Scores keep the network honest and high quality.",
   },
 ];
 
@@ -95,7 +95,7 @@ export default function TrustSafetyPage() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
             ParkGo is built on verification, visibility and strict data protection. Here&apos;s exactly how
-            we keep travellers, hosts and partners safe — and how we handle your information.
+            we keep travellers and hosts safe — and how we handle your information.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="#data" className={buttonVariants({ variant: "primary", size: "lg" })}>
@@ -141,6 +141,9 @@ export default function TrustSafetyPage() {
             </Card>
           ))}
         </div>
+        <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-navy-500">
+          ParkGo Limited holds Employers&apos; Liability (Compulsory) Insurance (£5m).
+        </p>
       </Section>
 
       {/* ------------------------------------------ Verified handover detail */}

@@ -12,7 +12,6 @@ export async function SiteFooter() {
         { href: "/how-it-works", label: t("nav.how") },
         { href: "/travellers", label: t("nav.travellers") },
         { href: "/hosts", label: t("nav.hosts") },
-        { href: "/transfer-partners", label: t("nav.transfer") },
         { href: "/pricing", label: t("nav.pricing") },
       ],
     },
@@ -73,6 +72,9 @@ export async function SiteFooter() {
           </p>
           <p>Park Smart. Travel Easy.</p>
         </div>
+        <p className="mt-4 text-center text-xs text-navy-400 sm:text-left">
+          ParkGo Limited holds Employers&apos; Liability (Compulsory) Insurance (£5m).
+        </p>
       </div>
     </footer>
   );

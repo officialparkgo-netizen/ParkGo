@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { Car, Phone, Star, Camera as CameraIcon } from "lucide-react";
+import { Car, Phone, Star, Camera as CameraIcon, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -26,8 +26,16 @@ import {
   getVehicle,
 } from "@/lib/data/store";
 import { resolveStream } from "@/lib/services/camera";
+import { getOperatorJob } from "@/lib/services/transfer-operator";
 import { projectToViewport } from "@/lib/services/maps";
 import { pageMetadata } from "@/lib/seo";
+
+/** Deterministic mock EV charge level for the demo. */
+function evLevel(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return 55 + (h % 41); // 55–95%
+}
 
 export const metadata: Metadata = pageMetadata({ title: "Live", path: "/app/booking", noindex: true });
 
@@ -56,6 +64,8 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
   const aPos = project({ lat: airport?.lat ?? space.lat, lng: airport?.lng ?? space.lng });
 
   const driverActive = !!transfer && transfer.status !== "completed";
+  const opJob = transfer ? getOperatorJob(transfer.id) : undefined;
+  const evPercent = booking.bundle.ev ? evLevel(booking.id) : null;
 
   return (
     <PortalShell user={user} nav={travellerNav} title="Live travel day">
@@ -106,9 +116,14 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                         {driver?.name ?? "Driver assigning…"}
                       </div>
                       <div className="text-sm text-navy-500">
-                        {provider?.companyName}
-                        {vehicle ? ` · ${vehicle.colour} ${vehicle.make} ${vehicle.model} · ${vehicle.reg}` : ""}
+                        Licensed driver · {provider?.companyName}
+                        {vehicle ? ` · ${vehicle.colour} ${vehicle.make} ${vehicle.reg}` : ""}
                       </div>
+                      {driverActive && opJob?.etaMinutes != null && (
+                        <div className="mt-0.5 text-sm font-semibold text-go-600">
+                          {opJob.etaMinutes} min away
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
@@ -147,6 +162,25 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                 </Card>
               )}
             </div>
+
+            {evPercent !== null && (
+              <Card className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
+                    <Zap className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-navy-900">EV charging · {evPercent}%</div>
+                    <div className="text-sm text-navy-500">Topping up while you fly</div>
+                  </div>
+                </div>
+                <div className="hidden w-28 sm:block">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-navy-100">
+                    <div className="h-full rounded-full bg-go-500" style={{ width: `${evPercent}%` }} />
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {transfer && (
               <HandoverPanel

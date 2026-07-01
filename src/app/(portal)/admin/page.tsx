@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import {
   Banknote,
+  Car,
   CheckCircle2,
+  Clock,
   FileText,
+  Radio,
   ScrollText,
   ShieldAlert,
   Warehouse,
@@ -17,17 +20,16 @@ import { adminNav } from "@/components/portal/navs";
 import { trustBand } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
 import { reviewSpaceAction, reviewVerificationAction } from "@/lib/booking-actions";
+import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
 import {
   getAirport,
   getAllBookings,
-  getAllDrivers,
   getAllHosts,
   getAllPayments,
   getAllReviews,
   getAllSpaces,
   getHost,
   getPendingVerifications,
-  getTransferProvider,
   getVerifications,
   trustScoreFor,
 } from "@/lib/data/store";
@@ -59,18 +61,13 @@ export default async function AdminDashboard() {
     (a, b) => listingRank(a.status) - listingRank(b.status)
   );
 
-  const trustRows = [
-    ...getAllHosts().map((h) => ({
-      name: h.displayName,
-      type: "Host",
-      score: trustScoreFor(h.id, "host"),
-    })),
-    ...getAllDrivers().map((d) => ({
-      name: d.name,
-      type: "Driver",
-      score: trustScoreFor(d.id, "driver"),
-    })),
-  ].sort((a, b) => b.score.score - a.score.score);
+  const trustRows = getAllHosts()
+    .map((h) => ({ name: h.displayName, type: "Host", score: trustScoreFor(h.id, "host") }))
+    .sort((a, b) => b.score.score - a.score.score);
+
+  // Transfer is fulfilled by an independent licensed operator, integrated by API.
+  const operator = getOperatorStatus();
+  const operatorJobs = getOperatorJobs();
 
   const audit = buildAuditFeed({ bookings, verifications: allVerifications, reviews: getAllReviews() });
 
@@ -79,24 +76,21 @@ export default async function AdminDashboard() {
       <div className="space-y-8">
         {/* Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Pending review" value={String(pending.length)} sub="verification queue" icon={ShieldAlert} tone="accent" />
+          <StatCard label="Host review" value={String(pending.length)} sub="verification queue" icon={ShieldAlert} tone="accent" />
           <StatCard label="Live listings" value={String(liveCount)} sub={`${spaces.length} total`} icon={Warehouse} tone="brand" />
           <StatCard label="GMV" value={formatMoney(gmv)} sub={`${formatMoney(platformRevenue)} platform`} icon={Banknote} tone="go" />
-          <StatCard label="Payouts due" value={formatMoney(payoutsDue)} sub="to hosts & drivers" icon={Banknote} tone="navy" />
+          <StatCard label="Payouts due" value={formatMoney(payoutsDue)} sub="to hosts & operator" icon={Banknote} tone="navy" />
         </div>
 
-        {/* Verification queue */}
+        {/* Host verification queue (driver/vehicle/insurance compliance sits with the operator) */}
         <section id="verification" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">Verification queue</h3>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">Host verification queue</h3>
           {pending.length === 0 ? (
             <Card className="p-6 text-center text-navy-500">Queue clear — nothing awaiting review.</Card>
           ) : (
             <div className="space-y-4">
               {pending.map((v) => {
-                const name =
-                  v.subjectType === "host"
-                    ? getHost(v.subjectId)?.displayName
-                    : getTransferProvider(v.subjectId)?.companyName;
+                const name = getHost(v.subjectId)?.displayName;
                 return (
                   <Card key={v.id} className="p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -144,6 +138,86 @@ export default async function AdminDashboard() {
               })}
             </div>
           )}
+        </section>
+
+        {/* Transfer operator — API integration & monitoring (replaces driver verification) */}
+        <section id="operator" className="scroll-mt-20">
+          <h3 className="mb-3 text-lg font-bold text-navy-900">Transfer operator (API)</h3>
+          <Card className="p-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                  <Radio className="h-5 w-5" />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-navy-900">{operator.name}</span>
+                    <Badge tone={operator.connected ? "go" : "danger"}>
+                      {operator.connected && (
+                        <span className="relative flex h-2 w-2">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-go-500 opacity-75" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-go-500" />
+                        </span>
+                      )}
+                      {operator.connected ? "Connected" : "Offline"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-navy-500">
+                    Independent licensed operator · integrated by API
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-6 text-sm">
+                <Metric value={String(operator.activeJobs)} label="Active jobs" />
+                <Metric value={`${operator.slaMinutes}m`} label="Pickup SLA" />
+                <Metric value={`${operator.rating.toFixed(1)}★`} label="Rating" />
+                <Metric value={String(operator.handoversConfirmed)} label="Handovers" />
+              </div>
+            </div>
+          </Card>
+
+          <div className="mt-4">
+            <h4 className="mb-2 text-sm font-bold text-navy-700">Live jobs (from operator API)</h4>
+            <Card className="divide-y divide-navy-100">
+              {operatorJobs.length === 0 && (
+                <div className="p-6 text-center text-navy-500">No jobs from the operator.</div>
+              )}
+              {operatorJobs.map((job) => (
+                <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm font-bold text-navy-900">{job.bookingRef}</span>
+                      <StatusBadge status={job.status} />
+                      {job.handoverConfirmed && (
+                        <Badge tone="go">
+                          <CheckCircle2 className="h-3 w-3" /> Handover
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-navy-500">
+                      <span className="inline-flex items-center gap-1">
+                        <Car className="h-3.5 w-3.5" /> {job.driverName}
+                      </span>
+                      <span className="hidden text-navy-400 sm:inline">{job.vehicle}</span>
+                    </div>
+                  </div>
+                  <div className="text-right text-sm">
+                    {job.etaMinutes !== null ? (
+                      <span className="inline-flex items-center gap-1 font-semibold text-navy-800">
+                        <Clock className="h-3.5 w-3.5" /> ETA {job.etaMinutes} min
+                      </span>
+                    ) : (
+                      <span className="text-navy-400">—</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </Card>
+            <p className="mt-2 text-xs text-navy-400">
+              Driver, vehicle, licensing &amp; insurance compliance is held by the
+              operator and surfaced here via their API — ParkGo does not onboard drivers.
+            </p>
+          </div>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -270,6 +344,15 @@ export default async function AdminDashboard() {
         </section>
       </div>
     </PortalShell>
+  );
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <div className="font-bold text-navy-900">{value}</div>
+      <div className="text-xs text-navy-400">{label}</div>
+    </div>
   );
 }
 

@@ -16,7 +16,6 @@ export const SESSION_COOKIE = "parkgo_session";
 export const DEMO_LOGINS: { role: Role; userId: string; label: string; blurb: string }[] = [
   { role: "traveller", userId: "user_traveller", label: "Traveller", blurb: "Search, book, track & review" },
   { role: "host", userId: "user_host", label: "Host / Landlord", blurb: "List spaces, see earnings" },
-  { role: "transfer", userId: "user_transfer", label: "Transfer Provider", blurb: "Drivers, jobs & handover" },
   { role: "admin", userId: "user_admin", label: "Admin / Compliance", blurb: "Verify, monitor, payouts" },
 ];
 
@@ -48,8 +47,6 @@ export function rolePath(role: Role): string {
       return "/app";
     case "host":
       return "/host";
-    case "transfer":
-      return "/transfer";
     case "admin":
       return "/admin";
   }
