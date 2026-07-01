@@ -29,7 +29,7 @@ export default async function TravellerDashboard() {
   const active = bookings.find((b) => b.status === "active");
 
   return (
-    <PortalShell user={user} nav={travellerNav} title="Dashboard">
+    <PortalShell user={user} nav={travellerNav} title="nav.dashboard">
       <div className="mx-auto max-w-5xl space-y-8">
         <div>
           <h2 className="text-2xl font-extrabold text-navy-900">

@@ -36,7 +36,7 @@ export default async function BookPage({
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
 
   return (
-    <PortalShell user={user} nav={travellerNav} title="Checkout">
+    <PortalShell user={user} nav={travellerNav} title="app.checkout.title">
       <div className="mx-auto max-w-5xl space-y-5">
         <Link href={`/app/space/${space.id}`} className="text-sm font-semibold text-brand-600">
           ← {t("app.space.backToSpace")}

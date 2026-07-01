@@ -46,7 +46,7 @@ export default async function BookingPage({
   const paid = booking.status !== "requested" && booking.status !== "cancelled";
 
   return (
-    <PortalShell user={user} nav={travellerNav} title={`Booking ${booking.reference}`}>
+    <PortalShell user={user} nav={travellerNav} title={`${t("app.booking.title")} ${booking.reference}`}>
       <div className="mx-auto max-w-4xl space-y-5">
         {isNew && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">

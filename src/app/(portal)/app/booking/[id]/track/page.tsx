@@ -70,7 +70,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
   const evPercent = booking.bundle.ev ? evLevel(booking.id) : null;
 
   return (
-    <PortalShell user={user} nav={travellerNav} title="Live travel day">
+    <PortalShell user={user} nav={travellerNav} title="app.track.title">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

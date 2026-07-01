@@ -54,7 +54,7 @@ export default async function SearchPage({
   });
 
   return (
-    <PortalShell user={user} nav={travellerNav} title="Find parking">
+    <PortalShell user={user} nav={travellerNav} title="nav.findParking">
       <div className="mx-auto max-w-6xl space-y-6">
         <SearchWidget airports={airports} />
 
