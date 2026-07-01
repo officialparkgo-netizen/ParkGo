@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     "Dublin airport parking",
   ],
   authors: [{ name: SITE.name }],
-  icons: { icon: "/favicon.svg" },
+  // Favicon is provided by the App Router convention file src/app/icon.svg.
 };
 
 export const viewport: Viewport = {
