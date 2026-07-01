@@ -15,7 +15,7 @@ export function SpaceCard({ result }: { result: SearchResult }) {
   const { space, airport, estimatedTotal } = result;
   const currency = airport.country === "IE" ? "EUR" : "GBP";
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-card transition-shadow hover:shadow-card-lg sm:flex-row">
+    <div className="card-hover flex flex-col overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-card sm:flex-row">
       <Link href={`/app/space/${space.id}`} className="relative block sm:w-56">
         <Photo token={space.photos[0] ?? "drive-1"} rounded="rounded-none" className="h-44 w-full sm:h-full" />
         <div className="absolute left-2 top-2 flex flex-wrap gap-1">

@@ -32,6 +32,14 @@ export default async function HomePage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
+        <div
+          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-400/20 blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-accent-300/10 blur-3xl"
+          aria-hidden
+        />
         <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div>
             <Badge tone="go" className="mb-5">
@@ -98,7 +106,7 @@ export default async function HomePage() {
             { icon: Radio, tone: "accent", title: t("value.realtime.title"), body: t("value.realtime.body") },
             { icon: Zap, tone: "navy", title: t("value.ev.title"), body: t("value.ev.body") },
           ].map((f) => (
-            <Card key={f.title} className="p-6">
+            <Card key={f.title} className="card-hover p-6">
               <div
                 className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${
                   f.tone === "brand"
@@ -133,7 +141,7 @@ export default async function HomePage() {
             { n: "2", title: t("home.how.step2.title"), body: t("home.how.step2.body"), icon: CarTaxiFront },
             { n: "3", title: t("home.how.step3.title"), body: t("home.how.step3.body"), icon: QrCode },
           ].map((s) => (
-            <li key={s.n} className="relative rounded-2xl bg-white p-6 shadow-card">
+            <li key={s.n} className="card-hover relative rounded-2xl bg-white p-6 shadow-card">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-white">
                   {s.n}
@@ -193,7 +201,7 @@ export default async function HomePage() {
             { href: "/hosts", title: t("home.audience.hosts.title"), body: t("home.audience.hosts.body"), cta: t("home.audience.hosts.cta"), tone: "go" as const },
             { href: "/contact", title: t("home.audience.business.title"), body: t("home.audience.business.body"), cta: t("home.audience.business.cta"), tone: "accent" as const },
           ].map((a) => (
-            <Card key={a.href} className="flex flex-col p-7">
+            <Card key={a.href} className="card-hover flex flex-col p-7">
               <h3 className="text-xl font-bold text-navy-900">{a.title}</h3>
               <p className="mt-2 flex-1 text-navy-600">{a.body}</p>
               <Link

@@ -49,8 +49,8 @@ export function SearchWidget({
       onSubmit={submit}
       className="rounded-2xl border border-navy-100 bg-white p-3 shadow-card-lg sm:p-4"
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <label className="flex flex-col gap-1 lg:col-span-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.7fr_1fr_1fr_auto]">
+        <label className="flex flex-col gap-1">
           <span className="px-1 text-xs font-semibold text-navy-500">{t("search.destination")}</span>
           <div className="relative">
             <Plane className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" />
@@ -90,7 +90,7 @@ export function SearchWidget({
         </label>
 
         <div className="flex items-end">
-          <Button type="submit" size="lg" className="h-11 w-full">
+          <Button type="submit" size="lg" className="h-11 w-full lg:px-7">
             <Search className="h-4 w-4" />
             {t("search.searchSpaces")}
           </Button>
