@@ -5,7 +5,7 @@ import { Logo } from "@/components/brand/logo";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { logout } from "@/lib/auth-actions";
-import { getLocale } from "@/lib/i18n";
+import { getI18n } from "@/lib/i18n";
 import { unreadCount } from "@/lib/data/store";
 import { initials } from "@/lib/utils";
 
@@ -14,12 +14,6 @@ export interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 }
-
-const ROLE_LABEL: Record<User["role"], string> = {
-  traveller: "Traveller",
-  host: "Host",
-  admin: "Admin",
-};
 
 export async function PortalShell({
   user,
@@ -32,7 +26,7 @@ export async function PortalShell({
   title: string;
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
+  const { t, locale } = await getI18n();
   const unread = unreadCount(user.id);
 
   return (
@@ -50,11 +44,11 @@ export async function PortalShell({
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-navy-600 transition-colors hover:bg-navy-50 hover:text-navy-900"
             >
               <item.icon className="h-5 w-5 text-navy-400" />
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
         </nav>
-        <UserCard user={user} />
+        <UserCard user={user} signOut={t("portal.signOut")} />
       </aside>
 
       {/* Main */}
@@ -74,12 +68,12 @@ export async function PortalShell({
                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-navy-700 hover:bg-navy-50"
                   >
                     <item.icon className="h-4 w-4 text-navy-400" />
-                    {item.label}
+                    {t(item.label)}
                   </Link>
                 ))}
               </div>
             </details>
-            <h1 className="truncate text-lg font-bold text-navy-900">{title}</h1>
+            <h1 className="truncate text-lg font-bold text-navy-900">{t(title)}</h1>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -87,7 +81,7 @@ export async function PortalShell({
             <Link
               href={`${nav[0]?.href ?? "#"}`}
               className="relative flex h-9 w-9 items-center justify-center rounded-lg text-navy-600 hover:bg-navy-50"
-              aria-label="Notifications"
+              aria-label={t("portal.notifications")}
             >
               <Bell className="h-5 w-5" />
               {unread > 0 && (
@@ -97,7 +91,7 @@ export async function PortalShell({
               )}
             </Link>
             <Badge tone="navy" className="hidden sm:inline-flex">
-              {ROLE_LABEL[user.role]}
+              {t(`role.${user.role}`)}
             </Badge>
           </div>
         </header>
@@ -108,13 +102,13 @@ export async function PortalShell({
   );
 }
 
-function UserCard({ user }: { user: User }) {
+function UserCard({ user, signOut }: { user: User; signOut: string }) {
   return (
     <div className="border-t border-navy-100 p-3">
       <div className="flex items-center gap-3 rounded-xl px-2 py-2">
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white"
-          style={{ backgroundColor: user.avatarColor ?? "#1B6CB3" }}
+          style={{ backgroundColor: user.avatarColor ?? "#F26A1B" }}
         >
           {initials(user.name)}
         </span>
@@ -126,8 +120,8 @@ function UserCard({ user }: { user: User }) {
           <button
             type="submit"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-navy-400 hover:bg-navy-50 hover:text-navy-700"
-            aria-label="Sign out"
-            title="Sign out"
+            aria-label={signOut}
+            title={signOut}
           >
             <LogOut className="h-4 w-4" />
           </button>

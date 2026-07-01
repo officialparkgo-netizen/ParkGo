@@ -24,3 +24,6 @@ export function localeMeta(code: Locale) {
 export function isLocale(value: string | undefined): value is Locale {
   return !!value && LOCALES.some((l) => l.code === value);
 }
+
+/** A translation area: the same set of keys provided per locale. */
+export type AreaDict = Record<Locale, Record<string, string>>;

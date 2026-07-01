@@ -35,7 +35,7 @@ export default async function HomePage() {
         <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div>
             <Badge tone="go" className="mb-5">
-              <Sparkles className="h-3.5 w-3.5" /> UK &amp; Ireland · launching soon
+              <Sparkles className="h-3.5 w-3.5" /> {t("home.hero.badge")}
             </Badge>
             <h1 className="text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
               {t("hero.title")}
@@ -48,25 +48,25 @@ export default async function HomePage() {
 
             <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-500">
               <span className="inline-flex items-center gap-1.5">
-                <BadgeCheck className="h-4 w-4 text-go-500" /> Verified hosts
+                <BadgeCheck className="h-4 w-4 text-go-500" /> {t("home.hero.trust.hosts")}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-go-500" /> Licensed drivers
+                <ShieldCheck className="h-4 w-4 text-go-500" /> {t("home.hero.trust.drivers")}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Camera className="h-4 w-4 text-go-500" /> Live camera &amp; CCTV
+                <Camera className="h-4 w-4 text-go-500" /> {t("home.hero.trust.camera")}
               </span>
             </p>
           </div>
 
-          <TravelDayPreview />
+          <TravelDayPreview t={t} />
         </Container>
       </section>
 
       {/* ----------------------------------------------------------- Airports */}
       <div className="border-y border-navy-100 bg-white">
         <Container className="flex flex-wrap items-center gap-x-6 gap-y-2 py-5">
-          <span className="text-sm font-semibold text-navy-400">Parking near</span>
+          <span className="text-sm font-semibold text-navy-400">{t("home.airports.near")}</span>
           {airports.map((a) => (
             <Link
               key={a.slug}
@@ -82,13 +82,12 @@ export default async function HomePage() {
       {/* ------------------------------------------------------ Bundle value */}
       <Section>
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>One booking, one price</Eyebrow>
+          <Eyebrow>{t("home.bundle.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Four things travellers juggle separately — bundled into one checkout
+            {t("home.bundle.heading")}
           </h2>
           <p className="mt-4 text-navy-600">
-            Parking, a licensed terminal transfer, EV charging and live security.
-            Combined at a single transparent price, with explainable AI suggestions.
+            {t("home.bundle.subcopy")}
           </p>
         </div>
 
@@ -123,16 +122,16 @@ export default async function HomePage() {
       {/* ----------------------------------------------------- How it works */}
       <Section className="bg-navy-50/50">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow>How it works</Eyebrow>
+          <Eyebrow>{t("home.how.eyebrow")}</Eyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-            Booked in minutes, sorted for the whole trip
+            {t("home.how.heading")}
           </h2>
         </div>
         <ol className="mt-12 grid gap-6 md:grid-cols-3">
           {[
-            { n: "1", title: "Search & compare", body: "Pick your airport and dates. See verified spaces with price, distance, EV, CCTV and ratings.", icon: MapPin },
-            { n: "2", title: "Build your bundle", body: "Add a licensed transfer and EV charging. One transparent price, one secure checkout.", icon: CarTaxiFront },
-            { n: "3", title: "Park, track, fly", body: "Get a QR access code, track your driver live, watch your car on camera and confirm a verified handover.", icon: QrCode },
+            { n: "1", title: t("home.how.step1.title"), body: t("home.how.step1.body"), icon: MapPin },
+            { n: "2", title: t("home.how.step2.title"), body: t("home.how.step2.body"), icon: CarTaxiFront },
+            { n: "3", title: t("home.how.step3.title"), body: t("home.how.step3.body"), icon: QrCode },
           ].map((s) => (
             <li key={s.n} className="relative rounded-2xl bg-white p-6 shadow-card">
               <div className="flex items-center gap-3">
@@ -148,7 +147,7 @@ export default async function HomePage() {
         </ol>
         <div className="mt-8 text-center">
           <Link href="/how-it-works" className={buttonVariants({ variant: "outline" })}>
-            See the full journey <ArrowRight className="h-4 w-4" />
+            {t("home.how.seeJourney")} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </Section>
@@ -157,19 +156,18 @@ export default async function HomePage() {
       <Section>
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <Eyebrow>Live on travel day</Eyebrow>
+            <Eyebrow>{t("value.realtime.title")}</Eyebrow>
             <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
-              Peace of mind you can actually watch
+              {t("home.showcase.heading")}
             </h2>
             <p className="mt-4 text-navy-600">
-              ParkGo&apos;s differentiators come alive the day you fly. No more
-              wondering where your car is or whether your driver turned up.
+              {t("home.showcase.subtitle")}
             </p>
             <ul className="mt-6 space-y-4">
               {[
-                { icon: Radio, title: "Live location sharing", body: "Customer, host and licensed driver on one live map." },
-                { icon: Camera, title: "Live camera of your car", body: "Watch your parked vehicle in-app with a LIVE badge and timestamp." },
-                { icon: BadgeCheck, title: "Verified handover", body: "Both parties confirm a one-time code — timestamped and logged." },
+                { icon: Radio, title: t("home.showcase.location.title"), body: t("home.showcase.location.body") },
+                { icon: Camera, title: t("home.showcase.camera.title"), body: t("home.showcase.camera.body") },
+                { icon: BadgeCheck, title: t("home.showcase.handover.title"), body: t("home.showcase.handover.body") },
               ].map((f) => (
                 <li key={f.title} className="flex gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-go-50 text-go-600">
@@ -183,7 +181,7 @@ export default async function HomePage() {
               ))}
             </ul>
           </div>
-          <TravelDayPreview large />
+          <TravelDayPreview t={t} large />
         </div>
       </Section>
 
@@ -191,9 +189,9 @@ export default async function HomePage() {
       <Section className="bg-navy-50/50">
         <div className="grid gap-6 md:grid-cols-3">
           {[
-            { href: "/travellers", title: "For travellers", body: "Book parking + licensed transfer + EV in one go. Track everything live, watch your car on camera.", cta: "Start a booking", tone: "brand" as const },
-            { href: "/hosts", title: "For hosts", body: "List a driveway or yard, get verified, and earn from empty space.", cta: "List your space", tone: "go" as const },
-            { href: "/contact", title: "For business", body: "Corporate accounts with monthly invoicing, priority support and team bookings.", cta: "Talk to us", tone: "accent" as const },
+            { href: "/travellers", title: t("home.audience.travellers.title"), body: t("home.audience.travellers.body"), cta: t("home.audience.travellers.cta"), tone: "brand" as const },
+            { href: "/hosts", title: t("home.audience.hosts.title"), body: t("home.audience.hosts.body"), cta: t("home.audience.hosts.cta"), tone: "go" as const },
+            { href: "/contact", title: t("home.audience.business.title"), body: t("home.audience.business.body"), cta: t("home.audience.business.cta"), tone: "accent" as const },
           ].map((a) => (
             <Card key={a.href} className="flex flex-col p-7">
               <h3 className="text-xl font-bold text-navy-900">{a.title}</h3>
@@ -216,10 +214,10 @@ export default async function HomePage() {
       <Section>
         <div className="grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { k: "8", v: "Launch airports" },
-            { k: "1 price", v: "Parking + transfer + EV" },
-            { k: "100%", v: "ID-verified hosts" },
-            { k: "4", v: "Languages at launch" },
+            { k: "8", v: t("home.stats.airports") },
+            { k: t("home.stats.onePrice"), v: t("home.stats.onePriceLabel") },
+            { k: "100%", v: t("home.stats.verified") },
+            { k: "4", v: t("home.stats.languages") },
           ].map((s) => (
             <div key={s.v}>
               <div className="text-4xl font-extrabold text-white">{s.k}</div>
@@ -244,7 +242,7 @@ export default async function HomePage() {
             </div>
             <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-200">
               <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
-              No spam — just a heads-up when we go live at your airport.
+              {t("waitlist.nospam")}
             </p>
           </div>
         </Container>
@@ -254,7 +252,7 @@ export default async function HomePage() {
 }
 
 /** Schematic travel-day preview: live mini-map + camera badge + driver chip. */
-function TravelDayPreview({ large = false }: { large?: boolean }) {
+function TravelDayPreview({ t, large = false }: { t: (key: string) => string; large?: boolean }) {
   return (
     <div className={large ? "" : "hidden lg:block"}>
       <div className="relative mx-auto max-w-md rounded-[2rem] border border-navy-100 bg-white p-3 shadow-card-lg">
@@ -279,7 +277,7 @@ function TravelDayPreview({ large = false }: { large?: boolean }) {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-go-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-go-500" />
             </span>
-            LIVE
+            {t("home.preview.live")}
           </span>
           <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 rounded-xl bg-white/95 p-2.5 shadow">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
@@ -287,7 +285,7 @@ function TravelDayPreview({ large = false }: { large?: boolean }) {
             </div>
             <div className="text-xs">
               <div className="font-bold text-navy-900">Marek · SwiftLink Cars</div>
-              <div className="text-navy-500">Arriving in ~12 min · Silver Prius</div>
+              <div className="text-navy-500">{t("home.preview.arriving")}</div>
             </div>
           </div>
         </div>
@@ -300,17 +298,17 @@ function TravelDayPreview({ large = false }: { large?: boolean }) {
               ● REC
             </span>
             <span className="absolute bottom-2 left-2 text-[10px] font-semibold text-white/80">
-              Bay 1 · 14:32
+              {t("home.preview.bay")}
             </span>
           </div>
           <div className="flex flex-col justify-center rounded-xl border border-go-200 bg-go-50 p-3">
             <div className="flex items-center gap-1.5 text-xs font-bold text-go-700">
-              <BadgeCheck className="h-4 w-4" /> Handover
+              <BadgeCheck className="h-4 w-4" /> {t("home.preview.handover")}
             </div>
             <div className="mt-1 font-mono text-lg font-bold tracking-widest text-navy-900">
               4K9PQ2
             </div>
-            <div className="text-[10px] text-navy-500">Confirm with your driver</div>
+            <div className="text-[10px] text-navy-500">{t("home.preview.confirmDriver")}</div>
           </div>
         </div>
       </div>

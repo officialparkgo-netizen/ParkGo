@@ -18,19 +18,19 @@ export async function SiteFooter() {
     {
       title: t("footer.company"),
       links: [
-        { href: "/about", label: "About & team" },
+        { href: "/about", label: t("footer.about") },
         { href: "/trust-safety", label: t("nav.trust") },
-        { href: "/blog", label: "Blog" },
-        { href: "/faq", label: "FAQ" },
-        { href: "/contact", label: "Contact" },
+        { href: "/blog", label: t("footer.blog") },
+        { href: "/faq", label: t("footer.faq") },
+        { href: "/contact", label: t("footer.contact") },
       ],
     },
     {
       title: t("footer.legal"),
       links: [
-        { href: "/privacy", label: "Privacy" },
-        { href: "/terms", label: "Terms" },
-        { href: "/trust-safety", label: "Trust & Safety" },
+        { href: "/privacy", label: t("footer.privacy") },
+        { href: "/terms", label: t("footer.terms") },
+        { href: "/trust-safety", label: t("nav.trust") },
       ],
     },
   ];
@@ -42,9 +42,7 @@ export async function SiteFooter() {
           <div className="max-w-xs">
             <Logo />
             <p className="mt-4 text-sm text-navy-600">{t("brand.tagline")}</p>
-            <p className="mt-3 text-sm text-navy-500">
-              Integrated airport access for the UK &amp; Ireland.
-            </p>
+            <p className="mt-3 text-sm text-navy-500">{t("footer.integrated")}</p>
           </div>
           {cols.map((col) => (
             <div key={col.title}>
@@ -70,10 +68,10 @@ export async function SiteFooter() {
           <p>
             © {new Date().getFullYear()} ParkGo. {t("footer.rights")}
           </p>
-          <p>Park Smart. Travel Easy.</p>
+          <p>{t("brand.tagline")}</p>
         </div>
         <p className="mt-4 text-center text-xs text-navy-400 sm:text-left">
-          ParkGo Limited holds Employers&apos; Liability (Compulsory) Insurance (£5m).
+          {t("footer.insurance")}
         </p>
       </div>
     </footer>

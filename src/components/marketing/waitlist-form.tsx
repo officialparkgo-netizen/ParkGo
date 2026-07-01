@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { joinWaitlist, type WaitlistState } from "@/app/(marketing)/actions";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 export function WaitlistForm({
@@ -19,6 +20,7 @@ export function WaitlistForm({
     joinWaitlist,
     {}
   );
+  const t = useT();
 
   if (state.ok) {
     return (
@@ -30,7 +32,7 @@ export function WaitlistForm({
         )}
       >
         <CheckCircle2 className="h-5 w-5" />
-        You&apos;re on the list. We&apos;ll be in touch.
+        {t("waitlist.success")}
       </div>
     );
   }
@@ -43,8 +45,8 @@ export function WaitlistForm({
           type="email"
           name="email"
           required
-          placeholder="you@email.com"
-          aria-label="Email address"
+          placeholder={t("common.emailPh")}
+          aria-label={t("common.email")}
           className={cn(
             "h-12 flex-1 rounded-xl border px-4 text-sm focus:outline-none focus:ring-2",
             dark
@@ -59,7 +61,7 @@ export function WaitlistForm({
           disabled={pending}
           className="h-12"
         >
-          {pending ? "Joining…" : "Join the waitlist"}
+          {pending ? t("waitlist.joining") : t("waitlist.join")}
         </Button>
       </div>
       {state.error && (

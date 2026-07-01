@@ -1,34 +1,39 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/lib/i18n/client";
 
 type Tone = "go" | "brand" | "accent" | "navy" | "neutral" | "danger";
 
-const MAP: Record<string, { tone: Tone; label: string }> = {
+const TONE: Record<string, Tone> = {
   // bookings
-  requested: { tone: "neutral", label: "Requested" },
-  paid: { tone: "brand", label: "Paid" },
-  active: { tone: "go", label: "Active" },
-  completed: { tone: "navy", label: "Completed" },
-  reviewed: { tone: "go", label: "Reviewed" },
-  cancelled: { tone: "danger", label: "Cancelled" },
+  requested: "neutral",
+  paid: "brand",
+  active: "go",
+  completed: "navy",
+  reviewed: "go",
+  cancelled: "danger",
   // transfers
-  unassigned: { tone: "neutral", label: "Unassigned" },
-  assigned: { tone: "brand", label: "Assigned" },
-  en_route: { tone: "accent", label: "En route" },
-  arrived: { tone: "brand", label: "Arrived" },
-  handover_pending: { tone: "accent", label: "Handover pending" },
+  unassigned: "neutral",
+  assigned: "brand",
+  en_route: "accent",
+  arrived: "brand",
+  handover_pending: "accent",
   // verification / spaces
-  approved: { tone: "go", label: "Approved" },
-  live: { tone: "go", label: "Live" },
-  in_review: { tone: "accent", label: "In review" },
-  pending: { tone: "accent", label: "Pending" },
-  pending_review: { tone: "accent", label: "Pending review" },
-  rejected: { tone: "danger", label: "Rejected" },
-  draft: { tone: "neutral", label: "Draft" },
-  paused: { tone: "neutral", label: "Paused" },
-  not_started: { tone: "neutral", label: "Not started" },
+  approved: "go",
+  live: "go",
+  in_review: "accent",
+  pending: "accent",
+  pending_review: "accent",
+  rejected: "danger",
+  draft: "neutral",
+  paused: "neutral",
+  not_started: "neutral",
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  const m = MAP[status] ?? { tone: "neutral" as Tone, label: status };
-  return <Badge tone={m.tone}>{m.label}</Badge>;
+  const t = useT();
+  const key = `status.${status}`;
+  const label = t(key);
+  return <Badge tone={TONE[status] ?? "neutral"}>{label === key ? status : label}</Badge>;
 }

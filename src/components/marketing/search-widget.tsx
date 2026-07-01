@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plane, Search, Zap, CarTaxiFront, Camera, Car } from "lucide-react";
 import type { Airport } from "@/types";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 
 function isoDay(offsetDays: number) {
   const d = new Date();
@@ -20,6 +21,7 @@ export function SearchWidget({
   compact?: boolean;
 }) {
   const router = useRouter();
+  const t = useT();
   const [airport, setAirport] = useState(airports[0]?.slug ?? "heathrow");
   const [from, setFrom] = useState(isoDay(2));
   const [to, setTo] = useState(isoDay(7));
@@ -49,7 +51,7 @@ export function SearchWidget({
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <label className="flex flex-col gap-1 lg:col-span-2">
-          <span className="px-1 text-xs font-semibold text-navy-500">Destination</span>
+          <span className="px-1 text-xs font-semibold text-navy-500">{t("search.destination")}</span>
           <div className="relative">
             <Plane className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" />
             <select
@@ -67,7 +69,7 @@ export function SearchWidget({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="px-1 text-xs font-semibold text-navy-500">Drop off</span>
+          <span className="px-1 text-xs font-semibold text-navy-500">{t("search.dropOff")}</span>
           <input
             type="date"
             value={from}
@@ -77,7 +79,7 @@ export function SearchWidget({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="px-1 text-xs font-semibold text-navy-500">Pick up</span>
+          <span className="px-1 text-xs font-semibold text-navy-500">{t("search.pickUp")}</span>
           <input
             type="date"
             value={to}
@@ -90,7 +92,7 @@ export function SearchWidget({
         <div className="flex items-end">
           <Button type="submit" size="lg" className="h-11 w-full">
             <Search className="h-4 w-4" />
-            Search spaces
+            {t("search.searchSpaces")}
           </Button>
         </div>
       </div>
@@ -105,22 +107,22 @@ export function SearchWidget({
               onChange={(e) => setVehicle(e.target.value)}
               className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm font-medium focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
             >
-              <option value="">Any vehicle</option>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large / SUV</option>
-              <option value="van">Van</option>
+              <option value="">{t("search.anyVehicle")}</option>
+              <option value="small">{t("search.small")}</option>
+              <option value="medium">{t("search.medium")}</option>
+              <option value="large">{t("search.large")}</option>
+              <option value="van">{t("search.van")}</option>
             </select>
           </label>
 
           <Chip active={needsCctv} onClick={() => setNeedsCctv((v) => !v)} icon={Camera} color="go">
-            CCTV
+            {t("search.cctv")}
           </Chip>
           <Chip active={needsTransfer} onClick={() => setNeedsTransfer((v) => !v)} icon={CarTaxiFront} color="brand">
-            Transfer
+            {t("search.transfer")}
           </Chip>
           <Chip active={needsEv} onClick={() => setNeedsEv((v) => !v)} icon={Zap} color="go">
-            EV charging
+            {t("search.evCharging")}
           </Chip>
         </div>
       )}

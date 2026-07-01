@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { getLocale } from "@/lib/i18n";
+import { getDictionary, getLocale } from "@/lib/i18n";
+import { I18nProvider } from "@/lib/i18n/client";
 import { localeMeta } from "@/lib/i18n/config";
 import { SITE } from "@/lib/seo";
 
@@ -37,9 +38,12 @@ export default async function RootLayout({
 }) {
   const locale = await getLocale();
   const dir = localeMeta(locale).dir;
+  const dict = getDictionary(locale);
   return (
     <html lang={locale} dir={dir}>
-      <body className="min-h-screen bg-white">{children}</body>
+      <body className="min-h-screen bg-white">
+        <I18nProvider dict={dict}>{children}</I18nProvider>
+      </body>
     </html>
   );
 }
