@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,11 +23,15 @@ export function MobileNav({
   label: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const panelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => setOpen(false), []);
+
+  // Portalling to <body> requires the DOM; only enable after mount (SSR-safe).
+  useEffect(() => setMounted(true), []);
 
   // Body scroll lock + focus management + Esc + focus trap
   useEffect(() => {
@@ -101,8 +106,10 @@ export function MobileNav({
         <Menu className="h-5 w-5" aria-hidden />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50">
+      {open &&
+        mounted &&
+        createPortal(
+          <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <button
             type="button"
@@ -161,8 +168,9 @@ export function MobileNav({
               </div>
             )}
           </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
