@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ChevronRight, Menu, X } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
 interface MobileNavItem {
@@ -17,13 +19,17 @@ export function MobileNav({
   items,
   footer,
   label,
+  closeLabel = label,
 }: {
   items: MobileNavItem[];
   footer?: React.ReactNode;
   label: string;
+  /** Accessible name for the close/backdrop controls (falls back to `label`). */
+  closeLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
   const panelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -113,7 +119,7 @@ export function MobileNav({
           {/* Backdrop */}
           <button
             type="button"
-            aria-label={label}
+            aria-label={closeLabel}
             tabIndex={-1}
             onClick={close}
             className="animate-fade-in absolute inset-0 h-full w-full cursor-default bg-navy-900/40 backdrop-blur-sm"
@@ -128,31 +134,45 @@ export function MobileNav({
             aria-label={label}
             className="animate-slide-in-right absolute right-0 top-0 flex h-full w-full max-w-[20rem] flex-col overflow-y-auto border-l border-navy-100 bg-white shadow-card-lg"
           >
-            <div className="flex h-16 shrink-0 items-center justify-end px-3">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-navy-100 px-4">
+              <Logo />
               <button
                 type="button"
                 onClick={close}
-                aria-label={label}
+                aria-label={closeLabel}
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-navy-700 hover:bg-navy-50"
               >
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
 
-            <nav className="flex-1 space-y-1 px-3 py-2">
-              {items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={close}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-50 hover:text-navy-900"
-                  )}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              ))}
+            <nav className="flex-1 space-y-1 px-3 py-3">
+              {items.map((item) => {
+                const active =
+                  pathname === item.href ||
+                  pathname.startsWith(item.href + "/");
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={close}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-colors",
+                      active
+                        ? "bg-go-50 text-go-700 ring-1 ring-inset ring-go-200"
+                        : "text-navy-700 hover:bg-navy-50 hover:text-navy-900"
+                    )}
+                  >
+                    {item.icon}
+                    <span className="flex-1">{item.label}</span>
+                    <ChevronRight
+                      className="h-4 w-4 text-navy-400 rtl:-scale-x-100"
+                      aria-hidden
+                    />
+                  </Link>
+                );
+              })}
             </nav>
 
             {footer && (

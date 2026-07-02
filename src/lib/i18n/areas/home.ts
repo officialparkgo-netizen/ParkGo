@@ -4,6 +4,7 @@ import type { AreaDict } from "@/lib/i18n/config";
 export const home: AreaDict = {
   en: {
     "home.hero.badge": "UK & Ireland · launching soon",
+    "home.hero.waitlistLink": "Not ready to book? Join the launch waitlist",
     "home.hero.trust.hosts": "Verified hosts",
     "home.hero.trust.drivers": "Licensed drivers",
     "home.hero.trust.camera": "Live camera & CCTV",
@@ -60,6 +61,7 @@ export const home: AreaDict = {
 
   ur: {
     "home.hero.badge": "برطانیہ اور آئرلینڈ · جلد آ رہا ہے",
+    "home.hero.waitlistLink": "بکنگ کے لیے تیار نہیں؟ لانچ ویٹ لسٹ میں شامل ہوں",
     "home.hero.trust.hosts": "تصدیق شدہ میزبان",
     "home.hero.trust.drivers": "لائسنس یافتہ ڈرائیور",
     "home.hero.trust.camera": "لائیو کیمرہ اور سی سی ٹی وی",
@@ -116,6 +118,7 @@ export const home: AreaDict = {
 
   hi: {
     "home.hero.badge": "यूके और आयरलैंड · जल्द लॉन्च हो रहा है",
+    "home.hero.waitlistLink": "बुक करने के लिए तैयार नहीं? लॉन्च वेटलिस्ट में शामिल हों",
     "home.hero.trust.hosts": "सत्यापित होस्ट",
     "home.hero.trust.drivers": "लाइसेंस प्राप्त ड्राइवर",
     "home.hero.trust.camera": "लाइव कैमरा और सीसीटीवी",
@@ -172,6 +175,7 @@ export const home: AreaDict = {
 
   de: {
     "home.hero.badge": "Großbritannien & Irland · bald verfügbar",
+    "home.hero.waitlistLink": "Noch nicht bereit zu buchen? Zur Start-Warteliste",
     "home.hero.trust.hosts": "Geprüfte Gastgeber",
     "home.hero.trust.drivers": "Lizenzierte Fahrer",
     "home.hero.trust.camera": "Live-Kamera & Videoüberwachung",
@@ -228,6 +232,7 @@ export const home: AreaDict = {
 
   zh: {
     "home.hero.badge": "英国和爱尔兰 · 即将上线",
+    "home.hero.waitlistLink": "还没准备好预订？加入上线候补名单",
     "home.hero.trust.hosts": "认证房东",
     "home.hero.trust.drivers": "持牌司机",
     "home.hero.trust.camera": "实时摄像头与闭路电视",

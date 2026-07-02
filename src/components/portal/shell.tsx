@@ -61,9 +61,10 @@ export async function PortalShell({
               items={nav.map((i) => ({
                 href: i.href,
                 label: t(i.label),
-                icon: <i.icon className="h-5 w-5 text-navy-400" />,
+                icon: <i.icon className="h-5 w-5 shrink-0" />,
               }))}
-              label="Menu"
+              label={t("nav.menu")}
+              closeLabel={t("nav.closeMenu")}
             />
             <h1 className="truncate text-lg font-bold text-navy-900">{t(title)}</h1>
           </div>

@@ -3,15 +3,14 @@ import {
   ArrowRight,
   BadgeCheck,
   Banknote,
+  Bell,
   Camera,
   CarTaxiFront,
-  Languages,
   MapPin,
   QrCode,
   Radio,
   ShieldCheck,
   Sparkles,
-  Star,
   Zap,
 } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
@@ -41,7 +40,7 @@ export default async function HomePage() {
           aria-hidden
         />
         <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
-          <div>
+          <div className="animate-fade-in">
             <Badge tone="go" className="mb-5">
               <Sparkles className="h-3.5 w-3.5" /> {t("home.hero.badge")}
             </Badge>
@@ -54,7 +53,15 @@ export default async function HomePage() {
               <SearchWidget airports={airports} />
             </div>
 
-            <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-500">
+            <a
+              href="#waitlist"
+              className="link-underline mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
+            >
+              {t("home.hero.waitlistLink")}{" "}
+              <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
+            </a>
+
+            <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-navy-100 pt-5 text-sm text-navy-500">
               <span className="inline-flex items-center gap-1.5">
                 <BadgeCheck className="h-4 w-4 text-go-500" /> {t("home.hero.trust.hosts")}
               </span>
@@ -236,20 +243,29 @@ export default async function HomePage() {
       </Section>
 
       {/* -------------------------------------------------------- Waitlist */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-700 to-navy-800">
+      <section
+        id="waitlist"
+        className="relative overflow-hidden bg-gradient-to-br from-brand-700 to-navy-800"
+      >
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <Languages className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <span className="animate-fade-in mx-auto mb-5 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white ring-1 ring-inset ring-white/20 backdrop-blur-sm">
+              <Bell className="h-4 w-4" aria-hidden /> {t("waitlist.notify")}
+            </span>
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("waitlist.title")}
             </h2>
             <p className="mt-3 text-brand-100">{t("waitlist.body")}</p>
+            <p className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white">
+              <ShieldCheck className="h-4 w-4 text-go-300" aria-hidden />{" "}
+              {t("waitlist.perk")}
+            </p>
             <div className="mx-auto mt-7 max-w-lg">
               <WaitlistForm dark />
             </div>
-            <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-200">
-              <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-brand-100">
+              <ShieldCheck className="h-3.5 w-3.5 text-brand-100" aria-hidden />
               {t("waitlist.nospam")}
             </p>
           </div>
