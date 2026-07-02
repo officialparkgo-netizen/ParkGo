@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Mail } from "lucide-react";
 import { joinWaitlist, type WaitlistState } from "@/app/(marketing)/actions";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/client";
@@ -41,25 +41,41 @@ export function WaitlistForm({
     <form action={action} className={cn("w-full", className)}>
       <input type="hidden" name="role" value={role} />
       <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          type="email"
-          name="email"
-          required
-          placeholder={t("common.emailPh")}
-          aria-label={t("common.email")}
-          className={cn(
-            "h-12 flex-1 rounded-xl border px-4 text-sm focus:outline-none focus:ring-2",
-            dark
-              ? "border-white/20 bg-white/10 text-white placeholder:text-white/50 focus:ring-white/40"
-              : "border-navy-200 bg-white text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:ring-brand-100"
-          )}
-        />
+        <div className="relative flex-1">
+          <Mail
+            className={cn(
+              "pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 rtl:left-auto rtl:right-3.5",
+              dark ? "text-white/60" : "text-navy-400"
+            )}
+            aria-hidden
+          />
+          <input
+            type="email"
+            name="email"
+            required
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="go"
+            placeholder={t("common.emailPh")}
+            aria-label={t("common.email")}
+            className={cn(
+              // 16px on mobile stops iOS Safari from zooming the page on focus; tighter on desktop.
+              "h-12 w-full rounded-xl border pl-11 pr-4 text-base focus:outline-none focus:ring-2 sm:text-sm rtl:pl-4 rtl:pr-11",
+              dark
+                ? "border-white/25 bg-white/15 text-white placeholder:text-white/70 focus:border-white/50 focus:ring-white/40"
+                : "border-navy-200 bg-white text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:ring-brand-100"
+            )}
+          />
+        </div>
         <Button
           type="submit"
           size="lg"
           variant={dark ? "white" : "primary"}
           disabled={pending}
-          className="h-12"
+          className="h-12 w-full sm:w-auto"
         >
           {pending ? t("waitlist.joining") : t("waitlist.join")}
         </Button>
