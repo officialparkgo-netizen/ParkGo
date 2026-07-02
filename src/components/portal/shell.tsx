@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Bell, LogOut, Menu } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import type { User } from "@/types";
 import { Logo } from "@/components/brand/logo";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { MobileNav } from "@/components/common/mobile-nav";
 import { logout } from "@/lib/auth-actions";
 import { getI18n } from "@/lib/i18n";
 import { unreadCount } from "@/lib/data/store";
@@ -55,24 +56,15 @@ export async function PortalShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-navy-100 bg-white/90 px-4 backdrop-blur sm:px-6">
           <div className="flex items-center gap-3">
-            {/* Mobile nav */}
-            <details className="relative lg:hidden">
-              <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg text-navy-700 hover:bg-navy-50 [&::-webkit-details-marker]:hidden">
-                <Menu className="h-5 w-5" />
-              </summary>
-              <div className="absolute left-0 mt-2 w-60 rounded-2xl border border-navy-100 bg-white p-2 shadow-card-lg">
-                {nav.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-navy-700 hover:bg-navy-50"
-                  >
-                    <item.icon className="h-4 w-4 text-navy-400" />
-                    {t(item.label)}
-                  </Link>
-                ))}
-              </div>
-            </details>
+            {/* Mobile nav (accessible slide-in drawer) */}
+            <MobileNav
+              items={nav.map((i) => ({
+                href: i.href,
+                label: t(i.label),
+                icon: <i.icon className="h-5 w-5 text-navy-400" />,
+              }))}
+              label="Menu"
+            />
             <h1 className="truncate text-lg font-bold text-navy-900">{t(title)}</h1>
           </div>
 
@@ -96,7 +88,7 @@ export async function PortalShell({
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main id="main-content" className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

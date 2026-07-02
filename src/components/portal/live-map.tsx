@@ -31,6 +31,26 @@ export function LiveMap({
   const [t, setT] = useState(0);
   const raf = useRef<number | null>(null);
 
+  // Route "draw-in": measure the path once, reveal it via stroke-dashoffset,
+  // then settle into the dashed style. Neutralised by the global reduced-motion
+  // guard (transition-duration is forced to ~0ms).
+  const routeRef = useRef<SVGPathElement | null>(null);
+  const [routeLen, setRouteLen] = useState<number | null>(null);
+  const [routeDrawn, setRouteDrawn] = useState(false);
+  const [routeDashed, setRouteDashed] = useState(false);
+
+  useEffect(() => {
+    const p = routeRef.current;
+    if (!p) return;
+    setRouteLen(p.getTotalLength());
+    const rafId = requestAnimationFrame(() => setRouteDrawn(true));
+    const timer = window.setTimeout(() => setRouteDashed(true), 1200);
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timer);
+    };
+  }, []);
+
   useEffect(() => {
     if (!showDriver) return;
     let mounted = true;
@@ -69,20 +89,26 @@ export function LiveMap({
         className="absolute inset-0 h-full w-full"
       >
         <path
+          ref={routeRef}
           d={`M ${start.x} ${start.y} Q ${cx} ${cy} ${terminal.x} ${terminal.y}`}
           fill="none"
           stroke="#F26A1B"
           strokeWidth="0.8"
-          strokeDasharray="1 2"
+          strokeDasharray={routeDashed ? "1 2" : routeLen ?? undefined}
+          strokeDashoffset={routeLen == null ? 0 : routeDrawn ? 0 : routeLen}
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
+          style={{
+            opacity: routeLen == null ? 0 : 1,
+            transition: "stroke-dashoffset 1.1s ease-out, opacity 0.3s ease-out",
+          }}
         />
       </svg>
 
-      <Pin x={space.x} y={space.y} label={space.label} tone="white">
+      <Pin x={space.x} y={space.y} label={space.label} tone="white" delayMs={60}>
         <MapPin className="h-3.5 w-3.5 text-brand-700" />
       </Pin>
-      <Pin x={terminal.x} y={terminal.y} label={terminal.label} tone="accent">
+      <Pin x={terminal.x} y={terminal.y} label={terminal.label} tone="accent" delayMs={140}>
         <Plane className="h-3.5 w-3.5 text-white" />
       </Pin>
 
@@ -91,9 +117,9 @@ export function LiveMap({
           className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
           style={{ left: `${dx}%`, top: `${dy}%` }}
         >
-          <span className="relative flex">
+          <span className="relative flex animate-scale-in">
             <span className="absolute inline-flex h-9 w-9 -translate-x-1/4 -translate-y-1/4 animate-pulse-ring rounded-full bg-go-400/60" />
-            <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-go-500 shadow-lg ring-2 ring-white">
+            <span className="relative flex h-7 w-7 animate-float items-center justify-center rounded-full bg-go-500 shadow-lg ring-2 ring-white">
               <Car className="h-3.5 w-3.5 text-white" />
             </span>
           </span>
@@ -115,12 +141,14 @@ function Pin({
   label,
   tone,
   children,
+  delayMs = 0,
 }: {
   x: number;
   y: number;
   label: string;
   tone: "white" | "accent";
   children: React.ReactNode;
+  delayMs?: number;
 }) {
   return (
     <div
@@ -128,13 +156,17 @@ function Pin({
       style={{ left: `${x}%`, top: `${y}%` }}
     >
       <span
-        className={`flex h-7 w-7 items-center justify-center rounded-full shadow ring-2 ring-white ${
+        className={`flex h-7 w-7 animate-scale-in items-center justify-center rounded-full shadow ring-2 ring-white ${
           tone === "accent" ? "bg-accent-400" : "bg-white"
         }`}
+        style={{ animationDelay: `${delayMs}ms` }}
       >
         {children}
       </span>
-      <span className="whitespace-nowrap rounded bg-navy-900/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+      <span
+        className="animate-fade-in whitespace-nowrap rounded bg-navy-900/70 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        style={{ animationDelay: `${delayMs}ms` }}
+      >
         {label}
       </span>
     </div>

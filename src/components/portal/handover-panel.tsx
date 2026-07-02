@@ -31,9 +31,13 @@ export function HandoverPanel({
 
   if (state.ok) {
     return (
-      <div className="rounded-2xl border border-go-200 bg-go-50 p-5">
+      <div className="animate-scale-in rounded-2xl border border-go-200 bg-go-50 p-5">
         <div className="flex items-center gap-2 font-bold text-go-700">
-          <CheckCircle2 className="h-5 w-5" /> {t("app.handover.confirmed")}
+          <CheckCircle2
+            className="h-5 w-5 animate-scale-in"
+            style={{ animationDelay: "120ms" }}
+          />{" "}
+          {t("app.handover.confirmed")}
         </div>
         <p className="mt-1 text-sm text-navy-600">
           {t("app.handover.confirmedNote")}
@@ -65,7 +69,7 @@ export function HandoverPanel({
           maxLength={6}
           placeholder={t("app.handover.codePlaceholder")}
           autoComplete="off"
-          className="h-11 flex-1 rounded-xl border border-navy-200 px-4 font-mono text-lg uppercase tracking-widest text-navy-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          className="h-11 flex-1 rounded-xl border border-navy-200 px-4 font-mono text-lg uppercase tracking-widest text-navy-900 transition-[border-color,box-shadow] duration-200 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
         <Button type="submit" disabled={pending} className="h-11">
           {pending ? t("app.handover.confirming") : t("app.handover.confirmHandover")}

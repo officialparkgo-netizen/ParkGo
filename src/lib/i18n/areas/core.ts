@@ -127,6 +127,7 @@ export const core: AreaDict = {
     "err.email": "Please enter a valid email address.",
     "err.message": "Please add a short message.",
     "err.rating": "Please choose a rating.",
+    "a11y.skip": "Skip to content",
   },
 
   ur: {
@@ -241,6 +242,7 @@ export const core: AreaDict = {
     "err.email": "براہ کرم درست ای میل ایڈریس درج کریں۔",
     "err.message": "براہ کرم ایک مختصر پیغام شامل کریں۔",
     "err.rating": "براہ کرم ریٹنگ منتخب کریں۔",
+    "a11y.skip": "مواد پر جائیں",
   },
 
   hi: {
@@ -355,6 +357,7 @@ export const core: AreaDict = {
     "err.email": "कृपया एक मान्य ईमेल पता दर्ज करें।",
     "err.message": "कृपया एक छोटा संदेश जोड़ें।",
     "err.rating": "कृपया एक रेटिंग चुनें।",
+    "a11y.skip": "सामग्री पर जाएँ",
   },
 
   de: {
@@ -469,6 +472,7 @@ export const core: AreaDict = {
     "err.email": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
     "err.message": "Bitte fügen Sie eine kurze Nachricht hinzu.",
     "err.rating": "Bitte wählen Sie eine Bewertung.",
+    "a11y.skip": "Zum Inhalt springen",
   },
 
   zh: {
@@ -583,5 +587,6 @@ export const core: AreaDict = {
     "err.email": "请输入有效的电子邮箱地址。",
     "err.message": "请添加一条简短留言。",
     "err.rating": "请选择评分。",
+    "a11y.skip": "跳至内容",
   },
 };

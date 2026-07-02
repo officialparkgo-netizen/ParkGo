@@ -42,6 +42,9 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={dir}>
       <body className="min-h-screen bg-white">
+        <a href="#main-content" className="skip-link">
+          {dict["a11y.skip"] ?? "Skip to content"}
+        </a>
         <I18nProvider dict={dict}>{children}</I18nProvider>
       </body>
     </html>

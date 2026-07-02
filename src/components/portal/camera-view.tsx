@@ -37,7 +37,7 @@ export function CameraView({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl bg-navy-950 ${className ?? "aspect-video"}`}
+      className={`relative animate-fade-in overflow-hidden rounded-2xl bg-navy-950 ${className ?? "aspect-video"}`}
     >
       {/* simulated scene: a parked car under the camera */}
       <div className="absolute inset-0 bg-gradient-to-b from-navy-800 to-navy-950" />
@@ -51,11 +51,18 @@ export function CameraView({
         style={{ top: `${scan}%` }}
       />
 
+      {/* subtle vignette for a lens-like feel */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ boxShadow: "inset 0 0 60px 12px rgba(0,0,0,0.55)" }}
+        aria-hidden
+      />
+
       {/* chrome */}
       <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+          <span className="relative inline-flex h-2 w-2 animate-pulse rounded-full bg-white" />
         </span>
         LIVE
       </div>

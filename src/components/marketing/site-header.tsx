@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Menu } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { MobileNav, StickyHeader } from "@/components/common/mobile-nav";
 import { getI18n } from "@/lib/i18n";
 
 export async function SiteHeader() {
@@ -17,7 +17,7 @@ export async function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-navy-100 bg-white/90 backdrop-blur">
+    <StickyHeader className="sticky top-0 z-40 border-b border-navy-100 bg-white/90 backdrop-blur">
       <div className="container-px flex h-16 items-center justify-between gap-4">
         <Logo />
 
@@ -42,32 +42,26 @@ export async function SiteHeader() {
             {t("nav.getStarted")}
           </Link>
 
-          {/* Mobile menu (CSS-only via <details>) */}
-          <details className="relative lg:hidden">
-            <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg text-navy-700 hover:bg-navy-50 [&::-webkit-details-marker]:hidden">
-              <Menu className="h-5 w-5" />
-            </summary>
-            <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-navy-100 bg-white p-2 shadow-card-lg">
-              {links.map((l) => (
+          {/* Mobile menu (accessible slide-in drawer) */}
+          <MobileNav
+            items={links}
+            label="Menu"
+            footer={
+              <div className="space-y-1">
                 <Link
-                  key={l.href}
-                  href={l.href}
-                  className="block rounded-lg px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50"
+                  href="/login"
+                  className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-navy-700 hover:bg-navy-50"
                 >
-                  {l.label}
+                  {t("nav.signin")}
                 </Link>
-              ))}
-              <div className="my-2 border-t border-navy-100" />
-              <Link href="/login" className="block rounded-lg px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">
-                {t("nav.signin")}
-              </Link>
-              <div className="px-3 py-2">
-                <LanguageSwitcher current={locale} />
+                <div className="px-3 py-2">
+                  <LanguageSwitcher current={locale} />
+                </div>
               </div>
-            </div>
-          </details>
+            }
+          />
         </div>
       </div>
-    </header>
+    </StickyHeader>
   );
 }

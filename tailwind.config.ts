@@ -72,10 +72,34 @@ const config: Config = {
           "0%": { transform: "scale(0.8)", opacity: "0.8" },
           "100%": { transform: "scale(2.2)", opacity: "0" },
         },
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "slide-in-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.96)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        float: {
+          "0%,100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.5s ease-out both",
         "pulse-ring": "pulse-ring 1.6s ease-out infinite",
+        shimmer: "shimmer 1.6s infinite",
+        "fade-in": "fade-in 0.2s ease-out both",
+        "slide-in-right": "slide-in-right 0.28s cubic-bezier(0.22,1,0.36,1) both",
+        "scale-in": "scale-in 0.18s ease-out both",
+        float: "float 4s ease-in-out infinite",
       },
     },
   },
