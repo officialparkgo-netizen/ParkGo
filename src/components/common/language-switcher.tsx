@@ -11,9 +11,15 @@ import { cn } from "@/lib/utils";
 export function LanguageSwitcher({
   current,
   className,
+  fullWidth = false,
+  openUp = false,
 }: {
   current: Locale;
   className?: string;
+  /** Full-width trigger + menu (for narrow containers like the mobile drawer). */
+  fullWidth?: boolean;
+  /** Open the menu upward (e.g. when anchored at the bottom of a drawer). */
+  openUp?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -136,7 +142,11 @@ export function LanguageSwitcher({
   return (
     <div
       ref={wrapperRef}
-      className={cn("relative inline-block text-left", className)}
+      className={cn(
+        "relative text-left",
+        fullWidth ? "block w-full" : "inline-block",
+        className
+      )}
     >
       <button
         ref={triggerRef}
@@ -151,6 +161,7 @@ export function LanguageSwitcher({
         aria-label={`Language: ${currentMeta.nativeLabel}`}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
+          fullWidth && "w-full justify-between border border-navy-200 px-3 py-2.5",
           pending && "cursor-not-allowed opacity-60"
         )}
       >
@@ -175,7 +186,15 @@ export function LanguageSwitcher({
           aria-labelledby={triggerId}
           aria-activedescendant={optionId(activeIndex)}
           onKeyDown={onListKeyDown}
-          className="absolute right-0 top-full z-50 mt-2 min-w-[12rem] origin-top-right animate-scale-in rounded-xl border border-navy-100 bg-white p-1.5 shadow-card-lg focus:outline-none"
+          className={cn(
+            "absolute z-50 min-w-[12rem] animate-scale-in rounded-xl border border-navy-100 bg-white p-1.5 shadow-card-lg focus:outline-none",
+            fullWidth ? "inset-x-0" : "right-0",
+            openUp ? "bottom-full mb-2" : "top-full mt-2",
+            !openUp && !fullWidth && "origin-top-right",
+            !openUp && fullWidth && "origin-top",
+            openUp && !fullWidth && "origin-bottom-right",
+            openUp && fullWidth && "origin-bottom"
+          )}
         >
           {LOCALES.map((l, i) => {
             const selected = l.code === current;

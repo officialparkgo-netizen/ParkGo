@@ -63,7 +63,7 @@ export async function SiteHeader() {
                   {t("nav.signin")}
                 </Link>
                 <div className="pt-1">
-                  <LanguageSwitcher current={locale} />
+                  <LanguageSwitcher current={locale} fullWidth openUp />
                 </div>
               </div>
             }
