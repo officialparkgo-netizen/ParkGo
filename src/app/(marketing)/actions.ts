@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import type { Role } from "@/types";
-import { addWaitlist } from "@/lib/data/store";
+import { addWaitlistEntry } from "@/lib/data/waitlist";
 import { getI18n } from "@/lib/i18n";
 
 export interface WaitlistState {
@@ -23,7 +23,11 @@ export async function joinWaitlist(
   if (!z.string().email().safeParse(email).success) {
     return { error: t("err.email") };
   }
-  addWaitlist({ email, role, airport });
+  try {
+    await addWaitlistEntry({ email, role, airport });
+  } catch {
+    return { error: t("err.message") };
+  }
   return { ok: true };
 }
 
