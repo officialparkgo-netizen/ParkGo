@@ -9,6 +9,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Role, User } from "@/types";
 import { getUser } from "@/lib/data/store";
+import { IS_LIVE } from "@/lib/config";
+import { getUserProfile } from "@/lib/data/users";
 
 export const SESSION_COOKIE = "parkgo_session";
 
@@ -20,6 +22,16 @@ export const DEMO_LOGINS: { role: Role; userId: string; label: string; blurb: st
 ];
 
 export async function getCurrentUser(): Promise<User | null> {
+  if (IS_LIVE) {
+    const { createServerSupabase } = await import("@/lib/supabase/auth-server");
+    const supabase = await createServerSupabase();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+    return getUserProfile(user.id);
+  }
+
   const store = await cookies();
   const id = store.get(SESSION_COOKIE)?.value;
   if (!id) return null;

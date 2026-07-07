@@ -6,6 +6,8 @@ export const portalAdmin: AreaDict = {
     // --- Login page ---
     "login.demoMode": "Demo mode",
     "login.chooseRole": "Choose a role to explore",
+    "login.welcome": "Welcome to ParkGo",
+    "login.welcomeSub": "Sign in or create your account to book, list or manage.",
     "login.blurbIntro":
       "ParkGo runs fully in mock mode — pick any demo account below. No password needed. Each role sees only its own data.",
     "login.enterAs": "Enter as",

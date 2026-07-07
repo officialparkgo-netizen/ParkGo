@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { DEMO_LOGINS } from "@/lib/auth";
 import { loginAs } from "@/lib/auth-actions";
+import { IS_LIVE } from "@/lib/config";
+import { AuthForm } from "@/components/auth/auth-form";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -44,6 +46,20 @@ export default async function LoginPage({
 
       <div className="container-px flex flex-1 items-center justify-center py-10">
         <div className="w-full max-w-2xl">
+          {IS_LIVE ? (
+            <>
+              <div className="text-center">
+                <h1 className="text-3xl font-extrabold tracking-tight text-navy-900">
+                  {t("login.welcome")}
+                </h1>
+                <p className="mt-2 text-navy-600">{t("login.welcomeSub")}</p>
+              </div>
+              <div className="mt-8">
+                <AuthForm next={next} />
+              </div>
+            </>
+          ) : (
+            <>
           <div className="text-center">
             <Badge tone="go" className="mb-3">
               {t("login.demoMode")}
@@ -90,6 +106,8 @@ export default async function LoginPage({
           <p className="mt-6 text-center text-sm text-navy-400">
             {t("login.productionNote")}
           </p>
+            </>
+          )}
         </div>
       </div>
     </div>
