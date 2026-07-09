@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { I18nProvider } from "@/lib/i18n/client";
@@ -46,6 +48,8 @@ export default async function RootLayout({
           {dict["a11y.skip"] ?? "Skip to content"}
         </a>
         <I18nProvider dict={dict}>{children}</I18nProvider>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
