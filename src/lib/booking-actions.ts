@@ -12,7 +12,7 @@ import {
   reviewVerification,
   setBookingStatus,
 } from "@/lib/data/store";
-import { getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
+import { getHostById, getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
 import { createBookingLive } from "@/lib/data/bookings";
 import { getPaymentGateway } from "@/lib/services/payments";
 import { isStripeConfigured, createBookingCheckoutSession } from "@/lib/stripe";
@@ -40,7 +40,9 @@ export async function createBookingAction(formData: FormData) {
       { travellerId: user.id, spaceId, bundle, startAt, endAt, method },
       { status: "requested", recordPayment: false }
     );
-    const url = await createBookingCheckoutSession(pending, space);
+    // Split to the host's connected account when they've onboarded payouts.
+    const host = await getHostById(space.hostId);
+    const url = await createBookingCheckoutSession(pending, space, host?.payoutAccountRef);
     redirect(url);
   }
 

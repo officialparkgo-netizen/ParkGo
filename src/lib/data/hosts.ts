@@ -329,6 +329,13 @@ export async function reviewSpaceListing(
   return space;
 }
 
+/** Persist the host's Stripe Connect account id (payout_account_ref). */
+export async function setHostPayoutAccount(hostId: string, accountId: string): Promise<void> {
+  if (!IS_LIVE) return;
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  await supabaseAdmin().from("hosts").update({ payout_account_ref: accountId }).eq("id", hostId);
+}
+
 /** Update the host's public bio. Best-effort in live mode (column optional). */
 export async function updateHostBio(hostId: string, bio: string): Promise<void> {
   if (!IS_LIVE) {

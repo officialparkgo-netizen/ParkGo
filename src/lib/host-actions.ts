@@ -3,7 +3,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
-import { createSpaceForHost, ensureHostForUser, updateHostBio } from "@/lib/data/hosts";
+import {
+  createSpaceForHost,
+  ensureHostForUser,
+  setHostPayoutAccount,
+  updateHostBio,
+} from "@/lib/data/hosts";
+import { isStripeConfigured, createHostOnboardingLink } from "@/lib/stripe";
 
 /** Host: create a new listing (enters admin verification as pending_review). */
 export async function createSpaceAction(formData: FormData) {
@@ -43,6 +49,22 @@ export async function createSpaceAction(formData: FormData) {
   revalidatePath("/host");
   revalidatePath("/admin");
   redirect("/host?listed=1");
+}
+
+/** Host: start Stripe Connect onboarding to receive payouts. */
+export async function connectPayoutsAction() {
+  const user = await requireRole("host");
+  if (!isStripeConfigured()) redirect("/host?payouts=unavailable");
+  const host = await ensureHostForUser(user);
+  const { url, accountId } = await createHostOnboardingLink({
+    id: host.id,
+    displayName: host.displayName,
+    payoutAccountRef: host.payoutAccountRef,
+  });
+  if (accountId !== host.payoutAccountRef) {
+    await setHostPayoutAccount(host.id, accountId);
+  }
+  redirect(url);
 }
 
 /** Host: update the public profile shown to guests (bio). */

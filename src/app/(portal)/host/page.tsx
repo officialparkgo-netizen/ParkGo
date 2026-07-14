@@ -34,7 +34,8 @@ import {
 } from "@/lib/data/store";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
-import { updateHostProfileAction } from "@/lib/host-actions";
+import { connectPayoutsAction, updateHostProfileAction } from "@/lib/host-actions";
+import { isStripeConfigured, getConnectStatus } from "@/lib/stripe";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -82,6 +83,12 @@ export default async function HostDashboard({
     .reduce((s, p) => s + p.split.hostPayout, 0);
   const liveCount = spaces.filter((s) => s.status === "live").length;
 
+  // Stripe Connect payout status (only when Stripe is configured).
+  const stripeOn = isStripeConfigured();
+  const payoutStatus =
+    stripeOn && host.payoutAccountRef ? await getConnectStatus(host.payoutAccountRef) : null;
+  const payoutsReady = !!payoutStatus?.chargesEnabled;
+
   return (
     <PortalShell user={user} nav={hostNav} title="host.pageTitle">
       <div className="space-y-8">
@@ -108,6 +115,38 @@ export default async function HostDashboard({
           <StatCard label={t("host.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("host.total")}`} icon={Warehouse} tone="brand" />
           <StatCard label={t("host.stat.trustScore")} value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" />
         </div>
+
+        {/* Payouts (Stripe Connect) */}
+        {stripeOn && (
+          <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
+                <Banknote className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="font-bold text-navy-900">{t("host.payouts.title")}</div>
+                <div className="text-sm text-navy-500">
+                  {payoutsReady
+                    ? t("host.payouts.connected")
+                    : host.payoutAccountRef
+                      ? t("host.payouts.finish")
+                      : t("host.payouts.setup")}
+                </div>
+              </div>
+            </div>
+            {payoutsReady ? (
+              <Badge tone="go">
+                <BadgeCheck className="h-3.5 w-3.5" /> {t("host.payouts.badge")}
+              </Badge>
+            ) : (
+              <form action={connectPayoutsAction}>
+                <button type="submit" className={buttonVariants({ size: "sm" })}>
+                  {host.payoutAccountRef ? t("host.payouts.finishBtn") : t("host.payouts.setupBtn")}
+                </button>
+              </form>
+            )}
+          </Card>
+        )}
 
         {/* Notifications */}
         {notifications.length > 0 && (
