@@ -21,7 +21,8 @@ import { PortalShell } from "@/components/portal/shell";
 import { travellerNav } from "@/components/portal/navs";
 import { LiveMap } from "@/components/portal/live-map";
 import { requireRole } from "@/lib/auth";
-import { getAirport, getHost, getReviewsForSpace, getSpace, getUser } from "@/lib/data/store";
+import { getAirport, getReviewsForSpace, getUser } from "@/lib/data/store";
+import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { priceBundle } from "@/lib/pricing";
 import { projectToViewport } from "@/lib/services/maps";
 import { daysBetween, formatDate, formatMoneyShort, initials } from "@/lib/utils";
@@ -41,11 +42,11 @@ export default async function SpaceDetail({
   const { t } = await getI18n();
   const { id } = await params;
   const sp = await searchParams;
-  const space = getSpace(id);
+  const space = await getSpaceById(id);
   if (!space) notFound();
 
   const airport = getAirport(space.airportSlug);
-  const host = getHost(space.hostId);
+  const host = await getHostById(space.hostId);
   const hostUser = host ? getUser(host.userId) : undefined;
   const reviews = getReviewsForSpace(space.id);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";

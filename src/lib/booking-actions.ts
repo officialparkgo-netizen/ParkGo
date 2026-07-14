@@ -8,20 +8,19 @@ import { getI18n } from "@/lib/i18n";
 import {
   addReview,
   confirmHandover,
-  createBooking,
   getBooking,
-  getSpace,
   reviewVerification,
   setBookingStatus,
 } from "@/lib/data/store";
-import { reviewSpaceListing } from "@/lib/data/hosts";
+import { getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
+import { createBookingLive } from "@/lib/data/bookings";
 import { getPaymentGateway } from "@/lib/services/payments";
 
 /** Checkout: create a booking + take (mock) payment, then go to confirmation. */
 export async function createBookingAction(formData: FormData) {
   const user = await requireUser();
   const spaceId = String(formData.get("spaceId") || "");
-  const space = getSpace(spaceId);
+  const space = await getSpaceById(spaceId);
   if (!space) throw new Error("Unknown space");
 
   const bundle: BookingBundle = {
@@ -34,7 +33,7 @@ export async function createBookingAction(formData: FormData) {
   const method = (String(formData.get("method") || "card") as PaymentMethod);
 
   // Create the booking first (computes the split), then authorise via the gateway.
-  const booking = createBooking({
+  const booking = await createBookingLive({
     travellerId: user.id,
     spaceId,
     bundle,

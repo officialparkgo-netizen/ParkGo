@@ -23,9 +23,7 @@ import { reviewSpaceAction, reviewVerificationAction } from "@/lib/booking-actio
 import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
 import {
   getAirport,
-  getAllBookings,
   getAllHosts,
-  getAllPayments,
   getAllReviews,
   getHost,
   getPendingVerifications,
@@ -33,6 +31,7 @@ import {
   trustScoreFor,
 } from "@/lib/data/store";
 import { getHostsByIds, listAllSpaces } from "@/lib/data/hosts";
+import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -46,8 +45,8 @@ export default async function AdminDashboard() {
   const allVerifications = getVerifications();
   const spaces = await listAllSpaces();
   const spaceHostMap = await getHostsByIds(spaces.map((s) => s.hostId));
-  const payments = getAllPayments();
-  const bookings = getAllBookings();
+  const payments = await listAllPayments();
+  const bookings = await listAllBookings();
 
   const gmv = payments.reduce((s, p) => s + p.amount, 0);
   const platformRevenue = payments.reduce((s, p) => s + p.split.platform, 0);
@@ -367,7 +366,7 @@ function buildAuditFeed({
   verifications,
   reviews,
 }: {
-  bookings: ReturnType<typeof getAllBookings>;
+  bookings: Awaited<ReturnType<typeof listAllBookings>>;
   verifications: ReturnType<typeof getVerifications>;
   reviews: ReturnType<typeof getAllReviews>;
 }): AuditEntry[] {

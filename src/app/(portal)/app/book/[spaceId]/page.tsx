@@ -7,7 +7,8 @@ import { travellerNav } from "@/components/portal/navs";
 import { Checkout } from "@/components/portal/checkout";
 import { Photo } from "@/components/common/photo";
 import { requireRole } from "@/lib/auth";
-import { getAirport, getSpace } from "@/lib/data/store";
+import { getAirport } from "@/lib/data/store";
+import { getSpaceById } from "@/lib/data/hosts";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -30,7 +31,7 @@ export default async function BookPage({
   const { t } = await getI18n();
   const { spaceId } = await params;
   const sp = await searchParams;
-  const space = getSpace(spaceId);
+  const space = await getSpaceById(spaceId);
   if (!space) notFound();
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";

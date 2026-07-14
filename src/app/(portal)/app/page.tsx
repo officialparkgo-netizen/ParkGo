@@ -9,12 +9,9 @@ import { StatusBadge } from "@/components/portal/status";
 import { travellerNav } from "@/components/portal/navs";
 import { SearchWidget } from "@/components/marketing/search-widget";
 import { requireRole } from "@/lib/auth";
-import {
-  getAirport,
-  getAirports,
-  getBookingsByTraveller,
-  getSpace,
-} from "@/lib/data/store";
+import { getAirport, getAirports } from "@/lib/data/store";
+import { getSpacesByIds } from "@/lib/data/hosts";
+import { listBookingsForTraveller } from "@/lib/data/bookings";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -24,7 +21,8 @@ export const metadata: Metadata = pageMetadata({ title: "Dashboard", path: "/app
 export default async function TravellerDashboard() {
   const user = await requireRole("traveller");
   const { t } = await getI18n();
-  const bookings = getBookingsByTraveller(user.id);
+  const bookings = await listBookingsForTraveller(user.id);
+  const spaceMap = await getSpacesByIds(bookings.map((b) => b.spaceId));
   const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code }));
   const active = bookings.find((b) => b.status === "active");
 
@@ -64,7 +62,7 @@ export default async function TravellerDashboard() {
           ) : (
             <div className="space-y-3">
               {bookings.map((b) => {
-                const space = getSpace(b.spaceId);
+                const space = spaceMap.get(b.spaceId);
                 const airport = space ? getAirport(space.airportSlug) : undefined;
                 const currency = airport?.country === "IE" ? "EUR" : "GBP";
                 const canTrack = b.status === "active" || b.status === "paid";

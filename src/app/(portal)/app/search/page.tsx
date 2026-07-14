@@ -10,7 +10,8 @@ import { SearchWidget } from "@/components/marketing/search-widget";
 import { SpaceCard } from "@/components/portal/space-card";
 import { ResultsMap } from "@/components/portal/results-map";
 import { requireRole } from "@/lib/auth";
-import { getAirport, getAirports, searchSpaces } from "@/lib/data/store";
+import { getAirport, getAirports } from "@/lib/data/store";
+import { searchLiveSpaces } from "@/lib/data/hosts";
 import { optimiseJourney } from "@/lib/services/ai";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -37,7 +38,7 @@ export default async function SearchPage({
   const airportSlug = sp.airport || "heathrow";
   const airport = getAirport(airportSlug);
 
-  const results = searchSpaces({
+  const results = await searchLiveSpaces({
     airportSlug,
     startAt: sp.from ? new Date(sp.from).toISOString() : undefined,
     endAt: sp.to ? new Date(sp.to).toISOString() : undefined,

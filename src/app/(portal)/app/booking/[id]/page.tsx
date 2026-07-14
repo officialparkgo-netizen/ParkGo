@@ -17,7 +17,9 @@ import { StatusBadge } from "@/components/portal/status";
 import { QrCode } from "@/components/portal/qr";
 import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
-import { getAirport, getBooking, getHost, getSpace, getUser } from "@/lib/data/store";
+import { getAirport, getUser } from "@/lib/data/store";
+import { getBookingById } from "@/lib/data/bookings";
+import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -35,12 +37,13 @@ export default async function BookingPage({
   const { t } = await getI18n();
   const { id } = await params;
   const { new: isNew } = await searchParams;
-  const booking = getBooking(id);
+  const booking = await getBookingById(id);
   if (!booking || booking.travellerId !== user.id) notFound();
 
-  const space = getSpace(booking.spaceId)!;
+  const space = await getSpaceById(booking.spaceId);
+  if (!space) notFound();
   const airport = getAirport(space.airportSlug);
-  const host = getHost(space.hostId);
+  const host = await getHostById(space.hostId);
   const hostUser = host ? getUser(host.userId) : undefined;
   const currency = booking.price.currency;
   const paid = booking.status !== "requested" && booking.status !== "cancelled";

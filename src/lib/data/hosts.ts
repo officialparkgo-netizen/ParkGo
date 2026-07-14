@@ -1,5 +1,6 @@
-import type { Host, Space, User } from "@/types";
+import type { BookingBundle, Host, SearchQuery, SearchResult, Space, User } from "@/types";
 import { IS_LIVE } from "@/lib/config";
+import { priceBundle } from "@/lib/pricing";
 import {
   getHostByUserId as mockGetHostByUserId,
   getSpacesByHost as mockGetSpacesByHost,
@@ -7,10 +8,18 @@ import {
   updateHostProfile as mockUpdateHostProfile,
   getAllSpaces as mockGetAllSpaces,
   getHost as mockGetHost,
+  getSpace as mockGetSpace,
   reviewSpace as mockReviewSpace,
+  searchSpaces as mockSearchSpaces,
   getAirport,
   type CreateSpaceInput,
 } from "@/lib/data/store";
+
+const SIZE_ORDER = { small: 0, medium: 1, large: 2, van: 3 } as const;
+function fitsVehicle(space: Space, size: SearchQuery["vehicleSize"]) {
+  if (!size) return true;
+  return SIZE_ORDER[space.maxVehicleSize] >= SIZE_ORDER[size];
+}
 
 const HOST_COLS =
   "id, user_id, display_name, verification_status, payout_account_ref, rating, joined_at";
@@ -135,6 +144,75 @@ export async function createSpaceForHost(input: CreateSpaceInput): Promise<Space
     .single();
   if (error || !data) throw new Error(`could not create space: ${error?.message}`);
   return spaceFromRow(data);
+}
+
+// -----------------------------------------------------------------------------
+// Space + host reads (traveller-facing)
+// -----------------------------------------------------------------------------
+
+export async function getSpaceById(id: string): Promise<Space | null> {
+  if (!IS_LIVE) return mockGetSpace(id) ?? null;
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin().from("spaces").select(SPACE_COLS).eq("id", id).maybeSingle();
+  return data ? spaceFromRow(data) : null;
+}
+
+export async function getSpacesByIds(ids: string[]): Promise<Map<string, Space>> {
+  const unique = [...new Set(ids)];
+  const map = new Map<string, Space>();
+  if (unique.length === 0) return map;
+  if (!IS_LIVE) {
+    unique.forEach((id) => {
+      const s = mockGetSpace(id);
+      if (s) map.set(id, s);
+    });
+    return map;
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin().from("spaces").select(SPACE_COLS).in("id", unique);
+  (data ?? []).forEach((r) => map.set(r.id, spaceFromRow(r)));
+  return map;
+}
+
+export async function getHostById(id: string): Promise<Host | null> {
+  if (!IS_LIVE) return mockGetHost(id) ?? null;
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin().from("hosts").select(HOST_COLS).eq("id", id).maybeSingle();
+  return data ? hostFromRow(data) : null;
+}
+
+/** Search live listings at an airport, apply filters, and price each result. */
+export async function searchLiveSpaces(query: SearchQuery): Promise<SearchResult[]> {
+  const airport = getAirport(query.airportSlug);
+  if (!airport) return [];
+  if (!IS_LIVE) return mockSearchSpaces(query);
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin()
+    .from("spaces")
+    .select(SPACE_COLS)
+    .eq("airport_slug", query.airportSlug)
+    .eq("status", "live");
+
+  const start = query.startAt ?? new Date().toISOString();
+  const end = query.endAt ?? new Date(Date.now() + 5 * 86_400_000).toISOString();
+  const currency = airport.country === "IE" ? "EUR" : "GBP";
+
+  return (data ?? [])
+    .map(spaceFromRow)
+    .filter((s) => (query.needsEv ? !!s.evCharger : true))
+    .filter((s) => (query.needsCctv ? s.cctv || s.liveCamera : true))
+    .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true))
+    .map((space) => {
+      const bundle: BookingBundle = {
+        parking: true,
+        transfer: !!query.needsTransfer,
+        ev: !!query.needsEv && !!space.evCharger,
+      };
+      const price = priceBundle(space, bundle, start, end, currency);
+      return { space, airport, estimatedTotal: price.total };
+    })
+    .sort((a, b) => b.space.rating - a.space.rating || a.space.driveMinutes - b.space.driveMinutes);
 }
 
 // -----------------------------------------------------------------------------
