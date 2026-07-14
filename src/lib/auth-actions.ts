@@ -67,10 +67,14 @@ export async function signInWithPassword(
   const password = String(formData.get("password") || "");
   const next = String(formData.get("next") || "") || undefined;
 
+  if (!email || !password) return { error: "Enter your email and password." };
+
   const { createServerSupabase } = await import("@/lib/supabase/auth-server");
   const supabase = await createServerSupabase();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: error.message };
+  if (error || !data?.user) {
+    return { error: error?.message || "Invalid email or password." };
+  }
 
   const role = normaliseRole(String(data.user?.user_metadata?.role || "traveller"));
   redirect(next || rolePath(role));
@@ -83,7 +87,8 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
   const role = normaliseRole(String(formData.get("role") || "traveller"));
   const next = String(formData.get("next") || "") || rolePath(role);
 
-  if (name.length < 2) return { error: "Please enter your name." };
+  if (name.length < 2) return { error: "Please enter your full name." };
+  if (!email.includes("@")) return { error: "Please enter a valid email address." };
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
 
   const { createServerSupabase } = await import("@/lib/supabase/auth-server");
@@ -96,7 +101,13 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
       emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
-  if (error) return { error: error.message };
+  if (error) return { error: error.message || "Could not create your account." };
+
+  // Supabase returns an obfuscated user with no identities when the email is
+  // already registered (email-enumeration protection).
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    return { error: "That email already has an account — try signing in instead." };
+  }
 
   // If email confirmation is disabled, a session is returned immediately.
   if (data.session) redirect(next);
@@ -112,10 +123,11 @@ export async function signInWithMagicLink(
 
   const { createServerSupabase } = await import("@/lib/supabase/auth-server");
   const supabase = await createServerSupabase();
+  if (!email.includes("@")) return { error: "Please enter a valid email address." };
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}` },
   });
-  if (error) return { error: error.message };
+  if (error) return { error: error.message || "Could not send the magic link." };
   return { message: "Magic link sent — check your email to sign in." };
 }

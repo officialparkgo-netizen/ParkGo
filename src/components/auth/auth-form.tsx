@@ -27,8 +27,14 @@ export function AuthForm({ next }: { next?: string }) {
     {}
   );
 
-  const error = state.error || magicState.error;
-  const message = state.message || magicState.message;
+  const rawError = state.error || magicState.error;
+  const rawMessage = state.message || magicState.message;
+  const error = rawError
+    ? typeof rawError === "string"
+      ? rawError
+      : "Something went wrong. Please try again."
+    : "";
+  const message = rawMessage && typeof rawMessage === "string" ? rawMessage : "";
 
   return (
     <div className="mx-auto w-full max-w-md">
