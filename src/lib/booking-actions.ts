@@ -11,10 +11,10 @@ import {
   createBooking,
   getBooking,
   getSpace,
-  reviewSpace,
   reviewVerification,
   setBookingStatus,
 } from "@/lib/data/store";
+import { reviewSpaceListing } from "@/lib/data/hosts";
 import { getPaymentGateway } from "@/lib/services/payments";
 
 /** Checkout: create a booking + take (mock) payment, then go to confirmation. */
@@ -133,7 +133,7 @@ export async function reviewSpaceAction(formData: FormData) {
   const spaceId = String(formData.get("spaceId") || "");
   const decision = String(formData.get("decision") || "") as "approved" | "rejected";
   if (decision !== "approved" && decision !== "rejected") return;
-  const space = reviewSpace(spaceId, decision, admin.id);
+  const space = await reviewSpaceListing(spaceId, decision, admin.id);
   revalidatePath("/admin");
   revalidatePath("/host");
   revalidatePath("/app/search");

@@ -27,12 +27,12 @@ import {
   getAllHosts,
   getAllPayments,
   getAllReviews,
-  getAllSpaces,
   getHost,
   getPendingVerifications,
   getVerifications,
   trustScoreFor,
 } from "@/lib/data/store";
+import { getHostsByIds, listAllSpaces } from "@/lib/data/hosts";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -44,7 +44,8 @@ export default async function AdminDashboard() {
   const { t } = await getI18n();
   const pending = getPendingVerifications();
   const allVerifications = getVerifications();
-  const spaces = getAllSpaces();
+  const spaces = await listAllSpaces();
+  const spaceHostMap = await getHostsByIds(spaces.map((s) => s.hostId));
   const payments = getAllPayments();
   const bookings = getAllBookings();
 
@@ -284,7 +285,7 @@ export default async function AdminDashboard() {
           </div>
           <Card className="divide-y divide-navy-100">
             {sortedSpaces.map((s) => {
-              const host = getHost(s.hostId);
+              const host = spaceHostMap.get(s.hostId);
               const airport = getAirport(s.airportSlug);
               const needsReview = s.status === "pending_review" || s.status === "draft";
               return (
