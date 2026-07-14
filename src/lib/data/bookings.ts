@@ -1,4 +1,4 @@
-import type { Booking, Payment } from "@/types";
+import type { Booking, Payment, PaymentMethod, PaymentSplit } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { priceBundle } from "@/lib/pricing";
 import { shortRef } from "@/lib/utils";
@@ -9,6 +9,7 @@ import {
   getBookingsByTraveller as mockGetBookingsByTraveller,
   getAllBookings as mockGetAllBookings,
   getAllPayments as mockGetAllPayments,
+  setBookingStatus as mockSetBookingStatus,
   getAirport,
   type CreateBookingInput,
 } from "@/lib/data/store";
@@ -57,8 +58,14 @@ function paymentFromRow(r: any): Payment {
  * store. The transfer job is fulfilled by the external operator API, so no
  * transfer row is written here.
  */
-export async function createBookingLive(input: CreateBookingInput): Promise<Booking> {
+export async function createBookingLive(
+  input: CreateBookingInput,
+  opts: { status?: Booking["status"]; recordPayment?: boolean } = {}
+): Promise<Booking> {
   if (!IS_LIVE) return mockCreateBooking(input);
+
+  const status = opts.status ?? "paid";
+  const recordPayment = opts.recordPayment ?? true;
 
   const space = await getSpaceById(input.spaceId);
   if (!space) throw new Error(`Unknown space: ${input.spaceId}`);
@@ -80,7 +87,7 @@ export async function createBookingLive(input: CreateBookingInput): Promise<Book
       bundle: input.bundle,
       start_at: input.startAt,
       end_at: input.endAt,
-      status: "paid",
+      status,
       price,
       qr_token: qrToken,
     })
@@ -89,24 +96,72 @@ export async function createBookingLive(input: CreateBookingInput): Promise<Book
   if (error || !bRow) throw new Error(`booking failed: ${error?.message}`);
   const booking = bookingFromRow(bRow);
 
-  await admin.from("payments").insert({
-    booking_id: booking.id,
-    provider: "mock",
-    method: input.method ?? "card",
-    amount: price.total,
-    currency,
-    split: price.split,
-    payout_status: "pending",
-  });
-
-  await admin.from("notifications").insert({
-    user_id: input.travellerId,
-    title: "Booking confirmed",
-    body: `${reference} · QR ready in your wallet.`,
-    kind: "booking",
-  });
+  // Mock/no-Stripe path records the payment immediately; the Stripe path records
+  // it on payment confirmation instead (see markBookingPaid).
+  if (recordPayment) {
+    await admin.from("payments").insert({
+      booking_id: booking.id,
+      provider: "mock",
+      method: input.method ?? "card",
+      amount: price.total,
+      currency,
+      split: price.split,
+      payout_status: "pending",
+    });
+    await admin.from("notifications").insert({
+      user_id: input.travellerId,
+      title: "Booking confirmed",
+      body: `${reference} · QR ready in your wallet.`,
+      kind: "booking",
+    });
+  }
 
   return booking;
+}
+
+/** Mark a booking paid and record the payment (idempotent). Used after Stripe. */
+export async function markBookingPaid(
+  bookingId: string,
+  payment: {
+    amount: number;
+    currency: string;
+    split: PaymentSplit;
+    method: PaymentMethod;
+    provider: "stripe" | "mock";
+  }
+): Promise<void> {
+  if (!IS_LIVE) {
+    mockSetBookingStatus(bookingId, "paid");
+    return;
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+
+  await admin.from("bookings").update({ status: "paid" }).eq("id", bookingId);
+
+  const { data: existing } = await admin
+    .from("payments")
+    .select("id")
+    .eq("booking_id", bookingId)
+    .maybeSingle();
+  if (existing) return; // already recorded (e.g. page refresh)
+
+  await admin.from("payments").insert({
+    booking_id: bookingId,
+    provider: payment.provider,
+    method: payment.method,
+    amount: payment.amount,
+    currency: payment.currency,
+    split: payment.split,
+    payout_status: "pending",
+  });
+  await admin.from("notifications").insert({
+    user_id: (await admin.from("bookings").select("traveller_id").eq("id", bookingId).maybeSingle())
+      .data?.traveller_id,
+    title: "Booking confirmed",
+    body: "Payment received · your QR is ready in your wallet.",
+    kind: "booking",
+  });
 }
 
 export async function getBookingById(id: string): Promise<Booking | null> {

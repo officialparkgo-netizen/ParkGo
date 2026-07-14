@@ -15,6 +15,7 @@ import {
 import { getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
 import { createBookingLive } from "@/lib/data/bookings";
 import { getPaymentGateway } from "@/lib/services/payments";
+import { isStripeConfigured, createBookingCheckoutSession } from "@/lib/stripe";
 
 /** Checkout: create a booking + take (mock) payment, then go to confirmation. */
 export async function createBookingAction(formData: FormData) {
@@ -32,7 +33,18 @@ export async function createBookingAction(formData: FormData) {
   const endAt = String(formData.get("endAt") || new Date().toISOString());
   const method = (String(formData.get("method") || "card") as PaymentMethod);
 
-  // Create the booking first (computes the split), then authorise via the gateway.
+  // Stripe path: create a pending booking, then redirect to Stripe Checkout.
+  // The /api/stripe/confirm route marks it paid on return.
+  if (isStripeConfigured()) {
+    const pending = await createBookingLive(
+      { travellerId: user.id, spaceId, bundle, startAt, endAt, method },
+      { status: "requested", recordPayment: false }
+    );
+    const url = await createBookingCheckoutSession(pending, space);
+    redirect(url);
+  }
+
+  // Mock path: create the booking (computes the split) + simulate the charge.
   const booking = await createBookingLive({
     travellerId: user.id,
     spaceId,
