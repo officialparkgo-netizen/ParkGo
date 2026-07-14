@@ -49,6 +49,17 @@ export function AuthForm({ next }: { next?: string }) {
         ))}
       </div>
 
+      {error && (
+        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
+          {error}
+        </p>
+      )}
+      {message && (
+        <p className="mb-4 flex items-center gap-2 rounded-lg bg-go-50 px-3 py-2.5 text-sm font-medium text-go-700">
+          <Sparkles className="h-4 w-4 shrink-0" aria-hidden /> {message}
+        </p>
+      )}
+
       <form action={action} className="space-y-3">
         {next && <input type="hidden" name="next" value={next} />}
 
@@ -114,17 +125,6 @@ export function AuthForm({ next }: { next?: string }) {
           )}
         </Button>
       </form>
-
-      {error && (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
-          {error}
-        </p>
-      )}
-      {message && (
-        <p className="mt-4 inline-flex items-center gap-2 rounded-lg bg-go-50 px-3 py-2 text-sm font-medium text-go-700">
-          <Sparkles className="h-4 w-4" aria-hidden /> {message}
-        </p>
-      )}
     </div>
   );
 }

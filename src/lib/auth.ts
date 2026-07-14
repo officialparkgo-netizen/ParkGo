@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 import type { Role, User } from "@/types";
 import { getUser } from "@/lib/data/store";
 import { IS_LIVE } from "@/lib/config";
-import { getUserProfile } from "@/lib/data/users";
+import { ensureUserProfile } from "@/lib/data/users";
 
 export const SESSION_COOKIE = "parkgo_session";
 
@@ -29,7 +29,7 @@ export async function getCurrentUser(): Promise<User | null> {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return null;
-    return getUserProfile(user.id);
+    return ensureUserProfile(user);
   }
 
   const store = await cookies();
