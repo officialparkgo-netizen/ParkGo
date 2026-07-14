@@ -17,21 +17,35 @@ import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { StatCard } from "@/components/portal/stat-card";
 import { adminNav } from "@/components/portal/navs";
-import { trustBand } from "@/lib/trust";
+import { trustBand, computeTrustScore } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
 import { reviewSpaceAction, reviewVerificationAction } from "@/lib/booking-actions";
 import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
+import { getAirport, getAllReviews, getHost } from "@/lib/data/store";
 import {
-  getAirport,
-  getAllHosts,
-  getAllReviews,
-  getHost,
-  getPendingVerifications,
-  getVerifications,
-  trustScoreFor,
-} from "@/lib/data/store";
-import { getHostsByIds, listAllSpaces } from "@/lib/data/hosts";
+  getHostsByIds,
+  listAllHosts,
+  listAllSpaces,
+  listAllVerifications,
+  listPendingVerifications,
+} from "@/lib/data/hosts";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
+import type { Host } from "@/types";
+
+function hostTrustScore(h: Host) {
+  return computeTrustScore({
+    subjectId: h.id,
+    subjectType: "host",
+    verification: h.verificationStatus,
+    reviews: [],
+    reliability: 0.95,
+    tenureDays: Math.max(
+      0,
+      Math.floor((Date.now() - new Date(h.joinedAt).getTime()) / 86_400_000)
+    ),
+    updatedAt: new Date().toISOString(),
+  });
+}
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -41,8 +55,8 @@ export const metadata: Metadata = pageMetadata({ title: "Admin", path: "/admin",
 export default async function AdminDashboard() {
   const user = await requireRole("admin");
   const { t } = await getI18n();
-  const pending = getPendingVerifications();
-  const allVerifications = getVerifications();
+  const pending = await listPendingVerifications();
+  const allVerifications = await listAllVerifications();
   const spaces = await listAllSpaces();
   const spaceHostMap = await getHostsByIds(spaces.map((s) => s.hostId));
   const payments = await listAllPayments();
@@ -63,8 +77,8 @@ export default async function AdminDashboard() {
     (a, b) => listingRank(a.status) - listingRank(b.status)
   );
 
-  const trustRows = getAllHosts()
-    .map((h) => ({ name: h.displayName, type: "Host", score: trustScoreFor(h.id, "host") }))
+  const trustRows = (await listAllHosts())
+    .map((h) => ({ name: h.displayName, type: "Host", score: hostTrustScore(h) }))
     .sort((a, b) => b.score.score - a.score.score);
 
   // Transfer is fulfilled by an independent licensed operator, integrated by API.
@@ -367,7 +381,7 @@ function buildAuditFeed({
   reviews,
 }: {
   bookings: Awaited<ReturnType<typeof listAllBookings>>;
-  verifications: ReturnType<typeof getVerifications>;
+  verifications: Awaited<ReturnType<typeof listAllVerifications>>;
   reviews: ReturnType<typeof getAllReviews>;
 }): AuditEntry[] {
   const entries: AuditEntry[] = [];

@@ -20,7 +20,10 @@ import { Stars } from "@/components/common/stars";
 import { PortalShell } from "@/components/portal/shell";
 import { travellerNav } from "@/components/portal/navs";
 import { LiveMap } from "@/components/portal/live-map";
+import { MapboxMap } from "@/components/portal/mapbox-map";
 import { requireRole } from "@/lib/auth";
+
+const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 import { getAirport, getReviewsForSpace, getUser } from "@/lib/data/store";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { priceBundle } from "@/lib/pricing";
@@ -187,12 +190,25 @@ export default async function SpaceDetail({
             {/* Map */}
             <div>
               <h3 className="mb-2 font-bold text-navy-900">{t("app.space.location")}</h3>
-              <LiveMap
-                showDriver={false}
-                space={{ x: sPos.x * 100, y: sPos.y * 100, label: t("app.space.yourSpace") }}
-                terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? t("app.space.terminal") }}
-                className="h-64"
-              />
+              {MAPBOX ? (
+                <MapboxMap
+                  showDriver={false}
+                  space={{ lat: space.lat, lng: space.lng, label: t("app.space.yourSpace") }}
+                  terminal={{
+                    lat: airport?.lat ?? space.lat,
+                    lng: airport?.lng ?? space.lng,
+                    label: airport?.name ?? t("app.space.terminal"),
+                  }}
+                  className="h-64"
+                />
+              ) : (
+                <LiveMap
+                  showDriver={false}
+                  space={{ x: sPos.x * 100, y: sPos.y * 100, label: t("app.space.yourSpace") }}
+                  terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? t("app.space.terminal") }}
+                  className="h-64"
+                />
+              )}
             </div>
 
             {/* Reviews */}

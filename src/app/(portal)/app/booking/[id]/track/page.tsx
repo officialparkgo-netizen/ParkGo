@@ -10,21 +10,24 @@ import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { travellerNav } from "@/components/portal/navs";
 import { LiveMap } from "@/components/portal/live-map";
+import { MapboxMap } from "@/components/portal/mapbox-map";
 import { CameraView } from "@/components/portal/camera-view";
 import { HandoverPanel } from "@/components/portal/handover-panel";
 import { ReviewForm } from "@/components/portal/review-form";
 import { requireRole } from "@/lib/auth";
 import {
   getAirport,
-  getBooking,
   getCamerasForSpace,
   getDriver,
-  getSpace,
   getTransfer,
   getTransferByBooking,
   getTransferProvider,
   getVehicle,
 } from "@/lib/data/store";
+import { getBookingById } from "@/lib/data/bookings";
+import { getSpaceById } from "@/lib/data/hosts";
+
+const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 import { resolveStream } from "@/lib/services/camera";
 import { getOperatorJob } from "@/lib/services/transfer-operator";
 import { projectToViewport } from "@/lib/services/maps";
@@ -44,10 +47,11 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
   const user = await requireRole("traveller");
   const { t } = await getI18n();
   const { id } = await params;
-  const booking = getBooking(id);
+  const booking = await getBookingById(id);
   if (!booking || booking.travellerId !== user.id) notFound();
 
-  const space = getSpace(booking.spaceId)!;
+  const space = await getSpaceById(booking.spaceId);
+  if (!space) notFound();
   const airport = getAirport(space.airportSlug);
   const transfer = booking.transferId
     ? getTransfer(booking.transferId)
@@ -98,12 +102,25 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                 </span>
                 {t("app.track.liveLocation")}
               </h3>
-              <LiveMap
-                showDriver={driverActive}
-                space={{ x: sPos.x * 100, y: sPos.y * 100, label: t("app.track.yourCar") }}
-                terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? t("app.track.terminal") }}
-                className="h-72"
-              />
+              {MAPBOX ? (
+                <MapboxMap
+                  showDriver={driverActive}
+                  space={{ lat: space.lat, lng: space.lng, label: t("app.track.yourCar") }}
+                  terminal={{
+                    lat: airport?.lat ?? space.lat,
+                    lng: airport?.lng ?? space.lng,
+                    label: airport?.name ?? t("app.track.terminal"),
+                  }}
+                  className="h-72"
+                />
+              ) : (
+                <LiveMap
+                  showDriver={driverActive}
+                  space={{ x: sPos.x * 100, y: sPos.y * 100, label: t("app.track.yourCar") }}
+                  terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? t("app.track.terminal") }}
+                  className="h-72"
+                />
+              )}
             </div>
 
             {transfer ? (
@@ -155,8 +172,12 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
               <h3 className="mb-2 flex items-center gap-2 font-bold text-navy-900">
                 <CameraIcon className="h-4 w-4 text-brand-600" /> {t("app.track.liveCamera")}
               </h3>
-              {space.liveCamera && stream ? (
-                <CameraView label={stream.label} protocol={stream.protocol} className="aspect-video" />
+              {space.liveCamera ? (
+                <CameraView
+                  label={stream?.label ?? space.title}
+                  protocol={stream?.protocol ?? "hls"}
+                  className="aspect-video"
+                />
               ) : (
                 <Card className="flex aspect-video items-center justify-center text-center text-sm text-navy-500">
                   {t("app.track.noLiveCamera")}

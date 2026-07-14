@@ -1,4 +1,12 @@
-import type { BookingBundle, Host, SearchQuery, SearchResult, Space, User } from "@/types";
+import type {
+  BookingBundle,
+  Host,
+  SearchQuery,
+  SearchResult,
+  Space,
+  User,
+  Verification,
+} from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { priceBundle } from "@/lib/pricing";
 import {
@@ -7,8 +15,11 @@ import {
   createSpace as mockCreateSpace,
   updateHostProfile as mockUpdateHostProfile,
   getAllSpaces as mockGetAllSpaces,
+  getAllHosts as mockGetAllHosts,
   getHost as mockGetHost,
   getSpace as mockGetSpace,
+  getPendingVerifications as mockGetPendingVerifications,
+  getVerifications as mockGetVerifications,
   reviewSpace as mockReviewSpace,
   searchSpaces as mockSearchSpaces,
   getAirport,
@@ -229,6 +240,29 @@ export async function listAllSpaces(): Promise<Space[]> {
     .order("created_at", { ascending: false });
   if (error) throw new Error(`spaces read failed: ${error.message}`);
   return (data ?? []).map(spaceFromRow);
+}
+
+/** All hosts (admin trust panel). Newest first in live mode. */
+export async function listAllHosts(): Promise<Host[]> {
+  if (!IS_LIVE) return mockGetAllHosts();
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin()
+    .from("hosts")
+    .select(HOST_COLS)
+    .order("joined_at", { ascending: false });
+  return (data ?? []).map(hostFromRow);
+}
+
+/**
+ * Verification queue. There is no host-verification submission flow yet, so the
+ * live queue is empty (honest) rather than showing seed data; the seed store is
+ * used in mock mode for the demo.
+ */
+export async function listPendingVerifications(): Promise<Verification[]> {
+  return IS_LIVE ? [] : mockGetPendingVerifications();
+}
+export async function listAllVerifications(): Promise<Verification[]> {
+  return IS_LIVE ? [] : mockGetVerifications();
 }
 
 /** Resolve host records for a set of ids (for showing owner names in the admin list). */
