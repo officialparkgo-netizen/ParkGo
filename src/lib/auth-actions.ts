@@ -25,13 +25,23 @@ export async function loginAs(role: Role, next?: string) {
 }
 
 export async function logout() {
-  if (IS_LIVE) {
-    const { createServerSupabase } = await import("@/lib/supabase/auth-server");
-    const supabase = await createServerSupabase();
-    await supabase.auth.signOut();
-    redirect("/");
-  }
   const store = await cookies();
+  if (IS_LIVE) {
+    try {
+      const { createServerSupabase } = await import("@/lib/supabase/auth-server");
+      const supabase = await createServerSupabase();
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // ignore — we still clear the cookies below
+    }
+    // Belt-and-braces: remove any Supabase auth cookies that remain so the
+    // session is definitely gone even if signOut couldn't write cookies.
+    for (const c of store.getAll()) {
+      if (c.name.startsWith("sb-") && c.name.includes("auth-token")) {
+        store.delete(c.name);
+      }
+    }
+  }
   store.delete(SESSION_COOKIE);
   redirect("/");
 }
