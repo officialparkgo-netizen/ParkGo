@@ -8,6 +8,7 @@ import {
   Phone,
   Radio,
   Star,
+  XCircle,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +19,13 @@ import { QrCode } from "@/components/portal/qr";
 import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirport, getUser } from "@/lib/data/store";
-import { getBookingById } from "@/lib/data/bookings";
+import {
+  CANCEL_FEE_BPS,
+  CANCEL_FREE_WINDOW_MS,
+  getBookingById,
+} from "@/lib/data/bookings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
+import { cancelBookingAction } from "@/lib/booking-actions";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -31,12 +37,17 @@ export default async function BookingPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{
+    new?: string;
+    cancelled?: string;
+    refund?: string;
+    cancelError?: string;
+  }>;
 }) {
   const user = await requireRole("traveller");
   const { t } = await getI18n();
   const { id } = await params;
-  const { new: isNew } = await searchParams;
+  const { new: isNew, cancelled, refund, cancelError } = await searchParams;
   const booking = await getBookingById(id);
   if (!booking || booking.travellerId !== user.id) notFound();
 
@@ -48,12 +59,36 @@ export default async function BookingPage({
   const currency = booking.price.currency;
   const paid = booking.status !== "requested" && booking.status !== "cancelled";
 
+  // Cancellation: allowed while paid and before drop-off. Free until 24h
+  // before; within 24h the late fee is kept and the rest refunded.
+  const msToStart = new Date(booking.startAt).getTime() - Date.now();
+  const cancellable = booking.status === "paid" && msToStart > 0;
+  const lateCancel = cancellable && msToStart < CANCEL_FREE_WINDOW_MS;
+  const previewRefund = lateCancel
+    ? booking.price.total - Math.round((booking.price.total * CANCEL_FEE_BPS) / 10_000)
+    : booking.price.total;
+
   return (
     <PortalShell user={user} nav={travellerNav} title={`${t("app.booking.title")} ${booking.reference}`}>
       <div className="mx-auto max-w-4xl space-y-5">
         {isNew && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
             <CheckCircle2 className="h-5 w-5" /> {t("app.booking.confirmed")}
+          </div>
+        )}
+        {cancelled && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("app.booking.cancel.done")}
+            {refund && Number(refund) > 0 && (
+              <span className="ml-1">
+                · {t("app.booking.cancel.refundLabel")} {formatMoney(Number(refund), currency)}
+              </span>
+            )}
+          </div>
+        )}
+        {cancelError && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            <XCircle className="h-5 w-5" /> {t("app.booking.cancel.error")}
           </div>
         )}
 
@@ -121,6 +156,33 @@ export default async function BookingPage({
                 <dd>{formatMoney(booking.price.total, currency)}</dd>
               </div>
             </dl>
+
+            {cancellable && (
+              <div className="mt-5 rounded-xl border border-navy-100 bg-navy-50/50 p-4">
+                <h3 className="text-sm font-bold text-navy-900">
+                  {t("app.booking.cancel.title")}
+                </h3>
+                <p className="mt-1 text-xs text-navy-500">{t("app.booking.cancel.policy")}</p>
+                <p className="mt-2 text-sm font-semibold text-navy-800">
+                  {t("app.booking.cancel.refundLabel")}:{" "}
+                  {formatMoney(previewRefund, currency)}
+                  {lateCancel && (
+                    <span className="ml-1 font-normal text-accent-500">
+                      ({t("app.booking.cancel.lateFeeNote")})
+                    </span>
+                  )}
+                </p>
+                <form action={cancelBookingAction} className="mt-3">
+                  <input type="hidden" name="bookingId" value={booking.id} />
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                  >
+                    <XCircle className="h-4 w-4" /> {t("app.booking.cancel.btn")}
+                  </button>
+                </form>
+              </div>
+            )}
 
             <div className="mt-5 flex flex-wrap gap-2">
               {(booking.status === "active" || booking.status === "paid") && (

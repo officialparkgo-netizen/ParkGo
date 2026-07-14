@@ -73,6 +73,13 @@ export const portalTraveller: AreaDict = {
 
     // Booking confirmation
     "app.booking.confirmed": "Booking confirmed — your QR access code is ready below.",
+    "app.booking.cancel.title": "Need to cancel?",
+    "app.booking.cancel.policy": "Free cancellation until 24 hours before drop-off. Within 24 hours a 20% late fee applies.",
+    "app.booking.cancel.refundLabel": "Refund",
+    "app.booking.cancel.lateFeeNote": "20% late fee deducted",
+    "app.booking.cancel.btn": "Cancel this booking",
+    "app.booking.cancel.done": "Booking cancelled — your refund has been issued.",
+    "app.booking.cancel.error": "This booking could not be cancelled. Please contact support.",
     "app.booking.accessCode": "Access code",
     "app.booking.showQr": "Show this QR at the space for keyless access.",
     "app.booking.dropOff": "Drop off",
@@ -217,6 +224,13 @@ export const portalTraveller: AreaDict = {
 
     // Booking confirmation
     "app.booking.confirmed": "بکنگ کی تصدیق ہو گئی — آپ کا کیو آر رسائی کوڈ نیچے تیار ہے۔",
+    "app.booking.cancel.title": "منسوخ کرنا ہے؟",
+    "app.booking.cancel.policy": "ڈراپ آف سے 24 گھنٹے پہلے تک مفت منسوخی۔ 24 گھنٹوں کے اندر 20% لیٹ فیس لاگو ہوتی ہے۔",
+    "app.booking.cancel.refundLabel": "ریفنڈ",
+    "app.booking.cancel.lateFeeNote": "20% لیٹ فیس کٹے گی",
+    "app.booking.cancel.btn": "یہ بکنگ منسوخ کریں",
+    "app.booking.cancel.done": "بکنگ منسوخ ہو گئی — آپ کا ریفنڈ جاری کر دیا گیا ہے۔",
+    "app.booking.cancel.error": "یہ بکنگ منسوخ نہیں ہو سکی۔ براہ کرم سپورٹ سے رابطہ کریں۔",
     "app.booking.accessCode": "رسائی کوڈ",
     "app.booking.showQr": "بغیر چابی رسائی کے لیے جگہ پر یہ کیو آر دکھائیں۔",
     "app.booking.dropOff": "چھوڑنے کا وقت",
@@ -361,6 +375,13 @@ export const portalTraveller: AreaDict = {
 
     // Booking confirmation
     "app.booking.confirmed": "बुकिंग की पुष्टि हो गई — आपका क्यूआर पहुंच कोड नीचे तैयार है।",
+    "app.booking.cancel.title": "रद्द करना है?",
+    "app.booking.cancel.policy": "ड्रॉप-ऑफ से 24 घंटे पहले तक मुफ्त रद्दीकरण। 24 घंटों के भीतर 20% विलंब शुल्क लागू होता है।",
+    "app.booking.cancel.refundLabel": "रिफंड",
+    "app.booking.cancel.lateFeeNote": "20% विलंब शुल्क काटा जाएगा",
+    "app.booking.cancel.btn": "यह बुकिंग रद्द करें",
+    "app.booking.cancel.done": "बुकिंग रद्द हो गई — आपका रिफंड जारी कर दिया गया है।",
+    "app.booking.cancel.error": "यह बुकिंग रद्द नहीं हो सकी। कृपया सहायता से संपर्क करें।",
     "app.booking.accessCode": "पहुंच कोड",
     "app.booking.showQr": "बिना चाबी पहुंच के लिए स्थान पर यह क्यूआर दिखाएं।",
     "app.booking.dropOff": "छोड़ने का समय",
@@ -505,6 +526,13 @@ export const portalTraveller: AreaDict = {
 
     // Booking confirmation
     "app.booking.confirmed": "Buchung bestätigt — Ihr QR-Zugangscode ist unten bereit.",
+    "app.booking.cancel.title": "Stornieren?",
+    "app.booking.cancel.policy": "Kostenlose Stornierung bis 24 Stunden vor der Abgabe. Innerhalb von 24 Stunden fällt eine Spätgebühr von 20% an.",
+    "app.booking.cancel.refundLabel": "Erstattung",
+    "app.booking.cancel.lateFeeNote": "20% Spätgebühr abgezogen",
+    "app.booking.cancel.btn": "Diese Buchung stornieren",
+    "app.booking.cancel.done": "Buchung storniert — Ihre Erstattung wurde veranlasst.",
+    "app.booking.cancel.error": "Diese Buchung konnte nicht storniert werden. Bitte kontaktieren Sie den Support.",
     "app.booking.accessCode": "Zugangscode",
     "app.booking.showQr": "Zeigen Sie diesen QR-Code am Platz für schlüssellosen Zugang.",
     "app.booking.dropOff": "Abgabe",
@@ -649,6 +677,13 @@ export const portalTraveller: AreaDict = {
 
     // Booking confirmation
     "app.booking.confirmed": "预订已确认 — 您的二维码进出码已在下方准备就绪。",
+    "app.booking.cancel.title": "需要取消？",
+    "app.booking.cancel.policy": "停车开始前24小时以上可免费取消。24小时内取消将收取20%的滞后费用。",
+    "app.booking.cancel.refundLabel": "退款",
+    "app.booking.cancel.lateFeeNote": "扣除20%滞后费用",
+    "app.booking.cancel.btn": "取消此预订",
+    "app.booking.cancel.done": "预订已取消 — 退款已发放。",
+    "app.booking.cancel.error": "无法取消此预订。请联系客服。",
     "app.booking.accessCode": "进出码",
     "app.booking.showQr": "在车位出示此二维码即可无钥匙进出。",
     "app.booking.dropOff": "停车时间",

@@ -7,12 +7,18 @@ import {
   createBooking as mockCreateBooking,
   getBooking as mockGetBooking,
   getBookingsByTraveller as mockGetBookingsByTraveller,
+  getBookingsForHost as mockGetBookingsForHost,
+  getPaymentsForHost as mockGetPaymentsForHost,
   getAllBookings as mockGetAllBookings,
   getAllPayments as mockGetAllPayments,
   setBookingStatus as mockSetBookingStatus,
   getAirport,
   type CreateBookingInput,
 } from "@/lib/data/store";
+
+/** Late-cancellation fee (within 24h of drop-off): 20% of the total. */
+export const CANCEL_FEE_BPS = 2000;
+export const CANCEL_FREE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const BOOKING_COLS =
   "id, reference, traveller_id, space_id, bundle, start_at, end_at, status, price, qr_token, transfer_id, created_at";
@@ -114,9 +120,41 @@ export async function createBookingLive(
       body: `${reference} · QR ready in your wallet.`,
       kind: "booking",
     });
+    await notifyHostOfBooking(booking, "New booking");
   }
 
   return booking;
+}
+
+/** Notify the host that owns the booked space (best-effort). */
+async function notifyHostOfBooking(booking: Booking, title: string): Promise<void> {
+  if (!IS_LIVE) return;
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const admin = supabaseAdmin();
+    const { data: space } = await admin
+      .from("spaces")
+      .select("host_id, title")
+      .eq("id", booking.spaceId)
+      .maybeSingle();
+    if (!space) return;
+    const { data: host } = await admin
+      .from("hosts")
+      .select("user_id")
+      .eq("id", space.host_id)
+      .maybeSingle();
+    if (!host?.user_id) return;
+    await admin.from("notifications").insert({
+      user_id: host.user_id,
+      title: `${title} · ${booking.reference}`,
+      body: `“${space.title}” · ${new Date(booking.startAt).toDateString()} → ${new Date(
+        booking.endAt
+      ).toDateString()}`,
+      kind: "booking",
+    });
+  } catch {
+    // notification failures must never break the booking flow
+  }
 }
 
 /** Mark a booking paid and record the payment (idempotent). Used after Stripe. */
@@ -128,6 +166,8 @@ export async function markBookingPaid(
     split: PaymentSplit;
     method: PaymentMethod;
     provider: "stripe" | "mock";
+    /** Provider reference (Stripe payment intent) — enables refunds. */
+    externalRef?: string | null;
   }
 ): Promise<void> {
   if (!IS_LIVE) {
@@ -154,6 +194,7 @@ export async function markBookingPaid(
     currency: payment.currency,
     split: payment.split,
     payout_status: "pending",
+    ...(payment.externalRef ? { external_ref: payment.externalRef } : {}),
   });
   await admin.from("notifications").insert({
     user_id: (await admin.from("bookings").select("traveller_id").eq("id", bookingId).maybeSingle())
@@ -162,6 +203,112 @@ export async function markBookingPaid(
     body: "Payment received · your QR is ready in your wallet.",
     kind: "booking",
   });
+
+  const booking = await getBookingById(bookingId);
+  if (booking) await notifyHostOfBooking(booking, "New booking");
+}
+
+export type CancelResult =
+  | { ok: true; refund: number; feeApplied: boolean }
+  | { ok: false; error: string };
+
+/**
+ * Traveller cancellation. Free (full refund) until 24h before drop-off; within
+ * 24h a late fee (CANCEL_FEE_BPS) is kept and the rest refunded. Refunds are
+ * issued via Stripe when the payment has a stored payment-intent reference.
+ */
+export async function cancelBooking(
+  bookingId: string,
+  travellerId: string
+): Promise<CancelResult> {
+  const booking = await getBookingById(bookingId);
+  if (!booking || booking.travellerId !== travellerId) {
+    return { ok: false, error: "Booking not found." };
+  }
+  if (booking.status !== "paid" && booking.status !== "requested") {
+    return { ok: false, error: "This booking can no longer be cancelled." };
+  }
+  const now = Date.now();
+  const start = new Date(booking.startAt).getTime();
+  if (now >= start) {
+    return { ok: false, error: "The booking has already started." };
+  }
+
+  const feeApplied = start - now < CANCEL_FREE_WINDOW_MS;
+  const fee = feeApplied ? Math.round((booking.price.total * CANCEL_FEE_BPS) / 10_000) : 0;
+  const refund = Math.max(0, booking.price.total - fee);
+
+  if (!IS_LIVE) {
+    mockSetBookingStatus(bookingId, "cancelled");
+    return { ok: true, refund, feeApplied };
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+
+  // Issue the Stripe refund when we have the payment reference.
+  const { data: pay } = await admin
+    .from("payments")
+    .select("id, provider, external_ref")
+    .eq("booking_id", bookingId)
+    .maybeSingle();
+  if (pay?.provider === "stripe" && pay.external_ref && refund > 0) {
+    try {
+      const { getStripe } = await import("@/lib/stripe");
+      await getStripe().refunds.create({
+        payment_intent: pay.external_ref,
+        amount: refund,
+      });
+    } catch {
+      return { ok: false, error: "Refund could not be processed — please contact support." };
+    }
+  }
+
+  await admin.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
+
+  await admin.from("notifications").insert({
+    user_id: travellerId,
+    title: "Booking cancelled",
+    body: feeApplied
+      ? `${booking.reference} cancelled. Late fee applied; refund issued for the remainder.`
+      : `${booking.reference} cancelled. Full refund issued.`,
+    kind: "booking",
+  });
+  await notifyHostOfBooking(booking, "Booking cancelled");
+
+  return { ok: true, refund, feeApplied };
+}
+
+/** Bookings on a host's spaces (abandoned checkouts excluded). */
+export async function listBookingsForHost(hostId: string): Promise<Booking[]> {
+  if (!IS_LIVE) return mockGetBookingsForHost(hostId);
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+  const { data: spaces } = await admin.from("spaces").select("id").eq("host_id", hostId);
+  const ids = (spaces ?? []).map((s) => s.id);
+  if (ids.length === 0) return [];
+  const { data } = await admin
+    .from("bookings")
+    .select(BOOKING_COLS)
+    .in("space_id", ids)
+    .neq("status", "requested")
+    .order("created_at", { ascending: false });
+  return (data ?? []).map(bookingFromRow);
+}
+
+/** Payments received on a host's spaces. */
+export async function listPaymentsForHost(hostId: string): Promise<Payment[]> {
+  if (!IS_LIVE) return mockGetPaymentsForHost(hostId);
+  const bookings = await listBookingsForHost(hostId);
+  const ids = bookings.map((b) => b.id);
+  if (ids.length === 0) return [];
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin()
+    .from("payments")
+    .select(PAYMENT_COLS)
+    .in("booking_id", ids)
+    .order("created_at", { ascending: false });
+  return (data ?? []).map(paymentFromRow);
 }
 
 export async function getBookingById(id: string): Promise<Booking | null> {

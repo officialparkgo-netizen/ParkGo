@@ -30,6 +30,10 @@ export async function GET(request: Request) {
           split: booking.price.split,
           method: "card",
           provider: "stripe",
+          externalRef:
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : session.payment_intent?.id ?? null,
         });
       }
       return NextResponse.redirect(`${origin}/app/booking/${bookingId}?new=1`);

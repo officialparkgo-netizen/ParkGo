@@ -13,7 +13,7 @@ import {
 } from "@/lib/data/store";
 import { getHostById, getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
 import { reviewVerificationLive } from "@/lib/data/verifications";
-import { createBookingLive } from "@/lib/data/bookings";
+import { cancelBooking, createBookingLive } from "@/lib/data/bookings";
 import { getPaymentGateway } from "@/lib/services/payments";
 import { isStripeConfigured, createBookingCheckoutSession } from "@/lib/stripe";
 
@@ -127,6 +127,23 @@ export async function submitReviewAction(
   revalidatePath(`/app/booking/${bookingId}/track`);
   revalidatePath("/app");
   return { ok: true };
+}
+
+/** Traveller: cancel a booking (free >24h before drop-off; late fee within 24h). */
+export async function cancelBookingAction(formData: FormData) {
+  const user = await requireUser();
+  const bookingId = String(formData.get("bookingId") || "");
+  const result = await cancelBooking(bookingId, user.id);
+
+  revalidatePath("/app");
+  revalidatePath(`/app/booking/${bookingId}`);
+  revalidatePath("/host");
+  revalidatePath("/admin");
+
+  if (!result.ok) {
+    redirect(`/app/booking/${bookingId}?cancelError=1`);
+  }
+  redirect(`/app/booking/${bookingId}?cancelled=1&refund=${result.refund}`);
 }
 
 /** Admin: approve or reject a verification (host or transfer provider). */

@@ -25,15 +25,11 @@ import { StatCard } from "@/components/portal/stat-card";
 import { hostNav } from "@/components/portal/navs";
 import { trustBand } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
-import {
-  getAirport,
-  getBookingsForHost,
-  getNotifications,
-  getPaymentsForHost,
-  getUser,
-  trustScoreFor,
-} from "@/lib/data/store";
+import { getAirport, trustScoreFor } from "@/lib/data/store";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
+import { listBookingsForHost, listPaymentsForHost } from "@/lib/data/bookings";
+import { getUsersByIds } from "@/lib/data/users";
+import { listNotificationsForUser } from "@/lib/data/notifications";
 import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
 import { connectPayoutsAction, updateHostProfileAction } from "@/lib/host-actions";
 import { isStripeConfigured, getConnectStatus } from "@/lib/stripe";
@@ -72,9 +68,10 @@ export default async function HostDashboard({
   }
 
   const spaces = await getSpacesForHost(host.id);
-  const bookings = getBookingsForHost(host.id);
-  const payments = getPaymentsForHost(host.id);
-  const notifications = getNotifications(user.id).slice(0, 5);
+  const bookings = await listBookingsForHost(host.id);
+  const payments = await listPaymentsForHost(host.id);
+  const travellerMap = await getUsersByIds(bookings.map((b) => b.travellerId));
+  const notifications = (await listNotificationsForUser(user.id)).slice(0, 5);
   const trust = trustScoreFor(host.id, "host");
   const band = trustBand(trust.score);
 
@@ -300,7 +297,7 @@ export default async function HostDashboard({
               <div className="p-6 text-center text-navy-500">{t("host.noBookings")}</div>
             )}
             {bookings.map((b) => {
-              const traveller = getUser(b.travellerId);
+              const traveller = travellerMap.get(b.travellerId);
               return (
                 <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className="flex items-center gap-3">

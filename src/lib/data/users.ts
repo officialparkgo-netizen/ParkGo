@@ -46,6 +46,26 @@ export async function getUserProfile(id: string): Promise<User | null> {
   return userFromRow(data as UserRow);
 }
 
+/** Batch profile lookup (e.g. traveller names on the host dashboard). */
+export async function getUsersByIds(ids: string[]): Promise<Map<string, User>> {
+  const unique = [...new Set(ids)];
+  const map = new Map<string, User>();
+  if (unique.length === 0) return map;
+
+  if (!IS_LIVE) {
+    unique.forEach((id) => {
+      const u = getUserMock(id);
+      if (u) map.set(id, u);
+    });
+    return map;
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin().from("users").select(PROFILE_COLS).in("id", unique);
+  (data ?? []).forEach((r) => map.set(r.id, userFromRow(r as UserRow)));
+  return map;
+}
+
 type AuthUserLike = {
   id: string;
   email?: string | null;

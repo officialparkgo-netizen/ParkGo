@@ -7,7 +7,7 @@ import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { MobileNav } from "@/components/common/mobile-nav";
 import { logout } from "@/lib/auth-actions";
 import { getI18n } from "@/lib/i18n";
-import { unreadCount } from "@/lib/data/store";
+import { unreadCountForUser } from "@/lib/data/notifications";
 import { initials } from "@/lib/utils";
 
 export interface NavItem {
@@ -28,7 +28,7 @@ export async function PortalShell({
   children: React.ReactNode;
 }) {
   const { t, locale } = await getI18n();
-  const unread = unreadCount(user.id);
+  const unread = await unreadCountForUser(user.id);
 
   return (
     <div className="flex min-h-screen bg-navy-50/40">

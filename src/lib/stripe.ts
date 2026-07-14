@@ -49,6 +49,7 @@ export async function createBookingCheckoutSession(
     cancel_url: `${SITE}/app/book/${space.id}?canceled=1`,
     client_reference_id: booking.id,
     metadata: { bookingId: booking.id },
+    payment_intent_data: { metadata: { bookingId: booking.id } },
   };
 
   if (hostAccountId) {
@@ -57,6 +58,7 @@ export async function createBookingCheckoutSession(
       const hostShare = booking.price.split.hostPayout;
       const applicationFee = Math.max(0, booking.price.total - hostShare);
       params.payment_intent_data = {
+        metadata: { bookingId: booking.id },
         application_fee_amount: applicationFee,
         transfer_data: { destination: hostAccountId },
       };
