@@ -28,6 +28,7 @@ import {
   listPendingVerificationsLive,
 } from "@/lib/data/verifications";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
+import { listNotificationsForUser } from "@/lib/data/notifications";
 import type { Host } from "@/types";
 
 function hostTrustScore(h: Host) {
@@ -63,9 +64,18 @@ export default async function AdminDashboard() {
   const payments = await listAllPayments();
   const bookings = await listAllBookings();
 
-  const gmv = payments.reduce((s, p) => s + p.amount, 0);
-  const platformRevenue = payments.reduce((s, p) => s + p.split.platform, 0);
-  const payoutsDue = payments
+  // Refunded payments (cancelled bookings) are excluded from GMV/payouts.
+  const cancelledBookingIds = new Set(
+    bookings.filter((b) => b.status === "cancelled").map((b) => b.id)
+  );
+  const isRefunded = (p: (typeof payments)[number]) =>
+    p.payoutStatus === "refunded" || cancelledBookingIds.has(p.bookingId);
+  const earnedPayments = payments.filter((p) => !isRefunded(p));
+  const refundedTotal = payments.filter(isRefunded).reduce((s, p) => s + p.amount, 0);
+
+  const gmv = earnedPayments.reduce((s, p) => s + p.amount, 0);
+  const platformRevenue = earnedPayments.reduce((s, p) => s + p.split.platform, 0);
+  const payoutsDue = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout + p.split.driverPayout, 0);
   const liveCount = spaces.filter((s) => s.status === "live").length;
@@ -87,6 +97,7 @@ export default async function AdminDashboard() {
   const operatorJobs = getOperatorJobs();
 
   const audit = buildAuditFeed({ bookings, verifications: allVerifications, reviews: getAllReviews() });
+  const alerts = (await listNotificationsForUser(user.id)).slice(0, 6);
 
   return (
     <PortalShell user={user} nav={adminNav} title="admin.pageTitle">
@@ -95,7 +106,15 @@ export default async function AdminDashboard() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label={t("admin.stat.hostReview")} value={String(pending.length)} sub={t("admin.stat.hostReviewSub")} icon={ShieldAlert} tone="accent" />
           <StatCard label={t("admin.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("admin.total")}`} icon={Warehouse} tone="brand" />
-          <StatCard label={t("admin.stat.gmv")} value={formatMoney(gmv)} sub={`${formatMoney(platformRevenue)} ${t("admin.stat.gmvSub")}`} icon={Banknote} tone="go" />
+          <StatCard
+            label={t("admin.stat.gmv")}
+            value={formatMoney(gmv)}
+            sub={`${formatMoney(platformRevenue)} ${t("admin.stat.gmvSub")}${
+              refundedTotal > 0 ? ` · ${formatMoney(refundedTotal)} ${t("admin.stat.refundedSub")}` : ""
+            }`}
+            icon={Banknote}
+            tone="go"
+          />
           <StatCard label={t("admin.stat.payoutsDue")} value={formatMoney(payoutsDue)} sub={t("admin.stat.payoutsDueSub")} icon={Banknote} tone="navy" />
         </div>
 
@@ -272,10 +291,16 @@ export default async function AdminDashboard() {
               {payments.map((p) => (
                 <div key={p.id} className="p-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-navy-900">
+                    <span
+                      className={
+                        isRefunded(p)
+                          ? "font-semibold text-navy-300 line-through"
+                          : "font-semibold text-navy-900"
+                      }
+                    >
                       {formatMoney(p.amount, p.currency)}
                     </span>
-                    <StatusBadge status={p.payoutStatus} />
+                    <StatusBadge status={isRefunded(p) ? "refunded" : p.payoutStatus} />
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-navy-400">
                     <span>{t("admin.pay.platform")} {formatMoney(p.split.platform, p.currency)}</span>
@@ -339,6 +364,35 @@ export default async function AdminDashboard() {
             })}
           </Card>
         </section>
+
+        {/* Alerts (cancellations, refunds, new activity for the admin) */}
+        {alerts.length > 0 && (
+          <section id="alerts" className="scroll-mt-20">
+            <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
+              <ShieldAlert className="h-5 w-5 text-navy-500" /> {t("admin.section.alerts")}
+            </h3>
+            <Card className="divide-y divide-navy-100">
+              {alerts.map((n) => (
+                <div key={n.id} className="flex items-start gap-3 p-4">
+                  <span
+                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                      n.read ? "bg-navy-200" : "bg-go-500"
+                    }`}
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-navy-900">{n.title}</span>
+                      <span className="shrink-0 text-xs text-navy-400">
+                        {formatDateTime(n.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-navy-600">{n.body}</p>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          </section>
+        )}
 
         {/* Audit log */}
         <section id="audit" className="scroll-mt-20">

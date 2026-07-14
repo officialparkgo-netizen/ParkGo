@@ -289,7 +289,7 @@ export interface CameraStream {
 
 export type PaymentMethod = "card" | "wallet" | "crypto";
 export type PaymentProvider = "stripe" | "crypto" | "mock";
-export type PayoutStatus = "pending" | "scheduled" | "paid";
+export type PayoutStatus = "pending" | "scheduled" | "paid" | "refunded";
 
 export interface PaymentSplit {
   /** Platform commission (parking + transfer commissions combined). */

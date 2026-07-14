@@ -266,6 +266,14 @@ export async function cancelBooking(
 
   await admin.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
 
+  // Mark the payment refunded so it drops out of earnings / payouts due.
+  // Supabase returns (not throws) errors, so a missing enum value (migration
+  // 0006 not run yet) degrades gracefully — the UI also filters by booking
+  // status as a fallback.
+  if (pay?.id) {
+    await admin.from("payments").update({ payout_status: "refunded" }).eq("id", pay.id);
+  }
+
   await admin.from("notifications").insert({
     user_id: travellerId,
     title: "Booking cancelled",
@@ -275,6 +283,25 @@ export async function cancelBooking(
     kind: "booking",
   });
   await notifyHostOfBooking(booking, "Booking cancelled");
+
+  // Tell every admin (compliance visibility).
+  try {
+    const { data: admins } = await admin.from("users").select("id").eq("role", "admin");
+    if (admins?.length) {
+      await admin.from("notifications").insert(
+        admins.map((a) => ({
+          user_id: a.id,
+          title: `Booking cancelled · ${booking.reference}`,
+          body: feeApplied
+            ? `Late cancellation — 20% fee kept, refund issued for the remainder.`
+            : `Free cancellation — full refund issued.`,
+          kind: "booking",
+        }))
+      );
+    }
+  } catch {
+    // admin alert failures must not block the cancellation
+  }
 
   return { ok: true, refund, feeApplied };
 }

@@ -13,6 +13,7 @@ const TONE: Record<string, Tone> = {
   completed: "navy",
   reviewed: "go",
   cancelled: "danger",
+  refunded: "accent",
   // transfers
   unassigned: "neutral",
   assigned: "brand",

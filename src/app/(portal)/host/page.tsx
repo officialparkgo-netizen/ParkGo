@@ -75,11 +75,25 @@ export default async function HostDashboard({
   const trust = trustScoreFor(host.id, "host");
   const band = trustBand(trust.score);
 
-  const lifetimeEarnings = payments.reduce((s, p) => s + p.split.hostPayout, 0);
-  const pendingPayouts = payments
+  // Cancelled bookings are refunded — exclude their payments from earnings.
+  // (Double guard: payout_status 'refunded' OR the booking itself cancelled.)
+  const cancelledIds = new Set(
+    bookings.filter((b) => b.status === "cancelled").map((b) => b.id)
+  );
+  const isRefunded = (p: (typeof payments)[number]) =>
+    p.payoutStatus === "refunded" || cancelledIds.has(p.bookingId);
+  const earnedPayments = payments.filter((p) => !isRefunded(p));
+
+  const lifetimeEarnings = earnedPayments.reduce((s, p) => s + p.split.hostPayout, 0);
+  const pendingPayouts = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout, 0);
   const liveCount = spaces.filter((s) => s.status === "live").length;
+  const upcomingCount = bookings.filter(
+    (b) =>
+      (b.status === "paid" || b.status === "active") &&
+      new Date(b.startAt).getTime() > Date.now()
+  ).length;
 
   // Stripe Connect payout status (only when Stripe is configured).
   const stripeOn = isStripeConfigured();
@@ -123,9 +137,10 @@ export default async function HostDashboard({
         )}
 
         {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <StatCard label={t("host.stat.lifetimeEarnings")} value={formatMoney(lifetimeEarnings)} sub={t("host.stat.lifetimeEarningsSub")} icon={Banknote} tone="go" />
           <StatCard label={t("host.stat.pendingPayouts")} value={formatMoney(pendingPayouts)} sub={t("host.stat.pendingPayoutsSub")} icon={CalendarCheck} tone="accent" />
+          <StatCard label={t("host.stat.upcoming")} value={String(upcomingCount)} sub={t("host.stat.upcomingSub")} icon={CalendarCheck} tone="brand" />
           <StatCard label={t("host.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("host.total")}`} icon={Warehouse} tone="brand" />
           <StatCard label={t("host.stat.trustScore")} value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" />
         </div>
@@ -316,9 +331,15 @@ export default async function HostDashboard({
                   </div>
                   <div className="flex items-center gap-4">
                     <StatusBadge status={b.status} />
-                    <span className="font-bold text-navy-900">
-                      +{formatMoney(b.price.split.hostPayout, b.price.currency)}
-                    </span>
+                    {b.status === "cancelled" ? (
+                      <span className="font-bold text-navy-300 line-through">
+                        {formatMoney(b.price.split.hostPayout, b.price.currency)}
+                      </span>
+                    ) : (
+                      <span className="font-bold text-navy-900">
+                        +{formatMoney(b.price.split.hostPayout, b.price.currency)}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -331,17 +352,26 @@ export default async function HostDashboard({
           <section id="earnings" className="scroll-mt-20">
             <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.payouts")}</h3>
             <Card className="divide-y divide-navy-100">
-              {payments.map((p) => (
-                <div key={p.id} className="flex items-center justify-between p-4">
-                  <div>
-                    <div className="text-sm font-semibold text-navy-900">
-                      {formatMoney(p.split.hostPayout, p.currency)}
+              {payments.map((p) => {
+                const refunded = isRefunded(p);
+                return (
+                  <div key={p.id} className="flex items-center justify-between p-4">
+                    <div>
+                      <div
+                        className={
+                          refunded
+                            ? "text-sm font-semibold text-navy-300 line-through"
+                            : "text-sm font-semibold text-navy-900"
+                        }
+                      >
+                        {formatMoney(p.split.hostPayout, p.currency)}
+                      </div>
+                      <div className="text-xs text-navy-400">{formatDate(p.createdAt)}</div>
                     </div>
-                    <div className="text-xs text-navy-400">{formatDate(p.createdAt)}</div>
+                    <StatusBadge status={refunded ? "refunded" : p.payoutStatus} />
                   </div>
-                  <StatusBadge status={p.payoutStatus} />
-                </div>
-              ))}
+                );
+              })}
             </Card>
             <p className="mt-2 text-xs text-navy-400">
               {t("host.payoutsNote")}
