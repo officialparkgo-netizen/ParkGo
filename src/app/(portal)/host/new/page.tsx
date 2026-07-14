@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
@@ -7,6 +8,7 @@ import { PortalShell } from "@/components/portal/shell";
 import { hostNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirports } from "@/lib/data/store";
+import { getHostForUser } from "@/lib/data/hosts";
 import { createSpaceAction } from "@/lib/host-actions";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -16,6 +18,11 @@ export const metadata: Metadata = pageMetadata({ title: "List a space", path: "/
 export default async function NewSpacePage() {
   const user = await requireRole("host");
   const { t } = await getI18n();
+
+  // KYC-first: hosts must be verified before they can list.
+  const host = await getHostForUser(user);
+  if (!host || host.verificationStatus !== "approved") redirect("/host/verify");
+
   const airports = getAirports();
 
   return (
@@ -106,6 +113,19 @@ export default async function NewSpacePage() {
             <div>
               <Label htmlFor="accessRules">{t("host.new.accessRules")}</Label>
               <Textarea id="accessRules" name="accessRules" rows={3} placeholder={t("host.new.accessRulesPh")} />
+            </div>
+
+            <div>
+              <Label htmlFor="photos">{t("host.new.photos")}</Label>
+              <input
+                id="photos"
+                name="photos"
+                type="file"
+                multiple
+                accept="image/*"
+                className="block w-full cursor-pointer rounded-xl border border-navy-200 bg-white text-sm text-navy-600 file:mr-3 file:cursor-pointer file:rounded-l-xl file:border-0 file:bg-navy-50 file:px-4 file:py-3 file:text-sm file:font-semibold file:text-navy-700"
+              />
+              <p className="mt-1 text-xs text-navy-400">{t("host.new.photosHint")}</p>
             </div>
 
             <div className="rounded-xl bg-navy-50 p-3 text-xs text-navy-500">

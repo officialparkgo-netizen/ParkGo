@@ -9,10 +9,10 @@ import {
   addReview,
   confirmHandover,
   getBooking,
-  reviewVerification,
   setBookingStatus,
 } from "@/lib/data/store";
 import { getHostById, getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
+import { reviewVerificationLive } from "@/lib/data/verifications";
 import { createBookingLive } from "@/lib/data/bookings";
 import { getPaymentGateway } from "@/lib/services/payments";
 import { isStripeConfigured, createBookingCheckoutSession } from "@/lib/stripe";
@@ -135,7 +135,12 @@ export async function reviewVerificationAction(formData: FormData) {
   const id = String(formData.get("verificationId") || "");
   const decision = String(formData.get("decision") || "") as "approved" | "rejected";
   if (decision !== "approved" && decision !== "rejected") return;
-  reviewVerification(id, decision, admin.id, String(formData.get("notes") || "") || undefined);
+  await reviewVerificationLive(
+    id,
+    decision,
+    admin.id,
+    String(formData.get("notes") || "") || undefined
+  );
   revalidatePath("/admin");
   revalidatePath("/host");
 }

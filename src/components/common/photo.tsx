@@ -37,6 +37,16 @@ export function Photo({
   className?: string;
   rounded?: string;
 }) {
+  // Real uploaded photo (Supabase Storage public URL) — render the image.
+  if (token.startsWith("http")) {
+    return (
+      <div className={cn("relative overflow-hidden bg-navy-100", rounded, className)}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={token} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+    );
+  }
+
   const Icon = iconFor(token);
   const gradient = GRADIENTS[hash(token) % GRADIENTS.length];
   return (

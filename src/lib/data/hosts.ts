@@ -1,12 +1,4 @@
-import type {
-  BookingBundle,
-  Host,
-  SearchQuery,
-  SearchResult,
-  Space,
-  User,
-  Verification,
-} from "@/types";
+import type { BookingBundle, Host, SearchQuery, SearchResult, Space, User } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { priceBundle } from "@/lib/pricing";
 import {
@@ -18,8 +10,6 @@ import {
   getAllHosts as mockGetAllHosts,
   getHost as mockGetHost,
   getSpace as mockGetSpace,
-  getPendingVerifications as mockGetPendingVerifications,
-  getVerifications as mockGetVerifications,
   reviewSpace as mockReviewSpace,
   searchSpaces as mockSearchSpaces,
   getAirport,
@@ -124,7 +114,10 @@ export async function getSpacesForHost(hostId: string): Promise<Space[]> {
   return (data ?? []).map(spaceFromRow);
 }
 
-export async function createSpaceForHost(input: CreateSpaceInput): Promise<Space> {
+export async function createSpaceForHost(
+  input: CreateSpaceInput,
+  photos?: string[]
+): Promise<Space> {
   if (!IS_LIVE) return mockCreateSpace(input);
 
   const airport = getAirport(input.airportSlug);
@@ -147,7 +140,7 @@ export async function createSpaceForHost(input: CreateSpaceInput): Promise<Space
       cctv: input.cctv,
       live_camera: input.liveCamera,
       access_rules: input.accessRules,
-      photos: ["drive-1"],
+      photos: photos?.length ? photos.slice(0, 6) : ["drive-1"],
       price_per_day: input.pricePerDay,
       status: "pending_review",
     })
@@ -253,18 +246,6 @@ export async function listAllHosts(): Promise<Host[]> {
   return (data ?? []).map(hostFromRow);
 }
 
-/**
- * Verification queue. There is no host-verification submission flow yet, so the
- * live queue is empty (honest) rather than showing seed data; the seed store is
- * used in mock mode for the demo.
- */
-export async function listPendingVerifications(): Promise<Verification[]> {
-  return IS_LIVE ? [] : mockGetPendingVerifications();
-}
-export async function listAllVerifications(): Promise<Verification[]> {
-  return IS_LIVE ? [] : mockGetVerifications();
-}
-
 /** Resolve host records for a set of ids (for showing owner names in the admin list). */
 export async function getHostsByIds(ids: string[]): Promise<Map<string, Host>> {
   const unique = [...new Set(ids)];
@@ -327,6 +308,81 @@ export async function reviewSpaceListing(
     });
   }
   return space;
+}
+
+export interface UpdateSpaceInput {
+  title: string;
+  approxArea: string;
+  exactAddress: string;
+  pricePerDay: number; // pence
+  maxVehicleSize: Space["maxVehicleSize"];
+  cctv: boolean;
+  liveCamera: boolean;
+  evCharger: Space["evCharger"];
+  accessRules: string;
+  lengthM: number;
+  widthM: number;
+  /** Appended to existing photos (uploaded URLs). */
+  newPhotos?: string[];
+}
+
+/**
+ * Host edit of their own listing. A rejected listing that gets edited goes back
+ * into the review queue (resubmit); other statuses are preserved.
+ */
+export async function updateSpaceForHost(
+  spaceId: string,
+  hostId: string,
+  input: UpdateSpaceInput
+): Promise<Space | null> {
+  if (!IS_LIVE) {
+    const s = mockGetSpace(spaceId);
+    if (!s || s.hostId !== hostId) return null;
+    s.title = input.title;
+    s.approxArea = input.approxArea;
+    s.exactAddress = input.exactAddress;
+    s.pricePerDay = input.pricePerDay;
+    s.maxVehicleSize = input.maxVehicleSize;
+    s.cctv = input.cctv;
+    s.liveCamera = input.liveCamera;
+    s.evCharger = input.evCharger;
+    s.accessRules = input.accessRules;
+    s.dimensions = { lengthM: input.lengthM, widthM: input.widthM };
+    if (input.newPhotos?.length) s.photos = [...s.photos, ...input.newPhotos].slice(0, 6);
+    if (s.status === "rejected") s.status = "pending_review";
+    return s;
+  }
+
+  const current = await getSpaceById(spaceId);
+  if (!current || current.hostId !== hostId) return null;
+
+  const photos = input.newPhotos?.length
+    ? [...current.photos, ...input.newPhotos].slice(0, 6)
+    : current.photos;
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data, error } = await supabaseAdmin()
+    .from("spaces")
+    .update({
+      title: input.title,
+      approx_area: input.approxArea,
+      exact_address: input.exactAddress,
+      price_per_day: input.pricePerDay,
+      max_vehicle_size: input.maxVehicleSize,
+      cctv: input.cctv,
+      live_camera: input.liveCamera,
+      ev_charger: input.evCharger,
+      access_rules: input.accessRules,
+      dimensions: { lengthM: input.lengthM, widthM: input.widthM },
+      photos,
+      ...(current.status === "rejected" ? { status: "pending_review" } : {}),
+    })
+    .eq("id", spaceId)
+    .eq("host_id", hostId)
+    .select(SPACE_COLS)
+    .single();
+  if (error || !data) return null;
+  return spaceFromRow(data);
 }
 
 /** Persist the host's Stripe Connect account id (payout_account_ref). */

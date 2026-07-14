@@ -21,14 +21,12 @@ import { trustBand, computeTrustScore } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
 import { reviewSpaceAction, reviewVerificationAction } from "@/lib/booking-actions";
 import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
-import { getAirport, getAllReviews, getHost } from "@/lib/data/store";
+import { getAirport, getAllReviews } from "@/lib/data/store";
+import { getHostsByIds, listAllHosts, listAllSpaces } from "@/lib/data/hosts";
 import {
-  getHostsByIds,
-  listAllHosts,
-  listAllSpaces,
-  listAllVerifications,
-  listPendingVerifications,
-} from "@/lib/data/hosts";
+  listAllVerificationsLive,
+  listPendingVerificationsLive,
+} from "@/lib/data/verifications";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import type { Host } from "@/types";
 
@@ -55,10 +53,13 @@ export const metadata: Metadata = pageMetadata({ title: "Admin", path: "/admin",
 export default async function AdminDashboard() {
   const user = await requireRole("admin");
   const { t } = await getI18n();
-  const pending = await listPendingVerifications();
-  const allVerifications = await listAllVerifications();
+  const pending = await listPendingVerificationsLive();
+  const allVerifications = await listAllVerificationsLive();
   const spaces = await listAllSpaces();
-  const spaceHostMap = await getHostsByIds(spaces.map((s) => s.hostId));
+  const spaceHostMap = await getHostsByIds([
+    ...spaces.map((s) => s.hostId),
+    ...pending.filter((v) => v.subjectType === "host").map((v) => v.subjectId),
+  ]);
   const payments = await listAllPayments();
   const bookings = await listAllBookings();
 
@@ -106,7 +107,7 @@ export default async function AdminDashboard() {
           ) : (
             <div className="space-y-4">
               {pending.map((v) => {
-                const name = getHost(v.subjectId)?.displayName;
+                const name = spaceHostMap.get(v.subjectId)?.displayName;
                 return (
                   <Card key={v.id} className="p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -381,7 +382,7 @@ function buildAuditFeed({
   reviews,
 }: {
   bookings: Awaited<ReturnType<typeof listAllBookings>>;
-  verifications: Awaited<ReturnType<typeof listAllVerifications>>;
+  verifications: Awaited<ReturnType<typeof listAllVerificationsLive>>;
   reviews: ReturnType<typeof getAllReviews>;
 }): AuditEntry[] {
   const entries: AuditEntry[] = [];

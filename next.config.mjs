@@ -4,6 +4,11 @@ const nextConfig = {
   // ESLint is run via `npm run lint` in CI rather than during the production
   // build, so a lint nit never blocks a deploy.
   eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    // Listing photos / KYC documents are uploaded through server actions;
+    // the default 1MB body limit is far too small for images.
+    serverActions: { bodySizeLimit: "12mb" },
+  },
   images: {
     // Remote demo imagery (swap/extend for production CDN).
     remotePatterns: [{ protocol: "https", hostname: "**" }],

@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   CheckCircle2,
   Image as ImageIcon,
+  Pencil,
   PlusCircle,
   ShieldCheck,
   Star,
@@ -44,11 +45,11 @@ export const metadata: Metadata = pageMetadata({ title: "Host dashboard", path: 
 export default async function HostDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ listed?: string }>;
+  searchParams: Promise<{ listed?: string; updated?: string; verify?: string }>;
 }) {
   const user = await requireRole("host");
   const { t } = await getI18n();
-  const { listed } = await searchParams;
+  const { listed, updated, verify } = await searchParams;
   const host = await getHostForUser(user);
 
   // A brand-new host has no host record / listings yet — show onboarding
@@ -97,14 +98,30 @@ export default async function HostDashboard({
             <h2 className="text-2xl font-extrabold text-navy-900">{host.displayName}</h2>
             <p className="text-navy-500">{t("host.subtitle")}</p>
           </div>
-          <Link href="/host/new" className={buttonVariants()}>
-            <PlusCircle className="h-4 w-4" /> {t("host.listNewSpace")}
-          </Link>
+          {host.verificationStatus === "approved" ? (
+            <Link href="/host/new" className={buttonVariants()}>
+              <PlusCircle className="h-4 w-4" /> {t("host.listNewSpace")}
+            </Link>
+          ) : (
+            <Link href="/host/verify" className={buttonVariants()}>
+              <ShieldCheck className="h-4 w-4" /> {t("host.verify.cta")}
+            </Link>
+          )}
         </div>
 
         {listed && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
             <CheckCircle2 className="h-5 w-5" /> {t("host.listedBanner")}
+          </div>
+        )}
+        {updated && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("host.updatedBanner")}
+          </div>
+        )}
+        {verify === "submitted" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+            <ShieldCheck className="h-5 w-5" /> {t("host.verify.submittedBanner")}
           </div>
         )}
 
@@ -214,6 +231,14 @@ export default async function HostDashboard({
                         </Badge>
                       )}
                       <Badge tone="neutral">{formatMoney(s.pricePerDay)}/day</Badge>
+                    </div>
+                    <div className="mt-3">
+                      <Link
+                        href={`/host/spaces/${s.id}/edit`}
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> {t("host.editListing")}
+                      </Link>
                     </div>
                   </div>
                 </Card>
