@@ -19,6 +19,8 @@ export const core: AreaDict = {
     "nav.getStarted": "Get started",
     "nav.menu": "Menu",
     "nav.closeMenu": "Close menu",
+    "host.onboard.title": "Welcome to ParkGo for Hosts",
+    "host.onboard.body": "List your first parking space to start earning. We'll verify it, then make it live to travellers searching near your airport.",
     "nav.help": "Help",
     "nav.findParking": "Find parking",
     "nav.dashboard": "Dashboard",

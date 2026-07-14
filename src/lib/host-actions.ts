@@ -3,19 +3,18 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
-import { createSpace, getHostByUserId, updateHostProfile } from "@/lib/data/store";
+import { createSpaceForHost, ensureHostForUser, updateHostBio } from "@/lib/data/hosts";
 
 /** Host: create a new listing (enters admin verification as pending_review). */
 export async function createSpaceAction(formData: FormData) {
   const user = await requireRole("host");
-  const host = getHostByUserId(user.id);
-  if (!host) throw new Error("No host profile");
+  const host = await ensureHostForUser(user);
 
   const evEnabled = formData.get("ev") === "1";
   const kw = Number(formData.get("evKw") || 7);
   const pricePerDay = Math.round(Number(formData.get("pricePerDay") || 10) * 100);
 
-  createSpace({
+  await createSpaceForHost({
     hostId: host.id,
     title: String(formData.get("title") || "Untitled space"),
     airportSlug: String(formData.get("airportSlug") || "heathrow"),
@@ -39,7 +38,7 @@ export async function createSpaceAction(formData: FormData) {
 
   // Host profile (Airbnb-style intro) captured during onboarding.
   const bio = String(formData.get("bio") || "").trim();
-  if (bio) updateHostProfile(host.id, { bio });
+  if (bio) await updateHostBio(host.id, bio);
 
   revalidatePath("/host");
   revalidatePath("/admin");
@@ -49,8 +48,7 @@ export async function createSpaceAction(formData: FormData) {
 /** Host: update the public profile shown to guests (bio). */
 export async function updateHostProfileAction(formData: FormData) {
   const user = await requireRole("host");
-  const host = getHostByUserId(user.id);
-  if (!host) throw new Error("No host profile");
-  updateHostProfile(host.id, { bio: String(formData.get("bio") || "").trim() });
+  const host = await ensureHostForUser(user);
+  await updateHostBio(host.id, String(formData.get("bio") || "").trim());
   revalidatePath("/host");
 }

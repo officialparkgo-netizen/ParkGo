@@ -27,13 +27,12 @@ import { requireRole } from "@/lib/auth";
 import {
   getAirport,
   getBookingsForHost,
-  getHostByUserId,
   getNotifications,
   getPaymentsForHost,
-  getSpacesByHost,
   getUser,
   trustScoreFor,
 } from "@/lib/data/store";
+import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
 import { updateHostProfileAction } from "@/lib/host-actions";
 import { getI18n } from "@/lib/i18n";
@@ -49,8 +48,28 @@ export default async function HostDashboard({
   const user = await requireRole("host");
   const { t } = await getI18n();
   const { listed } = await searchParams;
-  const host = getHostByUserId(user.id)!;
-  const spaces = getSpacesByHost(host.id);
+  const host = await getHostForUser(user);
+
+  // A brand-new host has no host record / listings yet — show onboarding
+  // instead of assuming data exists (which would crash on a real account).
+  if (!host) {
+    return (
+      <PortalShell user={user} nav={hostNav} title="host.pageTitle">
+        <div className="mx-auto max-w-xl py-12 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+            <Warehouse className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-extrabold text-navy-900">{t("host.onboard.title")}</h2>
+          <p className="mx-auto mt-2 max-w-md text-navy-600">{t("host.onboard.body")}</p>
+          <Link href="/host/new" className={buttonVariants({ size: "lg", className: "mt-6" })}>
+            <PlusCircle className="h-4 w-4" /> {t("host.listNewSpace")}
+          </Link>
+        </div>
+      </PortalShell>
+    );
+  }
+
+  const spaces = await getSpacesForHost(host.id);
   const bookings = getBookingsForHost(host.id);
   const payments = getPaymentsForHost(host.id);
   const notifications = getNotifications(user.id).slice(0, 5);
