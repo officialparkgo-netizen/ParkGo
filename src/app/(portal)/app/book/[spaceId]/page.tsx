@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { PortalShell } from "@/components/portal/shell";
@@ -33,6 +33,8 @@ export default async function BookPage({
   const sp = await searchParams;
   const space = await getSpaceById(spaceId);
   if (!space) notFound();
+  // Checkout is only for live listings; paused/pending spaces bounce to search.
+  if (space.status !== "live") redirect(`/app/search?airport=${space.airportSlug}`);
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
 

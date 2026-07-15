@@ -10,6 +10,8 @@ import {
   FileText,
   Globe,
   LayoutGrid,
+  Mail,
+  PauseCircle,
   Radio,
   ScrollText,
   Search,
@@ -26,7 +28,11 @@ import { StatCard } from "@/components/portal/stat-card";
 import { adminNav } from "@/components/portal/navs";
 import { trustBand, computeTrustScore } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
-import { reviewSpaceAction, reviewVerificationAction } from "@/lib/booking-actions";
+import {
+  pauseSpaceAction,
+  reviewSpaceAction,
+  reviewVerificationAction,
+} from "@/lib/booking-actions";
 import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
 import { getAirport } from "@/lib/data/store";
 import { listAllReviews } from "@/lib/data/reviews";
@@ -38,6 +44,7 @@ import {
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { getUsersByIds, listAllUsers } from "@/lib/data/users";
+import { listWaitlist } from "@/lib/data/waitlist";
 import type { Host } from "@/types";
 
 function hostTrustScore(h: Host) {
@@ -117,6 +124,7 @@ export default async function AdminDashboard() {
     .slice()
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, 10);
+  const waitlist = await listWaitlist().catch(() => []);
 
   // Transfer is fulfilled by an independent licensed operator, integrated by API.
   const operator = getOperatorStatus();
@@ -415,6 +423,31 @@ export default async function AdminDashboard() {
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
                     </Link>
+                    {(s.status === "live" || s.status === "paused") && (
+                      <form action={pauseSpaceAction}>
+                        <input type="hidden" name="spaceId" value={s.id} />
+                        <input
+                          type="hidden"
+                          name="state"
+                          value={s.status === "live" ? "pause" : "reactivate"}
+                        />
+                        {s.status === "live" ? (
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1 rounded-lg border border-accent-200 bg-white px-3 py-1.5 text-xs font-semibold text-accent-500 hover:bg-accent-50"
+                          >
+                            <PauseCircle className="h-3.5 w-3.5" /> {t("admin.pause")}
+                          </button>
+                        ) : (
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" /> {t("admin.reactivate")}
+                          </button>
+                        )}
+                      </form>
+                    )}
                     {needsReview && (
                       <form action={reviewSpaceAction} className="flex gap-2">
                         <input type="hidden" name="spaceId" value={s.id} />
@@ -514,6 +547,35 @@ export default async function AdminDashboard() {
                   </Badge>
                   <span className="text-xs text-navy-400">
                     {t("admin.users.joined")} {formatDate(u.createdAt)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </Card>
+        </section>
+
+        {/* Waitlist signups from the marketing site */}
+        <section id="waitlist" className="scroll-mt-20">
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Mail className="h-5 w-5 text-navy-500" /> {t("admin.section.waitlist")}
+            </h3>
+            <Badge tone="neutral">{waitlist.length} {t("admin.total")}</Badge>
+          </div>
+          <Card className="divide-y divide-navy-100">
+            {waitlist.length === 0 && (
+              <div className="p-6 text-center text-navy-500">{t("admin.waitlist.empty")}</div>
+            )}
+            {waitlist.slice(0, 10).map((w) => (
+              <div key={w.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <div className="truncate font-semibold text-navy-900">{w.email}</div>
+                  {w.airport && <div className="text-xs text-navy-400">{w.airport}</div>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge tone={w.role === "host" ? "brand" : "neutral"}>{w.role}</Badge>
+                  <span className="text-xs text-navy-400">
+                    {t("admin.waitlist.signedUp")} {formatDate(w.createdAt)}
                   </span>
                 </div>
               </div>

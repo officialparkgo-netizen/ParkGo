@@ -6,7 +6,12 @@ import type { BookingBundle, PaymentMethod } from "@/types";
 import { requireUser, requireRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { confirmHandover, getBooking } from "@/lib/data/store";
-import { getHostById, getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
+import {
+  getHostById,
+  getSpaceById,
+  reviewSpaceListing,
+  setSpacePausedAdmin,
+} from "@/lib/data/hosts";
 import { reviewVerificationLive } from "@/lib/data/verifications";
 import {
   cancelBooking,
@@ -24,6 +29,9 @@ export async function createBookingAction(formData: FormData) {
   const spaceId = String(formData.get("spaceId") || "");
   const space = await getSpaceById(spaceId);
   if (!space) throw new Error("Unknown space");
+  // Only live listings are bookable — paused/pending/rejected spaces are
+  // hidden from search but still reachable by direct link.
+  if (space.status !== "live") redirect(`/app/search?airport=${space.airportSlug}`);
 
   const bundle: BookingBundle = {
     parking: true,
@@ -194,6 +202,19 @@ export async function reviewSpaceAction(formData: FormData) {
   const decision = String(formData.get("decision") || "") as "approved" | "rejected";
   if (decision !== "approved" && decision !== "rejected") return;
   const space = await reviewSpaceListing(spaceId, decision, admin.id);
+  revalidatePath("/admin");
+  revalidatePath("/host");
+  revalidatePath("/app/search");
+  if (space) revalidatePath(`/airports/${space.airportSlug}`);
+}
+
+/** Admin: pause a live listing (hide from search) or put it back live. */
+export async function pauseSpaceAction(formData: FormData) {
+  await requireRole("admin");
+  const spaceId = String(formData.get("spaceId") || "");
+  const state = String(formData.get("state") || "");
+  if (!spaceId || (state !== "pause" && state !== "reactivate")) return;
+  const space = await setSpacePausedAdmin(spaceId, state === "pause");
   revalidatePath("/admin");
   revalidatePath("/host");
   revalidatePath("/app/search");

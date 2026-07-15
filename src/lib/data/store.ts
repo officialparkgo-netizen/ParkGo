@@ -491,6 +491,28 @@ export function reviewSpace(
   return space;
 }
 
+/** Admin pause/reactivate of a live listing. Pausing hides it from search. */
+export function setSpacePaused(spaceId: string, paused: boolean): Space | undefined {
+  const space = getSpace(spaceId);
+  if (!space) return undefined;
+  if (space.status !== "live" && space.status !== "paused") return undefined;
+  space.status = paused ? "paused" : "live";
+
+  const host = getHost(space.hostId);
+  const hostUser = host ? getUser(host.userId) : undefined;
+  if (hostUser) {
+    addNotification({
+      userId: hostUser.id,
+      title: paused ? "Listing paused" : "Listing reactivated",
+      body: paused
+        ? `“${space.title}” was paused by the ParkGo team and is hidden from search. Contact support for details.`
+        : `“${space.title}” is live again and visible to travellers in search.`,
+      kind: "verification",
+    });
+  }
+  return space;
+}
+
 // -----------------------------------------------------------------------------
 // Payments / payouts
 // -----------------------------------------------------------------------------

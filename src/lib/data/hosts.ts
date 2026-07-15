@@ -12,6 +12,7 @@ import {
   getSpace as mockGetSpace,
   reviewSpace as mockReviewSpace,
   searchSpaces as mockSearchSpaces,
+  setSpacePaused as mockSetSpacePaused,
   getAirport,
   type CreateSpaceInput,
 } from "@/lib/data/store";
@@ -329,6 +330,50 @@ export async function reviewSpaceListing(
         decision === "approved"
           ? `“${space.title}” is now live and visible to travellers searching near your airport.`
           : `“${space.title}” wasn't approved. Please update the details and resubmit.`,
+      kind: "verification",
+    });
+  }
+  return space;
+}
+
+/**
+ * Admin pause/reactivate of a listing that's already live. Pausing hides it
+ * from traveller search without deleting anything; reactivating restores it.
+ * Only flips between live <-> paused, so pending/rejected listings are safe.
+ */
+export async function setSpacePausedAdmin(
+  spaceId: string,
+  paused: boolean
+): Promise<Space | null> {
+  if (!IS_LIVE) return mockSetSpacePaused(spaceId, paused) ?? null;
+
+  const from = paused ? "live" : "paused";
+  const to = paused ? "paused" : "live";
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+
+  const { data: row, error } = await admin
+    .from("spaces")
+    .update({ status: to })
+    .eq("id", spaceId)
+    .eq("status", from)
+    .select(SPACE_COLS)
+    .single();
+  if (error || !row) return null;
+  const space = spaceFromRow(row);
+
+  const { data: host } = await admin
+    .from("hosts")
+    .select("user_id")
+    .eq("id", space.hostId)
+    .maybeSingle();
+  if (host?.user_id) {
+    await admin.from("notifications").insert({
+      user_id: host.user_id,
+      title: paused ? "Listing paused" : "Listing reactivated",
+      body: paused
+        ? `“${space.title}” was paused by the ParkGo team and is hidden from search. Contact support for details.`
+        : `“${space.title}” is live again and visible to travellers searching near your airport.`,
       kind: "verification",
     });
   }

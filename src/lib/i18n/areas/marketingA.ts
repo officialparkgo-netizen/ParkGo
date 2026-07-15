@@ -174,7 +174,7 @@ export const marketingA: AreaDict = {
       "At drop-off and collection, both parties confirm a one-time code in the app. Each confirmation is timestamped and written to an audit log, creating a clear chain of custody for your vehicle.",
     "faq.s3.q": "What languages is ParkGo available in?",
     "faq.s3.a":
-      "ParkGo launches in four languages across the UK and Ireland, with more planned. You can switch language at any time from the site header.",
+      "ParkGo launches in five languages across the UK and Ireland, with more planned. You can switch language at any time from the site header.",
 
     "faq.cta.title": "Still have a question?",
     "faq.cta.body":
@@ -352,7 +352,7 @@ export const marketingA: AreaDict = {
       "ڈراپ آف اور وصولی پر، دونوں فریق ایپ میں ایک بار استعمال ہونے والے کوڈ کی تصدیق کرتے ہیں۔ ہر تصدیق پر وقت کا نشان لگتا ہے اور اسے آڈٹ لاگ میں لکھا جاتا ہے، جو آپ کی گاڑی کے لیے ایک واضح حراستی سلسلہ تشکیل دیتا ہے۔",
     "faq.s3.q": "پارک گو کن زبانوں میں دستیاب ہے؟",
     "faq.s3.a":
-      "پارک گو برطانیہ اور آئرلینڈ بھر میں چار زبانوں میں لانچ ہوتا ہے، مزید کی منصوبہ بندی کے ساتھ۔ آپ سائٹ کے ہیڈر سے کسی بھی وقت زبان تبدیل کر سکتے ہیں۔",
+      "پارک گو برطانیہ اور آئرلینڈ بھر میں پانچ زبانوں میں لانچ ہوتا ہے، مزید کی منصوبہ بندی کے ساتھ۔ آپ سائٹ کے ہیڈر سے کسی بھی وقت زبان تبدیل کر سکتے ہیں۔",
 
     "faq.cta.title": "کیا اب بھی کوئی سوال ہے؟",
     "faq.cta.body":
@@ -530,7 +530,7 @@ export const marketingA: AreaDict = {
       "ड्रॉप-ऑफ और कार लेने पर, दोनों पक्ष ऐप में एक बार उपयोग होने वाले कोड की पुष्टि करते हैं। प्रत्येक पुष्टि पर टाइमस्टैम्प लगता है और उसे ऑडिट लॉग में लिखा जाता है, जो आपके वाहन के लिए एक स्पष्ट अभिरक्षा श्रृंखला बनाता है।",
     "faq.s3.q": "ParkGo किन भाषाओं में उपलब्ध है?",
     "faq.s3.a":
-      "ParkGo यूके और आयरलैंड भर में चार भाषाओं में लॉन्च होता है, और अधिक की योजना है। आप साइट हेडर से किसी भी समय भाषा बदल सकते हैं।",
+      "ParkGo यूके और आयरलैंड भर में पाँच भाषाओं में लॉन्च होता है, और अधिक की योजना है। आप साइट हेडर से किसी भी समय भाषा बदल सकते हैं।",
 
     "faq.cta.title": "अभी भी कोई प्रश्न है?",
     "faq.cta.body":
@@ -708,7 +708,7 @@ export const marketingA: AreaDict = {
       "Bei Abgabe und Abholung bestätigen beide Parteien einen Einmalcode in der App. Jede Bestätigung erhält einen Zeitstempel und wird in ein Audit-Protokoll geschrieben, wodurch eine klare Verwahrkette für Ihr Fahrzeug entsteht.",
     "faq.s3.q": "In welchen Sprachen ist ParkGo verfügbar?",
     "faq.s3.a":
-      "ParkGo startet in vier Sprachen in Großbritannien und Irland, weitere sind geplant. Sie können die Sprache jederzeit über die Kopfzeile der Website wechseln.",
+      "ParkGo startet in fünf Sprachen in Großbritannien und Irland, weitere sind geplant. Sie können die Sprache jederzeit über die Kopfzeile der Website wechseln.",
 
     "faq.cta.title": "Haben Sie noch eine Frage?",
     "faq.cta.body":
@@ -886,7 +886,7 @@ export const marketingA: AreaDict = {
       "在停车和取车时，双方在应用内确认一次性验证码。每次确认都带有时间戳并写入审计日志，为您的车辆建立清晰的保管链条。",
     "faq.s3.q": "ParkGo 提供哪些语言？",
     "faq.s3.a":
-      "ParkGo 在英国和爱尔兰以四种语言推出，并计划增加更多。您可以随时从网站页眉切换语言。",
+      "ParkGo 在英国和爱尔兰以五种语言推出，并计划增加更多。您可以随时从网站页眉切换语言。",
 
     "faq.cta.title": "还有疑问吗？",
     "faq.cta.body":
