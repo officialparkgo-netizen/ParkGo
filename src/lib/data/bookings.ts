@@ -121,6 +121,8 @@ export async function createBookingLive(
       kind: "booking",
     });
     await notifyHostOfBooking(booking, "New booking");
+    const { sendBookingConfirmedEmails } = await import("@/lib/booking-emails");
+    await sendBookingConfirmedEmails(booking);
   }
 
   return booking;
@@ -205,7 +207,11 @@ export async function markBookingPaid(
   });
 
   const booking = await getBookingById(bookingId);
-  if (booking) await notifyHostOfBooking(booking, "New booking");
+  if (booking) {
+    await notifyHostOfBooking(booking, "New booking");
+    const { sendBookingConfirmedEmails } = await import("@/lib/booking-emails");
+    await sendBookingConfirmedEmails(booking);
+  }
 }
 
 export type CancelResult =
@@ -302,6 +308,9 @@ export async function cancelBooking(
   } catch {
     // admin alert failures must not block the cancellation
   }
+
+  const { sendBookingCancelledEmails } = await import("@/lib/booking-emails");
+  await sendBookingCancelledEmails(booking, refund, feeApplied);
 
   return { ok: true, refund, feeApplied };
 }
