@@ -27,9 +27,9 @@ const ICONS = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; error?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next, error } = await searchParams;
   const { t } = await getI18n();
 
   return (
@@ -46,6 +46,11 @@ export default async function LoginPage({
 
       <div className="container-px flex flex-1 items-center justify-center py-10">
         <div className="w-full max-w-2xl">
+          {error && (
+            <p className="mx-auto mb-6 max-w-md rounded-xl bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-700">
+              {t("login.linkError")}
+            </p>
+          )}
           {IS_LIVE ? (
             <>
               <div className="text-center">

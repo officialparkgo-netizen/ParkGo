@@ -4,6 +4,7 @@ import type { AreaDict } from "@/lib/i18n/config";
 export const portalAdmin: AreaDict = {
   en: {
     // --- Login page ---
+    "login.linkError": "That link is invalid or has expired — please sign in or request a new one.",
     "login.demoMode": "Demo mode",
     "login.chooseRole": "Choose a role to explore",
     "login.welcome": "Welcome to ParkGo",
@@ -165,6 +166,7 @@ export const portalAdmin: AreaDict = {
 
   ur: {
     // --- Login page ---
+    "login.linkError": "یہ لنک غلط ہے یا اس کی میعاد ختم ہو گئی ہے — براہ کرم سائن ان کریں یا نیا لنک منگوائیں۔",
     "login.demoMode": "ڈیمو موڈ",
     "login.chooseRole": "دریافت کرنے کے لیے ایک کردار منتخب کریں",
     "login.blurbIntro":
@@ -324,6 +326,7 @@ export const portalAdmin: AreaDict = {
 
   hi: {
     // --- Login page ---
+    "login.linkError": "यह लिंक अमान्य है या समाप्त हो गया है — कृपया साइन इन करें या नया लिंक मंगवाएं।",
     "login.demoMode": "डेमो मोड",
     "login.chooseRole": "अन्वेषण के लिए एक भूमिका चुनें",
     "login.blurbIntro":
@@ -483,6 +486,7 @@ export const portalAdmin: AreaDict = {
 
   de: {
     // --- Login page ---
+    "login.linkError": "Dieser Link ist ungültig oder abgelaufen — bitte melden Sie sich an oder fordern Sie einen neuen an.",
     "login.demoMode": "Demomodus",
     "login.chooseRole": "Wählen Sie eine Rolle zum Erkunden",
     "login.blurbIntro":
@@ -642,6 +646,7 @@ export const portalAdmin: AreaDict = {
 
   zh: {
     // --- Login page ---
+    "login.linkError": "该链接无效或已过期 — 请登录或重新获取链接。",
     "login.demoMode": "演示模式",
     "login.chooseRole": "选择一个角色进行体验",
     "login.blurbIntro":
