@@ -35,21 +35,21 @@ export default async function ContactPage() {
       tone: "go" as const,
       title: t("contact.channel.support.title"),
       body: t("contact.channel.support.body"),
-      action: { label: "support@parkgo.app", href: "mailto:support@parkgo.app" },
+      action: { label: "support@parkgo.ai", href: "mailto:support@parkgo.ai" },
     },
     {
       icon: Building2,
       tone: "brand" as const,
       title: t("contact.channel.partnerships.title"),
       body: t("contact.channel.partnerships.body"),
-      action: { label: "partners@parkgo.app", href: "mailto:partners@parkgo.app" },
+      action: { label: "partners@parkgo.ai", href: "mailto:partners@parkgo.ai" },
     },
     {
       icon: MessageCircle,
       tone: "accent" as const,
       title: t("contact.channel.press.title"),
       body: t("contact.channel.press.body"),
-      action: { label: "hello@parkgo.app", href: "mailto:hello@parkgo.app" },
+      action: { label: "hello@parkgo.ai", href: "mailto:hello@parkgo.ai" },
     },
   ];
 

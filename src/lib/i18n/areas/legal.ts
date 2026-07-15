@@ -89,7 +89,7 @@ export const legal: AreaDict = {
     "privacy.dpo.intro":
       "For any privacy question or to exercise your rights, contact our Data Protection Officer:",
     "privacy.dpo.emailLabel": "Email:",
-    "privacy.dpo.post": "Post: Data Protection Officer, ParkGo, United Kingdom",
+    "privacy.dpo.post": "Post: Data Protection Officer, PARKGO LIMITED, 128 City Road, London, EC1V 2NX, United Kingdom",
     "privacy.dpo.updates":
       "We may update this policy from time to time. When we do, we will revise the “last updated” date above and, for significant changes, let you know directly.",
 
@@ -120,7 +120,7 @@ export const legal: AreaDict = {
 
     "terms.cancellations.title": "4. Changes and cancellations",
     "terms.cancellations.body":
-      "Travel plans change, and our cancellation terms aim to be fair to everyone. The cancellation window and any applicable fee are shown at checkout and in your booking confirmation. Where you cancel within the free-cancellation window, you receive a full refund of the cancellable amount; the service fee may be non-refundable. If a host or the transfer operator cancels, or cannot honour a confirmed booking, you are entitled to a full refund and we will help you find an alternative where possible.",
+      "Travel plans change, so our cancellation policy is simple and shown before you pay. You can cancel a paid booking free of charge until 24 hours before your drop-off time and receive a full refund. If you cancel within 24 hours of drop-off, a late-cancellation fee of 20% of the booking total is retained and the remaining 80% is refunded. A booking can no longer be cancelled once the drop-off time has passed. Refunds go back to your original payment method, typically within 5–10 working days. If a host or the transfer operator cancels or cannot honour a confirmed booking, you receive a full refund and we will help you find an alternative where possible.",
 
     "terms.hostObligations.title": "5. Host obligations",
     "terms.hostObligations.intro": "If you list a space, you agree that you will:",
@@ -272,7 +272,7 @@ export const legal: AreaDict = {
     "privacy.dpo.intro":
       "کسی بھی پرائیویسی سوال کے لیے یا اپنے حقوق کو استعمال کرنے کے لیے، ہمارے ڈیٹا پروٹیکشن آفیسر سے رابطہ کریں:",
     "privacy.dpo.emailLabel": "ای میل:",
-    "privacy.dpo.post": "ڈاک: Data Protection Officer, ParkGo, United Kingdom",
+    "privacy.dpo.post": "ڈاک: Data Protection Officer, PARKGO LIMITED, 128 City Road, London, EC1V 2NX, United Kingdom",
     "privacy.dpo.updates":
       "ہم وقتاً فوقتاً اس پالیسی کو تازہ کر سکتے ہیں۔ جب ہم ایسا کریں گے، تو ہم اوپر دی گئی ”آخری بار تازہ کاری“ کی تاریخ کو تبدیل کریں گے اور اہم تبدیلیوں کے لیے آپ کو براہ راست مطلع کریں گے۔",
 
@@ -303,7 +303,7 @@ export const legal: AreaDict = {
 
     "terms.cancellations.title": "4. تبدیلیاں اور منسوخیاں",
     "terms.cancellations.body":
-      "سفری منصوبے بدلتے ہیں، اور ہماری منسوخی کی شرائط سب کے لیے منصفانہ ہونے کا ہدف رکھتی ہیں۔ منسوخی کی مدت اور کوئی بھی قابل اطلاق فیس چیک آؤٹ پر اور آپ کی بکنگ کی تصدیق میں دکھائی جاتی ہے۔ جہاں آپ مفت منسوخی کی مدت کے اندر منسوخ کرتے ہیں، آپ کو قابلِ منسوخی رقم کی مکمل واپسی ملتی ہے؛ سروس فیس ناقابلِ واپسی ہو سکتی ہے۔ اگر کوئی میزبان یا ٹرانسفر آپریٹر منسوخ کرتا ہے، یا تصدیق شدہ بکنگ پوری نہیں کر سکتا، تو آپ مکمل واپسی کے حقدار ہیں اور ہم جہاں ممکن ہو متبادل تلاش کرنے میں آپ کی مدد کریں گے۔",
+      "سفری منصوبے بدلتے رہتے ہیں، اس لیے ہماری منسوخی پالیسی سادہ ہے اور ادائیگی سے پہلے دکھائی جاتی ہے۔ آپ ادا شدہ بکنگ ڈراپ آف وقت سے 24 گھنٹے پہلے تک مفت منسوخ کر کے مکمل ریفنڈ حاصل کر سکتے ہیں۔ اگر آپ ڈراپ آف کے 24 گھنٹوں کے اندر منسوخ کریں تو بکنگ کے کل کا 20% لیٹ کینسلیشن فیس کے طور پر رکھا جاتا ہے اور باقی 80% ریفنڈ ہوتا ہے۔ ڈراپ آف کا وقت گزر جانے کے بعد بکنگ منسوخ نہیں ہو سکتی۔ ریفنڈ آپ کے اصل ادائیگی کے ذریعے پر واپس جاتا ہے، عموماً 5–10 کاروباری دنوں میں۔ اگر میزبان یا ٹرانسفر آپریٹر منسوخ کرے یا تصدیق شدہ بکنگ پوری نہ کر سکے تو آپ کو مکمل ریفنڈ ملتا ہے اور ہم جہاں ممکن ہو متبادل تلاش کرنے میں مدد کریں گے۔",
 
     "terms.hostObligations.title": "5. میزبان کی ذمہ داریاں",
     "terms.hostObligations.intro": "اگر آپ کوئی جگہ درج کرتے ہیں، تو آپ متفق ہیں کہ آپ:",
@@ -455,7 +455,7 @@ export const legal: AreaDict = {
     "privacy.dpo.intro":
       "किसी भी गोपनीयता प्रश्न के लिए या अपने अधिकारों का उपयोग करने के लिए, हमारे डेटा संरक्षण अधिकारी से संपर्क करें:",
     "privacy.dpo.emailLabel": "ईमेल:",
-    "privacy.dpo.post": "डाक: Data Protection Officer, ParkGo, United Kingdom",
+    "privacy.dpo.post": "डाक: Data Protection Officer, PARKGO LIMITED, 128 City Road, London, EC1V 2NX, United Kingdom",
     "privacy.dpo.updates":
       "हम समय-समय पर इस नीति को अद्यतन कर सकते हैं। जब हम ऐसा करते हैं, तो हम ऊपर दी गई “अंतिम अद्यतन” तिथि को संशोधित करेंगे और महत्वपूर्ण परिवर्तनों के लिए आपको सीधे सूचित करेंगे।",
 
@@ -486,7 +486,7 @@ export const legal: AreaDict = {
 
     "terms.cancellations.title": "4. परिवर्तन और रद्दीकरण",
     "terms.cancellations.body":
-      "यात्रा योजनाएँ बदलती हैं, और हमारी रद्दीकरण शर्तें सभी के लिए निष्पक्ष होने का लक्ष्य रखती हैं। रद्दीकरण अवधि और कोई भी लागू शुल्क चेकआउट पर और आपकी बुकिंग पुष्टि में दिखाया जाता है। जहाँ आप मुफ़्त-रद्दीकरण अवधि के भीतर रद्द करते हैं, आपको रद्द करने योग्य राशि की पूरी वापसी मिलती है; सेवा शुल्क गैर-वापसी योग्य हो सकता है। यदि कोई होस्ट या ट्रांसफर ऑपरेटर रद्द करता है, या पुष्टि की गई बुकिंग को पूरा नहीं कर सकता, तो आप पूर्ण वापसी के हकदार हैं और हम जहाँ संभव हो एक विकल्प खोजने में आपकी मदद करेंगे।",
+      "यात्रा की योजनाएं बदलती रहती हैं, इसलिए हमारी रद्दीकरण नीति सरल है और भुगतान से पहले दिखाई जाती है। आप ड्रॉप-ऑफ समय से 24 घंटे पहले तक भुगतान की गई बुकिंग निःशुल्क रद्द कर पूरा रिफंड पा सकते हैं। यदि आप ड्रॉप-ऑफ के 24 घंटों के भीतर रद्द करते हैं, तो बुकिंग कुल का 20% विलंब शुल्क रखा जाता है और शेष 80% रिफंड होता है। ड्रॉप-ऑफ समय बीत जाने के बाद बुकिंग रद्द नहीं की जा सकती। रिफंड आपके मूल भुगतान माध्यम में लौटता है, आमतौर पर 5–10 कार्य दिवसों में। यदि होस्ट या ट्रांसफर ऑपरेटर रद्द करे या पुष्ट बुकिंग पूरी न कर सके, तो आपको पूरा रिफंड मिलता है और हम जहां संभव हो विकल्प खोजने में मदद करेंगे।",
 
     "terms.hostObligations.title": "5. होस्ट के दायित्व",
     "terms.hostObligations.intro": "यदि आप कोई स्थान सूचीबद्ध करते हैं, तो आप सहमत हैं कि आप:",
@@ -638,7 +638,7 @@ export const legal: AreaDict = {
     "privacy.dpo.intro":
       "Bei Datenschutzfragen oder zur Ausübung Ihrer Rechte wenden Sie sich an unseren Datenschutzbeauftragten:",
     "privacy.dpo.emailLabel": "E-Mail:",
-    "privacy.dpo.post": "Post: Data Protection Officer, ParkGo, United Kingdom",
+    "privacy.dpo.post": "Post: Data Protection Officer, PARKGO LIMITED, 128 City Road, London, EC1V 2NX, United Kingdom",
     "privacy.dpo.updates":
       "Wir können diese Erklärung von Zeit zu Zeit aktualisieren. In diesem Fall überarbeiten wir das oben stehende Datum „Zuletzt aktualisiert“ und informieren Sie bei wesentlichen Änderungen direkt.",
 
@@ -669,7 +669,7 @@ export const legal: AreaDict = {
 
     "terms.cancellations.title": "4. Änderungen und Stornierungen",
     "terms.cancellations.body":
-      "Reisepläne ändern sich, und unsere Stornierungsbedingungen sollen für alle fair sein. Das Stornierungsfenster und eine etwaige anfallende Gebühr werden an der Kasse und in Ihrer Buchungsbestätigung angezeigt. Wenn Sie innerhalb des kostenlosen Stornierungsfensters stornieren, erhalten Sie eine vollständige Erstattung des stornierbaren Betrags; die Servicegebühr kann nicht erstattungsfähig sein. Wenn ein Gastgeber oder der Transferbetreiber storniert oder eine bestätigte Buchung nicht einhalten kann, haben Sie Anspruch auf eine vollständige Erstattung, und wir helfen Ihnen, sofern möglich, eine Alternative zu finden.",
+      "Reisepläne ändern sich — unsere Stornierungsregeln sind daher einfach und werden vor der Zahlung angezeigt. Sie können eine bezahlte Buchung bis 24 Stunden vor der Abgabezeit kostenlos stornieren und erhalten eine volle Erstattung. Bei Stornierung innerhalb von 24 Stunden vor der Abgabe wird eine Spätstornogebühr von 20% des Buchungsbetrags einbehalten; die übrigen 80% werden erstattet. Nach Ablauf der Abgabezeit ist keine Stornierung mehr möglich. Erstattungen gehen an Ihre ursprüngliche Zahlungsmethode zurück, in der Regel innerhalb von 5–10 Werktagen. Storniert ein Gastgeber oder der Transfer-Operator oder kann eine bestätigte Buchung nicht erfüllen, erhalten Sie eine volle Erstattung, und wir helfen nach Möglichkeit bei einer Alternative.",
 
     "terms.hostObligations.title": "5. Pflichten des Gastgebers",
     "terms.hostObligations.intro": "Wenn Sie einen Platz anbieten, verpflichten Sie sich:",
@@ -821,7 +821,7 @@ export const legal: AreaDict = {
     "privacy.dpo.intro":
       "如有任何隐私问题或需行使您的权利，请联系我们的数据保护官：",
     "privacy.dpo.emailLabel": "电子邮箱：",
-    "privacy.dpo.post": "邮寄：Data Protection Officer, ParkGo, United Kingdom",
+    "privacy.dpo.post": "邮寄：Data Protection Officer, PARKGO LIMITED, 128 City Road, London, EC1V 2NX, United Kingdom",
     "privacy.dpo.updates":
       "我们可能会不时更新本政策。届时，我们将修订上方的“最后更新”日期，并在发生重大变更时直接通知您。",
 
@@ -852,7 +852,7 @@ export const legal: AreaDict = {
 
     "terms.cancellations.title": "4. 变更与取消",
     "terms.cancellations.body":
-      "出行计划会发生变化，我们的取消条款力求对各方都公平。取消期限和任何适用的费用会在结账时和您的预订确认中显示。在免费取消期限内取消的，您将获得可取消金额的全额退款；服务费可能不予退还。如果房东或接送运营商取消，或无法履行已确认的预订，您有权获得全额退款，我们会在可能的情况下帮助您寻找替代方案。",
+      "出行计划会变化，因此我们的取消政策简单明了，并在付款前展示。您可在停车开始时间前24小时以上免费取消已付款预订并获得全额退款。若在停车开始前24小时内取消，将收取预订总额20%的滞后取消费用，其余80%退还。停车开始时间过后即无法取消。退款将原路返回您的付款方式，通常在5–10个工作日内到账。如房东或接送运营商取消或无法履行已确认的预订，您将获得全额退款，我们也会尽力协助您寻找替代方案。",
 
     "terms.hostObligations.title": "5. 房东义务",
     "terms.hostObligations.intro": "如果您挂牌车位，即表示您同意：",

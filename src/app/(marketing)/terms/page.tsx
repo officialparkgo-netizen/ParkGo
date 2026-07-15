@@ -11,7 +11,7 @@ export const metadata = pageMetadata({
   path: "/terms",
 });
 
-const LAST_UPDATED = "1 June 2026";
+const LAST_UPDATED = "15 July 2026";
 
 export default async function TermsPage() {
   const { t } = await getI18n();

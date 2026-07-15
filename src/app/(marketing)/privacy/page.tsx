@@ -11,7 +11,7 @@ export const metadata = pageMetadata({
   path: "/privacy",
 });
 
-const LAST_UPDATED = "1 June 2026";
+const LAST_UPDATED = "15 July 2026";
 
 export default async function PrivacyPage() {
   const { t } = await getI18n();
@@ -124,8 +124,8 @@ export default async function PrivacyPage() {
             <ul>
               <li>
                 {t("privacy.dpo.emailLabel")}{" "}
-                <Link href="mailto:dpo@parkgo.app" className="font-semibold text-brand-600">
-                  dpo@parkgo.app
+                <Link href="mailto:dpo@parkgo.ai" className="font-semibold text-brand-600">
+                  dpo@parkgo.ai
                 </Link>
               </li>
               <li>{t("privacy.dpo.post")}</li>

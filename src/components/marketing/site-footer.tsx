@@ -85,6 +85,12 @@ export async function SiteFooter() {
             {t("footer.regOffice")}: {COMPANY.registeredOffice} · {t("footer.ico")}:{" "}
             {COMPANY.icoRef}
           </p>
+          <p>
+            {t("footer.support")}:{" "}
+            <a href={`mailto:${COMPANY.supportEmail}`} className="font-semibold text-navy-500 hover:text-navy-700">
+              {COMPANY.supportEmail}
+            </a>
+          </p>
           <p>{t("footer.insurance")}</p>
         </div>
       </div>
