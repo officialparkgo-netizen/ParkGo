@@ -24,10 +24,10 @@ import { MapboxMap } from "@/components/portal/mapbox-map";
 import { requireRole } from "@/lib/auth";
 
 const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-import { getAirport, getUser } from "@/lib/data/store";
+import { getAirport } from "@/lib/data/store";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { listReviewsForSpace } from "@/lib/data/reviews";
-import { getUsersByIds } from "@/lib/data/users";
+import { getUserProfile, getUsersByIds } from "@/lib/data/users";
 import { priceBundle } from "@/lib/pricing";
 import { projectToViewport } from "@/lib/services/maps";
 import { daysBetween, formatDate, formatMoneyShort, initials } from "@/lib/utils";
@@ -41,7 +41,14 @@ export default async function SpaceDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ from?: string; to?: string; ev?: string; transfer?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+    ev?: string;
+    transfer?: string;
+    soldout?: string;
+    dates?: string;
+  }>;
 }) {
   const user = await requireRole("traveller");
   const { t } = await getI18n();
@@ -52,7 +59,7 @@ export default async function SpaceDetail({
 
   const airport = getAirport(space.airportSlug);
   const host = await getHostById(space.hostId);
-  const hostUser = host ? getUser(host.userId) : undefined;
+  const hostUser = host ? await getUserProfile(host.userId) : null;
   const reviews = await listReviewsForSpace(space.id);
   const reviewAuthors = await getUsersByIds(reviews.map((r) => r.authorId));
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
@@ -92,6 +99,17 @@ export default async function SpaceDetail({
         <Link href="/app/search" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToResults")}
         </Link>
+
+        {sp.soldout && (
+          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+            {t("app.space.soldout")}
+          </div>
+        )}
+        {sp.dates && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            {t("app.space.datesInvalid")}
+          </div>
+        )}
 
         {/* Gallery */}
         <div className="grid gap-3 sm:grid-cols-3">
@@ -150,6 +168,9 @@ export default async function SpaceDetail({
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge tone="navy">
                   <Clock className="h-3 w-3" /> {space.driveMinutes} {t("app.space.minToTerminal")}
+                </Badge>
+                <Badge tone="navy">
+                  <Car className="h-3 w-3" /> {space.capacity ?? 1} {t("app.space.carSpaces")}
                 </Badge>
                 {(space.cctv || space.liveCamera) && (
                   <Badge tone="go">

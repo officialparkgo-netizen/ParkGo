@@ -64,6 +64,21 @@ export default async function NewSpacePage() {
             </div>
 
             <div>
+              <Label htmlFor="capacity">{t("host.new.capacity")}</Label>
+              <Input
+                id="capacity"
+                name="capacity"
+                type="number"
+                min="1"
+                max="50"
+                defaultValue="1"
+                required
+                className="max-w-32"
+              />
+              <p className="mt-1 text-xs text-navy-400">{t("host.new.capacityHint")}</p>
+            </div>
+
+            <div>
               <Label htmlFor="approxArea">{t("host.new.publicArea")}</Label>
               <Input id="approxArea" name="approxArea" required placeholder={t("host.new.publicAreaPh")} />
             </div>

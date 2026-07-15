@@ -64,6 +64,25 @@ function paymentFromRow(r: any): Payment {
  * store. The transfer job is fulfilled by the external operator API, so no
  * transfer row is written here.
  */
+/** Paid/active bookings overlapping a window vs the space's capacity. */
+export async function isSpaceAvailable(
+  spaceId: string,
+  startAt: string,
+  endAt: string,
+  capacity: number
+): Promise<boolean> {
+  if (!IS_LIVE) return true; // demo data isn't capacity-managed
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { count } = await supabaseAdmin()
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("space_id", spaceId)
+    .in("status", ["paid", "active"])
+    .lt("start_at", endAt)
+    .gt("end_at", startAt);
+  return (count ?? 0) < Math.max(1, capacity);
+}
+
 export async function createBookingLive(
   input: CreateBookingInput,
   opts: { status?: Booking["status"]; recordPayment?: boolean } = {}
@@ -75,6 +94,16 @@ export async function createBookingLive(
 
   const space = await getSpaceById(input.spaceId);
   if (!space) throw new Error(`Unknown space: ${input.spaceId}`);
+
+  // Final availability guard (search also filters, but re-check at write time).
+  const available = await isSpaceAvailable(
+    input.spaceId,
+    input.startAt,
+    input.endAt,
+    space.capacity ?? 1
+  );
+  if (!available) throw new Error("SPACE_FULL");
+
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
   const price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency);

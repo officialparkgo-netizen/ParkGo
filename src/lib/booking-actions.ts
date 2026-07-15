@@ -8,7 +8,12 @@ import { getI18n } from "@/lib/i18n";
 import { confirmHandover, getBooking } from "@/lib/data/store";
 import { getHostById, getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
 import { reviewVerificationLive } from "@/lib/data/verifications";
-import { cancelBooking, createBookingLive, getBookingById } from "@/lib/data/bookings";
+import {
+  cancelBooking,
+  createBookingLive,
+  getBookingById,
+  isSpaceAvailable,
+} from "@/lib/data/bookings";
 import { createSpaceReview } from "@/lib/data/reviews";
 import { getPaymentGateway } from "@/lib/services/payments";
 import { isStripeConfigured, createBookingCheckoutSession } from "@/lib/stripe";
@@ -28,6 +33,22 @@ export async function createBookingAction(formData: FormData) {
   const startAt = String(formData.get("startAt") || new Date().toISOString());
   const endAt = String(formData.get("endAt") || new Date().toISOString());
   const method = (String(formData.get("method") || "card") as PaymentMethod);
+
+  // Dates must make sense: drop-off from today onward, pick-up after drop-off.
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  if (
+    new Date(startAt).getTime() < todayStart.getTime() ||
+    new Date(endAt).getTime() <= new Date(startAt).getTime()
+  ) {
+    redirect(`/app/space/${spaceId}?dates=invalid`);
+  }
+
+  // Capacity: bounce back with a clear message when the space is full.
+  const available = await isSpaceAvailable(spaceId, startAt, endAt, space.capacity ?? 1);
+  if (!available) {
+    redirect(`/app/space/${spaceId}?soldout=1`);
+  }
 
   // Stripe path: create a pending booking, then redirect to Stripe Checkout.
   // The /api/stripe/confirm route marks it paid on return.

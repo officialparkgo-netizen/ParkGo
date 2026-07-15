@@ -2,6 +2,7 @@ import type { Review } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import {
   addReview as mockAddReview,
+  getAllReviews as mockGetAllReviews,
   getReviewsForSpace as mockGetReviewsForSpace,
   setBookingStatus as mockSetBookingStatus,
 } from "@/lib/data/store";
@@ -24,6 +25,18 @@ function fromRow(r: any): Review {
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/** All reviews (admin audit feed). */
+export async function listAllReviews(): Promise<Review[]> {
+  if (!IS_LIVE) return mockGetAllReviews();
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin()
+    .from("reviews")
+    .select(COLS)
+    .order("created_at", { ascending: false })
+    .limit(100);
+  return (data ?? []).map(fromRow);
+}
 
 /** Reviews for a space, newest first. */
 export async function listReviewsForSpace(spaceId: string): Promise<Review[]> {

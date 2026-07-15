@@ -25,7 +25,7 @@ function fitsVehicle(space: Space, size: SearchQuery["vehicleSize"]) {
 const HOST_COLS =
   "id, user_id, display_name, verification_status, payout_account_ref, rating, joined_at";
 const SPACE_COLS =
-  "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, max_vehicle_size, ev_charger, cctv, live_camera, access_rules, photos, price_per_day, rating, review_count, status, created_at";
+  "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, capacity, max_vehicle_size, ev_charger, cctv, live_camera, access_rules, photos, price_per_day, rating, review_count, status, created_at";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function hostFromRow(r: any): Host {
@@ -53,6 +53,7 @@ function spaceFromRow(r: any): Space {
     distanceMiles: Number(r.distance_miles ?? 0),
     driveMinutes: r.drive_minutes,
     dimensions: r.dimensions,
+    capacity: r.capacity ?? 1,
     maxVehicleSize: r.max_vehicle_size,
     evCharger: r.ev_charger ?? null,
     cctv: r.cctv,
@@ -135,6 +136,7 @@ export async function createSpaceForHost(
       distance_miles: 2.5,
       drive_minutes: 9,
       dimensions: { lengthM: input.lengthM, widthM: input.widthM },
+      capacity: input.capacity ?? 1,
       max_vehicle_size: input.maxVehicleSize,
       ev_charger: input.evCharger,
       cctv: input.cctv,
@@ -202,11 +204,34 @@ export async function searchLiveSpaces(query: SearchQuery): Promise<SearchResult
   const end = query.endAt ?? new Date(Date.now() + 5 * 86_400_000).toISOString();
   const currency = airport.country === "IE" ? "EUR" : "GBP";
 
-  return (data ?? [])
+  const candidates = (data ?? [])
     .map(spaceFromRow)
     .filter((s) => (query.needsEv ? !!s.evCharger : true))
     .filter((s) => (query.needsCctv ? s.cctv || s.liveCamera : true))
-    .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true))
+    .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true));
+
+  // Availability: hide spaces whose paid/active bookings already fill the
+  // capacity for the requested window (overlap: starts before we end AND ends
+  // after we start).
+  const booked = new Map<string, number>();
+  if (candidates.length > 0) {
+    const { data: overlaps } = await supabaseAdmin()
+      .from("bookings")
+      .select("space_id")
+      .in(
+        "space_id",
+        candidates.map((s) => s.id)
+      )
+      .in("status", ["paid", "active"])
+      .lt("start_at", end)
+      .gt("end_at", start);
+    (overlaps ?? []).forEach((b) =>
+      booked.set(b.space_id, (booked.get(b.space_id) ?? 0) + 1)
+    );
+  }
+
+  return candidates
+    .filter((s) => (booked.get(s.id) ?? 0) < (s.capacity ?? 1))
     .map((space) => {
       const bundle: BookingBundle = {
         parking: true,
@@ -315,6 +340,7 @@ export interface UpdateSpaceInput {
   approxArea: string;
   exactAddress: string;
   pricePerDay: number; // pence
+  capacity: number;
   maxVehicleSize: Space["maxVehicleSize"];
   cctv: boolean;
   liveCamera: boolean;
@@ -342,6 +368,7 @@ export async function updateSpaceForHost(
     s.approxArea = input.approxArea;
     s.exactAddress = input.exactAddress;
     s.pricePerDay = input.pricePerDay;
+    s.capacity = Math.max(1, input.capacity || 1);
     s.maxVehicleSize = input.maxVehicleSize;
     s.cctv = input.cctv;
     s.liveCamera = input.liveCamera;
@@ -371,6 +398,7 @@ export async function updateSpaceForHost(
       approx_area: input.approxArea,
       exact_address: input.exactAddress,
       price_per_day: input.pricePerDay,
+      capacity: Math.max(1, input.capacity || 1),
       max_vehicle_size: input.maxVehicleSize,
       cctv: input.cctv,
       live_camera: input.liveCamera,

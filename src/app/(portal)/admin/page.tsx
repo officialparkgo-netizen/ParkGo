@@ -21,7 +21,8 @@ import { trustBand, computeTrustScore } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
 import { reviewSpaceAction, reviewVerificationAction } from "@/lib/booking-actions";
 import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
-import { getAirport, getAllReviews } from "@/lib/data/store";
+import { getAirport } from "@/lib/data/store";
+import { listAllReviews } from "@/lib/data/reviews";
 import { getHostsByIds, listAllHosts, listAllSpaces } from "@/lib/data/hosts";
 import {
   listAllVerificationsLive,
@@ -96,7 +97,7 @@ export default async function AdminDashboard() {
   const operator = getOperatorStatus();
   const operatorJobs = getOperatorJobs();
 
-  const audit = buildAuditFeed({ bookings, verifications: allVerifications, reviews: getAllReviews() });
+  const audit = buildAuditFeed({ bookings, verifications: allVerifications, reviews: await listAllReviews() });
   const alerts = (await listNotificationsForUser(user.id)).slice(0, 6);
 
   return (
@@ -437,7 +438,7 @@ function buildAuditFeed({
 }: {
   bookings: Awaited<ReturnType<typeof listAllBookings>>;
   verifications: Awaited<ReturnType<typeof listAllVerificationsLive>>;
-  reviews: ReturnType<typeof getAllReviews>;
+  reviews: Awaited<ReturnType<typeof listAllReviews>>;
 }): AuditEntry[] {
   const entries: AuditEntry[] = [];
   bookings.forEach((b) =>

@@ -93,6 +93,7 @@ export function Checkout({
             <input
               type="date"
               value={start}
+              min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setStart(e.target.value)}
               className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
             />

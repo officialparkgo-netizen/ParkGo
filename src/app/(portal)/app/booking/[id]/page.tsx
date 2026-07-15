@@ -18,13 +18,14 @@ import { StatusBadge } from "@/components/portal/status";
 import { QrCode } from "@/components/portal/qr";
 import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
-import { getAirport, getUser } from "@/lib/data/store";
+import { getAirport } from "@/lib/data/store";
 import {
   CANCEL_FEE_BPS,
   CANCEL_FREE_WINDOW_MS,
   getBookingById,
 } from "@/lib/data/bookings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
+import { getUserProfile } from "@/lib/data/users";
 import { cancelBookingAction } from "@/lib/booking-actions";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
@@ -55,7 +56,7 @@ export default async function BookingPage({
   if (!space) notFound();
   const airport = getAirport(space.airportSlug);
   const host = await getHostById(space.hostId);
-  const hostUser = host ? getUser(host.userId) : undefined;
+  const hostUser = host ? await getUserProfile(host.userId) : null;
   const currency = booking.price.currency;
   const paid = booking.status !== "requested" && booking.status !== "cancelled";
 
@@ -130,8 +131,9 @@ export default async function BookingPage({
                     <MapPin className="h-4 w-4 text-navy-400" /> {space.exactAddress}
                   </p>
                   <p className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-navy-400" /> {hostUser?.name} ·{" "}
-                    {hostUser?.phone ?? "+44 7700 900000"}
+                    <Phone className="h-4 w-4 text-navy-400" />
+                    {hostUser?.name ?? host?.displayName}
+                    {hostUser?.phone ? ` · ${hostUser.phone}` : ""}
                   </p>
                   <p className="text-navy-500">{space.accessRules}</p>
                 </div>

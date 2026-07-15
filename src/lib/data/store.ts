@@ -124,6 +124,7 @@ export interface CreateSpaceInput {
   hostId: string;
   title: string;
   airportSlug: string;
+  capacity?: number;
   approxArea: string;
   exactAddress: string;
   pricePerDay: number;
@@ -152,6 +153,7 @@ export function createSpace(input: CreateSpaceInput): Space {
     distanceMiles: 2.5,
     driveMinutes: 9,
     dimensions: { lengthM: input.lengthM, widthM: input.widthM },
+    capacity: input.capacity ?? 1,
     maxVehicleSize: input.maxVehicleSize,
     evCharger: input.evCharger,
     cctv: input.cctv,

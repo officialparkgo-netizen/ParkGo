@@ -104,6 +104,8 @@ export const portalAdmin: AreaDict = {
     "host.new.bioPh":
       "A friendly line about you and your space — builds trust with travellers.",
     "host.new.airport": "Airport",
+    "host.new.capacity": "Capacity (how many cars at once)",
+    "host.new.capacityHint": "Search hides your space on dates when it's fully booked.",
     "host.new.pricePerDay": "Price per day (£)",
     "host.new.publicArea": "Public area (shown before booking)",
     "host.new.publicAreaPh": "Longford, near T5",
@@ -272,6 +274,8 @@ export const portalAdmin: AreaDict = {
     "host.new.bioPh":
       "اپنے اور اپنی جگہ کے بارے میں ایک دوستانہ جملہ — مسافروں کے ساتھ اعتماد بناتا ہے۔",
     "host.new.airport": "ایئرپورٹ",
+    "host.new.capacity": "گنجائش (بیک وقت کتنی گاڑیاں)",
+    "host.new.capacityHint": "جن تاریخوں میں جگہ مکمل بک ہو، تلاش میں نظر نہیں آئے گی۔",
     "host.new.pricePerDay": "فی دن قیمت (£)",
     "host.new.publicArea": "عوامی علاقہ (بکنگ سے پہلے دکھایا جاتا ہے)",
     "host.new.publicAreaPh": "لانگفورڈ، T5 کے قریب",
@@ -440,6 +444,8 @@ export const portalAdmin: AreaDict = {
     "host.new.bioPh":
       "अपने और अपने स्थान के बारे में एक मित्रवत पंक्ति — यात्रियों के साथ भरोसा बनाती है।",
     "host.new.airport": "एयरपोर्ट",
+    "host.new.capacity": "क्षमता (एक साथ कितनी कारें)",
+    "host.new.capacityHint": "जिन तारीखों में जगह पूरी बुक हो, खोज में नहीं दिखेगी।",
     "host.new.pricePerDay": "प्रति दिन कीमत (£)",
     "host.new.publicArea": "सार्वजनिक क्षेत्र (बुकिंग से पहले दिखाया जाता है)",
     "host.new.publicAreaPh": "लॉन्गफोर्ड, T5 के पास",
@@ -608,6 +614,8 @@ export const portalAdmin: AreaDict = {
     "host.new.bioPh":
       "Eine freundliche Zeile über Sie und Ihren Platz — schafft Vertrauen bei Reisenden.",
     "host.new.airport": "Flughafen",
+    "host.new.capacity": "Kapazität (wie viele Autos gleichzeitig)",
+    "host.new.capacityHint": "An voll gebuchten Tagen wird Ihr Platz in der Suche ausgeblendet.",
     "host.new.pricePerDay": "Preis pro Tag (£)",
     "host.new.publicArea": "Öffentlicher Bereich (vor der Buchung angezeigt)",
     "host.new.publicAreaPh": "Longford, nahe T5",
@@ -776,6 +784,8 @@ export const portalAdmin: AreaDict = {
     "host.new.bioPh":
       "用一句友好的话介绍您和您的车位 — 建立与旅客的信任。",
     "host.new.airport": "机场",
+    "host.new.capacity": "容量（可同时停放几辆车）",
+    "host.new.capacityHint": "在订满的日期，您的车位不会出现在搜索结果中。",
     "host.new.pricePerDay": "每日价格（£）",
     "host.new.publicArea": "公开区域（预订前显示）",
     "host.new.publicAreaPh": "朗福德，靠近 T5",

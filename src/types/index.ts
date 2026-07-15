@@ -131,6 +131,8 @@ export interface Space {
   hostId: UUID;
   title: string;
   airportSlug: string;
+  /** How many cars fit at once (availability limit). Defaults to 1. */
+  capacity?: number;
   /** Free-text street/area shown publicly; exact address released post-payment. */
   approxArea: string;
   exactAddress: string; // released only after payment
