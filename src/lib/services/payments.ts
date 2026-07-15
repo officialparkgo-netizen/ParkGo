@@ -19,7 +19,7 @@ export interface ChargeRequest {
 export interface ChargeResult {
   ok: boolean;
   paymentId: string;
-  provider: "stripe" | "crypto" | "mock";
+  provider: "stripe" | "mock";
   error?: string;
 }
 
@@ -36,8 +36,8 @@ class MockGateway implements PaymentGateway {
   }
 }
 
-// Stripe / crypto adapters would implement PaymentGateway here. Kept as stubs so
-// the interface is the contract and providers drop in without UI changes.
+// Additional gateways implement PaymentGateway here. Kept as stubs so the
+// interface is the contract and providers drop in without UI changes.
 class StripeGateway implements PaymentGateway {
   readonly name = "stripe";
   async charge(): Promise<ChargeResult> {
@@ -50,9 +50,8 @@ export function getPaymentGateway(): PaymentGateway {
   return live ? new StripeGateway() : new MockGateway();
 }
 
-/** Supported payment methods surfaced at checkout (crypto is pluggable). */
+/** Supported payment methods surfaced at checkout. */
 export const PAYMENT_METHODS: { id: PaymentMethod; label: string; note: string }[] = [
   { id: "card", label: "Card", note: "Visa, Mastercard, Amex" },
   { id: "wallet", label: "Wallet", note: "Apple Pay / Google Pay" },
-  { id: "crypto", label: "Crypto", note: "Compliant wallet (provider TBD)" },
 ];

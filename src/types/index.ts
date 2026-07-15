@@ -289,8 +289,8 @@ export interface CameraStream {
 // Payments
 // -----------------------------------------------------------------------------
 
-export type PaymentMethod = "card" | "wallet" | "crypto";
-export type PaymentProvider = "stripe" | "crypto" | "mock";
+export type PaymentMethod = "card" | "wallet";
+export type PaymentProvider = "stripe" | "mock";
 export type PayoutStatus = "pending" | "scheduled" | "paid" | "refunded";
 
 export interface PaymentSplit {

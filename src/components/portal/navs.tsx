@@ -8,6 +8,7 @@ import {
   ScrollText,
   Search,
   Ticket,
+  Users,
   Warehouse,
 } from "lucide-react";
 import type { NavItem } from "@/components/portal/shell";
@@ -33,6 +34,8 @@ export const adminNav: NavItem[] = [
   { href: "/admin#verification", label: "nav.hostVerification", icon: BadgeCheck },
   { href: "/admin#operator", label: "nav.operator", icon: Radio },
   { href: "/admin#listings", label: "nav.listingsUsers", icon: Warehouse },
+  { href: "/admin#bookings", label: "nav.bookings", icon: CalendarCheck },
+  { href: "/admin#users", label: "nav.users", icon: Users },
   { href: "/admin#payments", label: "nav.payments", icon: Banknote },
   { href: "/admin#audit", label: "nav.audit", icon: ScrollText },
 ];

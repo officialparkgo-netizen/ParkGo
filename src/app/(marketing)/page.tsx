@@ -4,13 +4,19 @@ import {
   BadgeCheck,
   Banknote,
   Bell,
+  CalendarCheck,
   Camera,
   CarTaxiFront,
+  ChevronDown,
+  LifeBuoy,
+  Lock,
   MapPin,
   QrCode,
   Radio,
+  Search,
   ShieldCheck,
   Sparkles,
+  Warehouse,
   Zap,
 } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
@@ -70,6 +76,9 @@ export default async function HomePage() {
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Camera className="h-4 w-4 text-go-500" /> {t("home.hero.trust.camera")}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarCheck className="h-4 w-4 text-go-500" /> {t("home.hero.trust.cancel")}
               </span>
             </p>
           </div>
@@ -225,20 +234,107 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      {/* --------------------------------------------------------- Stats */}
+      {/* ----------------------------------------------------- Guarantees */}
       <Section>
+        <div className="mx-auto max-w-2xl text-center">
+          <Eyebrow>{t("home.guarantee.eyebrow")}</Eyebrow>
+          <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
+            {t("home.guarantee.heading")}
+          </h2>
+        </div>
+        <div className="mt-12 grid gap-5 md:grid-cols-3">
+          {[
+            { icon: CalendarCheck, cls: "bg-go-50 text-go-600", title: t("home.guarantee.cancel.title"), body: t("home.guarantee.cancel.body") },
+            { icon: Lock, cls: "bg-brand-50 text-brand-600", title: t("home.guarantee.secure.title"), body: t("home.guarantee.secure.body") },
+            { icon: LifeBuoy, cls: "bg-accent-50 text-accent-500", title: t("home.guarantee.support.title"), body: t("home.guarantee.support.body") },
+          ].map((g) => (
+            <Card key={g.title} className="card-hover p-6">
+              <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${g.cls}`}>
+                <g.icon className="h-5 w-5" />
+              </div>
+              <h3 className="text-base font-bold text-navy-900">{g.title}</h3>
+              <p className="mt-1.5 text-sm text-navy-600">{g.body}</p>
+            </Card>
+          ))}
+        </div>
+      </Section>
+
+      {/* --------------------------------------------------------- Stats */}
+      <Section className="pt-0">
         <div className="grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
           {[
             { k: "8", v: t("home.stats.airports") },
             { k: t("home.stats.onePrice"), v: t("home.stats.onePriceLabel") },
             { k: "100%", v: t("home.stats.verified") },
-            { k: "4", v: t("home.stats.languages") },
+            { k: "5", v: t("home.stats.languages") },
           ].map((s) => (
             <div key={s.v}>
               <div className="text-4xl font-extrabold text-white">{s.k}</div>
               <div className="mt-1 text-sm text-navy-200">{s.v}</div>
             </div>
           ))}
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------ FAQ teaser */}
+      <Section className="bg-navy-50/50">
+        <div className="mx-auto max-w-2xl text-center">
+          <Eyebrow>{t("home.faq.eyebrow")}</Eyebrow>
+          <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
+            {t("home.faq.heading")}
+          </h2>
+        </div>
+        <div className="mx-auto mt-10 max-w-3xl space-y-4">
+          {([1, 2, 3] as const).map((n) => (
+            <details
+              key={n}
+              className="group rounded-2xl border border-navy-100 bg-white p-5 shadow-card"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-bold text-navy-900 [&::-webkit-details-marker]:hidden">
+                {t(`travellers.faq.q${n}`)}
+                <ChevronDown className="h-4 w-4 shrink-0 text-navy-400 transition-transform group-open:rotate-180" />
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-navy-600">{t(`travellers.faq.a${n}`)}</p>
+            </details>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <Link href="/faq" className={buttonVariants({ variant: "outline" })}>
+            {t("home.faq.all")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
+          </Link>
+        </div>
+      </Section>
+
+      {/* ------------------------------------------------------ Closing CTA */}
+      <Section>
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-800 to-navy-900 p-10 text-center sm:p-14">
+          <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
+          <div
+            className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand-500/25 blur-3xl"
+            aria-hidden
+          />
+          <div className="relative mx-auto max-w-2xl">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              {t("home.cta.heading")}
+            </h2>
+            <p className="mt-3 text-navy-200">{t("home.cta.sub")}</p>
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/app/search" className={buttonVariants({ size: "lg" })}>
+                <Search className="h-4 w-4" /> {t("home.cta.find")}
+              </Link>
+              <Link
+                href="/hosts"
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "lg",
+                  className:
+                    "border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white",
+                })}
+              >
+                <Warehouse className="h-4 w-4" /> {t("home.cta.host")}
+              </Link>
+            </div>
+          </div>
         </div>
       </Section>
 

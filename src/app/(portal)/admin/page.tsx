@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import {
+  ArrowUpRight,
   Banknote,
+  CalendarCheck,
   Car,
   CheckCircle2,
   Clock,
   FileText,
+  Globe,
+  LayoutGrid,
   Radio,
   ScrollText,
+  Search,
   ShieldAlert,
+  Users,
   Warehouse,
   XCircle,
 } from "lucide-react";
@@ -30,6 +37,7 @@ import {
 } from "@/lib/data/verifications";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listNotificationsForUser } from "@/lib/data/notifications";
+import { getUsersByIds, listAllUsers } from "@/lib/data/users";
 import type { Host } from "@/types";
 
 function hostTrustScore(h: Host) {
@@ -93,6 +101,23 @@ export default async function AdminDashboard() {
     .map((h) => ({ name: h.displayName, type: "Host", score: hostTrustScore(h) }))
     .sort((a, b) => b.score.score - a.score.score);
 
+  // People & bookings overview.
+  const allUsers = await listAllUsers();
+  const travellerCount = allUsers.filter((u) => u.role === "traveller").length;
+  const hostCount = allUsers.filter((u) => u.role === "host").length;
+  const activeBookings = bookings.filter(
+    (b) => b.status === "paid" || b.status === "active"
+  ).length;
+  const recentBookings = [...bookings]
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .slice(0, 8);
+  const travellerMap = await getUsersByIds(recentBookings.map((b) => b.travellerId));
+  const spaceMap = new Map(spaces.map((s) => [s.id, s]));
+  const recentUsers = allUsers
+    .slice()
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .slice(0, 10);
+
   // Transfer is fulfilled by an independent licensed operator, integrated by API.
   const operator = getOperatorStatus();
   const operatorJobs = getOperatorJobs();
@@ -104,9 +129,23 @@ export default async function AdminDashboard() {
     <PortalShell user={user} nav={adminNav} title="admin.pageTitle">
       <div className="space-y-8">
         {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard label={t("admin.stat.hostReview")} value={String(pending.length)} sub={t("admin.stat.hostReviewSub")} icon={ShieldAlert} tone="accent" />
           <StatCard label={t("admin.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("admin.total")}`} icon={Warehouse} tone="brand" />
+          <StatCard
+            label={t("admin.stat.users")}
+            value={String(allUsers.length)}
+            sub={`${travellerCount} ${t("admin.stat.travellers")} · ${hostCount} ${t("admin.stat.hosts")}`}
+            icon={Users}
+            tone="navy"
+          />
+          <StatCard
+            label={t("admin.stat.bookings")}
+            value={String(bookings.length)}
+            sub={`${activeBookings} ${t("admin.stat.bookingsActive")}`}
+            icon={CalendarCheck}
+            tone="brand"
+          />
           <StatCard
             label={t("admin.stat.gmv")}
             value={formatMoney(gmv)}
@@ -118,6 +157,38 @@ export default async function AdminDashboard() {
           />
           <StatCard label={t("admin.stat.payoutsDue")} value={formatMoney(payoutsDue)} sub={t("admin.stat.payoutsDueSub")} icon={Banknote} tone="navy" />
         </div>
+
+        {/* Quick access — the admin account passes every role guard */}
+        <section id="portals" className="scroll-mt-20">
+          <h3 className="mb-1 text-lg font-bold text-navy-900">{t("admin.section.portals")}</h3>
+          <p className="mb-3 text-sm text-navy-500">{t("admin.portals.note")}</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <PortalLink
+              href="/app"
+              icon={<LayoutGrid className="h-5 w-5" />}
+              title={t("admin.portal.traveller")}
+              sub={t("admin.portal.travellerSub")}
+            />
+            <PortalLink
+              href="/host"
+              icon={<Warehouse className="h-5 w-5" />}
+              title={t("admin.portal.host")}
+              sub={t("admin.portal.hostSub")}
+            />
+            <PortalLink
+              href="/app/search"
+              icon={<Search className="h-5 w-5" />}
+              title={t("admin.portal.search")}
+              sub={t("admin.portal.searchSub")}
+            />
+            <PortalLink
+              href="/"
+              icon={<Globe className="h-5 w-5" />}
+              title={t("admin.portal.site")}
+              sub={t("admin.portal.siteSub")}
+            />
+          </div>
+        </section>
 
         {/* Host verification queue (driver/vehicle/insurance compliance sits with the operator) */}
         <section id="verification" className="scroll-mt-20">
@@ -338,6 +409,12 @@ export default async function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={s.status} />
+                    <Link
+                      href={`/app/space/${s.id}`}
+                      className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
+                    >
+                      <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
+                    </Link>
                     {needsReview && (
                       <form action={reviewSpaceAction} className="flex gap-2">
                         <input type="hidden" name="spaceId" value={s.id} />
@@ -363,6 +440,84 @@ export default async function AdminDashboard() {
                 </div>
               );
             })}
+          </Card>
+        </section>
+
+        {/* Recent bookings — every booking is one click away for support */}
+        <section id="bookings" className="scroll-mt-20">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
+            <CalendarCheck className="h-5 w-5 text-navy-500" /> {t("admin.section.recentBookings")}
+          </h3>
+          <Card className="divide-y divide-navy-100">
+            {recentBookings.length === 0 && (
+              <div className="p-6 text-center text-navy-500">{t("admin.bookings.empty")}</div>
+            )}
+            {recentBookings.map((b) => {
+              const traveller = travellerMap.get(b.travellerId);
+              const bSpace = spaceMap.get(b.spaceId);
+              return (
+                <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-sm font-bold text-navy-900">{b.reference}</span>
+                      <StatusBadge status={b.status} />
+                    </div>
+                    <div className="mt-1 text-xs text-navy-400">
+                      {traveller?.name ?? "—"} · {bSpace?.title ?? b.spaceId} ·{" "}
+                      {formatDate(b.startAt)} → {formatDate(b.endAt)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={
+                        b.status === "cancelled"
+                          ? "text-sm font-semibold text-navy-300 line-through"
+                          : "text-sm font-semibold text-navy-900"
+                      }
+                    >
+                      {formatMoney(b.price.total, b.price.currency)}
+                    </span>
+                    <Link
+                      href={`/app/booking/${b.id}`}
+                      className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
+                    >
+                      <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </Card>
+        </section>
+
+        {/* Users */}
+        <section id="users" className="scroll-mt-20">
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Users className="h-5 w-5 text-navy-500" /> {t("admin.section.users")}
+            </h3>
+            <Badge tone="neutral">{allUsers.length} {t("admin.total")}</Badge>
+          </div>
+          <Card className="divide-y divide-navy-100">
+            {recentUsers.length === 0 && (
+              <div className="p-6 text-center text-navy-500">{t("admin.users.empty")}</div>
+            )}
+            {recentUsers.map((u) => (
+              <div key={u.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <div className="font-semibold text-navy-900">{u.name}</div>
+                  <div className="truncate text-xs text-navy-400">{u.email}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge tone={u.role === "admin" ? "accent" : u.role === "host" ? "brand" : "neutral"}>
+                    {u.role}
+                  </Badge>
+                  <span className="text-xs text-navy-400">
+                    {t("admin.users.joined")} {formatDate(u.createdAt)}
+                  </span>
+                </div>
+              </div>
+            ))}
           </Card>
         </section>
 
@@ -423,6 +578,36 @@ function Metric({ value, label }: { value: string; label: string }) {
       <div className="font-bold text-navy-900">{value}</div>
       <div className="text-xs text-navy-400">{label}</div>
     </div>
+  );
+}
+
+function PortalLink({
+  href,
+  icon,
+  title,
+  sub,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-3 rounded-2xl border border-navy-100 bg-white p-4 shadow-card transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-lg"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1 font-bold text-navy-900">
+          {title}
+          <ArrowUpRight className="h-3.5 w-3.5 text-navy-300 transition-colors group-hover:text-brand-500" />
+        </span>
+        <span className="block truncate text-xs text-navy-500">{sub}</span>
+      </span>
+    </Link>
   );
 }
 

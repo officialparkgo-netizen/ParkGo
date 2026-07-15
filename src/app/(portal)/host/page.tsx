@@ -6,6 +6,7 @@ import {
   Bell,
   Camera,
   CalendarCheck,
+  Car,
   CheckCircle2,
   Image as ImageIcon,
   Pencil,
@@ -89,11 +90,23 @@ export default async function HostDashboard({
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout, 0);
   const liveCount = spaces.filter((s) => s.status === "live").length;
-  const upcomingCount = bookings.filter(
-    (b) =>
-      (b.status === "paid" || b.status === "active") &&
-      new Date(b.startAt).getTime() > Date.now()
-  ).length;
+  const upcoming = bookings
+    .filter(
+      (b) =>
+        (b.status === "paid" || b.status === "active") &&
+        new Date(b.startAt).getTime() > Date.now()
+    )
+    .sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt));
+  const upcomingCount = upcoming.length;
+  const nextBooking = upcoming[0];
+  const spaceMap = new Map(spaces.map((s) => [s.id, s]));
+
+  // Confirmed bookings per listing (cancelled ones don't count).
+  const bookingsBySpace = new Map<string, number>();
+  bookings.forEach((b) => {
+    if (b.status === "cancelled" || b.status === "requested") return;
+    bookingsBySpace.set(b.spaceId, (bookingsBySpace.get(b.spaceId) ?? 0) + 1);
+  });
 
   // Stripe Connect payout status (only when Stripe is configured).
   const stripeOn = isStripeConfigured();
@@ -144,6 +157,30 @@ export default async function HostDashboard({
           <StatCard label={t("host.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("host.total")}`} icon={Warehouse} tone="brand" />
           <StatCard label={t("host.stat.trustScore")} value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" />
         </div>
+
+        {/* Next arrival */}
+        {nextBooking && (
+          <Card className="flex flex-wrap items-center justify-between gap-3 border-brand-200 bg-brand-50/40 p-5">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+                <CalendarCheck className="h-5 w-5" />
+              </span>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                  {t("host.nextArrival")}
+                </div>
+                <div className="font-bold text-navy-900">
+                  {travellerMap.get(nextBooking.travellerId)?.name ?? "—"} ·{" "}
+                  {spaceMap.get(nextBooking.spaceId)?.title ?? nextBooking.spaceId}
+                </div>
+                <div className="text-sm text-navy-600">{formatDateTime(nextBooking.startAt)}</div>
+              </div>
+            </div>
+            <span className="text-lg font-extrabold text-navy-900">
+              +{formatMoney(nextBooking.price.split.hostPayout, nextBooking.price.currency)}
+            </span>
+          </Card>
+        )}
 
         {/* Payouts (Stripe Connect) */}
         {stripeOn && (
@@ -240,6 +277,15 @@ export default async function HostDashboard({
                       {s.photos.length > 0 && (
                         <Badge tone="neutral">
                           <ImageIcon className="h-3 w-3" /> {t("host.badge.photosLive")}
+                        </Badge>
+                      )}
+                      <Badge tone="navy">
+                        <Car className="h-3 w-3" /> {s.capacity ?? 1} {t("app.space.carSpaces")}
+                      </Badge>
+                      {(bookingsBySpace.get(s.id) ?? 0) > 0 && (
+                        <Badge tone="neutral">
+                          <CalendarCheck className="h-3 w-3" /> {bookingsBySpace.get(s.id)}{" "}
+                          {t("host.badge.bookings")}
                         </Badge>
                       )}
                       <Badge tone="neutral">{formatMoney(s.pricePerDay)}/day</Badge>

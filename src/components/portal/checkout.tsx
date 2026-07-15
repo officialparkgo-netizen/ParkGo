@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CarTaxiFront, CreditCard, Lock, ShieldCheck, Wallet, Zap, Bitcoin } from "lucide-react";
+import { CarTaxiFront, CreditCard, Lock, ShieldCheck, Wallet, Zap } from "lucide-react";
 import type { Space } from "@/types";
 import { priceBundle } from "@/lib/pricing";
 import { formatMoney } from "@/lib/utils";
@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 const METHODS = [
   { id: "card", labelKey: "app.checkout.card", icon: CreditCard },
   { id: "wallet", labelKey: "app.checkout.wallet", icon: Wallet },
-  { id: "crypto", labelKey: "app.checkout.crypto", icon: Bitcoin },
 ] as const;
 
 export function Checkout({
@@ -111,7 +110,7 @@ export function Checkout({
         </div>
 
         <h3 className="mt-6 text-sm font-bold text-navy-900">{t("app.checkout.paymentMethod")}</h3>
-        <div className="mt-2 grid grid-cols-3 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2">
           {METHODS.map((m) => (
             <button
               key={m.id}

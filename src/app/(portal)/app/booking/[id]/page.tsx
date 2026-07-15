@@ -50,7 +50,8 @@ export default async function BookingPage({
   const { id } = await params;
   const { new: isNew, cancelled, refund, cancelError } = await searchParams;
   const booking = await getBookingById(id);
-  if (!booking || booking.travellerId !== user.id) notFound();
+  const canView = booking && (booking.travellerId === user.id || user.role === "admin");
+  if (!booking || !canView) notFound();
 
   const space = await getSpaceById(booking.spaceId);
   if (!space) notFound();
@@ -61,9 +62,11 @@ export default async function BookingPage({
   const paid = booking.status !== "requested" && booking.status !== "cancelled";
 
   // Cancellation: allowed while paid and before drop-off. Free until 24h
-  // before; within 24h the late fee is kept and the rest refunded.
+  // before; within 24h the late fee is kept and the rest refunded. Only the
+  // booking owner can cancel — admins get a read-only view.
   const msToStart = new Date(booking.startAt).getTime() - Date.now();
-  const cancellable = booking.status === "paid" && msToStart > 0;
+  const cancellable =
+    booking.status === "paid" && msToStart > 0 && booking.travellerId === user.id;
   const lateCancel = cancellable && msToStart < CANCEL_FREE_WINDOW_MS;
   const previewRefund = lateCancel
     ? booking.price.total - Math.round((booking.price.total * CANCEL_FEE_BPS) / 10_000)

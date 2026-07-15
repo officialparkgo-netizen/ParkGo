@@ -1,6 +1,6 @@
 import type { User } from "@/types";
 import { IS_LIVE } from "@/lib/config";
-import { getUser as getUserMock } from "@/lib/data/store";
+import { getAllUsers as getAllUsersMock, getUser as getUserMock } from "@/lib/data/store";
 
 type UserRow = {
   id: string;
@@ -64,6 +64,19 @@ export async function getUsersByIds(ids: string[]): Promise<Map<string, User>> {
   const { data } = await supabaseAdmin().from("users").select(PROFILE_COLS).in("id", unique);
   (data ?? []).forEach((r) => map.set(r.id, userFromRow(r as UserRow)));
   return map;
+}
+
+/** All registered users, newest first (admin overview). */
+export async function listAllUsers(): Promise<User[]> {
+  if (!IS_LIVE) return getAllUsersMock();
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin()
+    .from("users")
+    .select(PROFILE_COLS)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return (data ?? []).map((r) => userFromRow(r as UserRow));
 }
 
 type AuthUserLike = {

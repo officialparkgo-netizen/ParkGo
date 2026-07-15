@@ -48,7 +48,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
   const { t } = await getI18n();
   const { id } = await params;
   const booking = await getBookingById(id);
-  if (!booking || booking.travellerId !== user.id) notFound();
+  if (!booking || (booking.travellerId !== user.id && user.role !== "admin")) notFound();
 
   const space = await getSpaceById(booking.spaceId);
   if (!space) notFound();

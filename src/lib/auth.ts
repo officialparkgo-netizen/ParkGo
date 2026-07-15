@@ -45,11 +45,14 @@ export async function requireUser(): Promise<User> {
   return user;
 }
 
-/** Guard: require a specific role, else redirect (login or that role's home). */
+/**
+ * Guard: require a specific role, else redirect (login or that role's home).
+ * Admins pass every guard so they can open the traveller and host portals too.
+ */
 export async function requireRole(role: Role): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${rolePath(role)}`);
-  if (user.role !== role) redirect(rolePath(user.role));
+  if (user.role !== role && user.role !== "admin") redirect(rolePath(user.role));
   return user;
 }
 
