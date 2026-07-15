@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { COMPANY } from "@/lib/seo";
 import { getI18n } from "@/lib/i18n";
 
 export async function SiteFooter() {
@@ -66,13 +67,26 @@ export async function SiteFooter() {
         </div>
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-navy-100 pt-6 text-sm text-navy-500 sm:flex-row">
           <p>
-            © {new Date().getFullYear()} ParkGo. {t("footer.rights")}
+            © {new Date().getFullYear()} {COMPANY.legalName}. {t("footer.rights")}
           </p>
           <p>{t("brand.tagline")}</p>
         </div>
-        <p className="mt-4 text-center text-xs text-navy-400 sm:text-left">
-          {t("footer.insurance")}
-        </p>
+        <div className="mt-4 space-y-1 text-center text-xs text-navy-400 sm:text-left">
+          <p>
+            {COMPANY.legalName} · {t("footer.registered")} {COMPANY.registeredIn}
+            {COMPANY.number && (
+              <>
+                {" "}
+                · {t("footer.companyNo")} {COMPANY.number}
+              </>
+            )}
+          </p>
+          <p>
+            {t("footer.regOffice")}: {COMPANY.registeredOffice} · {t("footer.ico")}:{" "}
+            {COMPANY.icoRef}
+          </p>
+          <p>{t("footer.insurance")}</p>
+        </div>
       </div>
     </footer>
   );

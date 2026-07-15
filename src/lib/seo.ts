@@ -9,6 +9,20 @@ export const SITE = {
   twitter: "@parkgo",
 };
 
+/**
+ * Legal identity shown site-wide (Companies Act 2006 requires the registered
+ * name, number and office on business websites). The company number comes from
+ * the NEXT_PUBLIC_COMPANY_NUMBER env var so it can be added without a deploy-
+ * time code change; the block renders it only when present.
+ */
+export const COMPANY = {
+  legalName: "PARKGO LIMITED",
+  registeredIn: "England & Wales",
+  number: process.env.NEXT_PUBLIC_COMPANY_NUMBER || "",
+  registeredOffice: "128 City Road, London, EC1V 2NX, United Kingdom",
+  icoRef: "ZC151803",
+};
+
 /** Build per-page metadata with sensible OpenGraph/canonical defaults. */
 export function pageMetadata({
   title,
