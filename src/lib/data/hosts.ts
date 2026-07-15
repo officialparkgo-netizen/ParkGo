@@ -348,7 +348,10 @@ export async function updateSpaceForHost(
     s.evCharger = input.evCharger;
     s.accessRules = input.accessRules;
     s.dimensions = { lengthM: input.lengthM, widthM: input.widthM };
-    if (input.newPhotos?.length) s.photos = [...s.photos, ...input.newPhotos].slice(0, 6);
+    if (input.newPhotos?.length) {
+      // Real uploads replace placeholder tokens (non-URL entries).
+      s.photos = [...s.photos.filter((p) => p.startsWith("http")), ...input.newPhotos].slice(0, 6);
+    }
     if (s.status === "rejected") s.status = "pending_review";
     return s;
   }
@@ -357,7 +360,7 @@ export async function updateSpaceForHost(
   if (!current || current.hostId !== hostId) return null;
 
   const photos = input.newPhotos?.length
-    ? [...current.photos, ...input.newPhotos].slice(0, 6)
+    ? [...current.photos.filter((p) => p.startsWith("http")), ...input.newPhotos].slice(0, 6)
     : current.photos;
 
   const { supabaseAdmin } = await import("@/lib/supabase/server");
