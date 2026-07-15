@@ -114,6 +114,44 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
   return { message: "Check your email to confirm your account, then sign in." };
 }
 
+/** Forgot password: email a reset link (lands on /account via /auth/confirm). */
+export async function requestPasswordReset(
+  _prev: AuthState,
+  formData: FormData
+): Promise<AuthState> {
+  const email = String(formData.get("email") || "");
+  if (!email.includes("@")) return { error: "Please enter a valid email address." };
+
+  const { createServerSupabase } = await import("@/lib/supabase/auth-server");
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${SITE_URL}/auth/confirm?next=${encodeURIComponent("/account?reset=1")}`,
+  });
+  if (error) return { error: error.message || "Could not send the reset link." };
+  return { message: "Password reset link sent — check your email." };
+}
+
+/** Signed-in user: set a new password (Account page). */
+export async function updatePasswordAction(
+  _prev: AuthState,
+  formData: FormData
+): Promise<AuthState> {
+  const password = String(formData.get("password") || "");
+  const confirm = String(formData.get("confirm") || "");
+  if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  if (password !== confirm) return { error: "Passwords do not match." };
+
+  if (!IS_LIVE) {
+    return { error: "Password change isn't available for demo accounts." };
+  }
+
+  const { createServerSupabase } = await import("@/lib/supabase/auth-server");
+  const supabase = await createServerSupabase();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message || "Could not update your password." };
+  return { message: "Password updated ✔" };
+}
+
 export async function signInWithMagicLink(
   _prev: AuthState,
   formData: FormData

@@ -4,6 +4,14 @@ import type { AreaDict } from "@/lib/i18n/config";
 export const portalAdmin: AreaDict = {
   en: {
     // --- Login page ---
+    "account.title": "Account",
+    "account.resetBanner": "You're signed in — set your new password below.",
+    "account.password.title": "Change password",
+    "account.password.sub": "Use at least 8 characters. You'll stay signed in after the change.",
+    "account.password.new": "New password (8+ characters)",
+    "account.password.confirm": "Confirm new password",
+    "account.password.btn": "Update password",
+    "account.securityNote": "Your account is protected by Supabase Auth. We never see or store your password.",
     "login.linkError": "That link is invalid or has expired — please sign in or request a new one.",
     "login.demoMode": "Demo mode",
     "login.chooseRole": "Choose a role to explore",
@@ -166,6 +174,14 @@ export const portalAdmin: AreaDict = {
 
   ur: {
     // --- Login page ---
+    "account.title": "اکاؤنٹ",
+    "account.resetBanner": "آپ سائن اِن ہیں — نیچے اپنا نیا پاس ورڈ سیٹ کریں۔",
+    "account.password.title": "پاس ورڈ تبدیل کریں",
+    "account.password.sub": "کم از کم 8 حروف استعمال کریں۔ تبدیلی کے بعد آپ سائن اِن رہیں گے۔",
+    "account.password.new": "نیا پاس ورڈ (8+ حروف)",
+    "account.password.confirm": "نئے پاس ورڈ کی تصدیق",
+    "account.password.btn": "پاس ورڈ اپ ڈیٹ کریں",
+    "account.securityNote": "آپ کا اکاؤنٹ Supabase Auth سے محفوظ ہے۔ ہم آپ کا پاس ورڈ کبھی نہیں دیکھتے۔",
     "login.linkError": "یہ لنک غلط ہے یا اس کی میعاد ختم ہو گئی ہے — براہ کرم سائن ان کریں یا نیا لنک منگوائیں۔",
     "login.demoMode": "ڈیمو موڈ",
     "login.chooseRole": "دریافت کرنے کے لیے ایک کردار منتخب کریں",
@@ -326,6 +342,14 @@ export const portalAdmin: AreaDict = {
 
   hi: {
     // --- Login page ---
+    "account.title": "खाता",
+    "account.resetBanner": "आप साइन इन हैं — नीचे अपना नया पासवर्ड सेट करें।",
+    "account.password.title": "पासवर्ड बदलें",
+    "account.password.sub": "कम से कम 8 अक्षर उपयोग करें। बदलाव के बाद आप साइन इन रहेंगे।",
+    "account.password.new": "नया पासवर्ड (8+ अक्षर)",
+    "account.password.confirm": "नए पासवर्ड की पुष्टि करें",
+    "account.password.btn": "पासवर्ड अपडेट करें",
+    "account.securityNote": "आपका खाता Supabase Auth से सुरक्षित है। हम आपका पासवर्ड कभी नहीं देखते।",
     "login.linkError": "यह लिंक अमान्य है या समाप्त हो गया है — कृपया साइन इन करें या नया लिंक मंगवाएं।",
     "login.demoMode": "डेमो मोड",
     "login.chooseRole": "अन्वेषण के लिए एक भूमिका चुनें",
@@ -486,6 +510,14 @@ export const portalAdmin: AreaDict = {
 
   de: {
     // --- Login page ---
+    "account.title": "Konto",
+    "account.resetBanner": "Sie sind angemeldet — legen Sie unten Ihr neues Passwort fest.",
+    "account.password.title": "Passwort ändern",
+    "account.password.sub": "Mindestens 8 Zeichen. Sie bleiben nach der Änderung angemeldet.",
+    "account.password.new": "Neues Passwort (8+ Zeichen)",
+    "account.password.confirm": "Neues Passwort bestätigen",
+    "account.password.btn": "Passwort aktualisieren",
+    "account.securityNote": "Ihr Konto ist durch Supabase Auth geschützt. Wir sehen oder speichern Ihr Passwort nie.",
     "login.linkError": "Dieser Link ist ungültig oder abgelaufen — bitte melden Sie sich an oder fordern Sie einen neuen an.",
     "login.demoMode": "Demomodus",
     "login.chooseRole": "Wählen Sie eine Rolle zum Erkunden",
@@ -646,6 +678,14 @@ export const portalAdmin: AreaDict = {
 
   zh: {
     // --- Login page ---
+    "account.title": "账户",
+    "account.resetBanner": "您已登录 — 请在下方设置新密码。",
+    "account.password.title": "修改密码",
+    "account.password.sub": "至少8个字符。修改后您将保持登录状态。",
+    "account.password.new": "新密码（8个以上字符）",
+    "account.password.confirm": "确认新密码",
+    "account.password.btn": "更新密码",
+    "account.securityNote": "您的账户受 Supabase Auth 保护。我们绝不会看到或存储您的密码。",
     "login.linkError": "该链接无效或已过期 — 请登录或重新获取链接。",
     "login.demoMode": "演示模式",
     "login.chooseRole": "选择一个角色进行体验",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, Settings } from "lucide-react";
 import type { User } from "@/types";
 import { Logo } from "@/components/brand/logo";
 import { Badge } from "@/components/ui/badge";
@@ -66,14 +66,22 @@ export async function PortalShell({
               label={t("nav.menu")}
               closeLabel={t("nav.closeMenu")}
               footer={
-                <form action={logout}>
-                  <button
-                    type="submit"
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                <div className="space-y-1">
+                  <Link
+                    href="/account"
+                    className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-50"
                   >
-                    <LogOut className="h-5 w-5" /> {t("portal.signOut")}
-                  </button>
-                </form>
+                    <Settings className="h-5 w-5" /> {t("account.title")}
+                  </Link>
+                  <form action={logout}>
+                    <button
+                      type="submit"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      <LogOut className="h-5 w-5" /> {t("portal.signOut")}
+                    </button>
+                  </form>
+                </div>
               }
             />
             <h1 className="truncate text-lg font-bold text-navy-900">{t(title)}</h1>
@@ -119,6 +127,14 @@ function UserCard({ user, signOut }: { user: User; signOut: string }) {
           <div className="truncate text-sm font-semibold text-navy-900">{user.name}</div>
           <div className="truncate text-xs text-navy-400">{user.email}</div>
         </div>
+        <Link
+          href="/account"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-navy-400 hover:bg-navy-50 hover:text-navy-700"
+          aria-label="Account"
+          title="Account"
+        >
+          <Settings className="h-4 w-4" />
+        </Link>
         <form action={logout}>
           <button
             type="submit"

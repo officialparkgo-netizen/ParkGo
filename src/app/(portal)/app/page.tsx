@@ -1,11 +1,23 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, CarTaxiFront, MapPin, QrCode, Radio, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarCheck,
+  CarTaxiFront,
+  MapPin,
+  QrCode,
+  Radio,
+  Star,
+  Ticket,
+  Zap,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Photo } from "@/components/common/photo";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
+import { StatCard } from "@/components/portal/stat-card";
 import { travellerNav } from "@/components/portal/navs";
 import { SearchWidget } from "@/components/marketing/search-widget";
 import { requireRole } from "@/lib/auth";
@@ -26,6 +38,16 @@ export default async function TravellerDashboard() {
   const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code }));
   const active = bookings.find((b) => b.status === "active");
 
+  const now = Date.now();
+  const isFinishedUnreviewed = (b: (typeof bookings)[number]) =>
+    b.status === "completed" ||
+    ((b.status === "paid" || b.status === "active") && new Date(b.endAt).getTime() < now);
+  const upcomingCount = bookings.filter(
+    (b) =>
+      (b.status === "paid" || b.status === "active") && new Date(b.startAt).getTime() > now
+  ).length;
+  const toReviewCount = bookings.filter(isFinishedUnreviewed).length;
+
   return (
     <PortalShell user={user} nav={travellerNav} title="nav.dashboard">
       <div className="mx-auto max-w-5xl space-y-8">
@@ -35,6 +57,33 @@ export default async function TravellerDashboard() {
           </h2>
           <p className="text-navy-500">{t("app.dash.sub")}</p>
         </div>
+
+        {/* Stats */}
+        {bookings.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-3">
+            <StatCard
+              label={t("app.dash.stat.upcoming")}
+              value={String(upcomingCount)}
+              sub={t("app.dash.stat.upcomingSub")}
+              icon={CalendarCheck}
+              tone="brand"
+            />
+            <StatCard
+              label={t("app.dash.stat.trips")}
+              value={String(bookings.length)}
+              sub={t("app.dash.stat.tripsSub")}
+              icon={Ticket}
+              tone="navy"
+            />
+            <StatCard
+              label={t("app.dash.stat.toReview")}
+              value={String(toReviewCount)}
+              sub={t("app.dash.stat.toReviewSub")}
+              icon={Star}
+              tone="go"
+            />
+          </div>
+        )}
 
         {/* Quick search */}
         <section>
@@ -66,10 +115,17 @@ export default async function TravellerDashboard() {
                 const airport = space ? getAirport(space.airportSlug) : undefined;
                 const currency = airport?.country === "IE" ? "EUR" : "GBP";
                 const canTrack = b.status === "active" || b.status === "paid";
+                const needsReview = isFinishedUnreviewed(b);
                 return (
-                  <Card key={b.id} className="p-4">
+                  <Card key={b.id} className="card-hover p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
+                      <div className="flex items-center gap-4">
+                        <Photo
+                          token={space?.photos[0] ?? "drive-1"}
+                          className="hidden h-20 w-28 shrink-0 sm:block"
+                          rounded="rounded-xl"
+                        />
+                        <div>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm font-bold text-navy-900">
                             {b.reference}
@@ -95,6 +151,7 @@ export default async function TravellerDashboard() {
                             </Badge>
                           )}
                         </div>
+                        </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <div className="text-lg font-extrabold text-navy-900">
@@ -107,13 +164,22 @@ export default async function TravellerDashboard() {
                           >
                             <QrCode className="h-4 w-4" /> {t("app.dash.booking")}
                           </Link>
-                          {canTrack && (
+                          {needsReview ? (
                             <Link
                               href={`/app/booking/${b.id}/track`}
                               className={buttonVariants({ size: "sm" })}
                             >
-                              <Radio className="h-4 w-4" /> {t("app.dash.track")}
+                              <Star className="h-4 w-4" /> {t("app.dash.review")}
                             </Link>
+                          ) : (
+                            canTrack && (
+                              <Link
+                                href={`/app/booking/${b.id}/track`}
+                                className={buttonVariants({ size: "sm" })}
+                              >
+                                <Radio className="h-4 w-4" /> {t("app.dash.track")}
+                              </Link>
+                            )
                           )}
                         </div>
                       </div>

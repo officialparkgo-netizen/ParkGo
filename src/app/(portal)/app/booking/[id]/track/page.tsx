@@ -216,7 +216,9 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Review after the trip */}
-        {booking.status === "completed" && (
+        {(booking.status === "completed" ||
+          ((booking.status === "paid" || booking.status === "active") &&
+            new Date(booking.endAt).getTime() < Date.now())) && (
           <div className="mx-auto max-w-xl">
             <ReviewForm bookingId={booking.id} />
           </div>

@@ -5,15 +5,11 @@ import { revalidatePath } from "next/cache";
 import type { BookingBundle, PaymentMethod } from "@/types";
 import { requireUser, requireRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
-import {
-  addReview,
-  confirmHandover,
-  getBooking,
-  setBookingStatus,
-} from "@/lib/data/store";
+import { confirmHandover, getBooking } from "@/lib/data/store";
 import { getHostById, getSpaceById, reviewSpaceListing } from "@/lib/data/hosts";
 import { reviewVerificationLive } from "@/lib/data/verifications";
-import { cancelBooking, createBookingLive } from "@/lib/data/bookings";
+import { cancelBooking, createBookingLive, getBookingById } from "@/lib/data/bookings";
+import { createSpaceReview } from "@/lib/data/reviews";
 import { getPaymentGateway } from "@/lib/services/payments";
 import { isStripeConfigured, createBookingCheckoutSession } from "@/lib/stripe";
 
@@ -107,24 +103,32 @@ export async function submitReviewAction(
   const bookingId = String(formData.get("bookingId") || "");
   const rating = Number(formData.get("rating") || 0);
   const comment = String(formData.get("comment") || "").trim();
-  const booking = getBooking(bookingId);
+  const booking = await getBookingById(bookingId);
   if (!booking || booking.travellerId !== user.id) return { error: "Booking not found." };
   if (rating < 1 || rating > 5) {
     const { t } = await getI18n();
     return { error: t("err.rating") };
   }
 
-  addReview({
+  // Reviewable once the trip is over (or explicitly completed), once per booking.
+  const finished =
+    booking.status === "completed" ||
+    ((booking.status === "paid" || booking.status === "active") &&
+      new Date(booking.endAt).getTime() < Date.now());
+  if (booking.status === "reviewed") return { error: "You've already reviewed this trip." };
+  if (!finished) return { error: "You can review after your trip ends." };
+
+  const review = await createSpaceReview({
     bookingId,
     authorId: user.id,
-    authorRole: "traveller",
-    subjectId: booking.spaceId,
-    subjectType: "space",
+    spaceId: booking.spaceId,
     rating,
     comment,
   });
-  setBookingStatus(bookingId, "reviewed");
+  if (!review) return { error: "You've already reviewed this trip." };
+
   revalidatePath(`/app/booking/${bookingId}/track`);
+  revalidatePath(`/app/space/${booking.spaceId}`);
   revalidatePath("/app");
   return { ok: true };
 }

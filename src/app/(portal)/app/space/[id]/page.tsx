@@ -24,8 +24,10 @@ import { MapboxMap } from "@/components/portal/mapbox-map";
 import { requireRole } from "@/lib/auth";
 
 const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-import { getAirport, getReviewsForSpace, getUser } from "@/lib/data/store";
+import { getAirport, getUser } from "@/lib/data/store";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
+import { listReviewsForSpace } from "@/lib/data/reviews";
+import { getUsersByIds } from "@/lib/data/users";
 import { priceBundle } from "@/lib/pricing";
 import { projectToViewport } from "@/lib/services/maps";
 import { daysBetween, formatDate, formatMoneyShort, initials } from "@/lib/utils";
@@ -51,7 +53,8 @@ export default async function SpaceDetail({
   const airport = getAirport(space.airportSlug);
   const host = await getHostById(space.hostId);
   const hostUser = host ? getUser(host.userId) : undefined;
-  const reviews = getReviewsForSpace(space.id);
+  const reviews = await listReviewsForSpace(space.id);
+  const reviewAuthors = await getUsersByIds(reviews.map((r) => r.authorId));
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
 
   // Total for the selected (or default 7-day) window — shown Airbnb-style.
@@ -221,7 +224,7 @@ export default async function SpaceDetail({
               ) : (
                 <div className="space-y-3">
                   {reviews.map((r) => {
-                    const author = getUser(r.authorId);
+                    const author = reviewAuthors.get(r.authorId);
                     return (
                       <Card key={r.id} className="p-4">
                         <div className="flex items-center justify-between">

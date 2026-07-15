@@ -6,6 +6,7 @@ import {
   signInWithPassword,
   signUp,
   signInWithMagicLink,
+  requestPasswordReset,
   type AuthState,
 } from "@/lib/auth-actions";
 import { Button } from "@/components/ui/button";
@@ -26,9 +27,13 @@ export function AuthForm({ next }: { next?: string }) {
     signInWithMagicLink,
     {}
   );
+  const [resetState, resetAction, resetPending] = useActionState<AuthState, FormData>(
+    requestPasswordReset,
+    {}
+  );
 
-  const rawError = state.error || magicState.error;
-  const rawMessage = state.message || magicState.message;
+  const rawError = state.error || magicState.error || resetState.error;
+  const rawMessage = state.message || magicState.message || resetState.message;
   const error = rawError
     ? typeof rawError === "string"
       ? rawError
@@ -113,6 +118,20 @@ export function AuthForm({ next }: { next?: string }) {
           )}
         </Button>
       </form>
+
+      {mode === "signin" && (
+        <form action={resetAction} className="mt-2 text-right">
+          <input type="hidden" name="email" value={email} />
+          <button
+            type="submit"
+            disabled={resetPending || !email}
+            title={!email ? "Enter your email above first" : undefined}
+            className="text-sm font-semibold text-brand-600 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {resetPending ? "Sending…" : "Forgot password?"}
+          </button>
+        </form>
+      )}
 
       {/* Magic link */}
       <div className="my-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-navy-300">
