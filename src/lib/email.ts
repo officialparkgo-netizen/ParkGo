@@ -9,6 +9,7 @@ import { COMPANY } from "@/lib/seo";
  */
 
 const FROM = process.env.EMAIL_FROM || "ParkGo <no-reply@parkgo.ai>";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export function isEmailConfigured(): boolean {
   return IS_LIVE && !!process.env.RESEND_API_KEY;
@@ -35,8 +36,9 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
 export function emailShell(body: string): string {
   return `<div style="background:#F6F7F8;padding:24px 12px">
   <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;font-family:Arial,Helvetica,sans-serif">
-    <div style="background:#15171A;padding:18px 24px">
-      <span style="font-size:20px;font-weight:800;color:#ffffff">Park<span style="color:#F26A1B">Go</span></span>
+    <div style="background:#15171A;padding:16px 24px">
+      <img src="${SITE}/email-logo.png" width="30" height="30" alt="" style="vertical-align:middle;margin-right:10px" />
+      <span style="font-size:20px;font-weight:800;color:#ffffff;vertical-align:middle">Park<span style="color:#F26A1B">Go</span></span>
     </div>
     <div style="padding:24px;color:#2A2E34;font-size:15px;line-height:1.55">${body}</div>
     <div style="padding:14px 24px;border-top:1px solid #ececec;font-size:11px;color:#878D96">
