@@ -64,17 +64,24 @@ export default async function SpaceDetail({
   const reviewAuthors = await getUsersByIds(reviews.map((r) => r.authorId));
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
 
-  // Total for the selected (or default 7-day) window — shown Airbnb-style.
+  // Total for the selected (or default 7-day) window — shown Airbnb-style,
+  // with the full breakdown in the booking rail.
   const start = sp.from ? new Date(sp.from).toISOString() : new Date(Date.now() + 2 * 86_400_000).toISOString();
   const end = sp.to ? new Date(sp.to).toISOString() : new Date(Date.now() + 9 * 86_400_000).toISOString();
   const nights = daysBetween(start, end);
-  const priceTotal = priceBundle(
+  const withTransfer = sp.transfer === "1";
+  const withEv = sp.ev === "1" && !!space.evCharger;
+  const price = priceBundle(
     space,
-    { parking: true, transfer: sp.transfer === "1", ev: sp.ev === "1" && !!space.evCharger },
+    { parking: true, transfer: withTransfer, ev: withEv },
     start,
     end,
     currency
-  ).total;
+  );
+  const priceTotal = price.total;
+
+  // Gallery: real photos only — placeholders appear only when there are none.
+  const photos = space.photos.length > 0 ? space.photos : ["drive-1", "yard-1", "ev-1"];
 
   // project space + terminal into the schematic map's 0–100 space
   const project = projectToViewport([
@@ -111,14 +118,30 @@ export default async function SpaceDetail({
           </div>
         )}
 
-        {/* Gallery */}
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Photo token={space.photos[0] ?? "drive-1"} className="h-64 sm:col-span-2 sm:h-80" />
-          <div className="grid gap-3">
-            <Photo token={space.photos[1] ?? "yard-1"} className="h-[7.75rem] sm:h-[9.5rem]" />
-            <Photo token={space.photos[2] ?? "ev-1"} className="h-[7.75rem] sm:h-[9.5rem]" />
+        {/* Gallery — layout adapts to how many photos the host uploaded */}
+        {photos.length === 1 ? (
+          <Photo token={photos[0]} className="h-64 sm:h-80" />
+        ) : photos.length === 2 ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Photo token={photos[0]} className="h-64 sm:col-span-2 sm:h-80" />
+            <Photo token={photos[1]} className="h-40 sm:h-80" />
           </div>
-        </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Photo token={photos[0]} className="h-64 sm:col-span-2 sm:h-80" />
+            <div className="grid gap-3">
+              <Photo token={photos[1]} className="h-[7.75rem] sm:h-[9.5rem]" />
+              <div className="relative">
+                <Photo token={photos[2]} className="h-[7.75rem] w-full sm:h-[9.5rem]" />
+                {photos.length > 3 && (
+                  <span className="absolute bottom-2 right-2 rounded-lg bg-navy-900/80 px-2 py-1 text-xs font-semibold text-white">
+                    +{photos.length - 3} {t("app.space.morePhotos")}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Host profile — shown to guests before booking (Airbnb-style) */}
         <Card className="flex items-start gap-4 p-5">
@@ -281,9 +304,51 @@ export default async function SpaceDetail({
                 </span>
                 <Stars rating={space.rating} count={space.reviewCount} />
               </div>
-              <Link href={bookHref} className={buttonVariants({ size: "lg", className: "mt-4 w-full" })}>
-                {t("common.bookSpace")}
-              </Link>
+
+              {/* Transparent breakdown — same maths as checkout */}
+              <dl className="mt-4 space-y-1.5 border-t border-navy-100 pt-3 text-sm">
+                <div className="flex items-center justify-between text-navy-600">
+                  <dt>
+                    {formatMoneyShort(space.pricePerDay, currency)} × {nights}{" "}
+                    {nights === 1 ? t("common.day") : t("common.days")}
+                  </dt>
+                  <dd className="font-semibold text-navy-800">
+                    {formatMoneyShort(price.parking, currency)}
+                  </dd>
+                </div>
+                {withTransfer && (
+                  <div className="flex items-center justify-between text-navy-600">
+                    <dt>{t("app.booking.licensedTransfer")}</dt>
+                    <dd className="font-semibold text-navy-800">
+                      {formatMoneyShort(price.transfer, currency)}
+                    </dd>
+                  </div>
+                )}
+                {withEv && (
+                  <div className="flex items-center justify-between text-navy-600">
+                    <dt>{t("app.booking.evCharging")}</dt>
+                    <dd className="font-semibold text-navy-800">
+                      {formatMoneyShort(price.ev, currency)}
+                    </dd>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-navy-600">
+                  <dt>{t("app.booking.serviceFee")}</dt>
+                  <dd className="font-semibold text-navy-800">
+                    {formatMoneyShort(price.serviceFee, currency)}
+                  </dd>
+                </div>
+              </dl>
+
+              {space.status === "live" ? (
+                <Link href={bookHref} className={buttonVariants({ size: "lg", className: "mt-4 w-full" })}>
+                  {t("common.bookSpace")}
+                </Link>
+              ) : (
+                <div className="mt-4 rounded-xl bg-navy-50 px-4 py-3 text-center text-sm font-semibold text-navy-500">
+                  {t("app.space.notBookable")}
+                </div>
+              )}
               <ul className="mt-4 space-y-2 text-sm text-navy-600">
                 <li className="flex items-center gap-2">
                   <BadgeCheck className="h-4 w-4 text-go-500" /> {t("app.space.freeCancellation")}

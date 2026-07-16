@@ -13,22 +13,35 @@ function isoDay(offsetDays: number) {
   return d.toISOString().slice(0, 10);
 }
 
+export interface SearchWidgetInitial {
+  airport?: string;
+  from?: string;
+  to?: string;
+  vehicle?: string;
+  ev?: boolean;
+  transfer?: boolean;
+  cctv?: boolean;
+}
+
 export function SearchWidget({
   airports,
   compact = false,
+  initial,
 }: {
   airports: Pick<Airport, "slug" | "name" | "code">[];
   compact?: boolean;
+  /** Pre-fill from the current query so refining a search keeps its state. */
+  initial?: SearchWidgetInitial;
 }) {
   const router = useRouter();
   const t = useT();
-  const [airport, setAirport] = useState(airports[0]?.slug ?? "heathrow");
-  const [from, setFrom] = useState(isoDay(2));
-  const [to, setTo] = useState(isoDay(7));
-  const [vehicle, setVehicle] = useState("");
-  const [needsEv, setNeedsEv] = useState(false);
-  const [needsTransfer, setNeedsTransfer] = useState(false);
-  const [needsCctv, setNeedsCctv] = useState(false);
+  const [airport, setAirport] = useState(initial?.airport ?? airports[0]?.slug ?? "heathrow");
+  const [from, setFrom] = useState(initial?.from ?? isoDay(2));
+  const [to, setTo] = useState(initial?.to ?? isoDay(7));
+  const [vehicle, setVehicle] = useState(initial?.vehicle ?? "");
+  const [needsEv, setNeedsEv] = useState(initial?.ev ?? false);
+  const [needsTransfer, setNeedsTransfer] = useState(initial?.transfer ?? false);
+  const [needsCctv, setNeedsCctv] = useState(initial?.cctv ?? false);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -73,6 +86,7 @@ export function SearchWidget({
           <input
             type="date"
             value={from}
+            min={isoDay(0)}
             onChange={(e) => setFrom(e.target.value)}
             className="h-11 w-full rounded-xl border border-navy-200 bg-white px-3 text-sm text-navy-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />

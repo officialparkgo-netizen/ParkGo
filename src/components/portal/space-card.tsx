@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Car, Clock, MapPin, ShieldCheck, Zap } from "lucide-react";
+import { BadgeCheck, Camera, Car, Clock, MapPin, ShieldCheck, Zap } from "lucide-react";
 import type { SearchResult } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Stars } from "@/components/common/stars";
@@ -57,6 +57,11 @@ export function SpaceCard({ result }: { result: SearchResult }) {
           <span className="inline-flex items-center gap-1">
             <Car className="h-3.5 w-3.5" /> {t("app.card.fits")} {space.maxVehicleSize}
           </span>
+          {(space.capacity ?? 1) > 1 && (
+            <span className="inline-flex items-center gap-1">
+              <Car className="h-3.5 w-3.5" /> {space.capacity} {t("app.space.carSpaces")}
+            </span>
+          )}
           {space.cctv && (
             <span className="inline-flex items-center gap-1">
               <ShieldCheck className="h-3.5 w-3.5" /> {t("search.cctv")}
@@ -71,6 +76,9 @@ export function SpaceCard({ result }: { result: SearchResult }) {
             </div>
             <div className="text-xl font-extrabold text-navy-900">
               {formatMoneyShort(estimatedTotal, currency)}
+            </div>
+            <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-go-600">
+              <BadgeCheck className="h-3.5 w-3.5" /> {t("app.space.freeCancellation")}
             </div>
           </div>
           <Link href={`/app/space/${space.id}`} className={buttonVariants({ size: "sm" })}>

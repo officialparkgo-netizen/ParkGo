@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, SearchX } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -29,6 +29,7 @@ export default async function SearchPage({
     transfer?: string;
     cctv?: string;
     vehicle?: string;
+    sort?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
@@ -38,7 +39,7 @@ export default async function SearchPage({
   const airportSlug = sp.airport || "heathrow";
   const airport = getAirport(airportSlug);
 
-  const results = await searchLiveSpaces({
+  const unsorted = await searchLiveSpaces({
     airportSlug,
     startAt: sp.from ? new Date(sp.from).toISOString() : undefined,
     endAt: sp.to ? new Date(sp.to).toISOString() : undefined,
@@ -47,6 +48,29 @@ export default async function SearchPage({
     needsCctv: sp.cctv === "1",
     vehicleSize: (sp.vehicle as "small" | "medium" | "large" | "van" | undefined) || undefined,
   });
+
+  // Sorting: recommended keeps the data-layer order.
+  const sort = ["price", "rating", "closest"].includes(sp.sort ?? "")
+    ? (sp.sort as "price" | "rating" | "closest")
+    : "recommended";
+  const results = [...unsorted];
+  if (sort === "price") results.sort((a, b) => a.estimatedTotal - b.estimatedTotal);
+  if (sort === "rating") results.sort((a, b) => b.space.rating - a.space.rating);
+  if (sort === "closest") results.sort((a, b) => a.space.driveMinutes - b.space.driveMinutes);
+
+  const sortHref = (key: string) => {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(sp)) if (v && k !== "sort") params.set(k, v);
+    if (!params.get("airport")) params.set("airport", airportSlug);
+    if (key !== "recommended") params.set("sort", key);
+    return `/app/search?${params.toString()}`;
+  };
+  const clearFiltersHref = (() => {
+    const params = new URLSearchParams({ airport: airportSlug });
+    if (sp.from) params.set("from", sp.from);
+    if (sp.to) params.set("to", sp.to);
+    return `/app/search?${params.toString()}`;
+  })();
 
   const suggestion = optimiseJourney(results, {
     needsEv: sp.ev === "1",
@@ -57,15 +81,55 @@ export default async function SearchPage({
   return (
     <PortalShell user={user} nav={travellerNav} title="nav.findParking">
       <div className="mx-auto max-w-6xl space-y-6">
-        <SearchWidget airports={airports} />
+        <SearchWidget
+          airports={airports}
+          initial={{
+            airport: airportSlug,
+            from: sp.from,
+            to: sp.to,
+            vehicle: sp.vehicle,
+            ev: sp.ev === "1",
+            transfer: sp.transfer === "1",
+            cctv: sp.cctv === "1",
+          }}
+        />
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-navy-900">
-            {results.length} {t("app.search.spacesNear")} {airport?.name ?? t("app.search.yourAirport")}
-          </h2>
-          <div className="flex gap-2">
-            {sp.cctv === "1" && <Badge tone="go">{t("app.search.cctvCamera")}</Badge>}
-            {sp.transfer === "1" && <Badge tone="brand">{t("app.search.plusTransfer")}</Badge>}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-navy-900">
+              {results.length} {t("app.search.spacesNear")} {airport?.name ?? t("app.search.yourAirport")}
+            </h2>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {sp.cctv === "1" && <Badge tone="go">{t("app.search.cctvCamera")}</Badge>}
+              {sp.transfer === "1" && <Badge tone="brand">{t("app.search.plusTransfer")}</Badge>}
+              {sp.ev === "1" && <Badge tone="brand">{t("search.evCharging")}</Badge>}
+              {sp.vehicle && <Badge tone="neutral">{t(`search.${sp.vehicle}`)}</Badge>}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-navy-400">
+              {t("app.search.sort.label")}
+            </span>
+            {(
+              [
+                ["recommended", t("app.search.sort.recommended")],
+                ["price", t("app.search.sort.price")],
+                ["rating", t("app.search.sort.rating")],
+                ["closest", t("app.search.sort.closest")],
+              ] as const
+            ).map(([key, label]) => (
+              <Link
+                key={key}
+                href={sortHref(key)}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  sort === key
+                    ? "border-brand-400 bg-brand-50 text-brand-700"
+                    : "border-navy-200 text-navy-600 hover:bg-navy-50"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -103,8 +167,18 @@ export default async function SearchPage({
             )}
 
             {results.length === 0 ? (
-              <Card className="p-10 text-center text-navy-500">
-                {t("app.search.empty")}
+              <Card className="p-10 text-center">
+                <SearchX className="mx-auto h-10 w-10 text-navy-300" />
+                <p className="mt-3 font-bold text-navy-900">{t("app.search.emptyTitle")}</p>
+                <p className="mx-auto mt-1 max-w-sm text-sm text-navy-500">
+                  {t("app.search.empty")}
+                </p>
+                <Link
+                  href={clearFiltersHref}
+                  className={buttonVariants({ variant: "outline", size: "sm", className: "mt-4" })}
+                >
+                  {t("app.search.clearFilters")}
+                </Link>
               </Card>
             ) : (
               results.map((r) => <SpaceCard key={r.space.id} result={r} />)
