@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeCheck, Camera, Car, Clock, MapPin, ShieldCheck, Zap } from "lucide-react";
+import { BadgeCheck, Camera, Car, Clock, MapPin, ShieldCheck, Umbrella, Zap } from "lucide-react";
 import type { SearchResult } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Stars } from "@/components/common/stars";
@@ -65,6 +65,11 @@ export function SpaceCard({ result }: { result: SearchResult }) {
           {space.cctv && (
             <span className="inline-flex items-center gap-1">
               <ShieldCheck className="h-3.5 w-3.5" /> {t("search.cctv")}
+            </span>
+          )}
+          {space.covered && (
+            <span className="inline-flex items-center gap-1">
+              <Umbrella className="h-3.5 w-3.5" /> {t("search.covered")}
             </span>
           )}
         </div>

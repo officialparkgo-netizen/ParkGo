@@ -28,6 +28,7 @@ function parseSpaceForm(formData: FormData) {
     maxVehicleSize: String(formData.get("maxVehicleSize") || "large") as Space["maxVehicleSize"],
     cctv: formData.get("cctv") === "1",
     liveCamera: formData.get("liveCamera") === "1",
+    covered: formData.get("covered") === "1",
     evCharger: evEnabled ? { connector: "Type 2" as const, kw, pricePerKwh: 38 } : null,
     accessRules: String(formData.get("accessRules") || ""),
     lengthM: Number(formData.get("lengthM") || 5),

@@ -10,6 +10,7 @@ import {
   MapPin,
   Ruler,
   ShieldCheck,
+  Umbrella,
   Zap,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -203,6 +204,11 @@ export default async function SpaceDetail({
                 {space.evCharger && (
                   <Badge tone="brand">
                     <Zap className="h-3 w-3" /> {t("app.space.evCharging")}
+                  </Badge>
+                )}
+                {space.covered && (
+                  <Badge tone="navy">
+                    <Umbrella className="h-3 w-3" /> {t("search.covered")}
                   </Badge>
                 )}
                 <Badge tone="accent">

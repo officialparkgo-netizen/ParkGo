@@ -145,6 +145,8 @@ export interface Space {
   evCharger: EvCharger | null;
   cctv: boolean;
   liveCamera: boolean;
+  /** Roofed/enclosed space (garage, carport, barn). */
+  covered?: boolean;
   accessRules: string;
   photos: string[];
   pricePerDay: Pence;
@@ -394,6 +396,9 @@ export interface SearchQuery {
   needsEv?: boolean;
   needsTransfer?: boolean;
   needsCctv?: boolean;
+  needsCovered?: boolean;
+  /** Only show spaces at or below this daily rate (pence). */
+  maxPricePerDay?: Pence;
 }
 
 export interface SearchResult {

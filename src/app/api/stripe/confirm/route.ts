@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { getBookingById, markBookingPaid } from "@/lib/data/bookings";
+import {
+  applyBookingExtension,
+  getBookingById,
+  markBookingPaid,
+} from "@/lib/data/bookings";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +26,20 @@ export async function GET(request: Request) {
   try {
     const session = await getStripe().checkout.sessions.retrieve(sessionId);
     if (session.payment_status === "paid") {
+      const externalRef =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id ?? null;
+
+      // Extension payment: apply the new pick-up date instead of re-marking paid.
+      if (session.metadata?.kind === "extend" && session.metadata.newEndAt) {
+        await applyBookingExtension(bookingId, session.metadata.newEndAt, {
+          provider: "stripe",
+          externalRef,
+        });
+        return NextResponse.redirect(`${origin}/app/booking/${bookingId}?extended=1`);
+      }
+
       const booking = await getBookingById(bookingId);
       if (booking) {
         await markBookingPaid(bookingId, {
@@ -30,10 +48,7 @@ export async function GET(request: Request) {
           split: booking.price.split,
           method: "card",
           provider: "stripe",
-          externalRef:
-            typeof session.payment_intent === "string"
-              ? session.payment_intent
-              : session.payment_intent?.id ?? null,
+          externalRef,
         });
       }
       return NextResponse.redirect(`${origin}/app/booking/${bookingId}?new=1`);

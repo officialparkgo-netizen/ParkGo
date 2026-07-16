@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { getBookingById, markBookingPaid } from "@/lib/data/bookings";
+import {
+  applyBookingExtension,
+  getBookingById,
+  markBookingPaid,
+} from "@/lib/data/bookings";
 
 export const dynamic = "force-dynamic";
 
@@ -44,19 +48,29 @@ export async function POST(request: Request) {
       session.metadata?.bookingId || session.client_reference_id || undefined;
 
     if (bookingId && session.payment_status === "paid") {
-      const booking = await getBookingById(bookingId);
-      if (booking) {
-        await markBookingPaid(bookingId, {
-          amount: booking.price.total,
-          currency: booking.price.currency,
-          split: booking.price.split,
-          method: "card",
+      const externalRef =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id ?? null;
+
+      if (session.metadata?.kind === "extend" && session.metadata.newEndAt) {
+        // Extension payment — apply the later pick-up (idempotent).
+        await applyBookingExtension(bookingId, session.metadata.newEndAt, {
           provider: "stripe",
-          externalRef:
-            typeof session.payment_intent === "string"
-              ? session.payment_intent
-              : session.payment_intent?.id ?? null,
+          externalRef,
         });
+      } else {
+        const booking = await getBookingById(bookingId);
+        if (booking) {
+          await markBookingPaid(bookingId, {
+            amount: booking.price.total,
+            currency: booking.price.currency,
+            split: booking.price.split,
+            method: "card",
+            provider: "stripe",
+            externalRef,
+          });
+        }
       }
     }
   }

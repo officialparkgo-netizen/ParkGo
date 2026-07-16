@@ -153,6 +153,7 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
                 { name: "cctv", label: t("host.new.facility.cctv"), checked: space.cctv },
                 { name: "liveCamera", label: t("host.new.facility.liveCamera"), checked: space.liveCamera },
                 { name: "ev", label: t("host.new.facility.ev"), checked: !!space.evCharger },
+                { name: "covered", label: t("host.new.facility.covered"), checked: !!space.covered },
               ].map((f) => (
                 <label key={f.name} className="flex items-center gap-2 text-sm text-navy-700">
                   <input

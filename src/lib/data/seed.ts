@@ -138,6 +138,7 @@ export const spaces: Space[] = [
     dimensions: { lengthM: 5.0, widthM: 2.4 }, maxVehicleSize: "medium",
     evCharger: { connector: "Type 2", kw: 7, pricePerKwh: 35 }, cctv: true, liveCamera: false,
     accessRules: "Covered bay under carport. Leave keys in lockbox (code on arrival).",
+    covered: true,
     photos: ["carport-1"], pricePerDay: 850, rating: 4.6, reviewCount: 54, status: "live", createdAt: iso(-180 * DAY),
   },
   {

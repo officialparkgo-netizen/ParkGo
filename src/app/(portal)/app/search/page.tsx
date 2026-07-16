@@ -9,7 +9,11 @@ import { travellerNav } from "@/components/portal/navs";
 import { SearchWidget } from "@/components/marketing/search-widget";
 import { SpaceCard } from "@/components/portal/space-card";
 import { ResultsMap } from "@/components/portal/results-map";
+import { SearchMap } from "@/components/portal/search-map";
 import { requireRole } from "@/lib/auth";
+import { formatMoneyShort } from "@/lib/utils";
+
+const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 import { getAirport, getAirports } from "@/lib/data/store";
 import { searchLiveSpaces } from "@/lib/data/hosts";
 import { optimiseJourney } from "@/lib/services/ai";
@@ -28,6 +32,8 @@ export default async function SearchPage({
     ev?: string;
     transfer?: string;
     cctv?: string;
+    covered?: string;
+    maxprice?: string;
     vehicle?: string;
     sort?: string;
   }>;
@@ -39,6 +45,7 @@ export default async function SearchPage({
   const airportSlug = sp.airport || "heathrow";
   const airport = getAirport(airportSlug);
 
+  const maxPrice = Number(sp.maxprice) > 0 ? Number(sp.maxprice) : undefined;
   const unsorted = await searchLiveSpaces({
     airportSlug,
     startAt: sp.from ? new Date(sp.from).toISOString() : undefined,
@@ -46,6 +53,8 @@ export default async function SearchPage({
     needsEv: sp.ev === "1",
     needsTransfer: sp.transfer === "1",
     needsCctv: sp.cctv === "1",
+    needsCovered: sp.covered === "1",
+    maxPricePerDay: maxPrice,
     vehicleSize: (sp.vehicle as "small" | "medium" | "large" | "van" | undefined) || undefined,
   });
 
@@ -91,6 +100,8 @@ export default async function SearchPage({
             ev: sp.ev === "1",
             transfer: sp.transfer === "1",
             cctv: sp.cctv === "1",
+            covered: sp.covered === "1",
+            maxPrice,
           }}
         />
 
@@ -103,6 +114,10 @@ export default async function SearchPage({
               {sp.cctv === "1" && <Badge tone="go">{t("app.search.cctvCamera")}</Badge>}
               {sp.transfer === "1" && <Badge tone="brand">{t("app.search.plusTransfer")}</Badge>}
               {sp.ev === "1" && <Badge tone="brand">{t("search.evCharging")}</Badge>}
+              {sp.covered === "1" && <Badge tone="navy">{t("search.covered")}</Badge>}
+              {maxPrice && (
+                <Badge tone="neutral">≤ £{Math.round(maxPrice / 100)}/{t("common.day")}</Badge>
+              )}
               {sp.vehicle && <Badge tone="neutral">{t(`search.${sp.vehicle}`)}</Badge>}
             </div>
           </div>
@@ -188,15 +203,41 @@ export default async function SearchPage({
           <div className="hidden lg:block">
             {airport && (
               <div className="sticky top-20">
-                <ResultsMap
-                  airport={{ lat: airport.lat, lng: airport.lng, name: airport.name }}
-                  spaces={results.map((r) => ({
-                    id: r.space.id,
-                    lat: r.space.lat,
-                    lng: r.space.lng,
-                  }))}
-                  className="h-[28rem]"
-                />
+                {MAPBOX ? (
+                  <SearchMap
+                    airport={{ lat: airport.lat, lng: airport.lng, name: airport.name }}
+                    spaces={results.map((r) => {
+                      const params = new URLSearchParams();
+                      if (sp.from) params.set("from", sp.from);
+                      if (sp.to) params.set("to", sp.to);
+                      if (sp.ev) params.set("ev", sp.ev);
+                      if (sp.transfer) params.set("transfer", sp.transfer);
+                      const qs = params.toString();
+                      return {
+                        id: r.space.id,
+                        lat: r.space.lat,
+                        lng: r.space.lng,
+                        price: formatMoneyShort(
+                          r.estimatedTotal,
+                          r.airport.country === "IE" ? "EUR" : "GBP"
+                        ),
+                        title: r.space.title,
+                        href: `/app/space/${r.space.id}${qs ? `?${qs}` : ""}`,
+                      };
+                    })}
+                    className="h-[28rem]"
+                  />
+                ) : (
+                  <ResultsMap
+                    airport={{ lat: airport.lat, lng: airport.lng, name: airport.name }}
+                    spaces={results.map((r) => ({
+                      id: r.space.id,
+                      lat: r.space.lat,
+                      lng: r.space.lng,
+                    }))}
+                    className="h-[28rem]"
+                  />
+                )}
               </div>
             )}
           </div>

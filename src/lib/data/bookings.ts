@@ -5,6 +5,7 @@ import { shortRef } from "@/lib/utils";
 import { getSpaceById } from "@/lib/data/hosts";
 import {
   createBooking as mockCreateBooking,
+  extendBooking as mockExtendBooking,
   getBooking as mockGetBooking,
   getBookingsByTraveller as mockGetBookingsByTraveller,
   getBookingsForHost as mockGetBookingsForHost,
@@ -243,6 +244,69 @@ export async function markBookingPaid(
   }
 }
 
+/**
+ * Reprice a booking for a later pick-up and apply the extension: update the
+ * window + stored price, record the extra charge as a second payment row, and
+ * notify both sides. Idempotent — a repeat call with the same (or an earlier)
+ * end date is a no-op, so the Stripe confirm + webhook paths can both fire.
+ */
+export async function applyBookingExtension(
+  bookingId: string,
+  newEndAt: string,
+  payment: { provider: "stripe" | "mock"; externalRef?: string | null }
+): Promise<Booking | null> {
+  if (!IS_LIVE) return mockExtendBooking(bookingId, newEndAt) ?? null;
+
+  const booking = await getBookingById(bookingId);
+  if (!booking) return null;
+  if (booking.status !== "paid" && booking.status !== "active") return null;
+  if (new Date(newEndAt) <= new Date(booking.endAt)) return booking; // already applied
+
+  const space = await getSpaceById(booking.spaceId);
+  if (!space) return null;
+  const airport = getAirport(space.airportSlug);
+  const currency = airport?.country === "IE" ? "EUR" : "GBP";
+  const newPrice = priceBundle(space, booking.bundle, booking.startAt, newEndAt, currency);
+  const extra = newPrice.total - booking.price.total;
+  if (extra <= 0) return booking;
+  const deltaSplit: PaymentSplit = {
+    platform: newPrice.split.platform - booking.price.split.platform,
+    hostPayout: newPrice.split.hostPayout - booking.price.split.hostPayout,
+    driverPayout: newPrice.split.driverPayout - booking.price.split.driverPayout,
+  };
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+
+  const { error } = await admin
+    .from("bookings")
+    .update({ end_at: newEndAt, price: newPrice })
+    .eq("id", bookingId);
+  if (error) return null;
+
+  await admin.from("payments").insert({
+    booking_id: bookingId,
+    provider: payment.provider,
+    method: "card",
+    amount: extra,
+    currency,
+    split: deltaSplit,
+    payout_status: "pending",
+    ...(payment.externalRef ? { external_ref: payment.externalRef } : {}),
+  });
+
+  await admin.from("notifications").insert({
+    user_id: booking.travellerId,
+    title: "Booking extended",
+    body: `${booking.reference} now ends ${new Date(newEndAt).toDateString()}.`,
+    kind: "booking",
+  });
+  const extended = { ...booking, endAt: newEndAt, price: newPrice };
+  await notifyHostOfBooking(extended, "Booking extended");
+
+  return extended;
+}
+
 export type CancelResult =
   | { ok: true; refund: number; feeApplied: boolean }
   | { ok: false; error: string };
@@ -281,33 +345,36 @@ export async function cancelBooking(
   const { supabaseAdmin } = await import("@/lib/supabase/server");
   const admin = supabaseAdmin();
 
-  // Issue the Stripe refund when we have the payment reference.
-  const { data: pay } = await admin
+  // Issue Stripe refunds across every charge on the booking (an extended
+  // booking has two payment intents). Newest first, until the refundable
+  // amount is used up — the late fee, when applied, is kept from the oldest.
+  const { data: pays } = await admin
     .from("payments")
-    .select("id, provider, external_ref")
+    .select("id, provider, amount, external_ref")
     .eq("booking_id", bookingId)
-    .maybeSingle();
-  if (pay?.provider === "stripe" && pay.external_ref && refund > 0) {
-    try {
-      const { getStripe } = await import("@/lib/stripe");
-      await getStripe().refunds.create({
-        payment_intent: pay.external_ref,
-        amount: refund,
-      });
-    } catch {
-      return { ok: false, error: "Refund could not be processed — please contact support." };
+    .order("created_at", { ascending: false });
+  let remaining = refund;
+  for (const pay of pays ?? []) {
+    if (remaining <= 0) break;
+    if (pay.provider === "stripe" && pay.external_ref) {
+      const amount = Math.min(remaining, pay.amount);
+      try {
+        const { getStripe } = await import("@/lib/stripe");
+        await getStripe().refunds.create({ payment_intent: pay.external_ref, amount });
+        remaining -= amount;
+      } catch {
+        return { ok: false, error: "Refund could not be processed — please contact support." };
+      }
     }
   }
 
   await admin.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
 
-  // Mark the payment refunded so it drops out of earnings / payouts due.
+  // Mark the payments refunded so they drop out of earnings / payouts due.
   // Supabase returns (not throws) errors, so a missing enum value (migration
   // 0006 not run yet) degrades gracefully — the UI also filters by booking
   // status as a fallback.
-  if (pay?.id) {
-    await admin.from("payments").update({ payout_status: "refunded" }).eq("id", pay.id);
-  }
+  await admin.from("payments").update({ payout_status: "refunded" }).eq("booking_id", bookingId);
 
   await admin.from("notifications").insert({
     user_id: travellerId,

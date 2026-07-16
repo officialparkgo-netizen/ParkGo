@@ -70,6 +70,58 @@ export async function createBookingCheckoutSession(
   return session.url;
 }
 
+/**
+ * Checkout Session for a booking EXTENSION: charges only the price difference
+ * for the later pick-up. The confirm route / webhook read `kind=extend` +
+ * `newEndAt` from the metadata and apply the extension on payment.
+ */
+export async function createExtensionCheckoutSession(
+  booking: Booking,
+  space: Space,
+  newEndAt: string,
+  extra: { amount: number; hostShare: number },
+  hostAccountId?: string | null
+): Promise<string> {
+  const stripe = getStripe();
+  const metadata = { bookingId: booking.id, kind: "extend", newEndAt };
+  const params: Stripe.Checkout.SessionCreateParams = {
+    mode: "payment",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: booking.price.currency.toLowerCase(),
+          unit_amount: extra.amount,
+          product_data: {
+            name: `ParkGo · extend ${booking.reference}`,
+            description: `${space.title} · new pick-up ${new Date(newEndAt).toDateString()}`,
+          },
+        },
+      },
+    ],
+    success_url: `${SITE}/api/stripe/confirm?session_id={CHECKOUT_SESSION_ID}&booking=${booking.id}`,
+    cancel_url: `${SITE}/app/booking/${booking.id}`,
+    client_reference_id: booking.id,
+    metadata,
+    payment_intent_data: { metadata },
+  };
+
+  if (hostAccountId) {
+    const acct = await stripe.accounts.retrieve(hostAccountId).catch(() => null);
+    if (acct?.charges_enabled) {
+      params.payment_intent_data = {
+        metadata,
+        application_fee_amount: Math.max(0, extra.amount - extra.hostShare),
+        transfer_data: { destination: hostAccountId },
+      };
+    }
+  }
+
+  const session = await stripe.checkout.sessions.create(params);
+  if (!session.url) throw new Error("Stripe did not return a checkout URL");
+  return session.url;
+}
+
 // -----------------------------------------------------------------------------
 // Stripe Connect — host payout onboarding
 // -----------------------------------------------------------------------------

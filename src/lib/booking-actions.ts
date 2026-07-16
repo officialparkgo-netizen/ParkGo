@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { BookingBundle, PaymentMethod } from "@/types";
 import { requireUser, requireRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
-import { confirmHandover, getBooking } from "@/lib/data/store";
+import { confirmHandover, getAirport, getBooking } from "@/lib/data/store";
 import {
   getHostById,
   getSpaceById,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/data/hosts";
 import { reviewVerificationLive } from "@/lib/data/verifications";
 import {
+  applyBookingExtension,
   cancelBooking,
   createBookingLive,
   getBookingById,
@@ -21,7 +22,12 @@ import {
 } from "@/lib/data/bookings";
 import { createSpaceReview } from "@/lib/data/reviews";
 import { getPaymentGateway } from "@/lib/services/payments";
-import { isStripeConfigured, createBookingCheckoutSession } from "@/lib/stripe";
+import { priceBundle } from "@/lib/pricing";
+import {
+  isStripeConfigured,
+  createBookingCheckoutSession,
+  createExtensionCheckoutSession,
+} from "@/lib/stripe";
 
 /** Checkout: create a booking + take (mock) payment, then go to confirmation. */
 export async function createBookingAction(formData: FormData) {
@@ -177,6 +183,67 @@ export async function cancelBookingAction(formData: FormData) {
     redirect(`/app/booking/${bookingId}?cancelError=1`);
   }
   redirect(`/app/booking/${bookingId}?cancelled=1&refund=${result.refund}`);
+}
+
+/**
+ * Traveller extends the pick-up date. The difference vs the original price is
+ * charged: through Stripe Checkout when configured, instantly otherwise.
+ */
+export async function extendBookingAction(formData: FormData) {
+  const user = await requireUser();
+  const bookingId = String(formData.get("bookingId") || "");
+  const newEndDate = String(formData.get("newEnd") || "");
+  const booking = await getBookingById(bookingId);
+
+  if (!booking || booking.travellerId !== user.id) {
+    redirect(`/app/booking/${bookingId}?extendError=1`);
+  }
+  if (booking.status !== "paid" && booking.status !== "active") {
+    redirect(`/app/booking/${bookingId}?extendError=1`);
+  }
+  const newEnd = new Date(newEndDate);
+  const currentEnd = new Date(booking.endAt);
+  if (!newEndDate || isNaN(newEnd.getTime()) || newEnd <= currentEnd) {
+    redirect(`/app/booking/${bookingId}?extendError=1`);
+  }
+  // Keep the original pick-up time of day on the new date.
+  newEnd.setHours(currentEnd.getHours(), currentEnd.getMinutes(), 0, 0);
+  const newEndAt = newEnd.toISOString();
+
+  const space = await getSpaceById(booking.spaceId);
+  if (!space) redirect(`/app/booking/${bookingId}?extendError=1`);
+
+  // The extra window must still fit the space's capacity.
+  const free = await isSpaceAvailable(space.id, booking.endAt, newEndAt, space.capacity ?? 1);
+  if (!free) redirect(`/app/booking/${bookingId}?extendError=full`);
+
+  const airport = getAirport(space.airportSlug);
+  const currency = airport?.country === "IE" ? "EUR" : "GBP";
+  const newPrice = priceBundle(space, booking.bundle, booking.startAt, newEndAt, currency);
+  const extra = newPrice.total - booking.price.total;
+  if (extra <= 0) redirect(`/app/booking/${bookingId}?extendError=1`);
+
+  if (isStripeConfigured()) {
+    const host = await getHostById(space.hostId);
+    const url = await createExtensionCheckoutSession(
+      booking,
+      space,
+      newEndAt,
+      {
+        amount: extra,
+        hostShare: newPrice.split.hostPayout - booking.price.split.hostPayout,
+      },
+      host?.payoutAccountRef
+    );
+    redirect(url);
+  }
+
+  await applyBookingExtension(bookingId, newEndAt, { provider: "mock" });
+  revalidatePath("/app");
+  revalidatePath(`/app/booking/${bookingId}`);
+  revalidatePath("/host");
+  revalidatePath("/admin");
+  redirect(`/app/booking/${bookingId}?extended=1`);
 }
 
 /** Admin: approve or reject a verification (host or transfer provider). */

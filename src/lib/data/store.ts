@@ -131,6 +131,7 @@ export interface CreateSpaceInput {
   maxVehicleSize: Space["maxVehicleSize"];
   cctv: boolean;
   liveCamera: boolean;
+  covered?: boolean;
   evCharger: Space["evCharger"];
   accessRules: string;
   lengthM: number;
@@ -158,6 +159,7 @@ export function createSpace(input: CreateSpaceInput): Space {
     evCharger: input.evCharger,
     cctv: input.cctv,
     liveCamera: input.liveCamera,
+    covered: input.covered ?? false,
     accessRules: input.accessRules,
     photos: ["drive-1"],
     pricePerDay: input.pricePerDay,
@@ -177,6 +179,8 @@ export function searchSpaces(query: SearchQuery): SearchResult[] {
     .filter((s) => s.airportSlug === query.airportSlug && s.status === "live")
     .filter((s) => (query.needsEv ? !!s.evCharger : true))
     .filter((s) => (query.needsCctv ? s.cctv || s.liveCamera : true))
+    .filter((s) => (query.needsCovered ? !!s.covered : true))
+    .filter((s) => (query.maxPricePerDay ? s.pricePerDay <= query.maxPricePerDay : true))
     .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true))
     .map((space) => {
       const start = query.startAt ?? new Date().toISOString();
@@ -305,6 +309,68 @@ export function createBooking(input: CreateBookingInput): Booking {
     read: false,
     createdAt: booking.createdAt,
   });
+  return booking;
+}
+
+/**
+ * Extend a paid/active booking to a later pick-up: reprice the whole window,
+ * charge the difference as a second payment, and notify both sides.
+ */
+export function extendBooking(bookingId: string, newEndAt: string): Booking | undefined {
+  const booking = getBooking(bookingId);
+  if (!booking) return undefined;
+  if (booking.status !== "paid" && booking.status !== "active") return undefined;
+  if (new Date(newEndAt) <= new Date(booking.endAt)) return booking; // already covers it
+
+  const space = getSpace(booking.spaceId);
+  if (!space) return undefined;
+  const airport = getAirport(space.airportSlug);
+  const newPrice = priceBundle(
+    space,
+    booking.bundle,
+    booking.startAt,
+    newEndAt,
+    airport?.country === "IE" ? "EUR" : "GBP"
+  );
+  const extra = newPrice.total - booking.price.total;
+  if (extra <= 0) return booking;
+  const deltaSplit = {
+    platform: newPrice.split.platform - booking.price.split.platform,
+    hostPayout: newPrice.split.hostPayout - booking.price.split.hostPayout,
+    driverPayout: newPrice.split.driverPayout - booking.price.split.driverPayout,
+  };
+
+  booking.endAt = newEndAt;
+  booking.price = newPrice;
+
+  db.payments.push({
+    id: `pay_ext_${bookingId}_${db.payments.length}`,
+    bookingId,
+    provider: "mock",
+    method: "card",
+    amount: extra,
+    currency: newPrice.currency,
+    split: deltaSplit,
+    payoutStatus: "pending",
+    createdAt: new Date().toISOString(),
+  });
+
+  addNotification({
+    userId: booking.travellerId,
+    title: "Booking extended",
+    body: `${booking.reference} now ends ${new Date(newEndAt).toDateString()}.`,
+    kind: "booking",
+  });
+  const host = getHost(space.hostId);
+  const hostUser = host ? getUser(host.userId) : undefined;
+  if (hostUser) {
+    addNotification({
+      userId: hostUser.id,
+      title: `Booking extended · ${booking.reference}`,
+      body: `“${space.title}” is now booked until ${new Date(newEndAt).toDateString()}.`,
+      kind: "booking",
+    });
+  }
   return booking;
 }
 

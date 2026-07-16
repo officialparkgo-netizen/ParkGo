@@ -26,7 +26,7 @@ function fitsVehicle(space: Space, size: SearchQuery["vehicleSize"]) {
 const HOST_COLS =
   "id, user_id, display_name, verification_status, payout_account_ref, rating, joined_at";
 const SPACE_COLS =
-  "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, capacity, max_vehicle_size, ev_charger, cctv, live_camera, access_rules, photos, price_per_day, rating, review_count, status, created_at";
+  "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, capacity, max_vehicle_size, ev_charger, cctv, live_camera, covered, access_rules, photos, price_per_day, rating, review_count, status, created_at";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function hostFromRow(r: any): Host {
@@ -59,6 +59,7 @@ function spaceFromRow(r: any): Space {
     evCharger: r.ev_charger ?? null,
     cctv: r.cctv,
     liveCamera: r.live_camera,
+    covered: r.covered ?? false,
     accessRules: r.access_rules,
     photos: r.photos ?? [],
     pricePerDay: r.price_per_day,
@@ -142,6 +143,7 @@ export async function createSpaceForHost(
       ev_charger: input.evCharger,
       cctv: input.cctv,
       live_camera: input.liveCamera,
+      covered: input.covered ?? false,
       access_rules: input.accessRules,
       photos: photos?.length ? photos.slice(0, 6) : ["drive-1"],
       price_per_day: input.pricePerDay,
@@ -209,6 +211,8 @@ export async function searchLiveSpaces(query: SearchQuery): Promise<SearchResult
     .map(spaceFromRow)
     .filter((s) => (query.needsEv ? !!s.evCharger : true))
     .filter((s) => (query.needsCctv ? s.cctv || s.liveCamera : true))
+    .filter((s) => (query.needsCovered ? !!s.covered : true))
+    .filter((s) => (query.maxPricePerDay ? s.pricePerDay <= query.maxPricePerDay : true))
     .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true));
 
   // Availability: hide spaces whose paid/active bookings already fill the
@@ -389,6 +393,7 @@ export interface UpdateSpaceInput {
   maxVehicleSize: Space["maxVehicleSize"];
   cctv: boolean;
   liveCamera: boolean;
+  covered?: boolean;
   evCharger: Space["evCharger"];
   accessRules: string;
   lengthM: number;
@@ -417,6 +422,7 @@ export async function updateSpaceForHost(
     s.maxVehicleSize = input.maxVehicleSize;
     s.cctv = input.cctv;
     s.liveCamera = input.liveCamera;
+    s.covered = input.covered ?? false;
     s.evCharger = input.evCharger;
     s.accessRules = input.accessRules;
     s.dimensions = { lengthM: input.lengthM, widthM: input.widthM };
@@ -447,6 +453,7 @@ export async function updateSpaceForHost(
       max_vehicle_size: input.maxVehicleSize,
       cctv: input.cctv,
       live_camera: input.liveCamera,
+      covered: input.covered ?? false,
       ev_charger: input.evCharger,
       access_rules: input.accessRules,
       dimensions: { lengthM: input.lengthM, widthM: input.widthM },

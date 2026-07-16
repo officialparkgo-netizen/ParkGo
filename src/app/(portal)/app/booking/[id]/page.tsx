@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
+  CalendarPlus,
   CheckCircle2,
   KeyRound,
   MapPin,
@@ -26,8 +27,8 @@ import {
 } from "@/lib/data/bookings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
-import { cancelBookingAction } from "@/lib/booking-actions";
-import { formatDateTime, formatMoney } from "@/lib/utils";
+import { cancelBookingAction, extendBookingAction } from "@/lib/booking-actions";
+import { formatDateTime, formatMoney, formatMoneyShort } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -43,12 +44,21 @@ export default async function BookingPage({
     cancelled?: string;
     refund?: string;
     cancelError?: string;
+    extended?: string;
+    extendError?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
   const { t } = await getI18n();
   const { id } = await params;
-  const { new: isNew, cancelled, refund, cancelError } = await searchParams;
+  const {
+    new: isNew,
+    cancelled,
+    refund,
+    cancelError,
+    extended,
+    extendError,
+  } = await searchParams;
   const booking = await getBookingById(id);
   const canView = booking && (booking.travellerId === user.id || user.role === "admin");
   if (!booking || !canView) notFound();
@@ -67,6 +77,15 @@ export default async function BookingPage({
   const msToStart = new Date(booking.startAt).getTime() - Date.now();
   const cancellable =
     booking.status === "paid" && msToStart > 0 && booking.travellerId === user.id;
+
+  // Extension: owner can push the pick-up later while the booking is live.
+  const extendable =
+    (booking.status === "paid" || booking.status === "active") &&
+    new Date(booking.endAt).getTime() > Date.now() &&
+    booking.travellerId === user.id;
+  const minExtendDate = new Date(new Date(booking.endAt).getTime() + 86_400_000)
+    .toISOString()
+    .slice(0, 10);
   const lateCancel = cancellable && msToStart < CANCEL_FREE_WINDOW_MS;
   const previewRefund = lateCancel
     ? booking.price.total - Math.round((booking.price.total * CANCEL_FEE_BPS) / 10_000)
@@ -93,6 +112,19 @@ export default async function BookingPage({
         {cancelError && (
           <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
             <XCircle className="h-5 w-5" /> {t("app.booking.cancel.error")}
+          </div>
+        )}
+        {extended && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("app.booking.extend.done")}
+          </div>
+        )}
+        {extendError && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            <XCircle className="h-5 w-5" />{" "}
+            {extendError === "full"
+              ? t("app.booking.extend.errorFull")
+              : t("app.booking.extend.error")}
           </div>
         )}
 
@@ -161,6 +193,39 @@ export default async function BookingPage({
                 <dd>{formatMoney(booking.price.total, currency)}</dd>
               </div>
             </dl>
+
+            {extendable && (
+              <div className="mt-5 rounded-xl border border-brand-100 bg-brand-50/40 p-4">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
+                  <CalendarPlus className="h-4 w-4 text-brand-600" />{" "}
+                  {t("app.booking.extend.title")}
+                </h3>
+                <p className="mt-1 text-xs text-navy-500">
+                  {t("app.booking.extend.body")} ·{" "}
+                  {formatMoneyShort(space.pricePerDay, currency)}/{t("common.day")}
+                </p>
+                <form
+                  action={extendBookingAction}
+                  className="mt-3 flex flex-wrap items-center gap-2"
+                >
+                  <input type="hidden" name="bookingId" value={booking.id} />
+                  <input
+                    type="date"
+                    name="newEnd"
+                    min={minExtendDate}
+                    defaultValue={minExtendDate}
+                    required
+                    className="h-10 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  />
+                  <button
+                    type="submit"
+                    className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600"
+                  >
+                    <CalendarPlus className="h-4 w-4" /> {t("app.booking.extend.btn")}
+                  </button>
+                </form>
+              </div>
+            )}
 
             {cancellable && (
               <div className="mt-5 rounded-xl border border-navy-100 bg-navy-50/50 p-4">

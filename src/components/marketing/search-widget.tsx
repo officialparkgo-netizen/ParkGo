@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, Search, Zap, CarTaxiFront, Camera, Car } from "lucide-react";
+import { Plane, Search, Zap, CarTaxiFront, Camera, Car, Umbrella, Banknote } from "lucide-react";
 import type { Airport } from "@/types";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/client";
@@ -21,6 +21,9 @@ export interface SearchWidgetInitial {
   ev?: boolean;
   transfer?: boolean;
   cctv?: boolean;
+  covered?: boolean;
+  /** Max daily rate in pence (e.g. 1000 = £10/day). */
+  maxPrice?: number;
 }
 
 export function SearchWidget({
@@ -42,6 +45,8 @@ export function SearchWidget({
   const [needsEv, setNeedsEv] = useState(initial?.ev ?? false);
   const [needsTransfer, setNeedsTransfer] = useState(initial?.transfer ?? false);
   const [needsCctv, setNeedsCctv] = useState(initial?.cctv ?? false);
+  const [needsCovered, setNeedsCovered] = useState(initial?.covered ?? false);
+  const [maxPrice, setMaxPrice] = useState(initial?.maxPrice ? String(initial.maxPrice) : "");
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +58,8 @@ export function SearchWidget({
       ...(needsEv ? { ev: "1" } : {}),
       ...(needsTransfer ? { transfer: "1" } : {}),
       ...(needsCctv ? { cctv: "1" } : {}),
+      ...(needsCovered ? { covered: "1" } : {}),
+      ...(maxPrice ? { maxprice: maxPrice } : {}),
     });
     router.push(`/app/search?${params.toString()}`);
   }
@@ -129,6 +136,22 @@ export function SearchWidget({
             </select>
           </label>
 
+          <label className="flex items-center gap-1.5 text-sm font-medium text-navy-700">
+            <Banknote className="h-4 w-4 text-navy-400" />
+            <span className="sr-only">{t("search.maxPrice")}</span>
+            <select
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm font-medium focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            >
+              <option value="">{t("search.anyPrice")}</option>
+              <option value="800">≤ £8/{t("common.day")}</option>
+              <option value="1000">≤ £10/{t("common.day")}</option>
+              <option value="1200">≤ £12/{t("common.day")}</option>
+              <option value="1500">≤ £15/{t("common.day")}</option>
+            </select>
+          </label>
+
           <Chip active={needsCctv} onClick={() => setNeedsCctv((v) => !v)} icon={Camera} color="go">
             {t("search.cctv")}
           </Chip>
@@ -137,6 +160,9 @@ export function SearchWidget({
           </Chip>
           <Chip active={needsEv} onClick={() => setNeedsEv((v) => !v)} icon={Zap} color="go">
             {t("search.evCharging")}
+          </Chip>
+          <Chip active={needsCovered} onClick={() => setNeedsCovered((v) => !v)} icon={Umbrella} color="brand">
+            {t("search.covered")}
           </Chip>
         </div>
       )}
