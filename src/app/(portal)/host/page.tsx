@@ -42,11 +42,16 @@ export const metadata: Metadata = pageMetadata({ title: "Host dashboard", path: 
 export default async function HostDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ listed?: string; updated?: string; verify?: string }>;
+  searchParams: Promise<{
+    listed?: string;
+    updated?: string;
+    verify?: string;
+    profile?: string;
+  }>;
 }) {
   const user = await requireRole("host");
   const { t } = await getI18n();
-  const { listed, updated, verify } = await searchParams;
+  const { listed, updated, verify, profile } = await searchParams;
   const host = await getHostForUser(user);
 
   // A brand-new host has no host record / listings yet — show onboarding
@@ -146,6 +151,16 @@ export default async function HostDashboard({
         {verify === "submitted" && (
           <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
             <ShieldCheck className="h-5 w-5" /> {t("host.verify.submittedBanner")}
+          </div>
+        )}
+        {profile === "saved" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("host.profileSavedBanner")}
+          </div>
+        )}
+        {profile === "error" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            <ShieldCheck className="h-5 w-5" /> {t("host.profileErrorBanner")}
           </div>
         )}
 

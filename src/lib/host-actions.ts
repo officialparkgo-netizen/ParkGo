@@ -167,6 +167,7 @@ export async function connectPayoutsAction() {
 export async function updateHostProfileAction(formData: FormData) {
   const user = await requireRole("host");
   const host = await ensureHostForUser(user);
-  await updateHostBio(host.id, String(formData.get("bio") || "").trim());
+  const ok = await updateHostBio(host.id, String(formData.get("bio") || "").trim());
   revalidatePath("/host");
+  redirect(`/host?profile=${ok ? "saved" : "error"}#profile`);
 }

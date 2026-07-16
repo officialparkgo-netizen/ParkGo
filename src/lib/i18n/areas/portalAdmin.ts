@@ -86,6 +86,8 @@ export const portalAdmin: AreaDict = {
     "host.bioLabel": "Your introduction (bio)",
     "host.bioPlaceholder": "A friendly line about you and your space.",
     "host.saveProfile": "Save profile",
+    "host.profileSavedBanner": "Profile saved — travellers now see your new introduction.",
+    "host.profileErrorBanner": "Could not save your profile. Please try again in a moment.",
     "host.noBookings": "No bookings yet.",
     "host.payoutsNote":
       "Payouts run via Stripe Connect in live mode (commission deducted automatically at the source).",
@@ -285,6 +287,8 @@ export const portalAdmin: AreaDict = {
     "host.bioLabel": "آپ کا تعارف (بائیو)",
     "host.bioPlaceholder": "اپنے اور اپنی جگہ کے بارے میں ایک دوستانہ جملہ۔",
     "host.saveProfile": "پروفائل محفوظ کریں",
+    "host.profileSavedBanner": "پروفائل محفوظ ہو گیا — مسافر اب آپ کا نیا تعارف دیکھیں گے۔",
+    "host.profileErrorBanner": "پروفائل محفوظ نہیں ہو سکا۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔",
     "host.noBookings": "ابھی کوئی بکنگ نہیں۔",
     "host.payoutsNote":
       "لائیو موڈ میں ادائیگیاں Stripe Connect کے ذریعے ہوتی ہیں (کمیشن خودکار طور پر ماخذ پر کاٹا جاتا ہے)۔",
@@ -484,6 +488,8 @@ export const portalAdmin: AreaDict = {
     "host.bioLabel": "आपका परिचय (बायो)",
     "host.bioPlaceholder": "अपने और अपने स्थान के बारे में एक मित्रवत पंक्ति।",
     "host.saveProfile": "प्रोफ़ाइल सहेजें",
+    "host.profileSavedBanner": "प्रोफ़ाइल सहेजी गई — यात्री अब आपका नया परिचय देखेंगे।",
+    "host.profileErrorBanner": "प्रोफ़ाइल सहेजी नहीं जा सकी। कृपया थोड़ी देर बाद फिर कोशिश करें।",
     "host.noBookings": "अभी कोई बुकिंग नहीं।",
     "host.payoutsNote":
       "लाइव मोड में भुगतान Stripe Connect के माध्यम से चलते हैं (कमीशन स्वचालित रूप से स्रोत पर काटा जाता है)।",
@@ -683,6 +689,8 @@ export const portalAdmin: AreaDict = {
     "host.bioLabel": "Ihre Vorstellung (Bio)",
     "host.bioPlaceholder": "Eine freundliche Zeile über Sie und Ihren Platz.",
     "host.saveProfile": "Profil speichern",
+    "host.profileSavedBanner": "Profil gespeichert — Reisende sehen jetzt Ihre neue Vorstellung.",
+    "host.profileErrorBanner": "Profil konnte nicht gespeichert werden. Bitte versuchen Sie es gleich erneut.",
     "host.noBookings": "Noch keine Buchungen.",
     "host.payoutsNote":
       "Auszahlungen erfolgen im Live-Modus über Stripe Connect (Provision wird automatisch an der Quelle abgezogen).",
@@ -882,6 +890,8 @@ export const portalAdmin: AreaDict = {
     "host.bioLabel": "您的介绍（简介）",
     "host.bioPlaceholder": "用一句友好的话介绍您和您的车位。",
     "host.saveProfile": "保存资料",
+    "host.profileSavedBanner": "资料已保存——旅客现在可以看到您的新介绍。",
+    "host.profileErrorBanner": "资料保存失败，请稍后重试。",
     "host.noBookings": "暂无预订。",
     "host.payoutsNote":
       "在正式模式下，付款通过 Stripe Connect 进行（佣金在源头自动扣除）。",

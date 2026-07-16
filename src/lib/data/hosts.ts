@@ -23,8 +23,8 @@ function fitsVehicle(space: Space, size: SearchQuery["vehicleSize"]) {
   return SIZE_ORDER[space.maxVehicleSize] >= SIZE_ORDER[size];
 }
 
-const HOST_COLS =
-  "id, user_id, display_name, verification_status, payout_account_ref, rating, joined_at";
+// "*" keeps reads tolerant of optional columns (e.g. bio, added in 0009).
+const HOST_COLS = "*";
 const SPACE_COLS =
   "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, capacity, max_vehicle_size, ev_charger, cctv, live_camera, covered, access_rules, photos, price_per_day, rating, review_count, status, created_at";
 
@@ -34,6 +34,7 @@ function hostFromRow(r: any): Host {
     id: r.id,
     userId: r.user_id,
     displayName: r.display_name,
+    bio: r.bio ?? undefined,
     verificationStatus: r.verification_status,
     payoutAccountRef: r.payout_account_ref ?? undefined,
     rating: Number(r.rating ?? 0),
@@ -475,16 +476,17 @@ export async function setHostPayoutAccount(hostId: string, accountId: string): P
   await supabaseAdmin().from("hosts").update({ payout_account_ref: accountId }).eq("id", hostId);
 }
 
-/** Update the host's public bio. Best-effort in live mode (column optional). */
-export async function updateHostBio(hostId: string, bio: string): Promise<void> {
+/** Update the host's public bio. False when the write failed (e.g. hosts.bio
+ *  column missing — migration 0009 not run yet), so the UI can say so. */
+export async function updateHostBio(hostId: string, bio: string): Promise<boolean> {
   if (!IS_LIVE) {
-    mockUpdateHostProfile(hostId, { bio });
-    return;
+    return !!mockUpdateHostProfile(hostId, { bio });
   }
   try {
     const { supabaseAdmin } = await import("@/lib/supabase/server");
-    await supabaseAdmin().from("hosts").update({ bio }).eq("id", hostId);
+    const { error } = await supabaseAdmin().from("hosts").update({ bio }).eq("id", hostId);
+    return !error;
   } catch {
-    // hosts.bio column may not exist yet — non-fatal for the listing flow.
+    return false;
   }
 }
