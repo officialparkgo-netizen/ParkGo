@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plane, Search, Zap, CarTaxiFront, Camera, Car, Umbrella, Banknote } from "lucide-react";
 import type { Airport } from "@/types";
-import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/client";
 
 function isoDay(offsetDays: number) {
@@ -65,68 +64,77 @@ export function SearchWidget({
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className="rounded-2xl border border-navy-100 bg-white p-3 shadow-card-lg sm:p-4"
-    >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.7fr_1fr_1fr_auto]">
-        <label className="flex flex-col gap-1">
-          <span className="px-1 text-xs font-semibold text-navy-500">{t("search.destination")}</span>
-          <div className="relative">
-            <Plane className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" />
-            <select
-              value={airport}
-              onChange={(e) => setAirport(e.target.value)}
-              className="h-11 w-full appearance-none rounded-xl border border-navy-200 bg-white pl-9 pr-3 text-sm font-medium text-navy-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
-            >
-              {airports.map((a) => (
-                <option key={a.slug} value={a.slug}>
-                  {a.name} ({a.code})
-                </option>
-              ))}
-            </select>
-          </div>
+    <form onSubmit={submit} className="w-full">
+      {/* Segmented search bar (Airbnb-style pill on large screens) */}
+      <div className="flex flex-col overflow-hidden rounded-3xl border border-navy-200 bg-white shadow-card-lg lg:flex-row lg:items-stretch lg:rounded-full">
+        <label className="flex min-w-0 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:flex-[1.5] lg:border-b-0 lg:px-5">
+          <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-navy-500">
+            <Plane className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {t("search.destination")}
+          </span>
+          <select
+            value={airport}
+            onChange={(e) => setAirport(e.target.value)}
+            className="w-full cursor-pointer appearance-none bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
+          >
+            {airports.map((a) => (
+              <option key={a.slug} value={a.slug}>
+                {a.name} ({a.code})
+              </option>
+            ))}
+          </select>
         </label>
 
-        <label className="flex flex-col gap-1">
-          <span className="px-1 text-xs font-semibold text-navy-500">{t("search.dropOff")}</span>
+        <span className="hidden w-px self-stretch bg-navy-100 lg:my-3.5 lg:block" aria-hidden />
+
+        <label className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:border-b-0 lg:px-5">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-navy-500">
+            {t("search.dropOff")}
+          </span>
           <input
             type="date"
             value={from}
             min={isoDay(0)}
             onChange={(e) => setFrom(e.target.value)}
-            className="h-11 w-full rounded-xl border border-navy-200 bg-white px-3 text-sm text-navy-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            className="w-full bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
           />
         </label>
 
-        <label className="flex flex-col gap-1">
-          <span className="px-1 text-xs font-semibold text-navy-500">{t("search.pickUp")}</span>
+        <span className="hidden w-px self-stretch bg-navy-100 lg:my-3.5 lg:block" aria-hidden />
+
+        <label className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:border-b-0 lg:px-5">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-navy-500">
+            {t("search.pickUp")}
+          </span>
           <input
             type="date"
             value={to}
             min={from}
             onChange={(e) => setTo(e.target.value)}
-            className="h-11 w-full rounded-xl border border-navy-200 bg-white px-3 text-sm text-navy-900 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            className="w-full bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
           />
         </label>
 
-        <div className="flex items-end">
-          <Button type="submit" size="lg" className="h-11 w-full lg:px-7">
-            <Search className="h-4 w-4" />
-            {t("search.searchSpaces")}
-          </Button>
+        <div className="flex shrink-0 items-center p-3 lg:py-2.5 lg:pl-1 lg:pr-2.5">
+          <button
+            type="submit"
+            aria-label={t("search.searchSpaces")}
+            className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-go-500 px-7 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-go-600 active:scale-[0.98] lg:h-[3.25rem] lg:w-[3.25rem] lg:shrink-0 lg:rounded-full lg:px-0"
+          >
+            <Search className="h-4 w-4 lg:h-5 lg:w-5" aria-hidden />
+            <span className="lg:hidden">{t("search.searchSpaces")}</span>
+          </button>
         </div>
       </div>
 
       {!compact && (
-        <div className="mt-3 flex flex-wrap items-center gap-3 px-1">
-          <label className="flex items-center gap-1.5 text-sm font-medium text-navy-700">
-            <Car className="h-4 w-4 text-navy-400" />
-            <span className="sr-only">Vehicle size</span>
+        <div className="mt-3 flex flex-wrap items-center gap-2 px-2">
+          <label className="inline-flex items-center gap-1.5 rounded-full border border-navy-200 bg-white px-3 py-1.5 text-sm font-semibold text-navy-600">
+            <Car className="h-4 w-4 text-navy-400" aria-hidden />
+            <span className="sr-only">{t("host.new.maxVehicle")}</span>
             <select
               value={vehicle}
               onChange={(e) => setVehicle(e.target.value)}
-              className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm font-medium focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              className="cursor-pointer appearance-none bg-transparent focus:outline-none"
             >
               <option value="">{t("search.anyVehicle")}</option>
               <option value="small">{t("search.small")}</option>
@@ -136,13 +144,13 @@ export function SearchWidget({
             </select>
           </label>
 
-          <label className="flex items-center gap-1.5 text-sm font-medium text-navy-700">
-            <Banknote className="h-4 w-4 text-navy-400" />
+          <label className="inline-flex items-center gap-1.5 rounded-full border border-navy-200 bg-white px-3 py-1.5 text-sm font-semibold text-navy-600">
+            <Banknote className="h-4 w-4 text-navy-400" aria-hidden />
             <span className="sr-only">{t("search.maxPrice")}</span>
             <select
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              className="rounded-lg border border-navy-200 bg-white px-2 py-1 text-sm font-medium focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              className="cursor-pointer appearance-none bg-transparent focus:outline-none"
             >
               <option value="">{t("search.anyPrice")}</option>
               <option value="800">≤ £8/{t("common.day")}</option>
@@ -152,16 +160,16 @@ export function SearchWidget({
             </select>
           </label>
 
-          <Chip active={needsCctv} onClick={() => setNeedsCctv((v) => !v)} icon={Camera} color="go">
+          <Chip active={needsCctv} onClick={() => setNeedsCctv((v) => !v)} icon={Camera}>
             {t("search.cctv")}
           </Chip>
-          <Chip active={needsTransfer} onClick={() => setNeedsTransfer((v) => !v)} icon={CarTaxiFront} color="brand">
+          <Chip active={needsTransfer} onClick={() => setNeedsTransfer((v) => !v)} icon={CarTaxiFront}>
             {t("search.transfer")}
           </Chip>
-          <Chip active={needsEv} onClick={() => setNeedsEv((v) => !v)} icon={Zap} color="go">
+          <Chip active={needsEv} onClick={() => setNeedsEv((v) => !v)} icon={Zap}>
             {t("search.evCharging")}
           </Chip>
-          <Chip active={needsCovered} onClick={() => setNeedsCovered((v) => !v)} icon={Umbrella} color="brand">
+          <Chip active={needsCovered} onClick={() => setNeedsCovered((v) => !v)} icon={Umbrella}>
             {t("search.covered")}
           </Chip>
         </div>
@@ -174,13 +182,11 @@ function Chip({
   active,
   onClick,
   icon: Icon,
-  color,
   children,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ComponentType<{ className?: string }>;
-  color: "go" | "brand";
   children: React.ReactNode;
 }) {
   return (
@@ -190,10 +196,10 @@ function Chip({
       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
         active
           ? "border-brand-400 bg-brand-50 text-brand-700"
-          : "border-navy-200 text-navy-600 hover:bg-navy-50"
+          : "border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
       }`}
     >
-      <Icon className={`h-4 w-4 ${active ? "text-brand-600" : "text-navy-400"}`} />
+      <Icon className={`h-4 w-4 ${active ? "text-brand-600" : "text-navy-400"}`} aria-hidden />
       {children}
     </button>
   );

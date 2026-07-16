@@ -50,7 +50,7 @@ export default async function ContactPage() {
       tone: "accent" as const,
       title: t("contact.channel.press.title"),
       body: t("contact.channel.press.body"),
-      action: { label: "hello@parkgo.ai", href: "mailto:hello@parkgo.ai" },
+      action: { label: "info@parkgo.ai", href: "mailto:info@parkgo.ai" },
     },
   ];
 

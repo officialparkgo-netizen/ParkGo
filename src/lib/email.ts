@@ -15,7 +15,12 @@ export function isEmailConfigured(): boolean {
   return IS_LIVE && !!process.env.RESEND_API_KEY;
 }
 
-export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+export async function sendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  opts?: { replyTo?: string }
+): Promise<boolean> {
   if (!isEmailConfigured() || !to) return false;
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -24,7 +29,13 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from: FROM, to: [to], subject, html }),
+      body: JSON.stringify({
+        from: FROM,
+        to: [to],
+        subject,
+        html,
+        ...(opts?.replyTo ? { reply_to: opts.replyTo } : {}),
+      }),
     });
     return res.ok;
   } catch {

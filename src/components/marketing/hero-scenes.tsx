@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Bush, CarSide, Cctv, Cloud, P, Sun, Van } from "@/components/common/scenes";
+import { Bush, CarSide, Cctv, Cloud, P, Van } from "@/components/common/scenes";
 
 /**
  * Hero illustrations for the marketing pages — same owned visual language as
@@ -71,7 +71,6 @@ function JourneyScene() {
   return (
     <>
       <HeroSky />
-      <Sun x={70} y={56} />
       <Cloud x={180} y={40} s={0.9} />
       <Cloud x={330} y={64} s={0.7} />
       <Plane x={300} y={38} s={1.1} />
@@ -110,7 +109,6 @@ function TravellerScene() {
   return (
     <>
       <HeroSky />
-      <Sun x={396} y={54} />
       <Cloud x={60} y={44} s={0.9} />
       <Plane x={150} y={54} s={0.9} />
       <Terminal x={20} y={162} />
@@ -134,7 +132,6 @@ function HostScene() {
   return (
     <>
       <HeroSky />
-      <Sun x={392} y={58} />
       <Cloud x={90} y={44} s={0.9} />
       {/* hedge */}
       <rect x="0" y="188" width="480" height="14" fill={P.ink200} />
@@ -203,7 +200,6 @@ function PricingScene() {
   return (
     <>
       <HeroSky />
-      <Sun x={80} y={56} />
       <Cloud x={300} y={40} s={0.9} />
       <rect x="0" y="250" width="480" height="110" fill={P.ink200} />
       <rect x="0" y="250" width="480" height="6" fill={P.ink300} />
@@ -238,7 +234,6 @@ function SupportScene() {
   return (
     <>
       <HeroSky />
-      <Sun x={396} y={58} />
       <Cloud x={80} y={46} s={0.9} />
       <rect x="0" y="268" width="480" height="92" fill={P.ink200} />
       <rect x="0" y="268" width="480" height="6" fill={P.ink300} />
@@ -277,8 +272,24 @@ const SCENES: Record<HeroKind, () => React.ReactNode> = {
   support: SupportScene,
 };
 
-/** Framed hero illustration; place in the right column of a page hero. */
+/**
+ * Real-photo overrides. To replace an illustration with photography:
+ * put the file in public/photos/ (e.g. public/photos/hero-journey.jpg,
+ * ~1200×900, licensed for commercial use) and map it here — the photo then
+ * renders in the same frame and the illustration becomes the fallback.
+ */
+const HERO_PHOTOS: Partial<Record<HeroKind, string>> = {
+  // journey: "/photos/hero-journey.jpg",
+  // traveller: "/photos/hero-traveller.jpg",
+  // host: "/photos/hero-host.jpg",
+  // trust: "/photos/hero-trust.jpg",
+  // pricing: "/photos/hero-pricing.jpg",
+  // support: "/photos/hero-support.jpg",
+};
+
+/** Framed hero visual (photo when provided, illustration otherwise). */
 export function HeroVisual({ kind, className }: { kind: HeroKind; className?: string }) {
+  const photo = HERO_PHOTOS[kind];
   const Scene = SCENES[kind];
   return (
     <div
@@ -288,9 +299,14 @@ export function HeroVisual({ kind, className }: { kind: HeroKind; className?: st
       )}
       aria-hidden
     >
-      <svg viewBox="0 0 480 360" className="block h-auto w-full" role="img">
-        {Scene()}
-      </svg>
+      {photo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photo} alt="" className="block aspect-[4/3] h-auto w-full object-cover" />
+      ) : (
+        <svg viewBox="0 0 480 360" className="block h-auto w-full" role="img">
+          {Scene()}
+        </svg>
+      )}
     </div>
   );
 }

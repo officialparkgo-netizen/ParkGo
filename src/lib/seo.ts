@@ -22,6 +22,7 @@ export const COMPANY = {
   registeredOffice: "128 City Road, London, EC1V 2NX, United Kingdom",
   icoRef: "ZC151803",
   supportEmail: "support@parkgo.ai",
+  infoEmail: "info@parkgo.ai",
 };
 
 /** Build per-page metadata with sensible OpenGraph/canonical defaults. */
