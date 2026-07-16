@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
+import { HeroVisual } from "@/components/marketing/hero-scenes";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -64,17 +65,18 @@ export default async function TravellersPage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
-        <Container className="relative py-16 text-center lg:py-20">
+        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+          <div className="text-center lg:text-left">
           <Badge tone="brand" className="mb-5">
             <Sparkles className="h-3.5 w-3.5" /> {t("travellers.badge")}
           </Badge>
-          <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
+          <h1 className="mx-auto max-w-3xl text-balance lg:mx-0 text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
             {t("travellers.hero.title")}
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
+          <p className="mx-auto mt-5 max-w-2xl lg:mx-0 text-lg text-navy-600">
             {t("travellers.hero.subtitle")}
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
             <Link href="/app" className={buttonVariants({ variant: "primary", size: "lg" })}>
               {t("travellers.hero.cta.book")} <ArrowRight className="h-4 w-4" />
             </Link>
@@ -82,7 +84,7 @@ export default async function TravellersPage() {
               {t("travellers.hero.cta.how")}
             </Link>
           </div>
-          <p className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-navy-500">
+          <p className="mt-6 flex flex-wrap items-center justify-center gap-x-4 lg:justify-start gap-y-1 text-sm text-navy-500">
             <span className="inline-flex items-center gap-1.5">
               <BadgeCheck className="h-4 w-4 text-go-500" /> {t("travellers.trust.hosts")}
             </span>
@@ -93,6 +95,8 @@ export default async function TravellersPage() {
               <Camera className="h-4 w-4 text-go-500" /> {t("travellers.trust.camera")}
             </span>
           </p>
+          </div>
+          <HeroVisual kind="traveller" />
         </Container>
       </section>
 

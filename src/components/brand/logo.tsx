@@ -6,7 +6,14 @@ import { cn } from "@/lib/utils";
  * its counter. Used as the app icon / favicon (shield-only). Placeholder until
  * the final brand asset is supplied — swap the SVG paths, keep the API.
  */
-export function LogoMark({ className }: { className?: string }) {
+export function LogoMark({
+  className,
+  inverted = false,
+}: {
+  className?: string;
+  /** White shield for dark surfaces (matches the email header mark). */
+  inverted?: boolean;
+}) {
   return (
     <svg
       viewBox="0 0 40 40"
@@ -17,7 +24,7 @@ export function LogoMark({ className }: { className?: string }) {
       {/* shield */}
       <path
         d="M20 3.5 L33.5 8.2 V18.6 C33.5 27.5 27.6 33.6 20 36.6 C12.4 33.6 6.5 27.5 6.5 18.6 V8.2 Z"
-        fill="#15171A"
+        fill={inverted ? "#FFFFFF" : "#15171A"}
       />
       {/* P (with counter cut out) */}
       <path
@@ -29,7 +36,7 @@ export function LogoMark({ className }: { className?: string }) {
       {/* lightning bolt in the counter */}
       <path
         d="M19.2 13.9l-2.7 3.9h1.7l-1.1 2.7 3.2-4.1h-1.7z"
-        fill="#fff"
+        fill={inverted ? "#15171A" : "#fff"}
       />
     </svg>
   );
@@ -48,7 +55,7 @@ export function Logo({
 }) {
   const content = (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <LogoMark />
+      <LogoMark inverted={inverted} />
       {withText && (
         <span className="text-xl font-extrabold tracking-tight">
           <span className={inverted ? "text-white" : "text-navy-900"}>Park</span>

@@ -9,7 +9,7 @@
  * No <defs>/ids are used so any number of scenes can render on one page.
  */
 
-const P = {
+export const P = {
   sky: "#F1F2F4",
   skyDeep: "#E6E8EB",
   white: "#FFFFFF",
@@ -42,7 +42,7 @@ function hash(s: string) {
 
 /* ------------------------------------------------------------------ pieces */
 
-function Sun({ x = 330, y = 46 }: { x?: number; y?: number }) {
+export function Sun({ x = 330, y = 46 }: { x?: number; y?: number }) {
   return (
     <g>
       <circle cx={x} cy={y} r="26" fill={P.or200} opacity="0.55" />
@@ -51,7 +51,7 @@ function Sun({ x = 330, y = 46 }: { x?: number; y?: number }) {
   );
 }
 
-function Cloud({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+export function Cloud({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`} fill={P.white} opacity="0.9">
       <rect x="0" y="8" width="64" height="14" rx="7" />
@@ -61,7 +61,7 @@ function Cloud({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   );
 }
 
-function CarSide({
+export function CarSide({
   x,
   y,
   s = 1,
@@ -91,7 +91,7 @@ function CarSide({
   );
 }
 
-function Van({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+export function Van({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>
       <ellipse cx="66" cy="42" rx="68" ry="7" fill={P.ink900} opacity="0.12" />
@@ -110,7 +110,7 @@ function Van({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   );
 }
 
-function Cctv({ x, y, flip = false }: { x: number; y: number; flip?: boolean }) {
+export function Cctv({ x, y, flip = false }: { x: number; y: number; flip?: boolean }) {
   return (
     <g transform={`translate(${x} ${y})${flip ? " scale(-1 1)" : ""}`}>
       <rect x="-2" y="0" width="4" height="46" rx="2" fill={P.ink600} />
@@ -123,7 +123,7 @@ function Cctv({ x, y, flip = false }: { x: number; y: number; flip?: boolean }) 
   );
 }
 
-function Bush({ x, y, s = 1, tone = P.ink300 }: { x: number; y: number; s?: number; tone?: string }) {
+export function Bush({ x, y, s = 1, tone = P.ink300 }: { x: number; y: number; s?: number; tone?: string }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`} fill={tone}>
       <circle cx="0" cy="0" r="12" />

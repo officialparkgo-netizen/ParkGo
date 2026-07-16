@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
+import { HeroVisual } from "@/components/marketing/hero-scenes";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -93,9 +94,10 @@ export default async function HostsPage() {
             </p>
           </div>
 
-          {/* Earnings card */}
+          {/* Host scene + earnings card */}
           <div className="mx-auto w-full max-w-md">
-            <Card className="p-7">
+            <HeroVisual kind="host" className="hidden sm:block" />
+            <Card className="relative z-10 p-7 sm:mx-4 sm:-mt-14 sm:shadow-card-lg">
               <div className="flex items-center gap-2">
                 <PiggyBank className="h-5 w-5 text-go-600" />
                 <span className="text-sm font-bold uppercase tracking-wide text-navy-500">

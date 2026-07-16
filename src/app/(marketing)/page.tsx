@@ -20,6 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
+import { HeroVisual } from "@/components/marketing/hero-scenes";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -83,7 +84,9 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <TravelDayPreview t={t} />
+          <div className="hidden lg:block">
+            <HeroVisual kind="journey" />
+          </div>
         </Container>
       </section>
 

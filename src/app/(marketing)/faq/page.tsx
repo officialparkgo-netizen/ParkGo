@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ChevronDown, HelpCircle, MessageCircle, Sparkles } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
+import { HeroVisual } from "@/components/marketing/hero-scenes";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata, SITE } from "@/lib/seo";
@@ -135,16 +136,19 @@ export default async function FaqPage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
-        <Container className="relative py-16 text-center lg:py-20">
+        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+          <div className="text-center lg:text-left">
           <Badge tone="brand" className="mb-5">
             <HelpCircle className="h-3.5 w-3.5" /> {t("faq.hero.badge")}
           </Badge>
-          <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
+          <h1 className="mx-auto max-w-3xl text-balance lg:mx-0 text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
             {t("faq.hero.title")}
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-navy-600">
+          <p className="mx-auto mt-5 max-w-2xl lg:mx-0 text-lg text-navy-600">
             {t("faq.hero.subtitle")}
           </p>
+          </div>
+          <HeroVisual kind="support" />
         </Container>
       </section>
 
