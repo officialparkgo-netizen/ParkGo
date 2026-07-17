@@ -47,7 +47,7 @@ export default async function HomePage() {
           className="pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-accent-300/10 blur-3xl"
           aria-hidden
         />
-        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-[3fr_2fr] lg:py-20">
           <div className="animate-fade-in">
             <Badge tone="go" className="mb-5">
               <Sparkles className="h-3.5 w-3.5" /> {t("home.hero.badge")}
