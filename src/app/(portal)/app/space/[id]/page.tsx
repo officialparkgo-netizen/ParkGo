@@ -16,9 +16,9 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Photo } from "@/components/common/photo";
 import { Stars } from "@/components/common/stars";
 import { PortalShell } from "@/components/portal/shell";
+import { PhotoCarousel } from "@/components/portal/photo-carousel";
 import { travellerNav } from "@/components/portal/navs";
 import { LiveMap } from "@/components/portal/live-map";
 import { MapboxMap } from "@/components/portal/mapbox-map";
@@ -119,30 +119,13 @@ export default async function SpaceDetail({
           </div>
         )}
 
-        {/* Gallery — layout adapts to how many photos the host uploaded */}
-        {photos.length === 1 ? (
-          <Photo token={photos[0]} className="h-64 sm:h-80" />
-        ) : photos.length === 2 ? (
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Photo token={photos[0]} className="h-64 sm:col-span-2 sm:h-80" />
-            <Photo token={photos[1]} className="h-40 sm:h-80" />
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Photo token={photos[0]} className="h-64 sm:col-span-2 sm:h-80" />
-            <div className="grid gap-3">
-              <Photo token={photos[1]} className="h-[7.75rem] sm:h-[9.5rem]" />
-              <div className="relative">
-                <Photo token={photos[2]} className="h-[7.75rem] w-full sm:h-[9.5rem]" />
-                {photos.length > 3 && (
-                  <span className="absolute bottom-2 right-2 rounded-lg bg-navy-900/80 px-2 py-1 text-xs font-semibold text-white">
-                    +{photos.length - 3} {t("app.space.morePhotos")}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Gallery — swipeable carousel on every screen size */}
+        <PhotoCarousel
+          tokens={photos}
+          label={space.title}
+          prevLabel={t("app.space.prevPhoto")}
+          nextLabel={t("app.space.nextPhoto")}
+        />
 
         {/* Host profile — shown to guests before booking (Airbnb-style) */}
         <Card className="flex items-start gap-4 p-5">
