@@ -18,7 +18,6 @@ import {
   Zap,
 } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
-import { HeroVisual } from "@/components/marketing/hero-scenes";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -109,7 +108,7 @@ export default async function PricingPage() {
             </Link>
           </div>
           </div>
-          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+          <div className="relative mt-2 block h-60 w-full sm:h-72 lg:mt-0 lg:h-full lg:min-h-[400px]">
             <Image
               src="/images/pricing.png"
               alt="ParkGo Pricing"
