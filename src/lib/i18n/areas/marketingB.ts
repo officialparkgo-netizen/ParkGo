@@ -29,7 +29,7 @@ export const marketingB: AreaDict = {
       "Follow your driver on a live map and watch your parked car on an in-app camera with a LIVE badge.",
     "travellers.benefit.ev.title": "EV charging",
     "travellers.benefit.ev.body":
-      "Add a top-up while you travel at hosts that offer a charger. Land back to a car that&apos;s ready to go.",
+      "Add a top-up while you travel at hosts that offer a charger. Land back to a car that's ready to go.",
     "travellers.benefit.multilingual.title": "Multilingual",
     "travellers.benefit.multilingual.body":
       "Use ParkGo in your language — four launch languages across the UK & Ireland, with more to follow.",
@@ -58,21 +58,21 @@ export const marketingB: AreaDict = {
 
     "travellers.faq.eyebrow": "Good to know",
     "travellers.faq.title": "Questions travellers ask first",
-    "travellers.faq.body": "A few quick answers before you book. There&apos;s plenty more in our full FAQ.",
+    "travellers.faq.body": "A few quick answers before you book. There's plenty more in our full FAQ.",
     "travellers.faq.cta": "Read the full FAQ",
-    "travellers.faq.q1": "Is my car safe while I&apos;m away?",
+    "travellers.faq.q1": "Is my car safe while I'm away?",
     "travellers.faq.a1":
       "Hosts are ID-verified, spaces can include CCTV, and you can watch a live in-app camera. Drop-off and collection both use a verified, logged handover.",
     "travellers.faq.q2": "What if my flight is delayed?",
     "travellers.faq.a2":
-      "Your booking and return transfer are tied to your trip, so a delay is handled gracefully — you won&apos;t lose your space or your ride home.",
+      "Your booking and return transfer are tied to your trip, so a delay is handled gracefully — you won't lose your space or your ride home.",
     "travellers.faq.q3": "Can I pay in one go?",
     "travellers.faq.a3":
       "Yes. Parking, transfer and EV charging are combined into a single transparent price with a small, clearly shown service fee.",
 
     "travellers.waitlist.title": "Be first to book at your airport",
     "travellers.waitlist.body":
-      "We&apos;re launching across the UK & Ireland. Join the waitlist and we&apos;ll let you know the moment ParkGo goes live where you fly from.",
+      "We're launching across the UK & Ireland. Join the waitlist and we'll let you know the moment ParkGo goes live where you fly from.",
 
     // -------------------------------------------------------------------- Hosts
     "hosts.badge": "For hosts & landlords",
@@ -96,7 +96,7 @@ export const marketingB: AreaDict = {
     "hosts.why.eyebrow": "Why host with ParkGo",
     "hosts.why.title": "Put unused space to work",
     "hosts.why.body":
-      "Travellers want a secure, convenient place to leave the car. If you&apos;re near a terminal, that&apos;s exactly what your space already is.",
+      "Travellers want a secure, convenient place to leave the car. If you're near a terminal, that's exactly what your space already is.",
     "hosts.why.economics.title": "Strong economics",
     "hosts.why.economics.body":
       "Keep around {pct}% of each parking booking, with EV charging on top where you offer it.",
@@ -118,13 +118,13 @@ export const marketingB: AreaDict = {
       "A quick KYC check confirms who you are. Documents are encrypted and stored separately from your profile.",
     "hosts.onboarding.address.title": "Verify your address",
     "hosts.onboarding.address.body":
-      "We confirm the location of the space you want to list so travellers know exactly where they&apos;re parking.",
+      "We confirm the location of the space you want to list so travellers know exactly where they're parking.",
     "hosts.onboarding.details.title": "Add property details",
     "hosts.onboarding.details.body":
       "Photos, bay dimensions, access notes and whether you offer EV charging or CCTV — the things travellers filter on.",
     "hosts.onboarding.declaration.title": "Right-to-list declaration",
     "hosts.onboarding.declaration.body":
-      "Confirm you&apos;re entitled to rent the space (owner or with permission) and that it&apos;s safe and legal to use.",
+      "Confirm you're entitled to rent the space (owner or with permission) and that it's safe and legal to use.",
     "hosts.onboarding.bank.title": "Add bank details",
     "hosts.onboarding.bank.body":
       "Tell us where to send your payouts. Bank details are encrypted and never shown to travellers.",
@@ -138,7 +138,7 @@ export const marketingB: AreaDict = {
     "hosts.trust.eyebrow": "Trust & protection",
     "hosts.trust.title": "Built to protect hosts as much as travellers",
     "hosts.trust.body":
-      "You&apos;re inviting someone to use your space, so trust matters. ParkGo verifies both sides and keeps a clear, logged record of every booking.",
+      "You're inviting someone to use your space, so trust matters. ParkGo verifies both sides and keeps a clear, logged record of every booking.",
     "hosts.trust.travellers.title": "Verified travellers",
     "hosts.trust.travellers.body":
       "Bookings come from real, registered ParkGo customers — and you can review them too.",
@@ -170,8 +170,8 @@ export const marketingB: AreaDict = {
 
     "hosts.waitlist.title": "Ready to earn from your space?",
     "hosts.waitlist.body":
-      "Join the host waitlist and we&apos;ll invite you to get verified and list as soon as we launch near you.",
-    "hosts.waitlist.nospam": "No obligation — list only when you&apos;re ready.",
+      "Join the host waitlist and we'll invite you to get verified and list as soon as we launch near you.",
+    "hosts.waitlist.nospam": "No obligation — list only when you're ready.",
 
     // -------------------------------------------------------------------- About
     "about.badge": "About ParkGo",
@@ -186,7 +186,7 @@ export const marketingB: AreaDict = {
 
     "about.problem.title": "The problem",
     "about.problem.body":
-      "Airport travel is fragmented. You book parking on one site, a transfer on another, hunt for EV charging separately, and just hope your car is safe while you&apos;re away. Prices are opaque, shuttles are slow, and there&apos;s no real visibility on the day it matters.",
+      "Airport travel is fragmented. You book parking on one site, a transfer on another, hunt for EV charging separately, and just hope your car is safe while you're away. Prices are opaque, shuttles are slow, and there's no real visibility on the day it matters.",
     "about.problem.point1": "Multiple bookings, multiple prices",
     "about.problem.point2": "No clear view of where your car or driver is",
     "about.problem.point3": "Limited trust and patchy verification",
@@ -221,13 +221,13 @@ export const marketingB: AreaDict = {
     "about.team.role.product": "Head of Product",
     "about.team.role.engineering": "Head of Engineering",
     "about.team.role.trust": "Trust & Safety Lead",
-    "about.team.growing": "We&apos;re growing — see open roles on our",
+    "about.team.growing": "We're growing — see open roles on our",
     "about.team.contactPage": "contact page",
 
     "about.vision.mission.k": "1 mission",
     "about.vision.mission.v": "Seamless airport access",
     "about.vision.region.k": "UK & Ireland",
-    "about.vision.region.v": "Where we&apos;re launching first",
+    "about.vision.region.v": "Where we're launching first",
     "about.vision.sides.k": "3 sides",
     "about.vision.sides.v": "Travellers, hosts & partners",
     "about.vision.trust.k": "Built to trust",
@@ -235,7 +235,7 @@ export const marketingB: AreaDict = {
 
     "about.waitlist.title": "Come along for the journey",
     "about.waitlist.body":
-      "We&apos;re building ParkGo in the open and launching airport by airport. Join the waitlist and grow with us.",
+      "We're building ParkGo in the open and launching airport by airport. Join the waitlist and grow with us.",
     "about.waitlist.cta": "See how it works",
   },
 
