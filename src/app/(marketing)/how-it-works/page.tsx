@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -115,9 +116,15 @@ export default async function HowItWorksPage() {
               {t("how.hero.pricing")}
             </Link>
           </div>
+          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+            <Image
+              src="/images/journey.png"
+              alt="ParkGo Journey"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+              priority
+            />
           </div>
-          <HeroVisual kind="journey" />
-        </Container>
       </section>
 
       {/* ----------------------------------------------- The traveller journey */}
@@ -180,16 +187,26 @@ export default async function HowItWorksPage() {
             {t("how.live.body")}
           </p>
         </div>
-        <div className="mt-12 grid gap-5 md:grid-cols-3">
-          {liveFeatures.map((f) => (
-            <Card key={f.title} className="p-6">
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
-                <f.icon className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-navy-900">{f.title}</h3>
-              <p className="mt-1.5 text-sm text-navy-600">{f.body}</p>
-            </Card>
-          ))}
+        <div className="mt-12 grid gap-8 lg:grid-cols-2 items-center">
+          <div className="grid gap-5">
+            {liveFeatures.map((f) => (
+              <Card key={f.title} className="p-6">
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-bold text-navy-900">{f.title}</h3>
+                <p className="mt-1.5 text-sm text-navy-600">{f.body}</p>
+              </Card>
+            ))}
+          </div>
+          <div className="relative h-full min-h-[400px] w-full hidden lg:block">
+            <Image
+              src="/images/alpr.png"
+              alt="Smart ALPR Scanner"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+            />
+          </div>
         </div>
       </Section>
 

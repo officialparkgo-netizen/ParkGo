@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Compass,
@@ -77,7 +78,15 @@ export default async function AboutPage() {
             {t("about.hero.subtitle")}
           </p>
           </div>
-          <HeroVisual kind="journey" />
+          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+            <Image
+              src="/images/dashboard.png"
+              alt="ParkGo Dashboard"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+              priority
+            />
+          </div>
         </Container>
       </section>
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, ChevronDown, HelpCircle, MessageCircle, Sparkles } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
 import { HeroVisual } from "@/components/marketing/hero-scenes";
@@ -148,7 +149,15 @@ export default async function FaqPage() {
             {t("faq.hero.subtitle")}
           </p>
           </div>
-          <HeroVisual kind="support" />
+          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+            <Image
+              src="/images/faq.png"
+              alt="ParkGo FAQ"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+              priority
+            />
+          </div>
         </Container>
       </section>
 

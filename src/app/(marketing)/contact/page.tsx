@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Building2,
@@ -78,7 +79,15 @@ export default async function ContactPage() {
             {t("contact.hero.subtitle")}
           </p>
           </div>
-          <HeroVisual kind="support" />
+          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+            <Image
+              src="/images/contact.png"
+              alt="ParkGo Contact & Support"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+              priority
+            />
+          </div>
         </Container>
       </section>
 
