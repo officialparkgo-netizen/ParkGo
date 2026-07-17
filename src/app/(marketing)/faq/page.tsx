@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ChevronDown, HelpCircle, MessageCircle, Sparkles } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
-import { HeroVisual } from "@/components/marketing/hero-scenes";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata, SITE } from "@/lib/seo";

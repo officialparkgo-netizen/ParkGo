@@ -15,7 +15,6 @@ import {
   Users,
 } from "lucide-react";
 import { Section, Container, Eyebrow } from "@/components/ui/section";
-import { HeroVisual } from "@/components/marketing/hero-scenes";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
