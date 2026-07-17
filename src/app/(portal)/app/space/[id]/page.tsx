@@ -103,7 +103,7 @@ export default async function SpaceDetail({
 
   return (
     <PortalShell user={user} nav={travellerNav} title={space.title}>
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6 pb-24 lg:pb-0">
         <Link href="/app/search" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToResults")}
         </Link>
@@ -370,6 +370,25 @@ export default async function SpaceDetail({
           </div>
         </div>
       </div>
+
+      {/* Mobile: sticky book bar so the price + CTA are always in reach */}
+      {space.status === "live" && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-navy-100 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+            <div>
+              <div className="text-lg font-extrabold leading-tight text-navy-900">
+                {formatMoneyShort(priceTotal, currency)}
+              </div>
+              <div className="text-xs text-navy-500">
+                {t("common.total")} · {nights} {nights === 1 ? t("common.day") : t("common.days")}
+              </div>
+            </div>
+            <Link href={bookHref} className={buttonVariants({ size: "lg", className: "shrink-0" })}>
+              {t("common.bookSpace")}
+            </Link>
+          </div>
+        </div>
+      )}
     </PortalShell>
   );
 }

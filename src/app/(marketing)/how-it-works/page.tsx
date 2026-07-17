@@ -116,7 +116,7 @@ export default async function HowItWorksPage() {
             </Link>
           </div>
           </div>
-          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+          <div className="relative mt-2 block h-60 w-full sm:h-72 lg:mt-0 lg:h-full lg:min-h-[400px]">
             <Image
               src="/images/journey.png"
               alt="ParkGo Journey"

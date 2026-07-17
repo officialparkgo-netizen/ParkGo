@@ -30,6 +30,34 @@ export async function joinWaitlist(
   } catch {
     return { error: t("err.message") };
   }
+
+  // Best-effort emails — the signup is already stored, so never fail on these.
+  if (isEmailConfigured()) {
+    try {
+      await Promise.all([
+        sendEmail(
+          COMPANY.infoEmail,
+          `New waitlist signup · ${email}`,
+          emailShell(
+            `<h2 style="margin:0 0 12px">New waitlist signup</h2>
+             <p style="margin:0"><strong>Email:</strong> ${escapeHtml(email)}<br/>
+             <strong>Role:</strong> ${escapeHtml(role)}${airport ? `<br/><strong>Airport:</strong> ${escapeHtml(airport)}` : ""}</p>`
+          )
+        ),
+        sendEmail(
+          email,
+          "You're on the ParkGo list",
+          emailShell(
+            `<h2 style="margin:0 0 12px">You're on the list 🎉</h2>
+             <p>We'll email you the moment ParkGo goes live at your airport.
+             Early members get launch-day priority booking.</p>`
+          )
+        ),
+      ]);
+    } catch {
+      // ignore — notification only
+    }
+  }
   return { ok: true };
 }
 

@@ -121,8 +121,8 @@ export default async function SearchPage({
               {sp.vehicle && <Badge tone="neutral">{t(`search.${sp.vehicle}`)}</Badge>}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-navy-400">
+          <div className="no-scrollbar -mx-1 flex w-full items-center gap-1.5 overflow-x-auto px-1 sm:w-auto sm:flex-wrap">
+            <span className="mr-1 shrink-0 text-xs font-semibold uppercase tracking-wide text-navy-400">
               {t("app.search.sort.label")}
             </span>
             {(
@@ -136,7 +136,7 @@ export default async function SearchPage({
               <Link
                 key={key}
                 href={sortHref(key)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                className={`shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   sort === key
                     ? "border-brand-400 bg-brand-50 text-brand-700"
                     : "border-navy-200 text-navy-600 hover:bg-navy-50"
