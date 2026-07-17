@@ -125,6 +125,7 @@ export default async function HowItWorksPage() {
               priority
             />
           </div>
+        </Container>
       </section>
 
       {/* ----------------------------------------------- The traveller journey */}
