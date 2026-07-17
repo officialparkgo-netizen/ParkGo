@@ -116,6 +116,7 @@ export default async function HowItWorksPage() {
               {t("how.hero.pricing")}
             </Link>
           </div>
+          </div>
           <div className="hidden lg:block relative h-full w-full min-h-[400px]">
             <Image
               src="/images/journey.png"
