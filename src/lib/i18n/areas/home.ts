@@ -13,6 +13,8 @@ export const home: AreaDict = {
 
     "home.bundle.eyebrow": "One booking, one price",
     "home.bundle.heading": "Four things travellers juggle separately — bundled into one checkout",
+    "home.carousel.pause": "Pause auto-play",
+    "home.carousel.play": "Resume auto-play",
     "home.bundle.subcopy":
       "Parking, a licensed terminal transfer, EV charging and live security. Combined at a single transparent price, with explainable AI suggestions.",
 
@@ -86,6 +88,8 @@ export const home: AreaDict = {
 
     "home.bundle.eyebrow": "ایک بکنگ، ایک قیمت",
     "home.bundle.heading": "چار چیزیں جنہیں مسافر الگ الگ سنبھالتے ہیں — ایک چیک آؤٹ میں یکجا",
+    "home.carousel.pause": "خودکار سلائیڈ روکیں",
+    "home.carousel.play": "خودکار سلائیڈ دوبارہ چلائیں",
     "home.bundle.subcopy":
       "پارکنگ، ایک لائسنس یافتہ ٹرمینل ٹرانسفر، ای وی چارجنگ اور لائیو سیکیورٹی۔ ایک شفاف قیمت پر یکجا، قابلِ وضاحت اے آئی تجاویز کے ساتھ۔",
 
@@ -159,6 +163,8 @@ export const home: AreaDict = {
 
     "home.bundle.eyebrow": "एक बुकिंग, एक कीमत",
     "home.bundle.heading": "चार चीज़ें जिन्हें यात्री अलग-अलग संभालते हैं — एक ही चेकआउट में संयुक्त",
+    "home.carousel.pause": "ऑटो-स्लाइड रोकें",
+    "home.carousel.play": "ऑटो-स्लाइड फिर चलाएँ",
     "home.bundle.subcopy":
       "पार्किंग, एक लाइसेंस प्राप्त टर्मिनल ट्रांसफर, ईवी चार्जिंग और लाइव सुरक्षा। एक पारदर्शी कीमत पर संयुक्त, स्पष्ट करने योग्य एआई सुझावों के साथ।",
 
@@ -232,6 +238,8 @@ export const home: AreaDict = {
 
     "home.bundle.eyebrow": "Eine Buchung, ein Preis",
     "home.bundle.heading": "Vier Dinge, die Reisende einzeln jonglieren — gebündelt in einem Checkout",
+    "home.carousel.pause": "Automatischen Wechsel anhalten",
+    "home.carousel.play": "Automatischen Wechsel fortsetzen",
     "home.bundle.subcopy":
       "Parken, ein lizenzierter Terminaltransfer, das Laden von E-Autos und Live-Sicherheit. Kombiniert zu einem transparenten Preis, mit nachvollziehbaren KI-Vorschlägen.",
 
@@ -305,6 +313,8 @@ export const home: AreaDict = {
 
     "home.bundle.eyebrow": "一次预订，一个价格",
     "home.bundle.heading": "旅客通常要分开操心的四件事 — 整合进一次结账",
+    "home.carousel.pause": "暂停自动轮播",
+    "home.carousel.play": "继续自动轮播",
     "home.bundle.subcopy":
       "停车、持牌航站楼接送、电动车充电和实时安防。以单一透明的价格组合在一起，并提供可解释的 AI 建议。",
 

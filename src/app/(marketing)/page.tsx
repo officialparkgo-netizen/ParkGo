@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { SearchWidget } from "@/components/marketing/search-widget";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
+import { FeatureCarousel } from "@/components/marketing/feature-carousel";
 import { getAirports } from "@/lib/data/store";
 import { getI18n } from "@/lib/i18n";
 
@@ -124,32 +125,35 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { icon: MapPin, tone: "brand", title: t("value.bundle.title"), body: t("value.bundle.body") },
-            { icon: ShieldCheck, tone: "go", title: t("value.trust.title"), body: t("value.trust.body") },
-            { icon: Radio, tone: "accent", title: t("value.realtime.title"), body: t("value.realtime.body") },
-            { icon: Zap, tone: "navy", title: t("value.ev.title"), body: t("value.ev.body") },
-          ].map((f) => (
-            <Card key={f.title} className="card-hover p-6">
-              <div
-                className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${
-                  f.tone === "brand"
-                    ? "bg-brand-50 text-brand-600"
-                    : f.tone === "go"
-                      ? "bg-go-50 text-go-600"
-                      : f.tone === "accent"
-                        ? "bg-accent-50 text-accent-500"
-                        : "bg-navy-50 text-navy-700"
-                }`}
-              >
-                <f.icon className="h-5 w-5" />
-              </div>
-              <h3 className="text-base font-bold text-navy-900">{f.title}</h3>
-              <p className="mt-1.5 text-sm text-navy-600">{f.body}</p>
-            </Card>
-          ))}
-        </div>
+        <FeatureCarousel
+          label={t("home.bundle.heading")}
+          items={[
+            {
+              icon: <MapPin className="h-5 w-5" />,
+              iconClass: "bg-brand-50 text-brand-600",
+              title: t("value.bundle.title"),
+              body: t("value.bundle.body"),
+            },
+            {
+              icon: <ShieldCheck className="h-5 w-5" />,
+              iconClass: "bg-go-50 text-go-600",
+              title: t("value.trust.title"),
+              body: t("value.trust.body"),
+            },
+            {
+              icon: <Radio className="h-5 w-5" />,
+              iconClass: "bg-accent-50 text-accent-500",
+              title: t("value.realtime.title"),
+              body: t("value.realtime.body"),
+            },
+            {
+              icon: <Zap className="h-5 w-5" />,
+              iconClass: "bg-navy-50 text-navy-700",
+              title: t("value.ev.title"),
+              body: t("value.ev.body"),
+            },
+          ]}
+        />
       </Section>
 
       {/* ----------------------------------------------------- How it works */}

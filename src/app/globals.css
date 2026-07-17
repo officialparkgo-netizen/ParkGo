@@ -45,6 +45,14 @@
   .card-hover {
     @apply transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-card-lg;
   }
+  /* Hide the scrollbar on swipeable carousels (still scrollable) */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* -----------------------------------------------------------------------------
