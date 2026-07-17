@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -110,7 +111,15 @@ export default async function TrustSafetyPage() {
             </Link>
           </div>
           </div>
-          <HeroVisual kind="trust" />
+          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+            <Image
+              src="/images/trust-safety.png"
+              alt="ParkGo Trust & Safety"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+              priority
+            />
+          </div>
         </Container>
       </section>
 

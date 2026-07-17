@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -96,7 +97,15 @@ export default async function TravellersPage() {
             </span>
           </p>
           </div>
-          <HeroVisual kind="traveller" />
+          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+            <Image
+              src="/images/travellers.png"
+              alt="ParkGo Travellers"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+              priority
+            />
+          </div>
         </Container>
       </section>
 

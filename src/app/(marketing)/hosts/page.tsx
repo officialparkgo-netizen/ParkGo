@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -96,7 +97,15 @@ export default async function HostsPage() {
 
           {/* Host scene + earnings card */}
           <div className="mx-auto w-full max-w-md">
-            <HeroVisual kind="host" className="hidden sm:block" />
+            <div className="hidden sm:block relative w-full aspect-square min-h-[300px]">
+              <Image
+                src="/images/hosts.png"
+                alt="ParkGo Host"
+                fill
+                className="object-cover rounded-2xl shadow-2xl"
+                priority
+              />
+            </div>
             <Card className="relative z-10 p-7 sm:mx-4 sm:-mt-14 sm:shadow-card-lg">
               <div className="flex items-center gap-2">
                 <PiggyBank className="h-5 w-5 text-go-600" />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Banknote,
@@ -108,7 +109,15 @@ export default async function PricingPage() {
             </Link>
           </div>
           </div>
-          <HeroVisual kind="pricing" />
+          <div className="hidden lg:block relative h-full w-full min-h-[400px]">
+            <Image
+              src="/images/pricing.png"
+              alt="ParkGo Pricing"
+              fill
+              className="object-cover rounded-2xl shadow-2xl"
+              priority
+            />
+          </div>
         </Container>
       </section>
 
