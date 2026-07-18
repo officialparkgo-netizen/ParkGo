@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Role } from "@/types";
-import { DEMO_LOGINS, SESSION_COOKIE, rolePath } from "@/lib/auth";
+import { DEMO_LOGINS, SESSION_COOKIE, rolePath, roleHomeFor, resolveNext } from "@/lib/auth";
 import { IS_LIVE } from "@/lib/config";
 
 const COOKIE_OPTS = {
@@ -21,7 +21,7 @@ export async function loginAs(role: Role, next?: string) {
   if (!demo) return;
   const store = await cookies();
   store.set(SESSION_COOKIE, demo.userId, COOKIE_OPTS);
-  redirect(next || rolePath(role));
+  redirect(resolveNext(next, rolePath(role)));
 }
 
 export async function logout() {
@@ -76,8 +76,8 @@ export async function signInWithPassword(
     return { error: error?.message || "Invalid email or password." };
   }
 
-  const role = normaliseRole(String(data.user?.user_metadata?.role || "traveller"));
-  redirect(next || rolePath(role));
+  // Land each role on its own portal — admins go straight to /admin.
+  redirect(resolveNext(next, await roleHomeFor(data.user)));
 }
 
 export async function signUp(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -157,14 +157,18 @@ export async function signInWithMagicLink(
   formData: FormData
 ): Promise<AuthState> {
   const email = String(formData.get("email") || "");
-  const next = String(formData.get("next") || "") || "/app";
+  // No baked-in default: with no explicit target the callback sends each
+  // role to its own portal (admins land on /admin).
+  const next = String(formData.get("next") || "");
 
   const { createServerSupabase } = await import("@/lib/supabase/auth-server");
   const supabase = await createServerSupabase();
   if (!email.includes("@")) return { error: "Please enter a valid email address." };
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}` },
+    options: {
+      emailRedirectTo: `${SITE_URL}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+    },
   });
   if (error) return { error: error.message || "Could not send the magic link." };
   return { message: "Magic link sent — check your email to sign in." };

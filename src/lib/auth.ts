@@ -66,3 +66,36 @@ export function rolePath(role: Role): string {
       return "/admin";
   }
 }
+
+/**
+ * Where to land after signing in: honor an explicit deep link, but collapse
+ * bare portal roots to the user's own portal — an admin who arrived via a
+ * generic "Get started" (/login?next=/app) link belongs on /admin, and no
+ * guard bounces admins because they may open every portal.
+ */
+export function resolveNext(next: string | null | undefined, roleHome: string): string {
+  if (!next || next === "/app" || next === "/host" || next === "/admin") return roleHome;
+  return next;
+}
+
+/**
+ * Live mode: the portal a just-signed-in Supabase user should land on.
+ * The profile row is the source of truth (that's where admins are promoted);
+ * sign-up metadata is only a fallback while the row doesn't exist yet.
+ */
+export async function roleHomeFor(authUser: {
+  id: string;
+  email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+}): Promise<string> {
+  const metaRole = String(authUser.user_metadata?.role ?? "");
+  let role: Role =
+    metaRole === "host" || metaRole === "admin" ? (metaRole as Role) : "traveller";
+  try {
+    const profile = await ensureUserProfile(authUser);
+    if (profile) role = profile.role;
+  } catch {
+    // keep the metadata fallback
+  }
+  return rolePath(role);
+}
