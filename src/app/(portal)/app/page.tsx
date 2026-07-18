@@ -60,7 +60,7 @@ export default async function TravellerDashboard() {
 
         {/* Stats */}
         {bookings.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             <StatCard
               label={t("app.dash.stat.upcoming")}
               value={String(upcomingCount)}

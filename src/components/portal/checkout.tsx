@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CarTaxiFront, CreditCard, Lock, ShieldCheck, Wallet, Zap } from "lucide-react";
+import { CarTaxiFront, CheckCircle2, CreditCard, Lock, ShieldCheck, Wallet, Zap } from "lucide-react";
 import type { Space } from "@/types";
 import { priceBundle } from "@/lib/pricing";
 import { formatMoney } from "@/lib/utils";
@@ -49,7 +49,7 @@ export function Checkout({
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-5">
+    <div className="grid gap-6 pb-24 lg:grid-cols-5 lg:pb-0">
       {/* Bundle builder */}
       <div className="lg:col-span-3">
         <h2 className="text-lg font-bold text-navy-900">{t("common.buildBundle")}</h2>
@@ -146,7 +146,7 @@ export function Checkout({
             </div>
           </dl>
 
-          <form action={createBookingAction} className="mt-4">
+          <form id="checkout-form" action={createBookingAction} className="mt-4">
             <input type="hidden" name="spaceId" value={space.id} />
             <input type="hidden" name="startAt" value={new Date(start).toISOString()} />
             <input type="hidden" name="endAt" value={new Date(end).toISOString()} />
@@ -157,9 +157,31 @@ export function Checkout({
               <Lock className="h-4 w-4" /> {t("app.checkout.pay")} {formatMoney(price.total, currency)}
             </Button>
           </form>
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-navy-400">
-            <ShieldCheck className="h-3.5 w-3.5" /> {t("app.checkout.releaseNote")}
-          </p>
+          <div className="mt-3 space-y-1.5 text-xs text-navy-400">
+            <p className="flex items-center justify-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" /> {t("app.checkout.releaseNote")}
+            </p>
+            <p className="flex items-center justify-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> {t("home.hero.trust.cancel")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky pay bar (mobile) */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-navy-100 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-navy-400">
+              {t("common.total")}
+            </div>
+            <div className="text-lg font-extrabold leading-tight text-navy-900">
+              {formatMoney(price.total, currency)}
+            </div>
+          </div>
+          <Button type="submit" form="checkout-form" size="lg" className="shrink-0">
+            <Lock className="h-4 w-4" /> {t("app.checkout.pay")} {formatMoney(price.total, currency)}
+          </Button>
         </div>
       </div>
     </div>

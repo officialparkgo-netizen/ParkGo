@@ -28,6 +28,9 @@ export const portalAdmin: AreaDict = {
     "login.blurb.traveller": "Search, book, track & review",
     "login.blurb.host": "List spaces, see earnings",
     "login.blurb.admin": "Verify, monitor, payouts",
+    "login.panel.title": "Your travel day, handled.",
+    "login.panel.sub":
+      "One booking for parking, transfer, EV charging and live security — tracked end to end.",
 
     // --- Host dashboard ---
     "host.pageTitle": "Host dashboard",
@@ -229,6 +232,9 @@ export const portalAdmin: AreaDict = {
     "login.blurb.traveller": "تلاش کریں، بک کریں، ٹریک کریں اور جائزہ دیں",
     "login.blurb.host": "جگہیں درج کریں، آمدنی دیکھیں",
     "login.blurb.admin": "تصدیق، نگرانی، ادائیگیاں",
+    "login.panel.title": "آپ کے سفر کا دن، ہمارے ذمے۔",
+    "login.panel.sub":
+      "پارکنگ، ٹرانسفر، EV چارجنگ اور لائیو سیکیورٹی — سب ایک ہی بکنگ میں، شروع سے آخر تک ٹریک۔",
 
     // --- Host dashboard ---
     "host.pageTitle": "میزبان ڈیش بورڈ",
@@ -430,6 +436,9 @@ export const portalAdmin: AreaDict = {
     "login.blurb.traveller": "खोजें, बुक करें, ट्रैक करें और समीक्षा करें",
     "login.blurb.host": "स्थान सूचीबद्ध करें, कमाई देखें",
     "login.blurb.admin": "सत्यापन, निगरानी, भुगतान",
+    "login.panel.title": "आपकी यात्रा का दिन, हमारे ज़िम्मे।",
+    "login.panel.sub":
+      "पार्किंग, ट्रांसफ़र, EV चार्जिंग और लाइव सुरक्षा — सब एक ही बुकिंग में, शुरू से अंत तक ट्रैक।",
 
     // --- Host dashboard ---
     "host.pageTitle": "होस्ट डैशबोर्ड",
@@ -631,6 +640,9 @@ export const portalAdmin: AreaDict = {
     "login.blurb.traveller": "Suchen, buchen, verfolgen & bewerten",
     "login.blurb.host": "Plätze anbieten, Einnahmen sehen",
     "login.blurb.admin": "Prüfen, überwachen, Auszahlungen",
+    "login.panel.title": "Ihr Reisetag, gut geregelt.",
+    "login.panel.sub":
+      "Parken, Transfer, E-Laden und Live-Sicherheit in einer Buchung — durchgehend nachverfolgbar.",
 
     // --- Host dashboard ---
     "host.pageTitle": "Gastgeber-Dashboard",
@@ -832,6 +844,9 @@ export const portalAdmin: AreaDict = {
     "login.blurb.traveller": "搜索、预订、追踪与评价",
     "login.blurb.host": "发布车位，查看收益",
     "login.blurb.admin": "验证、监控、付款",
+    "login.panel.title": "出行日，全都安排好。",
+    "login.panel.sub":
+      "停车、接送、充电与实时安防，一次预订全包 — 全程可追踪。",
 
     // --- Host dashboard ---
     "host.pageTitle": "房东仪表板",
