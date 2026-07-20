@@ -8,7 +8,7 @@ import type { AreaDict } from "@/lib/i18n/config";
 export const core: AreaDict = {
   en: {
     "brand.tagline": "Park Smart. Travel Easy.",
-    "brand.positioning": "Integrated airport parking, licensed transfers and EV-ready travel technology.",
+    "brand.positioning": "Integrated parking, licensed transfers and EV-ready travel technology — from airports to cities.",
 
     "nav.how": "How it works",
     "nav.travellers": "For Travellers",
@@ -55,9 +55,9 @@ export const core: AreaDict = {
     "common.callDriver": "Call driver",
     "common.loading": "Loading…",
 
-    "hero.title": "Airport parking, transfer, EV & security — one booking.",
+    "hero.title": "Parking, transfer, EV & security — one booking.",
     "hero.subtitle":
-      "ParkGo bundles a verified private parking space, a licensed terminal transfer, EV charging and live security into a single price and a single checkout. Across the UK & Ireland.",
+      "ParkGo bundles a verified private parking space, a licensed terminal transfer, EV charging and live security into a single price and a single checkout. Starting at airports across the UK & Ireland — cities, stations and events next.",
     "hero.trustline": "Verified hosts · Licensed drivers · Live camera · CCTV",
 
     "value.bundle.title": "One bundle, one price",
@@ -73,7 +73,7 @@ export const core: AreaDict = {
     "footer.company": "Company",
     "footer.legal": "Legal",
     "footer.rights": "All rights reserved.",
-    "footer.integrated": "Integrated airport access for the UK & Ireland.",
+    "footer.integrated": "Parking for every journey — airports first, cities & events next.",
     "footer.insurance": "ParkGo Limited holds Employers' Liability (Compulsory) Insurance (£5m).",
     "footer.registered": "Registered in",
     "footer.companyNo": "Company No.",
@@ -162,7 +162,7 @@ export const core: AreaDict = {
 
   ur: {
     "brand.tagline": "ہوشیاری سے پارک کریں۔ آسانی سے سفر کریں۔",
-    "brand.positioning": "مربوط ایئرپورٹ پارکنگ، لائسنس یافتہ ٹرانسفر اور ای وی کے لیے تیار سفری ٹیکنالوجی۔",
+    "brand.positioning": "مربوط پارکنگ، لائسنس یافتہ ٹرانسفر اور ای وی کے لیے تیار سفری ٹیکنالوجی — ہوائی اڈوں سے شہروں تک۔",
     "nav.how": "یہ کیسے کام کرتا ہے",
     "nav.travellers": "مسافروں کے لیے",
     "nav.hosts": "میزبانوں کے لیے",
@@ -197,9 +197,9 @@ export const core: AreaDict = {
     "common.emailPh": "you@email.com",
     "common.callDriver": "ڈرائیور کو کال کریں",
     "common.loading": "لوڈ ہو رہا ہے…",
-    "hero.title": "ایئرپورٹ پارکنگ، ٹرانسفر، ای وی اور سیکیورٹی — ایک ہی بکنگ۔",
+    "hero.title": "پارکنگ، ٹرانسفر، ای وی اور سیکیورٹی — ایک ہی بکنگ۔",
     "hero.subtitle":
-      "پارک گو ایک تصدیق شدہ نجی پارکنگ، لائسنس یافتہ ٹرمینل ٹرانسفر، ای وی چارجنگ اور لائیو سیکیورٹی کو ایک قیمت اور ایک چیک آؤٹ میں جوڑتا ہے۔ برطانیہ اور آئرلینڈ بھر میں۔",
+      "پارک گو ایک تصدیق شدہ نجی پارکنگ، لائسنس یافتہ ٹرمینل ٹرانسفر، ای وی چارجنگ اور لائیو سیکیورٹی کو ایک قیمت اور ایک چیک آؤٹ میں جوڑتا ہے۔ آغاز برطانیہ اور آئرلینڈ کے ہوائی اڈوں سے — آگے شہر، اسٹیشن اور ایونٹس۔",
     "hero.trustline": "تصدیق شدہ میزبان · لائسنس یافتہ ڈرائیور · لائیو کیمرہ · سی سی ٹی وی",
     "value.bundle.title": "ایک بنڈل، ایک قیمت",
     "value.bundle.body": "پارکنگ + لائسنس یافتہ ٹرانسفر + ای وی + سیکیورٹی، چیک آؤٹ پر یکجا۔",
@@ -213,7 +213,7 @@ export const core: AreaDict = {
     "footer.company": "کمپنی",
     "footer.legal": "قانونی",
     "footer.rights": "جملہ حقوق محفوظ ہیں۔",
-    "footer.integrated": "برطانیہ اور آئرلینڈ کے لیے مربوط ایئرپورٹ رسائی۔",
+    "footer.integrated": "ہر سفر کے لیے پارکنگ — پہلے ہوائی اڈے، پھر شہر اور ایونٹس۔",
     "footer.insurance": "پارک گو لمیٹڈ کے پاس ایمپلائرز لائیبلٹی (لازمی) انشورنس (£5m) ہے۔",
     "footer.registered": "رجسٹرڈ در",
     "footer.companyNo": "کمپنی نمبر",
@@ -298,7 +298,7 @@ export const core: AreaDict = {
 
   hi: {
     "brand.tagline": "स्मार्ट पार्क करें। आसानी से यात्रा करें।",
-    "brand.positioning": "एकीकृत एयरपोर्ट पार्किंग, लाइसेंस प्राप्त ट्रांसफर और ईवी-तैयार यात्रा तकनीक।",
+    "brand.positioning": "एकीकृत पार्किंग, लाइसेंस प्राप्त ट्रांसफर और ईवी-तैयार यात्रा तकनीक — एयरपोर्ट से शहरों तक।",
     "nav.how": "यह कैसे काम करता है",
     "nav.travellers": "यात्रियों के लिए",
     "nav.hosts": "होस्ट के लिए",
@@ -333,9 +333,9 @@ export const core: AreaDict = {
     "common.emailPh": "you@email.com",
     "common.callDriver": "ड्राइवर को कॉल करें",
     "common.loading": "लोड हो रहा है…",
-    "hero.title": "एयरपोर्ट पार्किंग, ट्रांसफर, ईवी और सुरक्षा — एक बुकिंग।",
+    "hero.title": "पार्किंग, ट्रांसफर, ईवी और सुरक्षा — एक बुकिंग।",
     "hero.subtitle":
-      "ParkGo एक सत्यापित निजी पार्किंग, लाइसेंस प्राप्त टर्मिनल ट्रांसफर, ईवी चार्जिंग और लाइव सुरक्षा को एक ही कीमत और एक ही चेकआउट में जोड़ता है। यूके और आयरलैंड भर में।",
+      "ParkGo एक सत्यापित निजी पार्किंग, लाइसेंस प्राप्त टर्मिनल ट्रांसफर, ईवी चार्जिंग और लाइव सुरक्षा को एक ही कीमत और एक ही चेकआउट में जोड़ता है। शुरुआत यूके और आयरलैंड के एयरपोर्ट से — आगे शहर, स्टेशन और इवेंट।",
     "hero.trustline": "सत्यापित होस्ट · लाइसेंस प्राप्त ड्राइवर · लाइव कैमरा · सीसीटीवी",
     "value.bundle.title": "एक बंडल, एक कीमत",
     "value.bundle.body": "पार्किंग + लाइसेंस प्राप्त ट्रांसफर + ईवी + सुरक्षा, चेकआउट पर संयुक्त।",
@@ -349,7 +349,7 @@ export const core: AreaDict = {
     "footer.company": "कंपनी",
     "footer.legal": "कानूनी",
     "footer.rights": "सर्वाधिकार सुरक्षित।",
-    "footer.integrated": "यूके और आयरलैंड के लिए एकीकृत एयरपोर्ट पहुंच।",
+    "footer.integrated": "हर सफ़र के लिए पार्किंग — पहले एयरपोर्ट, फिर शहर और इवेंट।",
     "footer.insurance": "ParkGo Limited के पास एम्प्लॉयर्स लायबिलिटी (अनिवार्य) बीमा (£5m) है।",
     "footer.registered": "पंजीकृत:",
     "footer.companyNo": "कंपनी नंबर",
@@ -434,7 +434,7 @@ export const core: AreaDict = {
 
   de: {
     "brand.tagline": "Clever parken. Entspannt reisen.",
-    "brand.positioning": "Integriertes Flughafenparken, lizenzierte Transfers und E-Auto-fähige Reisetechnologie.",
+    "brand.positioning": "Integriertes Parken, lizenzierte Transfers und E-Auto-fähige Reisetechnologie — von Flughäfen bis Städten.",
     "nav.how": "So funktioniert's",
     "nav.travellers": "Für Reisende",
     "nav.hosts": "Für Gastgeber",
@@ -469,9 +469,9 @@ export const core: AreaDict = {
     "common.emailPh": "du@email.com",
     "common.callDriver": "Fahrer anrufen",
     "common.loading": "Lädt…",
-    "hero.title": "Flughafenparken, Transfer, E-Auto & Sicherheit — eine Buchung.",
+    "hero.title": "Parken, Transfer, E-Auto & Sicherheit — eine Buchung.",
     "hero.subtitle":
-      "ParkGo bündelt einen geprüften privaten Stellplatz, einen lizenzierten Terminaltransfer, das Laden von E-Autos und Live-Sicherheit zu einem Preis und einem Checkout. In ganz Großbritannien & Irland.",
+      "ParkGo bündelt einen geprüften privaten Stellplatz, einen lizenzierten Terminaltransfer, das Laden von E-Autos und Live-Sicherheit zu einem Preis und einem Checkout. Zum Start an Flughäfen in Großbritannien & Irland — Städte, Bahnhöfe und Events folgen.",
     "hero.trustline": "Geprüfte Gastgeber · Lizenzierte Fahrer · Live-Kamera · Videoüberwachung",
     "value.bundle.title": "Ein Paket, ein Preis",
     "value.bundle.body": "Parken + lizenzierter Transfer + E-Auto + Sicherheit, gebündelt beim Checkout.",
@@ -485,7 +485,7 @@ export const core: AreaDict = {
     "footer.company": "Unternehmen",
     "footer.legal": "Rechtliches",
     "footer.rights": "Alle Rechte vorbehalten.",
-    "footer.integrated": "Integrierter Flughafenzugang für Großbritannien & Irland.",
+    "footer.integrated": "Parken für jede Fahrt — erst Flughäfen, dann Städte & Events.",
     "footer.insurance": "ParkGo Limited verfügt über eine gesetzliche Arbeitgeberhaftpflichtversicherung (£5 Mio.).",
     "footer.registered": "Registriert in",
     "footer.companyNo": "Firmennummer",
@@ -570,7 +570,7 @@ export const core: AreaDict = {
 
   zh: {
     "brand.tagline": "聪明停车，轻松出行。",
-    "brand.positioning": "一体化的机场停车、持牌接送和电动车友好出行技术。",
+    "brand.positioning": "一体化停车、持牌接送和电动车友好出行技术 — 从机场到城市。",
     "nav.how": "运作方式",
     "nav.travellers": "旅客专区",
     "nav.hosts": "房东专区",
@@ -605,9 +605,9 @@ export const core: AreaDict = {
     "common.emailPh": "you@email.com",
     "common.callDriver": "致电司机",
     "common.loading": "加载中…",
-    "hero.title": "机场停车、接送、电动车充电与安全 — 一次预订全搞定。",
+    "hero.title": "停车、接送、电动车充电与安全 — 一次预订全搞定。",
     "hero.subtitle":
-      "ParkGo 将经过验证的私人停车位、持牌航站楼接送、电动车充电和实时安防整合为一个价格、一次结账。覆盖英国和爱尔兰。",
+      "ParkGo 将经过验证的私人停车位、持牌航站楼接送、电动车充电和实时安防整合为一个价格、一次结账。首先覆盖英国和爱尔兰的机场 — 城市、车站与活动场馆随后。",
     "hero.trustline": "认证房东 · 持牌司机 · 实时摄像头 · 闭路电视",
     "value.bundle.title": "一个套餐，一个价格",
     "value.bundle.body": "停车 + 持牌接送 + 电动车充电 + 安防，结账时一并组合。",
@@ -621,7 +621,7 @@ export const core: AreaDict = {
     "footer.company": "公司",
     "footer.legal": "法律",
     "footer.rights": "版权所有。",
-    "footer.integrated": "面向英国和爱尔兰的一体化机场出行。",
+    "footer.integrated": "为每段旅程提供停车 — 机场先行，城市与活动场馆随后。",
     "footer.insurance": "ParkGo Limited 持有雇主责任（强制）保险（£5m）。",
     "footer.registered": "注册地：",
     "footer.companyNo": "公司编号",

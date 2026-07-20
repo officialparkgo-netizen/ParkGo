@@ -4,7 +4,7 @@ export const SITE = {
   name: "ParkGo",
   tagline: "Park Smart. Travel Easy.",
   description:
-    "ParkGo bundles a verified private airport parking space, a licensed terminal transfer, EV charging and live security into one booking and one payment — across the UK & Ireland.",
+    "ParkGo bundles a verified private parking space, a licensed transfer, EV charging and live security into one booking and one payment — starting at UK & Ireland airports, with cities, stations and events next.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   twitter: "@parkgo",
 };
