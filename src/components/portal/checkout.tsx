@@ -30,11 +30,21 @@ export function Checkout({
   initialEv?: boolean;
 }) {
   const t = useT();
+  // "2026-07-21T09:00"-style props mean an hourly (same-day) stay.
+  const hourly = startDate.includes("T");
   const [transfer, setTransfer] = useState(initialTransfer);
   const [ev, setEv] = useState(initialEv && !!space.evCharger);
   const [method, setMethod] = useState<(typeof METHODS)[number]["id"]>("card");
   const [start, setStart] = useState(startDate);
-  const [end, setEnd] = useState(endDate);
+  const [end, setEnd] = useState(hourly && !endDate.includes("T") ? `${startDate.slice(0, 10)}T17:00` : endDate);
+
+  const day = start.slice(0, 10);
+  const fromTime = hourly ? start.slice(11, 16) : "";
+  const toTime = hourly ? end.slice(11, 16) : "";
+  function setHourly(nextDay: string, nextFrom: string, nextTo: string) {
+    setStart(`${nextDay}T${nextFrom}`);
+    setEnd(`${nextDay}T${nextTo}`);
+  }
 
   const price = useMemo(
     () =>
@@ -86,28 +96,62 @@ export function Checkout({
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-navy-500">{t("app.checkout.dropOff")}</span>
-            <input
-              type="date"
-              value={start}
-              min={new Date().toISOString().slice(0, 10)}
-              onChange={(e) => setStart(e.target.value)}
-              className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-navy-500">{t("app.checkout.pickUp")}</span>
-            <input
-              type="date"
-              value={end}
-              min={start}
-              onChange={(e) => setEnd(e.target.value)}
-              className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
-            />
-          </label>
-        </div>
+        {hourly ? (
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-navy-500">{t("search.date")}</span>
+              <input
+                type="date"
+                value={day}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setHourly(e.target.value, fromTime, toTime)}
+                className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-navy-500">{t("search.from")}</span>
+              <input
+                type="time"
+                value={fromTime}
+                onChange={(e) => setHourly(day, e.target.value, toTime)}
+                className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-navy-500">{t("search.until")}</span>
+              <input
+                type="time"
+                value={toTime}
+                min={fromTime}
+                onChange={(e) => setHourly(day, fromTime, e.target.value)}
+                className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </label>
+          </div>
+        ) : (
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-navy-500">{t("app.checkout.dropOff")}</span>
+              <input
+                type="date"
+                value={start}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setStart(e.target.value)}
+                className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-navy-500">{t("app.checkout.pickUp")}</span>
+              <input
+                type="date"
+                value={end}
+                min={start}
+                onChange={(e) => setEnd(e.target.value)}
+                className="h-11 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+            </label>
+          </div>
+        )}
 
         <h3 className="mt-6 text-sm font-bold text-navy-900">{t("app.checkout.paymentMethod")}</h3>
         <div className="mt-2 grid grid-cols-2 gap-2">

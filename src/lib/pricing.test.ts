@@ -86,3 +86,48 @@ describe("computeSplit", () => {
     expect(withEv.hostPayout).toBeGreaterThan(withoutEv.hostPayout);
   });
 });
+
+describe("hourly stays", () => {
+  const hourlySpace: Space = { ...space, pricePerHour: 300 }; // £3/h, £10/day
+
+  it("bills short stays by the hour when a rate exists", () => {
+    const p = priceBundle(
+      hourlySpace,
+      { parking: true, transfer: false, ev: false },
+      "2026-07-01T09:00:00.000Z",
+      "2026-07-01T11:30:00.000Z" // 2.5h → 3h
+    );
+    expect(p.parking).toBe(900);
+    expect(splitReconciles(p)).toBe(true);
+  });
+
+  it("caps hourly parking at the day rate", () => {
+    const p = priceBundle(
+      hourlySpace,
+      { parking: true, transfer: false, ev: false },
+      "2026-07-01T08:00:00.000Z",
+      "2026-07-01T18:00:00.000Z" // 10h × £3 = £30 → capped at £10 day rate
+    );
+    expect(p.parking).toBe(1000);
+  });
+
+  it("falls back to daily pricing without an hourly rate", () => {
+    const p = priceBundle(
+      space,
+      { parking: true, transfer: false, ev: false },
+      "2026-07-01T09:00:00.000Z",
+      "2026-07-01T11:00:00.000Z"
+    );
+    expect(p.parking).toBe(1000); // 1 day minimum
+  });
+
+  it("bills stays over 24h daily even with an hourly rate", () => {
+    const p = priceBundle(
+      hourlySpace,
+      { parking: true, transfer: false, ev: false },
+      "2026-07-01T09:00:00.000Z",
+      "2026-07-02T15:00:00.000Z" // 30h → 2 days
+    );
+    expect(p.parking).toBe(2000);
+  });
+});

@@ -10,13 +10,14 @@ import { buttonVariants } from "@/components/ui/button";
 import { formatMoneyShort } from "@/lib/utils";
 import { useT } from "@/lib/i18n/client";
 
-export function SpaceCard({ result }: { result: SearchResult }) {
+export function SpaceCard({ result, href }: { result: SearchResult; href?: string }) {
   const t = useT();
   const { space, airport, estimatedTotal } = result;
+  const spaceHref = href ?? `/app/space/${space.id}`;
   const currency = airport.country === "IE" ? "EUR" : "GBP";
   return (
     <div className="card-hover flex flex-col overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-card sm:flex-row">
-      <Link href={`/app/space/${space.id}`} className="relative block sm:w-56">
+      <Link href={spaceHref} className="relative block sm:w-56">
         <Photo token={space.photos[0] ?? "drive-1"} rounded="rounded-none" className="h-44 w-full sm:h-full" />
         <div className="absolute left-2 top-2 flex flex-wrap gap-1">
           {space.liveCamera && (
@@ -40,7 +41,7 @@ export function SpaceCard({ result }: { result: SearchResult }) {
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <Link href={`/app/space/${space.id}`}>
+            <Link href={spaceHref}>
               <h3 className="font-bold text-navy-900 hover:text-brand-700">{space.title}</h3>
             </Link>
             <p className="mt-0.5 flex items-center gap-1 text-sm text-navy-500">
@@ -86,7 +87,7 @@ export function SpaceCard({ result }: { result: SearchResult }) {
               <BadgeCheck className="h-3.5 w-3.5" /> {t("app.space.freeCancellation")}
             </div>
           </div>
-          <Link href={`/app/space/${space.id}`} className={buttonVariants({ size: "sm" })}>
+          <Link href={spaceHref} className={buttonVariants({ size: "sm" })}>
             {t("common.viewBook")}
           </Link>
         </div>

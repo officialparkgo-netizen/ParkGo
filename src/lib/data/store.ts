@@ -128,6 +128,7 @@ export interface CreateSpaceInput {
   approxArea: string;
   exactAddress: string;
   pricePerDay: number;
+  pricePerHour?: number | null;
   maxVehicleSize: Space["maxVehicleSize"];
   cctv: boolean;
   liveCamera: boolean;
@@ -163,6 +164,7 @@ export function createSpace(input: CreateSpaceInput): Space {
     accessRules: input.accessRules,
     photos: ["drive-1"],
     pricePerDay: input.pricePerDay,
+    pricePerHour: input.pricePerHour ?? undefined,
     rating: 0,
     reviewCount: 0,
     status: "pending_review",

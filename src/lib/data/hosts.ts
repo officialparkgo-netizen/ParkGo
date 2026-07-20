@@ -26,7 +26,7 @@ function fitsVehicle(space: Space, size: SearchQuery["vehicleSize"]) {
 // "*" keeps reads tolerant of optional columns (e.g. bio, added in 0009).
 const HOST_COLS = "*";
 const SPACE_COLS =
-  "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, capacity, max_vehicle_size, ev_charger, cctv, live_camera, covered, access_rules, photos, price_per_day, rating, review_count, status, created_at";
+  "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, capacity, max_vehicle_size, ev_charger, cctv, live_camera, covered, access_rules, photos, price_per_day, price_per_hour, rating, review_count, status, created_at";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function hostFromRow(r: any): Host {
@@ -64,6 +64,7 @@ function spaceFromRow(r: any): Space {
     accessRules: r.access_rules,
     photos: r.photos ?? [],
     pricePerDay: r.price_per_day,
+    pricePerHour: r.price_per_hour ?? undefined,
     rating: Number(r.rating ?? 0),
     reviewCount: r.review_count ?? 0,
     status: r.status,
@@ -148,6 +149,7 @@ export async function createSpaceForHost(
       access_rules: input.accessRules,
       photos: photos?.length ? photos.slice(0, 6) : ["drive-1"],
       price_per_day: input.pricePerDay,
+      price_per_hour: input.pricePerHour ?? null,
       status: "pending_review",
     })
     .select(SPACE_COLS)
@@ -390,6 +392,7 @@ export interface UpdateSpaceInput {
   approxArea: string;
   exactAddress: string;
   pricePerDay: number; // pence
+  pricePerHour?: number | null; // pence, null clears the hourly rate
   capacity: number;
   maxVehicleSize: Space["maxVehicleSize"];
   cctv: boolean;
@@ -419,6 +422,7 @@ export async function updateSpaceForHost(
     s.approxArea = input.approxArea;
     s.exactAddress = input.exactAddress;
     s.pricePerDay = input.pricePerDay;
+    s.pricePerHour = input.pricePerHour ?? undefined;
     s.capacity = Math.max(1, input.capacity || 1);
     s.maxVehicleSize = input.maxVehicleSize;
     s.cctv = input.cctv;
@@ -450,6 +454,7 @@ export async function updateSpaceForHost(
       approx_area: input.approxArea,
       exact_address: input.exactAddress,
       price_per_day: input.pricePerDay,
+      price_per_hour: input.pricePerHour ?? null,
       capacity: Math.max(1, input.capacity || 1),
       max_vehicle_size: input.maxVehicleSize,
       cctv: input.cctv,

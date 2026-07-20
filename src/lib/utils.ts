@@ -42,6 +42,11 @@ export function daysBetween(startIso: string, endIso: string) {
   return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 }
 
+export function hoursBetween(startIso: string, endIso: string) {
+  const ms = new Date(endIso).getTime() - new Date(startIso).getTime();
+  return Math.max(1, Math.ceil(ms / (1000 * 60 * 60)));
+}
+
 /** Deterministic id generator (avoids Math.random for reproducible mock data). */
 let _seq = 1;
 export function nextId(prefix = "id"): string {

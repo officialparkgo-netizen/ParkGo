@@ -29,9 +29,9 @@ import { getAirport } from "@/lib/data/store";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { listReviewsForSpace } from "@/lib/data/reviews";
 import { getUserProfile, getUsersByIds } from "@/lib/data/users";
-import { priceBundle } from "@/lib/pricing";
+import { isHourlyStay, priceBundle } from "@/lib/pricing";
 import { projectToViewport } from "@/lib/services/maps";
-import { daysBetween, formatDate, formatMoneyShort, initials } from "@/lib/utils";
+import { daysBetween, formatDate, formatMoneyShort, hoursBetween, initials } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -70,6 +70,11 @@ export default async function SpaceDetail({
   const start = sp.from ? new Date(sp.from).toISOString() : new Date(Date.now() + 2 * 86_400_000).toISOString();
   const end = sp.to ? new Date(sp.to).toISOString() : new Date(Date.now() + 9 * 86_400_000).toISOString();
   const nights = daysBetween(start, end);
+  const hourly = isHourlyStay(space, start, end);
+  const hours = hoursBetween(start, end);
+  const durationText = hourly
+    ? `${hours} ${hours === 1 ? t("common.hour") : t("common.hours")}`
+    : `${nights} ${nights === 1 ? t("common.day") : t("common.days")}`;
   const withTransfer = sp.transfer === "1";
   const withEv = sp.ev === "1" && !!space.evCharger;
   const price = priceBundle(
@@ -284,7 +289,7 @@ export default async function SpaceDetail({
                   {formatMoneyShort(priceTotal, currency)}
                 </span>
                 <span className="text-navy-500">
-                  {t("common.total")} · {nights} {nights === 1 ? t("common.day") : t("common.days")}
+                  {t("common.total")} · {durationText}
                 </span>
               </div>
               <div className="mt-1 flex items-center justify-between">
@@ -298,8 +303,13 @@ export default async function SpaceDetail({
               <dl className="mt-4 space-y-1.5 border-t border-navy-100 pt-3 text-sm">
                 <div className="flex items-center justify-between text-navy-600">
                   <dt>
-                    {formatMoneyShort(space.pricePerDay, currency)} × {nights}{" "}
-                    {nights === 1 ? t("common.day") : t("common.days")}
+                    {hourly && space.pricePerHour && hours * space.pricePerHour < space.pricePerDay
+                      ? `${formatMoneyShort(space.pricePerHour, currency)} × ${hours} ${
+                          hours === 1 ? t("common.hour") : t("common.hours")
+                        }`
+                      : `${formatMoneyShort(space.pricePerDay, currency)} × ${nights} ${
+                          nights === 1 ? t("common.day") : t("common.days")
+                        }`}
                   </dt>
                   <dd className="font-semibold text-navy-800">
                     {formatMoneyShort(price.parking, currency)}
@@ -363,7 +373,7 @@ export default async function SpaceDetail({
                 {formatMoneyShort(priceTotal, currency)}
               </div>
               <div className="text-xs text-navy-500">
-                {t("common.total")} · {nights} {nights === 1 ? t("common.day") : t("common.days")}
+                {t("common.total")} · {durationText}
               </div>
             </div>
             <Link href={bookHref} className={buttonVariants({ size: "lg", className: "shrink-0" })}>

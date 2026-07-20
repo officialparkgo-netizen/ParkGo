@@ -6,7 +6,7 @@ import type {
   PriceBreakdown,
   Space,
 } from "@/types";
-import { daysBetween } from "@/lib/utils";
+import { daysBetween, hoursBetween } from "@/lib/utils";
 
 /**
  * Commission configuration (basis points). Indicative figures from the business
@@ -31,6 +31,23 @@ function bps(amount: Pence, basisPoints: number): Pence {
   return Math.round((amount * basisPoints) / 10_000);
 }
 
+/**
+ * A stay bills hourly when the space offers an hourly rate and the window is
+ * a same-day slot with actual clock times. Date-only (midnight-to-midnight)
+ * windows always bill daily, so a degenerate same-day daily booking can never
+ * slip into hourly pricing. Hourly parking is capped at the day rate, so a
+ * long hourly stay never costs more than the same day booked daily.
+ */
+export function isHourlyStay(space: Space, startAt: string, endAt: string): boolean {
+  if (!space.pricePerHour) return false;
+  const s = new Date(startAt);
+  const e = new Date(endAt);
+  const sameDay = s.toISOString().slice(0, 10) === e.toISOString().slice(0, 10);
+  const hasClockTime =
+    s.getUTCHours() + s.getUTCMinutes() + e.getUTCHours() + e.getUTCMinutes() > 0;
+  return sameDay && hasClockTime;
+}
+
 export function evCost(charger: EvCharger | null): Pence {
   if (!charger) return 0;
   return Math.round(charger.pricePerKwh * EV_ASSUMED_KWH);
@@ -47,9 +64,9 @@ export function priceBundle(
   endAt: string,
   currency: "GBP" | "EUR" = "GBP"
 ): PriceBreakdown {
-  const nights = daysBetween(startAt, endAt);
-
-  const parking: Pence = space.pricePerDay * nights;
+  const parking: Pence = isHourlyStay(space, startAt, endAt)
+    ? Math.min(hoursBetween(startAt, endAt) * (space.pricePerHour as Pence), space.pricePerDay)
+    : space.pricePerDay * daysBetween(startAt, endAt);
   const transfer: Pence = bundle.transfer ? TRANSFER_BASE_FARE : 0;
   const ev: Pence = bundle.ev ? evCost(space.evCharger) : 0;
   const serviceFee: Pence = SERVICE_FEE;

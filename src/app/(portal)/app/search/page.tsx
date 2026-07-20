@@ -81,6 +81,17 @@ export default async function SearchPage({
     return `/app/search?${params.toString()}`;
   })();
 
+  const spaceHref = (id: string) => {
+    const params = new URLSearchParams();
+    if (sp.from) params.set("from", sp.from);
+    if (sp.to) params.set("to", sp.to);
+    if (sp.ev) params.set("ev", sp.ev);
+    if (sp.transfer) params.set("transfer", sp.transfer);
+    const qs = params.toString();
+    return `/app/space/${id}${qs ? `?${qs}` : ""}`;
+  };
+  const hourlySearch = !!sp.from?.includes("T");
+
   const suggestion = optimiseJourney(results, {
     needsEv: sp.ev === "1",
     needsTransfer: sp.transfer === "1",
@@ -111,6 +122,7 @@ export default async function SearchPage({
               {results.length} {t("app.search.spacesNear")} {airport?.name ?? t("app.search.yourAirport")}
             </h2>
             <div className="mt-1 flex flex-wrap gap-2">
+              {hourlySearch && <Badge tone="brand">{t("search.mode.hourly")}</Badge>}
               {sp.cctv === "1" && <Badge tone="go">{t("app.search.cctvCamera")}</Badge>}
               {sp.transfer === "1" && <Badge tone="brand">{t("app.search.plusTransfer")}</Badge>}
               {sp.ev === "1" && <Badge tone="brand">{t("search.evCharging")}</Badge>}
@@ -171,7 +183,7 @@ export default async function SearchPage({
                       ))}
                     </ul>
                     <Link
-                      href={`/app/space/${suggestion.spaceId}`}
+                      href={spaceHref(suggestion.spaceId)}
                       className={buttonVariants({ size: "sm", className: "mt-3" })}
                     >
                       {t("app.search.viewRecommended")} <ArrowRight className="h-4 w-4" />
@@ -196,7 +208,7 @@ export default async function SearchPage({
                 </Link>
               </Card>
             ) : (
-              results.map((r) => <SpaceCard key={r.space.id} result={r} />)
+              results.map((r) => <SpaceCard key={r.space.id} result={r} href={spaceHref(r.space.id)} />)
             )}
           </div>
 
@@ -206,25 +218,17 @@ export default async function SearchPage({
                 {MAPBOX ? (
                   <SearchMap
                     airport={{ lat: airport.lat, lng: airport.lng, name: airport.name }}
-                    spaces={results.map((r) => {
-                      const params = new URLSearchParams();
-                      if (sp.from) params.set("from", sp.from);
-                      if (sp.to) params.set("to", sp.to);
-                      if (sp.ev) params.set("ev", sp.ev);
-                      if (sp.transfer) params.set("transfer", sp.transfer);
-                      const qs = params.toString();
-                      return {
-                        id: r.space.id,
-                        lat: r.space.lat,
-                        lng: r.space.lng,
-                        price: formatMoneyShort(
-                          r.estimatedTotal,
-                          r.airport.country === "IE" ? "EUR" : "GBP"
-                        ),
-                        title: r.space.title,
-                        href: `/app/space/${r.space.id}${qs ? `?${qs}` : ""}`,
-                      };
-                    })}
+                    spaces={results.map((r) => ({
+                      id: r.space.id,
+                      lat: r.space.lat,
+                      lng: r.space.lng,
+                      price: formatMoneyShort(
+                        r.estimatedTotal,
+                        r.airport.country === "IE" ? "EUR" : "GBP"
+                      ),
+                      title: r.space.title,
+                      href: spaceHref(r.space.id),
+                    }))}
                     className="h-[28rem]"
                   />
                 ) : (

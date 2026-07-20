@@ -150,6 +150,8 @@ export interface Space {
   accessRules: string;
   photos: string[];
   pricePerDay: Pence;
+  /** Optional hourly rate — enables short (under-a-day) stays. */
+  pricePerHour?: Pence;
   rating: number;
   reviewCount: number;
   status: SpaceStatus;

@@ -120,7 +120,7 @@ export const spaces: Space[] = [
     dimensions: { lengthM: 5.5, widthM: 2.6 }, maxVehicleSize: "large",
     evCharger: { connector: "Type 2", kw: 7, pricePerKwh: 38 }, cctv: true, liveCamera: true,
     accessRules: "Park on the marked bay. Keys not required — keep your fob.",
-    photos: ["drive-1", "drive-2", "ev-1"], pricePerDay: 1200, rating: 4.9, reviewCount: 128, status: "live", createdAt: iso(-380 * DAY),
+    photos: ["drive-1", "drive-2", "ev-1"], pricePerDay: 1200, pricePerHour: 300, rating: 4.9, reviewCount: 128, status: "live", createdAt: iso(-380 * DAY),
   },
   {
     id: "space_lhr_2", hostId: "host_grace", title: "Gated yard · CCTV · 7 min to T2/T3",
@@ -129,7 +129,7 @@ export const spaces: Space[] = [
     dimensions: { lengthM: 5.2, widthM: 2.5 }, maxVehicleSize: "large",
     evCharger: null, cctv: true, liveCamera: true,
     accessRules: "Gate code sent on arrival window. Reverse into bay 4.",
-    photos: ["yard-1", "yard-2"], pricePerDay: 999, rating: 4.7, reviewCount: 86, status: "live", createdAt: iso(-250 * DAY),
+    photos: ["yard-1", "yard-2"], pricePerDay: 999, pricePerHour: 250, rating: 4.7, reviewCount: 86, status: "live", createdAt: iso(-250 * DAY),
   },
   {
     id: "space_lgw_1", hostId: "host_grace", title: "Covered carport · 6 min to South",
@@ -139,7 +139,7 @@ export const spaces: Space[] = [
     evCharger: { connector: "Type 2", kw: 7, pricePerKwh: 35 }, cctv: true, liveCamera: false,
     accessRules: "Covered bay under carport. Leave keys in lockbox (code on arrival).",
     covered: true,
-    photos: ["carport-1"], pricePerDay: 850, rating: 4.6, reviewCount: 54, status: "live", createdAt: iso(-180 * DAY),
+    photos: ["carport-1"], pricePerDay: 850, pricePerHour: 200, rating: 4.6, reviewCount: 54, status: "live", createdAt: iso(-180 * DAY),
   },
   {
     id: "space_man_1", hostId: "host_tom", title: "Driveway · EV · 9 min to T1",
@@ -148,7 +148,7 @@ export const spaces: Space[] = [
     dimensions: { lengthM: 5.4, widthM: 2.6 }, maxVehicleSize: "large",
     evCharger: { connector: "CCS", kw: 22, pricePerKwh: 42 }, cctv: false, liveCamera: false,
     accessRules: "Off-road driveway, well lit. EV cable provided.",
-    photos: ["drive-3"], pricePerDay: 700, rating: 4.8, reviewCount: 39, status: "live", createdAt: iso(-120 * DAY),
+    photos: ["drive-3"], pricePerDay: 700, pricePerHour: 180, rating: 4.8, reviewCount: 39, status: "live", createdAt: iso(-120 * DAY),
   },
   {
     id: "space_dub_1", hostId: "host_grace", title: "Secure compound · 11 min to T2",

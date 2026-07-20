@@ -12,6 +12,9 @@ function isoDay(offsetDays: number) {
   return d.toISOString().slice(0, 10);
 }
 
+/** "2026-07-21T09:00" → hourly search; plain dates are daily searches. */
+const hasTime = (v?: string) => !!v && v.includes("T");
+
 export interface SearchWidgetInitial {
   airport?: string;
   from?: string;
@@ -37,9 +40,21 @@ export function SearchWidget({
 }) {
   const router = useRouter();
   const t = useT();
+  const initialHourly = hasTime(initial?.from);
   const [airport, setAirport] = useState(initial?.airport ?? airports[0]?.slug ?? "heathrow");
-  const [from, setFrom] = useState(initial?.from ?? isoDay(2));
-  const [to, setTo] = useState(initial?.to ?? isoDay(7));
+  const [mode, setMode] = useState<"daily" | "hourly">(initialHourly ? "hourly" : "daily");
+  const [from, setFrom] = useState(
+    initialHourly ? initial!.from!.slice(0, 10) : (initial?.from ?? isoDay(2))
+  );
+  const [to, setTo] = useState(
+    initialHourly ? initial!.from!.slice(0, 10) : (initial?.to ?? isoDay(7))
+  );
+  const [fromTime, setFromTime] = useState(
+    initialHourly ? initial!.from!.slice(11, 16) : "09:00"
+  );
+  const [toTime, setToTime] = useState(
+    initialHourly && hasTime(initial?.to) ? initial!.to!.slice(11, 16) : "17:00"
+  );
   const [vehicle, setVehicle] = useState(initial?.vehicle ?? "");
   const [needsEv, setNeedsEv] = useState(initial?.ev ?? false);
   const [needsTransfer, setNeedsTransfer] = useState(initial?.transfer ?? false);
@@ -51,8 +66,8 @@ export function SearchWidget({
     e.preventDefault();
     const params = new URLSearchParams({
       airport,
-      from,
-      to,
+      from: mode === "hourly" ? `${from}T${fromTime}` : from,
+      to: mode === "hourly" ? `${from}T${toTime}` : to,
       ...(vehicle ? { vehicle } : {}),
       ...(needsEv ? { ev: "1" } : {}),
       ...(needsTransfer ? { transfer: "1" } : {}),
@@ -65,6 +80,32 @@ export function SearchWidget({
 
   return (
     <form onSubmit={submit} className="w-full">
+      {/* Daily / hourly stay toggle */}
+      <div
+        role="group"
+        aria-label={`${t("search.mode.daily")} / ${t("search.mode.hourly")}`}
+        className="mb-3 inline-flex rounded-full border border-navy-200 bg-white p-1 shadow-card"
+      >
+        {(
+          [
+            ["daily", t("search.mode.daily")],
+            ["hourly", t("search.mode.hourly")],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={mode === key}
+            onClick={() => setMode(key)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+              mode === key ? "bg-navy-900 text-white" : "text-navy-600 hover:bg-navy-50"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Segmented search bar (Airbnb-style pill on large screens) */}
       <div className="flex flex-col overflow-hidden rounded-3xl border border-navy-200 bg-white shadow-card-lg lg:flex-row lg:items-stretch lg:rounded-full">
         <label className="flex min-w-0 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:flex-[1.5] lg:border-b-0 lg:px-5">
@@ -88,7 +129,7 @@ export function SearchWidget({
 
         <label className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:border-b-0 lg:px-5">
           <span className="text-[11px] font-bold uppercase tracking-wide text-navy-500">
-            {t("search.dropOff")}
+            {mode === "hourly" ? t("search.date") : t("search.dropOff")}
           </span>
           <input
             type="date"
@@ -101,18 +142,51 @@ export function SearchWidget({
 
         <span className="hidden w-px self-stretch bg-navy-100 lg:my-3.5 lg:block" aria-hidden />
 
-        <label className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:border-b-0 lg:px-5">
-          <span className="text-[11px] font-bold uppercase tracking-wide text-navy-500">
-            {t("search.pickUp")}
-          </span>
-          <input
-            type="date"
-            value={to}
-            min={from}
-            onChange={(e) => setTo(e.target.value)}
-            className="w-full bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
-          />
-        </label>
+        {mode === "hourly" ? (
+          <>
+            <label className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:border-b-0 lg:px-5">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-navy-500">
+                {t("search.from")}
+              </span>
+              <input
+                type="time"
+                required
+                value={fromTime}
+                onChange={(e) => setFromTime(e.target.value)}
+                className="w-full bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
+              />
+            </label>
+
+            <span className="hidden w-px self-stretch bg-navy-100 lg:my-3.5 lg:block" aria-hidden />
+
+            <label className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:border-b-0 lg:px-5">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-navy-500">
+                {t("search.until")}
+              </span>
+              <input
+                type="time"
+                required
+                value={toTime}
+                min={fromTime}
+                onChange={(e) => setToTime(e.target.value)}
+                className="w-full bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
+              />
+            </label>
+          </>
+        ) : (
+          <label className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:border-b-0 lg:px-5">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-navy-500">
+              {t("search.pickUp")}
+            </span>
+            <input
+              type="date"
+              value={to}
+              min={from}
+              onChange={(e) => setTo(e.target.value)}
+              className="w-full bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
+            />
+          </label>
+        )}
 
         <div className="flex shrink-0 items-center p-3 lg:py-2.5 lg:pl-1 lg:pr-2.5">
           <button

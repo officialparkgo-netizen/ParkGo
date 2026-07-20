@@ -64,6 +64,12 @@ export default async function NewSpacePage() {
             </div>
 
             <div>
+              <Label htmlFor="pricePerHour">{t("host.new.pricePerHour")}</Label>
+              <Input id="pricePerHour" name="pricePerHour" type="number" min="0" step="0.5" placeholder="—" />
+              <p className="mt-1 text-xs text-navy-400">{t("host.new.pricePerHourHint")}</p>
+            </div>
+
+            <div>
               <Label htmlFor="capacity">{t("host.new.capacity")}</Label>
               <Input
                 id="capacity"

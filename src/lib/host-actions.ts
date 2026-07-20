@@ -24,6 +24,11 @@ function parseSpaceForm(formData: FormData) {
     approxArea: String(formData.get("approxArea") || ""),
     exactAddress: String(formData.get("exactAddress") || ""),
     pricePerDay: Math.round(Number(formData.get("pricePerDay") || 10) * 100),
+    // Optional hourly rate — empty means the space is daily-only.
+    pricePerHour:
+      Number(formData.get("pricePerHour")) > 0
+        ? Math.round(Number(formData.get("pricePerHour")) * 100)
+        : null,
     capacity: Math.max(1, Math.min(50, Math.round(Number(formData.get("capacity") || 1)))),
     maxVehicleSize: String(formData.get("maxVehicleSize") || "large") as Space["maxVehicleSize"],
     cctv: formData.get("cctv") === "1",
