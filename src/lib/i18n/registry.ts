@@ -10,6 +10,7 @@ import { portalAdmin } from "@/lib/i18n/areas/portalAdmin";
 import { legal } from "@/lib/i18n/areas/legal";
 import { blog } from "@/lib/i18n/areas/blog";
 import { airports } from "@/lib/i18n/areas/airports";
+import { support } from "@/lib/i18n/areas/support";
 
 /** All translation areas. Add new area modules here. */
 const AREAS: AreaDict[] = [
@@ -23,6 +24,7 @@ const AREAS: AreaDict[] = [
   legal,
   blog,
   airports,
+  support,
 ];
 
 /** Merge every area into one flat dict for a locale, with English fallback. */

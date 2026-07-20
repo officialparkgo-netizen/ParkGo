@@ -420,3 +420,20 @@ export interface WaitlistEntry {
   airport?: string;
   createdAt: ISODateString;
 }
+
+/** One line of a support-chat conversation. */
+export interface SupportMessage {
+  role: "bot" | "user";
+  text: string;
+}
+
+/** A chat escalated to a human agent. */
+export interface SupportTicket {
+  id: UUID;
+  name: string;
+  email: string;
+  topic: string;
+  transcript: SupportMessage[];
+  status: "open" | "resolved";
+  createdAt: ISODateString;
+}

@@ -30,6 +30,7 @@ import type {
   Verification,
   VerificationStatus,
   WaitlistEntry,
+  SupportTicket,
 } from "@/types";
 import * as seed from "@/lib/data/seed";
 import { priceBundle } from "@/lib/pricing";
@@ -626,6 +627,34 @@ export function addWaitlist(entry: Omit<WaitlistEntry, "id" | "createdAt">): Wai
   return row;
 }
 export const getWaitlist = () => db.waitlist;
+
+// -----------------------------------------------------------------------------
+// Support tickets (chat escalations) — on globalThis like `db`, so the server
+// action and the admin page (separate route bundles) share one list.
+// -----------------------------------------------------------------------------
+const sg = globalThis as unknown as { __parkgoSupport?: SupportTicket[] };
+const supportTickets: SupportTicket[] = (sg.__parkgoSupport ??= []);
+
+export function addSupportTicket(
+  entry: Omit<SupportTicket, "id" | "createdAt" | "status">
+): SupportTicket {
+  const row: SupportTicket = {
+    ...entry,
+    id: `sp_${supportTickets.length + 1}`,
+    status: "open",
+    createdAt: new Date().toISOString(),
+  };
+  supportTickets.push(row);
+  return row;
+}
+export const getSupportTickets = () =>
+  [...supportTickets].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+export function resolveSupportTicket(id: string): boolean {
+  const t = supportTickets.find((x) => x.id === id);
+  if (!t) return false;
+  t.status = "resolved";
+  return true;
+}
 
 // Re-export for convenience in admin views.
 export const averageRatingFor = (subjectId: string) =>

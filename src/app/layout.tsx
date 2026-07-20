@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { I18nProvider } from "@/lib/i18n/client";
+import { SupportWidget } from "@/components/common/support-widget";
 import { localeMeta } from "@/lib/i18n/config";
 import { SITE } from "@/lib/seo";
 
@@ -47,7 +48,10 @@ export default async function RootLayout({
         <a href="#main-content" className="skip-link">
           {dict["a11y.skip"] ?? "Skip to content"}
         </a>
-        <I18nProvider dict={dict}>{children}</I18nProvider>
+        <I18nProvider dict={dict}>
+          {children}
+          <SupportWidget />
+        </I18nProvider>
         <SpeedInsights />
         <Analytics />
       </body>

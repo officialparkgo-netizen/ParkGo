@@ -9,6 +9,7 @@ import {
   Clock,
   FileText,
   Globe,
+  Headset,
   LayoutGrid,
   Mail,
   PauseCircle,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { StatCard } from "@/components/portal/stat-card";
@@ -45,6 +47,8 @@ import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { getUsersByIds, listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
+import { listSupportTickets } from "@/lib/data/support";
+import { resolveSupportTicketAction } from "@/lib/support-actions";
 import type { Host } from "@/types";
 
 function hostTrustScore(h: Host) {
@@ -125,6 +129,7 @@ export default async function AdminDashboard() {
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, 10);
   const waitlist = await listWaitlist().catch(() => []);
+  const supportTickets = await listSupportTickets().catch(() => []);
 
   // Transfer is fulfilled by an independent licensed operator, integrated by API.
   const operator = getOperatorStatus();
@@ -549,6 +554,65 @@ export default async function AdminDashboard() {
                     {t("admin.users.joined")} {formatDate(u.createdAt)}
                   </span>
                 </div>
+              </div>
+            ))}
+          </Card>
+        </section>
+
+        {/* Support tickets escalated from the chat assistant */}
+        <section id="support" className="scroll-mt-20">
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Headset className="h-5 w-5 text-navy-500" /> {t("admin.support.title")}
+            </h3>
+            <Badge tone={supportTickets.some((x) => x.status === "open") ? "accent" : "neutral"}>
+              {supportTickets.filter((x) => x.status === "open").length} {t("admin.support.openBadge")}
+            </Badge>
+          </div>
+          <p className="mb-3 text-sm text-navy-500">{t("admin.support.sub")}</p>
+          <Card className="divide-y divide-navy-100">
+            {supportTickets.length === 0 && (
+              <div className="p-6 text-center text-navy-500">{t("admin.support.empty")}</div>
+            )}
+            {supportTickets.slice(0, 10).map((ticket) => (
+              <div key={ticket.id} className="p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold text-navy-900">
+                      {ticket.name || ticket.email}
+                      <span className="ms-2 text-xs font-normal text-navy-400">{ticket.email}</span>
+                    </div>
+                    <div className="text-xs text-navy-400">
+                      {ticket.topic} · {formatDateTime(ticket.createdAt)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge tone={ticket.status === "open" ? "accent" : "go"}>
+                      {ticket.status === "open"
+                        ? t("admin.support.openBadge")
+                        : t("admin.support.resolvedBadge")}
+                    </Badge>
+                    {ticket.status === "open" && (
+                      <form action={resolveSupportTicketAction}>
+                        <input type="hidden" name="ticketId" value={ticket.id} />
+                        <button
+                          type="submit"
+                          className={buttonVariants({ variant: "outline", size: "sm" })}
+                        >
+                          {t("admin.support.resolve")}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+                {ticket.transcript.length > 0 && (
+                  <p className="mt-2 line-clamp-2 text-sm text-navy-600">
+                    {ticket.transcript
+                      .filter((m) => m.role === "user")
+                      .map((m) => m.text)
+                      .join(" · ") || ticket.transcript[ticket.transcript.length - 1]?.text}
+                  </p>
+                )}
               </div>
             ))}
           </Card>
