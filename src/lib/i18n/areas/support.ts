@@ -7,6 +7,7 @@ export const support: AreaDict = {
     "support.title": "ParkGo support",
     "support.subtitle": "Instant answers · real humans",
     "support.open": "Open support chat",
+    "support.launcher": "Support",
     "support.greeting":
       "Hi! 👋 I can answer instantly — pick a topic or type your question. If I can't solve it, I'll pass you straight to our team.",
     "support.placeholder": "Type your question…",
@@ -49,6 +50,7 @@ export const support: AreaDict = {
     "support.title": "ParkGo سپورٹ",
     "support.subtitle": "فوری جواب · حقیقی لوگ",
     "support.open": "سپورٹ چیٹ کھولیں",
+    "support.launcher": "مدد",
     "support.greeting":
       "السلام علیکم! 👋 میں فوراً جواب دے سکتا ہوں — کوئی موضوع چنیں یا اپنا سوال لکھیں۔ اگر میں حل نہ کر سکوں تو آپ کو سیدھا ہماری ٹیم سے ملا دوں گا۔",
     "support.placeholder": "اپنا سوال لکھیں…",
@@ -92,6 +94,7 @@ export const support: AreaDict = {
     "support.title": "ParkGo सपोर्ट",
     "support.subtitle": "तुरंत जवाब · असली लोग",
     "support.open": "सपोर्ट चैट खोलें",
+    "support.launcher": "सहायता",
     "support.greeting":
       "नमस्ते! 👋 मैं तुरंत जवाब दे सकता हूँ — कोई विषय चुनें या अपना सवाल लिखें। अगर मैं हल न कर सकूँ तो आपको सीधे हमारी टीम से जोड़ दूँगा।",
     "support.placeholder": "अपना सवाल लिखें…",
@@ -135,6 +138,7 @@ export const support: AreaDict = {
     "support.title": "ParkGo-Support",
     "support.subtitle": "Sofortige Antworten · echte Menschen",
     "support.open": "Support-Chat öffnen",
+    "support.launcher": "Support",
     "support.greeting":
       "Hallo! 👋 Ich antworte sofort — wählen Sie ein Thema oder tippen Sie Ihre Frage. Wenn ich nicht weiterhelfen kann, übergebe ich direkt an unser Team.",
     "support.placeholder": "Frage eingeben…",
@@ -179,6 +183,7 @@ export const support: AreaDict = {
     "support.title": "ParkGo 客服",
     "support.subtitle": "即时解答 · 真人服务",
     "support.open": "打开客服聊天",
+    "support.launcher": "客服",
     "support.greeting":
       "您好！👋 我可以即时解答 — 请选择一个主题或输入您的问题。若我无法解决，会直接转给我们的团队。",
     "support.placeholder": "输入您的问题…",

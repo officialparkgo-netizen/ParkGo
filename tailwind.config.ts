@@ -59,6 +59,10 @@ const config: Config = {
         xl: "0.875rem",
         "2xl": "1.25rem",
       },
+      spacing: {
+        "4.5": "1.125rem",
+        "13": "3.25rem",
+      },
       boxShadow: {
         card: "0 1px 2px rgba(21,23,26,0.06), 0 8px 24px rgba(21,23,26,0.08)",
         "card-lg": "0 4px 12px rgba(21,23,26,0.08), 0 16px 48px rgba(21,23,26,0.12)",

@@ -24,6 +24,7 @@ export function SupportWidget() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [sentRef, setSentRef] = useState<string | null>(null);
+  const [seen, setSeen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const push = (...msgs: SupportMessage[]) => setMessages((m) => [...m, ...msgs]);
@@ -102,14 +103,37 @@ export function SupportWidget() {
 
   return (
     <>
-      {/* Launcher */}
+      {/* Launcher — icon circle on phones, labelled pill on desktop */}
       <button
         type="button"
         aria-label={t("support.open")}
-        onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-20 end-4 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-brand-500 text-white shadow-card-lg transition-all hover:bg-brand-600 active:scale-95 lg:bottom-6 lg:end-6"
+        aria-expanded={open}
+        onClick={() => {
+          setSeen(true);
+          setOpen((v) => !v);
+        }}
+        className={`fixed bottom-20 end-4 z-50 flex h-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-card-lg transition-all duration-150 hover:bg-brand-600 hover:shadow-xl active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 lg:bottom-6 lg:end-6 ${
+          open ? "w-14" : "w-14 lg:w-auto lg:gap-2.5 lg:px-5"
+        }`}
       >
-        {open ? <X className="h-6 w-6" aria-hidden /> : <Headset className="h-6 w-6" aria-hidden />}
+        {open ? (
+          <X className="h-6 w-6" aria-hidden />
+        ) : (
+          <>
+            <span className="relative" aria-hidden>
+              <Headset className="h-6 w-6" />
+              <span className="absolute -end-1 -top-1 flex h-3 w-3">
+                {!seen && (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/70" />
+                )}
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-white ring-2 ring-brand-500" />
+              </span>
+            </span>
+            <span className="hidden whitespace-nowrap text-sm font-bold lg:block">
+              {t("support.launcher")}
+            </span>
+          </>
+        )}
       </button>
 
       {/* Panel */}
