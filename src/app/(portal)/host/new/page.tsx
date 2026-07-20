@@ -48,13 +48,26 @@ export default async function NewSpacePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="airportSlug">{t("host.new.airport")}</Label>
+                <Label htmlFor="airportSlug">{t("search.destination")}</Label>
                 <Select id="airportSlug" name="airportSlug" defaultValue="heathrow">
-                  {airports.map((a) => (
-                    <option key={a.slug} value={a.slug}>
-                      {a.name} ({a.code})
-                    </option>
-                  ))}
+                  <optgroup label={t("search.group.airports")}>
+                    {airports
+                      .filter((a) => !a.kind || a.kind === "airport")
+                      .map((a) => (
+                        <option key={a.slug} value={a.slug}>
+                          {a.name} ({a.code})
+                        </option>
+                      ))}
+                  </optgroup>
+                  <optgroup label={t("search.group.places")}>
+                    {airports
+                      .filter((a) => a.kind && a.kind !== "airport")
+                      .map((a) => (
+                        <option key={a.slug} value={a.slug}>
+                          {a.name}
+                        </option>
+                      ))}
+                  </optgroup>
                 </Select>
               </div>
               <div>

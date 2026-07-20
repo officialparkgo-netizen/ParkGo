@@ -10,7 +10,7 @@ export function ResultsMap({
   spaces,
   className,
 }: {
-  airport: { lat: number; lng: number; name: string };
+  airport: { lat: number; lng: number; name: string; kind?: string };
   spaces: { id: string; lat: number; lng: number }[];
   className?: string;
 }) {
@@ -45,7 +45,11 @@ export function ResultsMap({
         style={{ left: `${ap.x * 100}%`, top: `${ap.y * 100}%` }}
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-400 shadow ring-2 ring-white">
-          <Plane className="h-4 w-4 text-white" />
+          {!airport.kind || airport.kind === "airport" ? (
+            <Plane className="h-4 w-4 text-white" />
+          ) : (
+            <MapPin className="h-4 w-4 text-white" />
+          )}
         </span>
         <span className="whitespace-nowrap rounded bg-navy-900/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">
           {airport.name}

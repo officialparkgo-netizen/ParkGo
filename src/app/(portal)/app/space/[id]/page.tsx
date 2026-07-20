@@ -179,7 +179,8 @@ export default async function SpaceDetail({
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge tone="navy">
-                  <Clock className="h-3 w-3" /> {space.driveMinutes} {t("app.space.minToTerminal")}
+                  <Clock className="h-3 w-3" /> {space.driveMinutes}{" "}
+                  {t(!airport?.kind || airport.kind === "airport" ? "app.space.minToTerminal" : "app.space.minAway")}
                 </Badge>
                 <Badge tone="navy">
                   <Car className="h-3 w-3" /> {space.capacity ?? 1} {t("app.space.carSpaces")}

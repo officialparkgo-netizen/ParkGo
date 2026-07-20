@@ -62,6 +62,7 @@ export default async function BookPage({
           endDate={sp.to || isoDay(7)}
           initialTransfer={sp.transfer === "1"}
           initialEv={sp.ev === "1"}
+          allowTransfer={!airport?.kind || airport.kind === "airport"}
         />
       </div>
     </PortalShell>

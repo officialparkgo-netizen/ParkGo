@@ -33,7 +33,7 @@ export function SearchWidget({
   compact = false,
   initial,
 }: {
-  airports: Pick<Airport, "slug" | "name" | "code">[];
+  airports: Pick<Airport, "slug" | "name" | "code" | "kind">[];
   compact?: boolean;
   /** Pre-fill from the current query so refining a search keeps its state. */
   initial?: SearchWidgetInitial;
@@ -61,6 +61,11 @@ export function SearchWidget({
   const [needsCctv, setNeedsCctv] = useState(initial?.cctv ?? false);
   const [needsCovered, setNeedsCovered] = useState(initial?.covered ?? false);
   const [maxPrice, setMaxPrice] = useState(initial?.maxPrice ? String(initial.maxPrice) : "");
+
+  // Terminal transfer only exists at airports.
+  const airportDests = airports.filter((a) => !a.kind || a.kind === "airport");
+  const placeDests = airports.filter((a) => a.kind && a.kind !== "airport");
+  const isAirport = airportDests.some((a) => a.slug === airport);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -114,14 +119,29 @@ export function SearchWidget({
           </span>
           <select
             value={airport}
-            onChange={(e) => setAirport(e.target.value)}
+            onChange={(e) => {
+              const slug = e.target.value;
+              setAirport(slug);
+              if (!airportDests.some((a) => a.slug === slug)) setNeedsTransfer(false);
+            }}
             className="w-full cursor-pointer appearance-none bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
           >
-            {airports.map((a) => (
-              <option key={a.slug} value={a.slug}>
-                {a.name} ({a.code})
-              </option>
-            ))}
+            <optgroup label={t("search.group.airports")}>
+              {airportDests.map((a) => (
+                <option key={a.slug} value={a.slug}>
+                  {a.name} ({a.code})
+                </option>
+              ))}
+            </optgroup>
+            {placeDests.length > 0 && (
+              <optgroup label={t("search.group.places")}>
+                {placeDests.map((a) => (
+                  <option key={a.slug} value={a.slug}>
+                    {a.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </label>
 
@@ -237,9 +257,11 @@ export function SearchWidget({
           <Chip active={needsCctv} onClick={() => setNeedsCctv((v) => !v)} icon={Camera}>
             {t("search.cctv")}
           </Chip>
-          <Chip active={needsTransfer} onClick={() => setNeedsTransfer((v) => !v)} icon={CarTaxiFront}>
-            {t("search.transfer")}
-          </Chip>
+          {isAirport && (
+            <Chip active={needsTransfer} onClick={() => setNeedsTransfer((v) => !v)} icon={CarTaxiFront}>
+              {t("search.transfer")}
+            </Chip>
+          )}
           <Chip active={needsEv} onClick={() => setNeedsEv((v) => !v)} icon={Zap}>
             {t("search.evCharging")}
           </Chip>

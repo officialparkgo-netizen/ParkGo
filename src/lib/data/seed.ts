@@ -45,6 +45,13 @@ export const airports: Airport[] = [
   { slug: "birmingham", code: "BHX", name: "Birmingham", city: "Birmingham", country: "UK", lat: 52.4539, lng: -1.748, terminals: ["Main"] },
   { slug: "edinburgh", code: "EDI", name: "Edinburgh", city: "Edinburgh", country: "UK", lat: 55.95, lng: -3.3725, terminals: ["Main"] },
   { slug: "dublin", code: "DUB", name: "Dublin", city: "Dublin", country: "IE", lat: 53.4264, lng: -6.2499, terminals: ["T1", "T2"] },
+  // Non-airport destinations — cities, stations and venues (no terminal transfer).
+  { slug: "manchester-city", code: "MCR", name: "Manchester City Centre", city: "Manchester", country: "UK", lat: 53.4794, lng: -2.2453, terminals: [], kind: "city" },
+  { slug: "birmingham-city", code: "BHM", name: "Birmingham City Centre", city: "Birmingham", country: "UK", lat: 52.4778, lng: -1.899, terminals: [], kind: "city" },
+  { slug: "edinburgh-city", code: "EDB", name: "Edinburgh City Centre", city: "Edinburgh", country: "UK", lat: 55.9533, lng: -3.1883, terminals: [], kind: "city" },
+  { slug: "dublin-city", code: "DBC", name: "Dublin City Centre", city: "Dublin", country: "IE", lat: 53.3498, lng: -6.2603, terminals: [], kind: "city" },
+  { slug: "kings-cross", code: "KGX", name: "London King's Cross", city: "London", country: "UK", lat: 51.5308, lng: -0.1238, terminals: [], kind: "station" },
+  { slug: "wembley", code: "WEM", name: "Wembley Stadium", city: "London", country: "UK", lat: 51.556, lng: -0.2795, terminals: [], kind: "stadium" },
 ];
 
 // -----------------------------------------------------------------------------
@@ -158,6 +165,33 @@ export const spaces: Space[] = [
     evCharger: null, cctv: true, liveCamera: true,
     accessRules: "Manned compound 24/7. Report to cabin on arrival.",
     photos: ["compound-1", "compound-2"], pricePerDay: 1100, rating: 4.5, reviewCount: 22, status: "live", createdAt: iso(-90 * DAY),
+  },
+  {
+    id: "space_mcr_1", hostId: "host_grace", title: "Secure yard · 8 min walk to Deansgate",
+    airportSlug: "manchester-city", approxArea: "Castlefield", exactAddress: "Unit 2, Duke St, Manchester M3 4NF",
+    lat: 53.4755, lng: -2.2542, distanceMiles: 0.4, driveMinutes: 8,
+    dimensions: { lengthM: 5.2, widthM: 2.5 }, maxVehicleSize: "large",
+    evCharger: null, cctv: true, liveCamera: true,
+    accessRules: "Gated yard, code sent on arrival. Keep the gate closed behind you.",
+    photos: ["yard-2", "yard-1"], pricePerDay: 1600, pricePerHour: 250, rating: 4.8, reviewCount: 31, status: "live", createdAt: iso(-70 * DAY),
+  },
+  {
+    id: "space_kgx_1", hostId: "host_tom", title: "Gated driveway · 10 min to King's Cross",
+    airportSlug: "kings-cross", approxArea: "Barnsbury", exactAddress: "14 Hemingford Rd, London N1 1DB",
+    lat: 51.5389, lng: -0.1206, distanceMiles: 0.7, driveMinutes: 10,
+    dimensions: { lengthM: 5.0, widthM: 2.4 }, maxVehicleSize: "medium",
+    evCharger: { connector: "Type 2", kw: 7, pricePerKwh: 40 }, cctv: true, liveCamera: false,
+    accessRules: "Driveway behind the gate — code on booking day. Compact cars fit best.",
+    photos: ["drive-2", "ev-1"], pricePerDay: 2400, pricePerHour: 400, rating: 4.9, reviewCount: 47, status: "live", createdAt: iso(-140 * DAY),
+  },
+  {
+    id: "space_wem_1", hostId: "host_grace", title: "Driveway · 12 min walk to Wembley Stadium",
+    airportSlug: "wembley", approxArea: "Wembley Park", exactAddress: "27 Oakington Ave, Wembley HA9 8HX",
+    lat: 51.5602, lng: -0.2871, distanceMiles: 0.6, driveMinutes: 12,
+    dimensions: { lengthM: 5.3, widthM: 2.5 }, maxVehicleSize: "large",
+    evCharger: null, cctv: false, liveCamera: false, covered: false,
+    accessRules: "Event days get busy — arrive 90 minutes before kick-off. Park tight to the left.",
+    photos: ["drive-4", "yard-3"], pricePerDay: 1500, pricePerHour: 300, rating: 4.6, reviewCount: 58, status: "live", createdAt: iso(-200 * DAY),
   },
   {
     id: "space_stn_1", hostId: "host_tom", title: "Family driveway · 12 min to terminal",

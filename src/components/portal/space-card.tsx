@@ -53,7 +53,8 @@ export function SpaceCard({ result, href }: { result: SearchResult; href?: strin
 
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-navy-500">
           <span className="inline-flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5" /> {space.driveMinutes} {t("app.card.minToTerminal")}
+            <Clock className="h-3.5 w-3.5" /> {space.driveMinutes}{" "}
+            {t(!airport.kind || airport.kind === "airport" ? "app.card.minToTerminal" : "app.space.minAway")}
           </span>
           <span className="inline-flex items-center gap-1">
             <Car className="h-3.5 w-3.5" /> {t("app.card.fits")} {space.maxVehicleSize}

@@ -35,7 +35,7 @@ export default async function TravellerDashboard() {
   const { t } = await getI18n();
   const bookings = await listBookingsForTraveller(user.id);
   const spaceMap = await getSpacesByIds(bookings.map((b) => b.spaceId));
-  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code }));
+  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind }));
   const active = bookings.find((b) => b.status === "active");
 
   const now = Date.now();

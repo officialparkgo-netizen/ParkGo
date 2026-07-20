@@ -41,7 +41,7 @@ export default async function SearchPage({
   const user = await requireRole("traveller");
   const { t } = await getI18n();
   const sp = await searchParams;
-  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code }));
+  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind }));
   const airportSlug = sp.airport || "heathrow";
   const airport = getAirport(airportSlug);
 
@@ -217,7 +217,7 @@ export default async function SearchPage({
               <div className="sticky top-20">
                 {MAPBOX ? (
                   <SearchMap
-                    airport={{ lat: airport.lat, lng: airport.lng, name: airport.name }}
+                    airport={{ lat: airport.lat, lng: airport.lng, name: airport.name, kind: airport.kind }}
                     spaces={results.map((r) => ({
                       id: r.space.id,
                       lat: r.space.lat,
@@ -233,7 +233,7 @@ export default async function SearchPage({
                   />
                 ) : (
                   <ResultsMap
-                    airport={{ lat: airport.lat, lng: airport.lng, name: airport.name }}
+                    airport={{ lat: airport.lat, lng: airport.lng, name: airport.name, kind: airport.kind }}
                     spaces={results.map((r) => ({
                       id: r.space.id,
                       lat: r.space.lat,

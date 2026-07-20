@@ -32,7 +32,7 @@ import { getI18n } from "@/lib/i18n";
 
 export default async function HomePage() {
   const { t } = await getI18n();
-  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code }));
+  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind }));
 
   return (
     <>

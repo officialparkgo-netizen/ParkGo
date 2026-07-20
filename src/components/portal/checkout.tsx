@@ -21,6 +21,7 @@ export function Checkout({
   currency,
   initialTransfer = false,
   initialEv = false,
+  allowTransfer = true,
 }: {
   space: Space;
   startDate: string; // YYYY-MM-DD
@@ -28,11 +29,13 @@ export function Checkout({
   currency: "GBP" | "EUR";
   initialTransfer?: boolean;
   initialEv?: boolean;
+  /** Terminal transfer exists only at airport destinations. */
+  allowTransfer?: boolean;
 }) {
   const t = useT();
   // "2026-07-21T09:00"-style props mean an hourly (same-day) stay.
   const hourly = startDate.includes("T");
-  const [transfer, setTransfer] = useState(initialTransfer);
+  const [transfer, setTransfer] = useState(initialTransfer && allowTransfer);
   const [ev, setEv] = useState(initialEv && !!space.evCharger);
   const [method, setMethod] = useState<(typeof METHODS)[number]["id"]>("card");
   const [start, setStart] = useState(startDate);
@@ -73,15 +76,19 @@ export function Checkout({
             disabled
             icon={ShieldCheck}
             title={t("app.checkout.verifiedParking")}
-            subtitle={`${space.title} · ${space.driveMinutes} ${t("app.checkout.minToTerminal")}`}
+            subtitle={`${space.title} · ${space.driveMinutes} ${t(
+              allowTransfer ? "app.checkout.minToTerminal" : "app.space.minAway"
+            )}`}
           />
-          <Line
-            checked={transfer}
-            onChange={setTransfer}
-            icon={CarTaxiFront}
-            title={t("app.checkout.licensedTransfer")}
-            subtitle={t("app.checkout.transferSub")}
-          />
+          {allowTransfer && (
+            <Line
+              checked={transfer}
+              onChange={setTransfer}
+              icon={CarTaxiFront}
+              title={t("app.checkout.licensedTransfer")}
+              subtitle={t("app.checkout.transferSub")}
+            />
+          )}
           <Line
             checked={ev}
             onChange={(v) => setEv(v && !!space.evCharger)}

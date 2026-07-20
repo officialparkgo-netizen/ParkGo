@@ -96,6 +96,14 @@ export interface Verification {
 // Airports
 // -----------------------------------------------------------------------------
 
+export type DestinationKind = "airport" | "city" | "station" | "stadium";
+
+/**
+ * A bookable destination. Historically airports only — now also city centres,
+ * stations and stadiums/venues. `kind` defaults to "airport" when absent, so
+ * existing data needs no change; airport-only features (terminal transfer)
+ * gate on it.
+ */
 export interface Airport {
   /** IATA-like slug, e.g. "lhr". */
   slug: string;
@@ -106,6 +114,7 @@ export interface Airport {
   lat: number;
   lng: number;
   terminals: string[];
+  kind?: DestinationKind;
 }
 
 // -----------------------------------------------------------------------------
