@@ -47,6 +47,19 @@ export function hoursBetween(startIso: string, endIso: string) {
   return Math.max(1, Math.ceil(ms / (1000 * 60 * 60)));
 }
 
+/**
+ * Object path inside a Supabase public-bucket URL
+ * (…/storage/v1/object/public/<bucket>/<path>), or null when the URL isn't
+ * from that bucket — callers use this to refuse deleting foreign URLs.
+ */
+export function storagePathFromPublicUrl(url: string, bucket: string): string | null {
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  const path = url.slice(i + marker.length).split("?")[0];
+  return path ? decodeURIComponent(path) : null;
+}
+
 /** Deterministic id generator (avoids Math.random for reproducible mock data). */
 let _seq = 1;
 export function nextId(prefix = "id"): string {

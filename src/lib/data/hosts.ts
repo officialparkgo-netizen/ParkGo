@@ -482,6 +482,16 @@ export async function updateSpaceForHost(
     .select(SPACE_COLS)
     .single();
   if (error || !data) return null;
+
+  // Purge files for uploads that actually came off this listing (never raw
+  // input — only URLs that were on current.photos and are now removed).
+  const removedFiles = current.photos.filter(
+    (p) => p.startsWith("http") && !photos.includes(p)
+  );
+  if (removedFiles.length) {
+    const { deleteSpacePhotos } = await import("@/lib/storage");
+    await deleteSpacePhotos(removedFiles);
+  }
   return spaceFromRow(data);
 }
 

@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { daysBetween, formatMoney, formatMoneyShort, initials, shortRef } from "@/lib/utils";
+import {
+  daysBetween,
+  formatMoney,
+  formatMoneyShort,
+  initials,
+  shortRef,
+  storagePathFromPublicUrl,
+} from "@/lib/utils";
 
 describe("formatMoney", () => {
   it("formats GBP and EUR in major units", () => {
@@ -29,5 +36,27 @@ describe("initials", () => {
   it("takes up to two uppercase initials", () => {
     expect(initials("Aisha Khan")).toBe("AK");
     expect(initials("madonna")).toBe("M");
+  });
+});
+
+describe("storagePathFromPublicUrl", () => {
+  const base = "https://xyz.supabase.co/storage/v1/object/public";
+
+  it("extracts the object path from a bucket public URL", () => {
+    expect(storagePathFromPublicUrl(`${base}/space-photos/host_1/a.jpg`, "space-photos")).toBe(
+      "host_1/a.jpg"
+    );
+  });
+
+  it("strips query strings and decodes escapes", () => {
+    expect(
+      storagePathFromPublicUrl(`${base}/space-photos/h/a%20b.jpg?width=200`, "space-photos")
+    ).toBe("h/a b.jpg");
+  });
+
+  it("refuses URLs from other buckets or hosts", () => {
+    expect(storagePathFromPublicUrl(`${base}/kyc-docs/h/secret.pdf`, "space-photos")).toBeNull();
+    expect(storagePathFromPublicUrl("https://evil.example/x.jpg", "space-photos")).toBeNull();
+    expect(storagePathFromPublicUrl("drive-1", "space-photos")).toBeNull();
   });
 });

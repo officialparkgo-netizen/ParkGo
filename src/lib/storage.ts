@@ -1,5 +1,6 @@
 import "server-only";
 import { IS_LIVE } from "@/lib/config";
+import { storagePathFromPublicUrl } from "@/lib/utils";
 
 /**
  * Supabase Storage helpers (server-only, service role).
@@ -47,6 +48,26 @@ export async function uploadSpacePhoto(file: File, spaceKey: string): Promise<st
   const { error } = await storage.upload(path, buf, { contentType: file.type, upsert: false });
   if (error) return null;
   return storage.getPublicUrl(path).data.publicUrl;
+}
+
+/**
+ * Best-effort purge of listing photo files by their public URLs (live only).
+ * URLs that don't belong to the space-photos bucket are ignored, so a crafted
+ * removal request can never delete anything outside it. Never throws — the
+ * listing update has already succeeded; an orphaned file is the safe failure.
+ */
+export async function deleteSpacePhotos(urls: string[]): Promise<void> {
+  if (!IS_LIVE || urls.length === 0) return;
+  const paths = urls
+    .map((u) => storagePathFromPublicUrl(u, "space-photos"))
+    .filter((p): p is string => !!p);
+  if (paths.length === 0) return;
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin().storage.from("space-photos").remove(paths);
+  } catch {
+    // best-effort — orphaned files are harmless
+  }
 }
 
 /** Upload a private KYC document; returns the storage path (not a URL). */
