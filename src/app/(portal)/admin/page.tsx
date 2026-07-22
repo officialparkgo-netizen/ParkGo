@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   FileText,
+  Download,
   Globe,
   Headset,
   LayoutGrid,
@@ -27,6 +28,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { StatCard } from "@/components/portal/stat-card";
+import { EarningsChart } from "@/components/portal/earnings-chart";
 import { adminNav } from "@/components/portal/navs";
 import { trustBand, computeTrustScore } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
@@ -73,7 +75,7 @@ export const metadata: Metadata = pageMetadata({ title: "Admin", path: "/admin",
 
 export default async function AdminDashboard() {
   const user = await requireRole("admin");
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
   const pending = await listPendingVerificationsLive();
   const allVerifications = await listAllVerificationsLive();
   const spaces = await listAllSpaces();
@@ -130,6 +132,33 @@ export default async function AdminDashboard() {
     .slice(0, 10);
   const waitlist = await listWaitlist().catch(() => []);
   const supportTickets = await listSupportTickets().catch(() => []);
+
+  // Monthly GMV (last six months) + booking revenue per destination.
+  const localeTag =
+    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN" }[locale] ?? "en-GB";
+  const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const nowDate = new Date();
+  const revenueMonths = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(nowDate.getFullYear(), nowDate.getMonth() - (5 - i), 1);
+    return { key: monthKey(d), label: d.toLocaleDateString(localeTag, { month: "short" }), value: 0 };
+  });
+  for (const pay of earnedPayments) {
+    const m = revenueMonths.find((x) => x.key === monthKey(new Date(pay.createdAt)));
+    if (m) m.value += pay.amount;
+  }
+  const destAgg = new Map<string, { name: string; count: number; revenue: number }>();
+  for (const b of bookings) {
+    if (b.status === "cancelled" || b.status === "requested") continue;
+    const sp = spaceMap.get(b.spaceId);
+    const dest = sp ? getAirport(sp.airportSlug) : undefined;
+    const key = dest?.slug ?? "unknown";
+    const row = destAgg.get(key) ?? { name: dest?.name ?? "—", count: 0, revenue: 0 };
+    row.count += 1;
+    row.revenue += b.price.total;
+    destAgg.set(key, row);
+  }
+  const topDests = [...destAgg.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 6);
+  const maxDestRevenue = Math.max(...topDests.map((d) => d.revenue), 1);
 
   // Transfer is fulfilled by an independent licensed operator, integrated by API.
   const operator = getOperatorStatus();
@@ -232,6 +261,49 @@ export default async function AdminDashboard() {
             </a>
           ))}
         </nav>
+
+        {/* Insights: revenue trend + where bookings happen */}
+        <div className="grid gap-5 lg:grid-cols-2">
+          <Card className="p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="font-bold text-navy-900">{t("admin.insights.revenue")}</h3>
+              <span className="text-xs text-navy-400">{t("admin.insights.sub")}</span>
+            </div>
+            <EarningsChart
+              months={revenueMonths}
+              currency="GBP"
+              title={t("admin.insights.revenue")}
+            />
+          </Card>
+          <Card className="p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="font-bold text-navy-900">{t("admin.insights.destinations")}</h3>
+              <span className="text-xs text-navy-400">{t("admin.insights.destinationsSub")}</span>
+            </div>
+            {topDests.length === 0 ? (
+              <p className="py-8 text-center text-sm text-navy-500">{t("admin.insights.empty")}</p>
+            ) : (
+              <ul className="space-y-3">
+                {topDests.map((d) => (
+                  <li key={d.name}>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="truncate font-semibold text-navy-900">{d.name}</span>
+                      <span className="shrink-0 text-navy-500">
+                        {d.count} · <span className="font-bold text-navy-900">{formatMoney(d.revenue)}</span>
+                      </span>
+                    </div>
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-navy-100">
+                      <div
+                        className="h-full rounded-full bg-brand-500"
+                        style={{ width: `${Math.max((d.revenue / maxDestRevenue) * 100, 3)}%` }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
 
         {/* Quick access — the admin account passes every role guard */}
         <section id="portals" className="scroll-mt-20">
@@ -545,9 +617,12 @@ export default async function AdminDashboard() {
 
         {/* Recent bookings — every booking is one click away for support */}
         <section id="bookings" className="scroll-mt-20">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
-            <CalendarCheck className="h-5 w-5 text-navy-500" /> {t("admin.section.recentBookings")}
-          </h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <CalendarCheck className="h-5 w-5 text-navy-500" /> {t("admin.section.recentBookings")}
+            </h3>
+            <a href="/admin/export?type=bookings" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
+          </div>
           <Card className="divide-y divide-navy-100">
             {recentBookings.length === 0 && (
               <div className="p-6 text-center text-navy-500">{t("admin.bookings.empty")}</div>
@@ -597,6 +672,7 @@ export default async function AdminDashboard() {
               <Users className="h-5 w-5 text-navy-500" /> {t("admin.section.users")}
             </h3>
             <Badge tone="neutral">{allUsers.length} {t("admin.total")}</Badge>
+          <a href="/admin/export?type=users" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
           </div>
           <Card className="divide-y divide-navy-100">
             {recentUsers.length === 0 && (
@@ -687,6 +763,7 @@ export default async function AdminDashboard() {
               <Mail className="h-5 w-5 text-navy-500" /> {t("admin.section.waitlist")}
             </h3>
             <Badge tone="neutral">{waitlist.length} {t("admin.total")}</Badge>
+          <a href="/admin/export?type=waitlist" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
           </div>
           <Card className="divide-y divide-navy-100">
             {waitlist.length === 0 && (
