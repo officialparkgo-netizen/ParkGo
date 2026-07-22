@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import { Photo } from "@/components/common/photo";
+import { PhotoManager } from "@/components/host/photo-manager";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { hostNav } from "@/components/portal/navs";
@@ -49,15 +49,18 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
             <StatusBadge status={space.status} />
           </div>
 
-          {/* Current photos */}
-          <div className="mt-4 flex gap-2 overflow-x-auto">
-            {space.photos.map((p) => (
-              <Photo key={p} token={p} className="h-16 w-24 shrink-0" rounded="rounded-lg" />
-            ))}
-          </div>
-
           <form action={updateSpaceAction} className="mt-5 space-y-5">
             <input type="hidden" name="spaceId" value={space.id} />
+
+            <div>
+              <Label>{t("host.edit.currentPhotos")}</Label>
+              <PhotoManager
+                photos={space.photos}
+                removeLabel={t("host.edit.removePhoto")}
+                keepLabel={t("host.edit.keepPhoto")}
+              />
+              <p className="mt-1 text-xs text-navy-400">{t("host.edit.removeHint")}</p>
+            </div>
 
             <div>
               <Label htmlFor="title">{t("host.new.titleLabel")}</Label>

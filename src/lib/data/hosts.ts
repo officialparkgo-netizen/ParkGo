@@ -404,6 +404,8 @@ export interface UpdateSpaceInput {
   widthM: number;
   /** Appended to existing photos (uploaded URLs). */
   newPhotos?: string[];
+  /** Existing photo entries (URL or scene token) to drop from the listing. */
+  removePhotos?: string[];
 }
 
 /**
@@ -431,9 +433,15 @@ export async function updateSpaceForHost(
     s.evCharger = input.evCharger;
     s.accessRules = input.accessRules;
     s.dimensions = { lengthM: input.lengthM, widthM: input.widthM };
-    if (input.newPhotos?.length) {
-      // Real uploads replace placeholder tokens (non-URL entries).
-      s.photos = [...s.photos.filter((p) => p.startsWith("http")), ...input.newPhotos].slice(0, 6);
+    {
+      const removeSet = new Set(input.removePhotos ?? []);
+      let photos = s.photos.filter((p) => !removeSet.has(p));
+      if (input.newPhotos?.length) {
+        // Real uploads replace placeholder tokens (non-URL entries).
+        photos = [...photos.filter((p) => p.startsWith("http")), ...input.newPhotos];
+      }
+      // A listing always keeps at least one image.
+      s.photos = (photos.length ? photos : ["drive-1"]).slice(0, 6);
     }
     if (s.status === "rejected") s.status = "pending_review";
     return s;
@@ -442,9 +450,12 @@ export async function updateSpaceForHost(
   const current = await getSpaceById(spaceId);
   if (!current || current.hostId !== hostId) return null;
 
-  const photos = input.newPhotos?.length
-    ? [...current.photos.filter((p) => p.startsWith("http")), ...input.newPhotos].slice(0, 6)
-    : current.photos;
+  const removeSet = new Set(input.removePhotos ?? []);
+  let photos = current.photos.filter((p) => !removeSet.has(p));
+  if (input.newPhotos?.length) {
+    photos = [...photos.filter((p) => p.startsWith("http")), ...input.newPhotos];
+  }
+  photos = (photos.length ? photos : ["drive-1"]).slice(0, 6);
 
   const { supabaseAdmin } = await import("@/lib/supabase/server");
   const { data, error } = await supabaseAdmin()

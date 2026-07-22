@@ -91,8 +91,9 @@ export async function updateSpaceAction(formData: FormData) {
 
   const fields = parseSpaceForm(formData);
   const newPhotos = await uploadPhotos(formData, host.id);
+  const removePhotos = formData.getAll("removePhotos").map(String).filter(Boolean);
 
-  await updateSpaceForHost(spaceId, host.id, { ...fields, newPhotos });
+  await updateSpaceForHost(spaceId, host.id, { ...fields, newPhotos, removePhotos });
 
   revalidatePath("/host");
   revalidatePath("/admin");
