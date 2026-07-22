@@ -18,11 +18,14 @@ export function MapboxMap({
   space,
   terminal,
   showDriver = false,
+  showRoute = true,
   className,
 }: {
   space: Pt;
   terminal: Pt;
   showDriver?: boolean;
+  /** Dashed space→terminal connector — off when nothing is travelling. */
+  showRoute?: boolean;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,8 +75,9 @@ export function MapboxMap({
       );
 
       map.on("load", () => {
-        map.addSource("route", {
-          type: "geojson",
+        if (showRoute) {
+          map.addSource("route", {
+            type: "geojson",
           data: {
             type: "Feature",
             properties: {},
@@ -91,7 +95,8 @@ export function MapboxMap({
           type: "line",
           source: "route",
           paint: { "line-color": "#F26A1B", "line-width": 3, "line-dasharray": [1.5, 1.5] },
-        });
+          });
+        }
 
         if (showDriver) {
           const driver = new mapboxgl.Marker({ element: dot("#F5843A") })

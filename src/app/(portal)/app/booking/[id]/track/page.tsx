@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { Car, Phone, Star, Camera as CameraIcon, Zap } from "lucide-react";
+import { Car, Check, Navigation, Phone, Star, Camera as CameraIcon, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -31,6 +31,7 @@ const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 import { resolveStream } from "@/lib/services/camera";
 import { getOperatorJob } from "@/lib/services/transfer-operator";
 import { projectToViewport } from "@/lib/services/maps";
+import { formatDateTime } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -73,9 +74,26 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
   const opJob = transfer ? getOperatorJob(transfer.id) : undefined;
   const evPercent = booking.bundle.ev ? evLevel(booking.id) : null;
 
+  // Trip progress: drop-off → parked → return → done.
+  const nowMs = Date.now();
+  const finished = booking.status === "completed" || booking.status === "reviewed";
+  const stepIndex = finished
+    ? 3
+    : nowMs >= new Date(booking.endAt).getTime()
+      ? 2
+      : nowMs >= new Date(booking.startAt).getTime()
+        ? 1
+        : 0;
+  const steps = [
+    { label: t("app.track.step.dropoff"), sub: formatDateTime(booking.startAt) },
+    { label: t("app.track.step.parked") },
+    { label: t("app.track.step.return"), sub: formatDateTime(booking.endAt) },
+    { label: t("app.track.step.done") },
+  ];
+
   return (
     <PortalShell user={user} nav={travellerNav} title="app.track.title">
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6 pb-24">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -86,25 +104,78 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
               {space.title} · {airport?.name}
             </p>
           </div>
-          <Link href={`/app/booking/${booking.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-            {t("app.track.bookingQr")}
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${space.lat},${space.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <Navigation className="h-4 w-4" /> {t("app.track.directions")}
+            </a>
+            <Link href={`/app/booking/${booking.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+              {t("app.track.bookingQr")}
+            </Link>
+          </div>
         </div>
+
+        {booking.status !== "cancelled" && (
+          <Card className="p-4 sm:p-5">
+            <ol className="flex items-start">
+              {steps.map((step, i) => (
+                <li key={step.label} className="flex flex-1 flex-col items-center text-center">
+                  <div className="flex w-full items-center">
+                    <div
+                      className={`h-0.5 flex-1 ${i === 0 ? "opacity-0" : i <= stepIndex ? "bg-go-500" : "bg-navy-100"}`}
+                    />
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                        i < stepIndex
+                          ? "bg-go-500 text-white"
+                          : i === stepIndex
+                            ? "bg-brand-500 text-white ring-4 ring-brand-100"
+                            : "border border-navy-200 bg-white text-navy-400"
+                      }`}
+                    >
+                      {i < stepIndex ? <Check className="h-4 w-4" /> : i + 1}
+                    </span>
+                    <div
+                      className={`h-0.5 flex-1 ${i === steps.length - 1 ? "opacity-0" : i < stepIndex ? "bg-go-500" : "bg-navy-100"}`}
+                    />
+                  </div>
+                  <div
+                    className={`mt-1.5 text-xs font-semibold ${i === stepIndex ? "text-navy-900" : "text-navy-500"}`}
+                  >
+                    {step.label}
+                  </div>
+                  {step.sub && (
+                    <div className="hidden text-[11px] text-navy-400 sm:block">{step.sub}</div>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </Card>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Live map + driver */}
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 flex items-center gap-2 font-bold text-navy-900">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-go-500 opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-go-500" />
-                </span>
-                {t("app.track.liveLocation")}
+                {driverActive ? (
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-go-500 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-go-500" />
+                  </span>
+                ) : (
+                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-brand-500" />
+                )}
+                {transfer ? t("app.track.liveLocation") : t("app.track.parkingLocation")}
               </h3>
               {MAPBOX ? (
                 <MapboxMap
                   showDriver={driverActive}
+                  showRoute={!!transfer}
                   space={{ lat: space.lat, lng: space.lng, label: t("app.track.yourCar") }}
                   terminal={{
                     lat: airport?.lat ?? space.lat,
@@ -116,6 +187,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
               ) : (
                 <LiveMap
                   showDriver={driverActive}
+                  showRoute={!!transfer}
                   space={{ x: sPos.x * 100, y: sPos.y * 100, label: t("app.track.yourCar") }}
                   terminal={{ x: aPos.x * 100, y: aPos.y * 100, label: airport?.name ?? t("app.track.terminal") }}
                   className="h-72"

@@ -20,12 +20,14 @@ export function LiveMap({
   driverStart,
   className,
   showDriver = true,
+  showRoute = true,
 }: {
   space: Marker;
   terminal: Marker;
   driverStart?: Marker;
   className?: string;
   showDriver?: boolean;
+  showRoute?: boolean;
 }) {
   const start = driverStart ?? { x: 12, y: 82, label: "Driver" };
   const [t, setT] = useState(0);
@@ -88,6 +90,7 @@ export function LiveMap({
         preserveAspectRatio="none"
         className="absolute inset-0 h-full w-full"
       >
+        {showRoute && (
         <path
           ref={routeRef}
           d={`M ${start.x} ${start.y} Q ${cx} ${cy} ${terminal.x} ${terminal.y}`}
@@ -103,6 +106,7 @@ export function LiveMap({
             transition: "stroke-dashoffset 1.1s ease-out, opacity 0.3s ease-out",
           }}
         />
+        )}
       </svg>
 
       <Pin x={space.x} y={space.y} label={space.label} tone="white" delayMs={60}>
