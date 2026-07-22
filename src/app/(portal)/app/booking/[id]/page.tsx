@@ -4,11 +4,14 @@ import type { Metadata } from "next";
 import {
   CalendarPlus,
   CheckCircle2,
+  Clock,
   KeyRound,
   MapPin,
+  Navigation,
   Phone,
   Radio,
   Star,
+  UserRound,
   XCircle,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -28,7 +31,7 @@ import {
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
 import { cancelBookingAction, extendBookingAction } from "@/lib/booking-actions";
-import { formatDateTime, formatMoney, formatMoneyShort } from "@/lib/utils";
+import { daysBetween, formatDateTime, formatMoney, formatMoneyShort, hoursBetween } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -93,7 +96,7 @@ export default async function BookingPage({
 
   return (
     <PortalShell user={user} nav={travellerNav} title={`${t("app.booking.title")} ${booking.reference}`}>
-      <div className="mx-auto max-w-4xl space-y-5">
+      <div className="mx-auto max-w-4xl space-y-5 pb-24">
         {isNew && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
             <CheckCircle2 className="h-5 w-5" /> {t("app.booking.confirmed")}
@@ -129,25 +132,62 @@ export default async function BookingPage({
         )}
 
         <div className="grid gap-5 lg:grid-cols-3">
-          {/* QR / access */}
-          <Card className="flex flex-col items-center p-6 text-center">
-            <Badge tone="brand">{t("app.booking.accessCode")}</Badge>
-            <div className="mt-4">
-              {/* async server component */}
-              <QrCode value={booking.qrToken} size={190} />
-            </div>
-            <div className="mt-3 font-mono text-lg font-bold tracking-widest text-navy-900">
-              {booking.reference}
-            </div>
-            <StatusBadge status={booking.status} />
-            <p className="mt-3 text-xs text-navy-400">
-              {t("app.booking.showQr")}
-            </p>
-          </Card>
+          {/* QR / access + quick actions */}
+          <div className="space-y-5 self-start">
+            <Card className="flex flex-col items-center p-6 text-center">
+              <Badge tone="brand">{t("app.booking.accessCode")}</Badge>
+              <div className="mt-4">
+                {/* async server component */}
+                <QrCode value={booking.qrToken} size={190} />
+              </div>
+              <div className="mt-3 font-mono text-lg font-bold tracking-widest text-navy-900">
+                {booking.reference}
+              </div>
+              <StatusBadge status={booking.status} />
+              <p className="mt-3 text-xs text-navy-400">
+                {t("app.booking.showQr")}
+              </p>
+            </Card>
+
+            {booking.status !== "cancelled" && (
+              <Card className="space-y-2 p-4">
+                <Link
+                  href={`/app/booking/${booking.id}/track`}
+                  className={buttonVariants({ size: "sm", className: "w-full" })}
+                >
+                  <Radio className="h-4 w-4" /> {t("app.booking.trackLive")}
+                </Link>
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${space.lat},${space.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}
+                >
+                  <Navigation className="h-4 w-4" /> {t("app.track.directions")}
+                </a>
+              </Card>
+            )}
+          </div>
 
           {/* Details */}
           <Card className="p-6 lg:col-span-2">
-            <h2 className="text-lg font-bold text-navy-900">{space.title}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-lg font-bold text-navy-900">{space.title}</h2>
+              <Badge tone="navy">
+                <Clock className="h-3 w-3" />{" "}
+                {booking.startAt.slice(0, 10) === booking.endAt.slice(0, 10)
+                  ? `${hoursBetween(booking.startAt, booking.endAt)} ${
+                      hoursBetween(booking.startAt, booking.endAt) === 1
+                        ? t("common.hour")
+                        : t("common.hours")
+                    }`
+                  : `${daysBetween(booking.startAt, booking.endAt)} ${
+                      daysBetween(booking.startAt, booking.endAt) === 1
+                        ? t("common.day")
+                        : t("common.days")
+                    }`}
+              </Badge>
+            </div>
             <p className="text-sm text-navy-500">{airport?.name}</p>
 
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -166,9 +206,16 @@ export default async function BookingPage({
                     <MapPin className="h-4 w-4 text-navy-400" /> {space.exactAddress}
                   </p>
                   <p className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-navy-400" />
+                    <UserRound className="h-4 w-4 text-navy-400" />
                     {hostUser?.name ?? host?.displayName}
-                    {hostUser?.phone ? ` · ${hostUser.phone}` : ""}
+                    {hostUser?.phone && (
+                      <a
+                        href={`tel:${hostUser.phone}`}
+                        className="inline-flex items-center gap-1 font-semibold text-brand-600"
+                      >
+                        <Phone className="h-3.5 w-3.5" /> {hostUser.phone}
+                      </a>
+                    )}
                   </p>
                   <p className="text-navy-500">{space.accessRules}</p>
                 </div>
