@@ -9,6 +9,7 @@ import {
   Car,
   CheckCircle2,
   ChevronDown,
+  Download,
   PauseCircle,
   PlayCircle,
   Image as ImageIcon,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { EarningsChart } from "@/components/portal/earnings-chart";
+import { HostCalendar } from "@/components/portal/host-calendar";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Photo } from "@/components/common/photo";
@@ -52,11 +54,12 @@ export default async function HostDashboard({
     updated?: string;
     verify?: string;
     profile?: string;
+    cal?: string;
   }>;
 }) {
   const user = await requireRole("host");
   const { t, locale } = await getI18n();
-  const { listed, updated, verify, profile } = await searchParams;
+  const { listed, updated, verify, profile, cal } = await searchParams;
   const host = await getHostForUser(user);
 
   // A brand-new host has no host record / listings yet — show onboarding
@@ -110,6 +113,10 @@ export default async function HostDashboard({
     const m = earningsMonths.find((x) => x.key === monthKey(new Date(pay.createdAt)));
     if (m) m.value += pay.split.hostPayout;
   }
+  // Calendar month from ?cal=YYYY-MM (falls back to the current month).
+  const calMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(cal ?? "")
+    ? (cal as string)
+    : monthKey(nowDate);
   const pendingPayouts = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout, 0);
@@ -530,10 +537,39 @@ export default async function HostDashboard({
           )}
         </section>
 
+        {/* Occupancy calendar */}
+        <section id="calendar" className="scroll-mt-20">
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.cal.title")}</h3>
+          <Card className="p-5">
+            <HostCalendar
+              bookings={bookings.map((b) => ({
+                startAt: b.startAt,
+                endAt: b.endAt,
+                status: b.status,
+              }))}
+              month={calMonth}
+              localeTag={localeTag}
+              labels={{
+                prev: t("host.cal.prev"),
+                next: t("host.cal.next"),
+                legend: t("host.cal.legend"),
+              }}
+            />
+          </Card>
+        </section>
+
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Earnings / payouts */}
           <section id="earnings" className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.payouts")}</h3>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="text-lg font-bold text-navy-900">{t("host.section.payouts")}</h3>
+              <a
+                href="/host/export"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <Download className="h-4 w-4" /> {t("host.export")}
+              </a>
+            </div>
             <Card className="divide-y divide-navy-100">
               {payments.map((p) => {
                 const refunded = isRefunded(p);
