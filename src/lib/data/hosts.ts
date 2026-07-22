@@ -344,15 +344,18 @@ export async function reviewSpaceListing(
 }
 
 /**
- * Admin pause/reactivate of a listing that's already live. Pausing hides it
- * from traveller search without deleting anything; reactivating restores it.
+ * Pause/reactivate a listing that's already live. Pausing hides it from
+ * traveller search without deleting anything; reactivating restores it.
  * Only flips between live <-> paused, so pending/rejected listings are safe.
+ * notifyHost=false when the host paused their own listing (holiday mode) —
+ * the notification is worded as an admin action.
  */
 export async function setSpacePausedAdmin(
   spaceId: string,
-  paused: boolean
+  paused: boolean,
+  notifyHost = true
 ): Promise<Space | null> {
-  if (!IS_LIVE) return mockSetSpacePaused(spaceId, paused) ?? null;
+  if (!IS_LIVE) return mockSetSpacePaused(spaceId, paused, notifyHost) ?? null;
 
   const from = paused ? "live" : "paused";
   const to = paused ? "paused" : "live";
@@ -374,7 +377,7 @@ export async function setSpacePausedAdmin(
     .select("user_id")
     .eq("id", space.hostId)
     .maybeSingle();
-  if (host?.user_id) {
+  if (host?.user_id && notifyHost) {
     await admin.from("notifications").insert({
       user_id: host.user_id,
       title: paused ? "Listing paused" : "Listing reactivated",

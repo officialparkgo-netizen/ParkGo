@@ -295,3 +295,21 @@ export async function pauseSpaceAction(formData: FormData) {
   revalidatePath("/app/search");
   if (space) revalidatePath(`/airports/${space.airportSlug}`);
 }
+
+/** Host: pause or reactivate their OWN listing (holiday mode). */
+export async function pauseOwnSpaceAction(formData: FormData) {
+  const user = await requireRole("host");
+  const spaceId = String(formData.get("spaceId") || "");
+  const state = String(formData.get("state") || "");
+  if (!spaceId || (state !== "pause" && state !== "reactivate")) return;
+
+  const { getHostForUser, getSpaceById } = await import("@/lib/data/hosts");
+  const host = await getHostForUser(user);
+  const space = await getSpaceById(spaceId);
+  if (!host || !space || space.hostId !== host.id) return;
+
+  const updated = await setSpacePausedAdmin(spaceId, state === "pause", false);
+  revalidatePath("/host");
+  revalidatePath("/app/search");
+  if (updated) revalidatePath(`/airports/${updated.airportSlug}`);
+}

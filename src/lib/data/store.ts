@@ -561,8 +561,15 @@ export function reviewSpace(
   return space;
 }
 
-/** Admin pause/reactivate of a live listing. Pausing hides it from search. */
-export function setSpacePaused(spaceId: string, paused: boolean): Space | undefined {
+/**
+ * Pause/reactivate a live listing. Pausing hides it from search.
+ * notifyHost=false when the host paused it themselves (no admin-worded notice).
+ */
+export function setSpacePaused(
+  spaceId: string,
+  paused: boolean,
+  notifyHost = true
+): Space | undefined {
   const space = getSpace(spaceId);
   if (!space) return undefined;
   if (space.status !== "live" && space.status !== "paused") return undefined;
@@ -570,7 +577,7 @@ export function setSpacePaused(spaceId: string, paused: boolean): Space | undefi
 
   const host = getHost(space.hostId);
   const hostUser = host ? getUser(host.userId) : undefined;
-  if (hostUser) {
+  if (hostUser && notifyHost) {
     addNotification({
       userId: hostUser.id,
       title: paused ? "Listing paused" : "Listing reactivated",

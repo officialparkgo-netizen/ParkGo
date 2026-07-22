@@ -8,6 +8,9 @@ import {
   CalendarCheck,
   Car,
   CheckCircle2,
+  ChevronDown,
+  PauseCircle,
+  PlayCircle,
   Image as ImageIcon,
   Pencil,
   PlusCircle,
@@ -34,6 +37,7 @@ import { getUsersByIds } from "@/lib/data/users";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
 import { connectPayoutsAction, updateHostProfileAction } from "@/lib/host-actions";
+import { pauseOwnSpaceAction } from "@/lib/booking-actions";
 import { isStripeConfigured, getConnectStatus } from "@/lib/stripe";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -119,6 +123,56 @@ export default async function HostDashboard({
     .sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt));
   const upcomingCount = upcoming.length;
   const nextBooking = upcoming[0];
+  const daysToArrival = nextBooking
+    ? Math.max(0, Math.ceil((new Date(nextBooking.startAt).getTime() - Date.now()) / 86_400_000))
+    : 0;
+  const nowMs = Date.now();
+  const isPastBooking = (b: (typeof bookings)[number]) =>
+    b.status === "cancelled" ||
+    b.status === "completed" ||
+    b.status === "reviewed" ||
+    new Date(b.endAt).getTime() < nowMs;
+  const upcomingBookings = bookings
+    .filter((b) => !isPastBooking(b))
+    .sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt));
+  const pastBookings = bookings
+    .filter(isPastBooking)
+    .sort((a, b) => +new Date(b.endAt) - +new Date(a.endAt));
+
+  const renderHostBooking = (b: (typeof bookings)[number]) => {
+              const traveller = travellerMap.get(b.travellerId);
+              return (
+                <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
+                      style={{ backgroundColor: traveller?.avatarColor ?? "#1B6CB3" }}
+                    >
+                      {initials(traveller?.name ?? "PG")}
+                    </span>
+                    <div>
+                      <div className="font-mono text-sm font-bold text-navy-900">{b.reference}</div>
+                      <div className="text-sm text-navy-500">
+                        {formatDate(b.startAt)} → {formatDate(b.endAt)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <StatusBadge status={b.status} />
+                    {b.status === "cancelled" ? (
+                      <span className="font-bold text-navy-300 line-through">
+                        {formatMoney(b.price.split.hostPayout, b.price.currency)}
+                      </span>
+                    ) : (
+                      <span className="font-bold text-navy-900">
+                        +{formatMoney(b.price.split.hostPayout, b.price.currency)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+  };
+
   const spaceMap = new Map(spaces.map((s) => [s.id, s]));
 
   // Confirmed bookings per listing (cancelled ones don't count).
@@ -219,9 +273,22 @@ export default async function HostDashboard({
                 <div className="text-sm text-navy-600">{formatDateTime(nextBooking.startAt)}</div>
               </div>
             </div>
-            <span className="text-lg font-extrabold text-navy-900">
-              +{formatMoney(nextBooking.price.split.hostPayout, nextBooking.price.currency)}
-            </span>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-extrabold leading-none text-navy-900">
+                  {daysToArrival === 0 ? t("app.dash.today") : daysToArrival}
+                </div>
+                {daysToArrival > 0 && (
+                  <div className="mt-0.5 text-[11px] text-navy-400">
+                    {daysToArrival === 1 ? t("common.day") : t("common.days")} ·{" "}
+                    {t("host.untilArrival")}
+                  </div>
+                )}
+              </div>
+              <span className="text-lg font-extrabold text-navy-900">
+                +{formatMoney(nextBooking.price.split.hostPayout, nextBooking.price.currency)}
+              </span>
+            </div>
           </Card>
         )}
 
@@ -332,14 +399,46 @@ export default async function HostDashboard({
                         </Badge>
                       )}
                       <Badge tone="neutral">{formatMoney(s.pricePerDay)}/day</Badge>
+                      {s.pricePerHour && (
+                        <Badge tone="neutral">
+                          {formatMoney(s.pricePerHour)}/{t("common.hour")}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="mt-3">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Link
                         href={`/host/spaces/${s.id}/edit`}
                         className={buttonVariants({ variant: "outline", size: "sm" })}
                       >
                         <Pencil className="h-3.5 w-3.5" /> {t("host.editListing")}
                       </Link>
+                      {(s.status === "live" || s.status === "paused") && (
+                        <form action={pauseOwnSpaceAction}>
+                          <input type="hidden" name="spaceId" value={s.id} />
+                          <input
+                            type="hidden"
+                            name="state"
+                            value={s.status === "live" ? "pause" : "reactivate"}
+                          />
+                          <button
+                            type="submit"
+                            className={buttonVariants({
+                              variant: s.status === "live" ? "ghost" : "primary",
+                              size: "sm",
+                            })}
+                          >
+                            {s.status === "live" ? (
+                              <>
+                                <PauseCircle className="h-3.5 w-3.5" /> {t("host.pauseListing")}
+                              </>
+                            ) : (
+                              <>
+                                <PlayCircle className="h-3.5 w-3.5" /> {t("host.resumeListing")}
+                              </>
+                            )}
+                          </button>
+                        </form>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -396,44 +495,39 @@ export default async function HostDashboard({
         {/* Bookings */}
         <section id="bookings" className="scroll-mt-20">
           <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.recentBookings")}</h3>
-          <Card className="divide-y divide-navy-100">
-            {bookings.length === 0 && (
-              <div className="p-6 text-center text-navy-500">{t("host.noBookings")}</div>
-            )}
-            {bookings.map((b) => {
-              const traveller = travellerMap.get(b.travellerId);
-              return (
-                <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
-                      style={{ backgroundColor: traveller?.avatarColor ?? "#1B6CB3" }}
-                    >
-                      {initials(traveller?.name ?? "PG")}
-                    </span>
-                    <div>
-                      <div className="font-mono text-sm font-bold text-navy-900">{b.reference}</div>
-                      <div className="text-sm text-navy-500">
-                        {formatDate(b.startAt)} → {formatDate(b.endAt)}
-                      </div>
-                    </div>
+          {bookings.length === 0 ? (
+            <Card className="p-6 text-center text-navy-500">{t("host.noBookings")}</Card>
+          ) : (
+            <div className="space-y-6">
+              {upcomingBookings.length > 0 && (
+                <div>
+                  <div className="mb-2 flex items-center gap-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wide text-navy-500">
+                      {t("host.bookings.upcoming")}
+                    </h4>
+                    <Badge tone="brand">{upcomingBookings.length}</Badge>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <StatusBadge status={b.status} />
-                    {b.status === "cancelled" ? (
-                      <span className="font-bold text-navy-300 line-through">
-                        {formatMoney(b.price.split.hostPayout, b.price.currency)}
-                      </span>
-                    ) : (
-                      <span className="font-bold text-navy-900">
-                        +{formatMoney(b.price.split.hostPayout, b.price.currency)}
-                      </span>
-                    )}
-                  </div>
+                  <Card className="divide-y divide-navy-100">
+                    {upcomingBookings.map(renderHostBooking)}
+                  </Card>
                 </div>
-              );
-            })}
-          </Card>
+              )}
+              {pastBookings.length > 0 && (
+                <details className="group" open={upcomingBookings.length === 0}>
+                  <summary className="mb-2 flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                    <h4 className="text-xs font-bold uppercase tracking-wide text-navy-500">
+                      {t("host.bookings.past")}
+                    </h4>
+                    <Badge tone="neutral">{pastBookings.length}</Badge>
+                    <ChevronDown className="h-4 w-4 text-navy-400 transition-transform group-open:rotate-180" aria-hidden />
+                  </summary>
+                  <Card className="divide-y divide-navy-100">
+                    {pastBookings.map(renderHostBooking)}
+                  </Card>
+                </details>
+              )}
+            </div>
+          )}
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
