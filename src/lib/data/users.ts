@@ -1,6 +1,11 @@
 import type { User } from "@/types";
 import { IS_LIVE } from "@/lib/config";
-import { getAllUsers as getAllUsersMock, getUser as getUserMock } from "@/lib/data/store";
+import {
+  getAllUsers as getAllUsersMock,
+  getUser as getUserMock,
+  setUserRole as mockSetUserRole,
+  setUserSuspended as mockSetUserSuspended,
+} from "@/lib/data/store";
 
 type UserRow = {
   id: string;
@@ -11,6 +16,7 @@ type UserRow = {
   locale: string;
   vehicle: unknown;
   corporate_account_id: string | null;
+  suspended?: boolean | null;
   created_at: string;
 };
 
@@ -24,12 +30,14 @@ export function userFromRow(r: UserRow): User {
     locale: r.locale as User["locale"],
     vehicle: (r.vehicle as User["vehicle"]) ?? undefined,
     corporateAccountId: r.corporate_account_id ?? undefined,
+    suspended: !!r.suspended,
     createdAt: r.created_at,
   };
 }
 
-const PROFILE_COLS =
-  "id, role, name, email, phone, locale, vehicle, corporate_account_id, created_at";
+// "*" instead of an explicit column list so reads keep working while the
+// `suspended` column migration (0013) hasn't been run yet.
+const PROFILE_COLS = "*";
 
 /** Profile row for a user id. Supabase in live mode, in-memory seed in mock. */
 export async function getUserProfile(id: string): Promise<User | null> {
@@ -77,6 +85,44 @@ export async function listAllUsers(): Promise<User[]> {
     .order("created_at", { ascending: false })
     .limit(200);
   return (data ?? []).map((r) => userFromRow(r as UserRow));
+}
+
+/** Admin: switch a member between traveller and host. Never touches admins. */
+export async function setUserRoleAdmin(
+  userId: string,
+  role: "traveller" | "host"
+): Promise<User | null> {
+  if (!IS_LIVE) return mockSetUserRole(userId, role) ?? null;
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data, error } = await supabaseAdmin()
+    .from("users")
+    .update({ role })
+    .eq("id", userId)
+    .neq("role", "admin")
+    .select(PROFILE_COLS)
+    .single();
+  if (error || !data) return null;
+  return userFromRow(data as UserRow);
+}
+
+/** Admin: suspend or restore an account (enforced at the sign-in guard). */
+export async function setUserSuspendedAdmin(
+  userId: string,
+  suspended: boolean
+): Promise<User | null> {
+  if (!IS_LIVE) return mockSetUserSuspended(userId, suspended) ?? null;
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data, error } = await supabaseAdmin()
+    .from("users")
+    .update({ suspended })
+    .eq("id", userId)
+    .neq("role", "admin")
+    .select(PROFILE_COLS)
+    .single();
+  if (error || !data) return null;
+  return userFromRow(data as UserRow);
 }
 
 type AuthUserLike = {

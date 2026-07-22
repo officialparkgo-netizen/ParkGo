@@ -42,6 +42,7 @@ export async function getCurrentUser(): Promise<User | null> {
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
   return user;
 }
 
@@ -52,6 +53,7 @@ export async function requireUser(): Promise<User> {
 export async function requireRole(role: Role): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${rolePath(role)}`);
+  if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
   if (user.role !== role && user.role !== "admin") redirect(rolePath(user.role));
   return user;
 }

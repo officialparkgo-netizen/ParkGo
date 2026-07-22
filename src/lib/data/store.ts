@@ -116,6 +116,22 @@ export const getSpacesByHost = (hostId: string) =>
   db.spaces.filter((s) => s.hostId === hostId);
 export const getAllSpaces = () => db.spaces;
 export const getAllUsers = () => db.users;
+
+/** Admin: swap a member between traveller and host. Admin accounts are immutable. */
+export function setUserRole(userId: string, role: "traveller" | "host"): User | undefined {
+  const user = getUser(userId);
+  if (!user || user.role === "admin") return undefined;
+  user.role = role;
+  return user;
+}
+
+/** Admin: suspend/restore an account. Admin accounts can't be suspended. */
+export function setUserSuspended(userId: string, suspended: boolean): User | undefined {
+  const user = getUser(userId);
+  if (!user || user.role === "admin") return undefined;
+  user.suspended = suspended;
+  return user;
+}
 export const getAllBookings = () => db.bookings;
 export const getAllReviews = () => db.reviews;
 export const getAllHosts = () => db.hosts;

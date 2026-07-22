@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  ArrowLeftRight,
   ArrowUpRight,
   Banknote,
   CalendarCheck,
@@ -11,6 +12,7 @@ import {
   Download,
   Globe,
   Headset,
+  History,
   LayoutGrid,
   Mail,
   PauseCircle,
@@ -19,6 +21,8 @@ import {
   Search,
   ShieldAlert,
   TrendingUp,
+  UserCheck,
+  UserX,
   Users,
   Warehouse,
   XCircle,
@@ -52,6 +56,7 @@ import { getUsersByIds, listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
 import { listSupportTickets } from "@/lib/data/support";
 import { resolveSupportTicketAction } from "@/lib/support-actions";
+import { setUserRoleAction, setUserSuspendedAction } from "@/lib/user-actions";
 import type { Host } from "@/types";
 
 function hostTrustScore(h: Host) {
@@ -77,11 +82,21 @@ export const metadata: Metadata = pageMetadata({ title: "Admin", path: "/admin",
 export default async function AdminDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; bstatus?: string }>;
+  searchParams: Promise<{ q?: string; bstatus?: string; range?: string }>;
 }) {
   const user = await requireRole("admin");
   const { t, locale } = await getI18n();
-  const { q: qRaw, bstatus: bstatusRaw } = await searchParams;
+  const { q: qRaw, bstatus: bstatusRaw, range: rangeRaw } = await searchParams;
+
+  // Time window for the money/booking metrics (?range=7d|30d|90d, default all).
+  const RANGES = ["7d", "30d", "90d"] as const;
+  const range = (RANGES as readonly string[]).includes(rangeRaw ?? "")
+    ? (rangeRaw as (typeof RANGES)[number])
+    : null;
+  const rangeCutoff = range
+    ? Date.now() - Number(range.replace("d", "")) * 86_400_000
+    : null;
+  const inRange = (iso: string) => rangeCutoff === null || +new Date(iso) >= rangeCutoff;
   const pending = await listPendingVerificationsLive();
   const allVerifications = await listAllVerificationsLive();
   const spaces = await listAllSpaces();
@@ -99,10 +114,14 @@ export default async function AdminDashboard({
   const isRefunded = (p: (typeof payments)[number]) =>
     p.payoutStatus === "refunded" || cancelledBookingIds.has(p.bookingId);
   const earnedPayments = payments.filter((p) => !isRefunded(p));
-  const refundedTotal = payments.filter(isRefunded).reduce((s, p) => s + p.amount, 0);
+  // Range-scoped money view; payouts due stays all-time (outstanding balance).
+  const rangeEarned = earnedPayments.filter((p) => inRange(p.createdAt));
+  const refundedTotal = payments
+    .filter((p) => isRefunded(p) && inRange(p.createdAt))
+    .reduce((s, p) => s + p.amount, 0);
 
-  const gmv = earnedPayments.reduce((s, p) => s + p.amount, 0);
-  const platformRevenue = earnedPayments.reduce((s, p) => s + p.split.platform, 0);
+  const gmv = rangeEarned.reduce((s, p) => s + p.amount, 0);
+  const platformRevenue = rangeEarned.reduce((s, p) => s + p.split.platform, 0);
   const payoutsDue = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout + p.split.driverPayout, 0);
@@ -124,7 +143,8 @@ export default async function AdminDashboard({
   const allUsers = await listAllUsers();
   const travellerCount = allUsers.filter((u) => u.role === "traveller").length;
   const hostCount = allUsers.filter((u) => u.role === "host").length;
-  const activeBookings = bookings.filter(
+  const rangeBookings = bookings.filter((b) => inRange(b.createdAt));
+  const activeBookings = rangeBookings.filter(
     (b) => b.status === "paid" || b.status === "active"
   ).length;
 
@@ -133,16 +153,27 @@ export default async function AdminDashboard({
   const bstatus = (BOOKING_FILTERS as readonly string[]).includes(bstatusRaw ?? "")
     ? (bstatusRaw as (typeof BOOKING_FILTERS)[number])
     : null;
-  const filteredBookings = bstatus ? bookings.filter((b) => b.status === bstatus) : bookings;
+  const filteredBookings = bstatus
+    ? rangeBookings.filter((b) => b.status === bstatus)
+    : rangeBookings;
   const recentBookings = [...filteredBookings]
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, 8);
   const bookingFilterHref = (s?: string) => {
     const p = new URLSearchParams();
     if (qRaw) p.set("q", qRaw);
+    if (range) p.set("range", range);
     if (s) p.set("bstatus", s);
     const qs = p.toString();
     return `/admin${qs ? `?${qs}` : ""}#bookings`;
+  };
+  const rangeHref = (r?: string) => {
+    const p = new URLSearchParams();
+    if (qRaw) p.set("q", qRaw);
+    if (bstatus) p.set("bstatus", bstatus);
+    if (r) p.set("range", r);
+    const qs = p.toString();
+    return `/admin${qs ? `?${qs}` : ""}`;
   };
   const travellerMap = await getUsersByIds(bookings.map((b) => b.travellerId));
   const spaceMap = new Map(spaces.map((s) => [s.id, s]));
@@ -189,12 +220,14 @@ export default async function AdminDashboard({
       searchResults.tickets.length
     : 0;
 
-  // Money KPIs beyond raw GMV.
-  const avgBookingValue = earnedPayments.length ? Math.round(gmv / earnedPayments.length) : 0;
-  const cancelRate = bookings.length
-    ? Math.round((cancelledBookingIds.size / bookings.length) * 100)
+  // Money KPIs beyond raw GMV (all range-scoped).
+  const avgBookingValue = rangeEarned.length ? Math.round(gmv / rangeEarned.length) : 0;
+  const rangeCancelled = rangeBookings.filter((b) => b.status === "cancelled").length;
+  const cancelRate = rangeBookings.length
+    ? Math.round((rangeCancelled / rangeBookings.length) * 100)
     : 0;
-  const recentPayments = [...payments]
+  const recentPayments = payments
+    .filter((p) => inRange(p.createdAt))
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, 8);
 
@@ -212,7 +245,7 @@ export default async function AdminDashboard({
     if (m) m.value += pay.amount;
   }
   const destAgg = new Map<string, { name: string; count: number; revenue: number }>();
-  for (const b of bookings) {
+  for (const b of rangeBookings) {
     if (b.status === "cancelled" || b.status === "requested") continue;
     const sp = spaceMap.get(b.spaceId);
     const dest = sp ? getAirport(sp.airportSlug) : undefined;
@@ -241,6 +274,27 @@ export default async function AdminDashboard({
   return (
     <PortalShell user={user} nav={adminNav} title="admin.pageTitle">
       <div className="space-y-8">
+        {/* Time range for the metrics below */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <History className="h-4 w-4 text-navy-400" aria-hidden />
+          {[null, ...RANGES].map((r) => {
+            const active = r === null ? !range : range === r;
+            return (
+              <Link
+                key={r ?? "all"}
+                href={rangeHref(r ?? undefined)}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  active
+                    ? "border-navy-900 bg-navy-900 text-white"
+                    : "border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
+                }`}
+              >
+                {r ? t(`admin.range.${r}`) : t("admin.range.all")}
+              </Link>
+            );
+          })}
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard label={t("admin.stat.hostReview")} value={String(pending.length)} sub={t("admin.stat.hostReviewSub")} icon={ShieldAlert} tone="accent" />
@@ -254,7 +308,7 @@ export default async function AdminDashboard({
           />
           <StatCard
             label={t("admin.stat.bookings")}
-            value={String(bookings.length)}
+            value={String(rangeBookings.length)}
             sub={`${activeBookings} ${t("admin.stat.bookingsActive")}`}
             icon={CalendarCheck}
             tone="brand"
@@ -279,7 +333,7 @@ export default async function AdminDashboard({
           <StatCard
             label={t("admin.stat.cancelRate")}
             value={`${cancelRate}%`}
-            sub={`${cancelledBookingIds.size} ${t("admin.stat.cancelledSub")}`}
+            sub={`${rangeCancelled} ${t("admin.stat.cancelledSub")}`}
             icon={XCircle}
             tone="accent"
           />
@@ -397,6 +451,9 @@ export default async function AdminDashboard({
                             <div className="truncate text-xs text-navy-400">{u.email}</div>
                           </div>
                           <div className="flex shrink-0 items-center gap-2">
+                            {u.suspended && (
+                              <Badge tone="danger">{t("admin.users.suspended")}</Badge>
+                            )}
                             <Badge tone={u.role === "admin" ? "accent" : u.role === "host" ? "brand" : "neutral"}>
                               {u.role}
                             </Badge>
@@ -960,13 +1017,58 @@ export default async function AdminDashboard({
                   <div className="font-semibold text-navy-900">{u.name}</div>
                   <div className="truncate text-xs text-navy-400">{u.email}</div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  {u.suspended && <Badge tone="danger">{t("admin.users.suspended")}</Badge>}
                   <Badge tone={u.role === "admin" ? "accent" : u.role === "host" ? "brand" : "neutral"}>
                     {u.role}
                   </Badge>
                   <span className="text-xs text-navy-400">
                     {t("admin.users.joined")} {formatDate(u.createdAt)}
                   </span>
+                  {u.role !== "admin" && (
+                    <>
+                      <form action={setUserRoleAction}>
+                        <input type="hidden" name="userId" value={u.id} />
+                        <input
+                          type="hidden"
+                          name="role"
+                          value={u.role === "host" ? "traveller" : "host"}
+                        />
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
+                        >
+                          <ArrowLeftRight className="h-3.5 w-3.5" />{" "}
+                          {u.role === "host"
+                            ? t("admin.users.makeTraveller")
+                            : t("admin.users.makeHost")}
+                        </button>
+                      </form>
+                      <form action={setUserSuspendedAction}>
+                        <input type="hidden" name="userId" value={u.id} />
+                        <input
+                          type="hidden"
+                          name="state"
+                          value={u.suspended ? "restore" : "suspend"}
+                        />
+                        {u.suspended ? (
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                          >
+                            <UserCheck className="h-3.5 w-3.5" /> {t("admin.users.restore")}
+                          </button>
+                        ) : (
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                          >
+                            <UserX className="h-3.5 w-3.5" /> {t("admin.users.suspend")}
+                          </button>
+                        )}
+                      </form>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

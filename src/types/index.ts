@@ -32,6 +32,8 @@ export interface User {
   /** Traveller-only: minimal vehicle detail captured at signup. */
   vehicle?: VehicleProfile;
   corporateAccountId?: UUID;
+  /** Admin-set: suspended accounts are bounced at the sign-in guard. */
+  suspended?: boolean;
   createdAt: ISODateString;
 }
 
