@@ -16,6 +16,7 @@ import {
   LayoutGrid,
   Mail,
   PauseCircle,
+  Phone,
   Radio,
   ScrollText,
   Search,
@@ -104,6 +105,9 @@ export default async function AdminDashboard({
     ...spaces.map((s) => s.hostId),
     ...pending.filter((v) => v.subjectType === "host").map((v) => v.subjectId),
   ]);
+  const hostUserMap = await getUsersByIds(
+    [...spaceHostMap.values()].map((h) => h.userId)
+  );
   const payments = await listAllPayments();
   const bookings = await listAllBookings();
 
@@ -650,28 +654,82 @@ export default async function AdminDashboard({
           ) : (
             <div className="space-y-4">
               {pending.map((v) => {
-                const name = spaceHostMap.get(v.subjectId)?.displayName;
+                const vHost = v.subjectType === "host" ? spaceHostMap.get(v.subjectId) : undefined;
+                const vUser = vHost ? hostUserMap.get(vHost.userId) : undefined;
+                const vListings = vHost ? spaces.filter((s) => s.hostId === vHost.id) : [];
                 return (
                   <Card key={v.id} className="p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-navy-900">{name ?? v.subjectId}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-navy-900">
+                            {vHost?.displayName ?? v.subjectId}
+                          </span>
                           <Badge tone="neutral">{v.subjectType}</Badge>
                           <StatusBadge status={v.status} />
                         </div>
                         <p className="mt-0.5 text-sm text-navy-500">
                           {t("admin.submitted")} {v.submittedAt ? formatDate(v.submittedAt) : "—"}
                         </p>
+
+                        {/* Who the admin is actually approving */}
+                        {vUser && (
+                          <div className="mt-3 grid gap-x-6 gap-y-1.5 text-sm text-navy-700 sm:grid-cols-2">
+                            <span className="inline-flex items-center gap-1.5 break-all">
+                              <Mail className="h-3.5 w-3.5 shrink-0 text-navy-400" /> {vUser.email}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <Phone className="h-3.5 w-3.5 shrink-0 text-navy-400" />{" "}
+                              {vUser.phone ?? "—"}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <CalendarCheck className="h-3.5 w-3.5 shrink-0 text-navy-400" />{" "}
+                              {t("admin.users.joined")} {formatDate(vUser.createdAt)}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <Warehouse className="h-3.5 w-3.5 shrink-0 text-navy-400" />{" "}
+                              {vListings.length} {t("admin.verif.listings")}
+                            </span>
+                          </div>
+                        )}
+                        {vListings.length > 0 && (
+                          <ul className="mt-2.5 flex flex-wrap gap-2">
+                            {vListings.slice(0, 3).map((s) => (
+                              <li key={s.id}>
+                                <Link
+                                  href={`/app/space/${s.id}`}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-2.5 py-1 text-xs font-semibold text-navy-600 hover:bg-navy-50"
+                                >
+                                  {s.title} <ArrowUpRight className="h-3 w-3" />
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {v.notes && (
+                          <p className="mt-3 rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-700">
+                            {v.notes}
+                          </p>
+                        )}
+
+                        {/* Submitted documents — open from the private KYC store */}
                         <ul className="mt-3 flex flex-wrap gap-2">
                           {v.documents.map((d) => (
                             <li key={d.id}>
-                              <Badge tone="brand">
-                                <FileText className="h-3 w-3" /> {d.label}
-                              </Badge>
+                              <a
+                                href={`/admin/kyc?ref=${encodeURIComponent(d.fileRef)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={`${t("admin.verif.uploaded")} ${formatDate(d.uploadedAt)}`}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+                              >
+                                <FileText className="h-3.5 w-3.5" /> {d.label}
+                                <ArrowUpRight className="h-3 w-3" />
+                              </a>
                             </li>
                           ))}
                         </ul>
+                        <p className="mt-2 text-xs text-navy-400">{t("admin.verif.docsNote")}</p>
                       </div>
                       <form action={reviewVerificationAction} className="flex gap-2">
                         <input type="hidden" name="verificationId" value={v.id} />
