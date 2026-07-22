@@ -13,6 +13,7 @@ import { LiveMap } from "@/components/portal/live-map";
 import { MapboxMap } from "@/components/portal/mapbox-map";
 import { CameraView } from "@/components/portal/camera-view";
 import { HandoverPanel } from "@/components/portal/handover-panel";
+import { DriverChat } from "@/components/portal/driver-chat";
 import { ReviewForm } from "@/components/portal/review-form";
 import { requireRole } from "@/lib/auth";
 import {
@@ -231,11 +232,18 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                   <Phone className="h-4 w-4" /> {t("common.callDriver")}
                 </a>
               </Card>
+            ) : booking.bundle.transfer ? (
+              <Card className="flex items-start gap-3 p-4 text-sm text-navy-600">
+                <Car className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                {t("app.track.transferPending")}
+              </Card>
             ) : (
               <Card className="p-4 text-sm text-navy-500">
                 {t("app.track.noTransfer")}
               </Card>
             )}
+
+            {transfer && <DriverChat bookingId={booking.id} />}
           </div>
 
           {/* Camera + handover */}

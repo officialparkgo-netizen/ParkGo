@@ -434,6 +434,15 @@ export interface WaitlistEntry {
   createdAt: ISODateString;
 }
 
+/** One message between a traveller and their transfer driver. */
+export interface TransferMessage {
+  id: UUID;
+  bookingId: UUID;
+  from: "traveller" | "driver";
+  text: string;
+  at: ISODateString;
+}
+
 /** One line of a support-chat conversation. */
 export interface SupportMessage {
   role: "bot" | "user";

@@ -31,6 +31,7 @@ import type {
   VerificationStatus,
   WaitlistEntry,
   SupportTicket,
+  TransferMessage,
 } from "@/types";
 import * as seed from "@/lib/data/seed";
 import { priceBundle } from "@/lib/pricing";
@@ -627,6 +628,50 @@ export function addWaitlist(entry: Omit<WaitlistEntry, "id" | "createdAt">): Wai
   return row;
 }
 export const getWaitlist = () => db.waitlist;
+
+// -----------------------------------------------------------------------------
+// Traveller ↔ driver messages (mock relay). The demo driver replies with a
+// short delay: replies are stamped ~2s in the future and only surface once
+// their time has passed, so the poll picks them up like a real conversation.
+// -----------------------------------------------------------------------------
+const mg = globalThis as unknown as { __parkgoDriverChat?: TransferMessage[] };
+const driverChat: TransferMessage[] = (mg.__parkgoDriverChat ??= []);
+
+const DRIVER_REPLIES = [
+  "On my way — see you at the agreed time. 🚕",
+  "Got it, thanks for letting me know. 👍",
+  "No problem. I'll wait at the pickup point.",
+  "Understood — message me if anything changes.",
+];
+
+export function addDriverMessage(bookingId: string, text: string): TransferMessage {
+  const msg: TransferMessage = {
+    id: `tm_${driverChat.length + 1}`,
+    bookingId,
+    from: "traveller",
+    text,
+    at: new Date().toISOString(),
+  };
+  driverChat.push(msg);
+  const replyCount = driverChat.filter(
+    (m) => m.bookingId === bookingId && m.from === "driver"
+  ).length;
+  driverChat.push({
+    id: `tm_${driverChat.length + 1}`,
+    bookingId,
+    from: "driver",
+    text: DRIVER_REPLIES[replyCount % DRIVER_REPLIES.length],
+    at: new Date(Date.now() + 2000).toISOString(),
+  });
+  return msg;
+}
+
+export const getDriverMessages = (bookingId: string) => {
+  const now = Date.now();
+  return driverChat.filter(
+    (m) => m.bookingId === bookingId && new Date(m.at).getTime() <= now
+  );
+};
 
 // -----------------------------------------------------------------------------
 // Support tickets (chat escalations) — on globalThis like `db`, so the server
