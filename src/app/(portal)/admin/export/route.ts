@@ -1,5 +1,5 @@
 import { requireRole } from "@/lib/auth";
-import { listAllBookings } from "@/lib/data/bookings";
+import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
 import { listAllSpaces } from "@/lib/data/hosts";
@@ -39,6 +39,28 @@ async function buildRows(type: string): Promise<{ header: string[]; rows: (strin
           b.bundle.ev ? "yes" : "no", friendly(b.createdAt),
         ];
       }),
+    };
+  }
+  if (type === "payments") {
+    const [payments, bookings] = await Promise.all([listAllPayments(), listAllBookings()]);
+    const bookingMap = new Map(bookings.map((b) => [b.id, b]));
+    return {
+      header: [
+        "Date", "Reference", "Method", "Payout status", "Gross (£)",
+        "Platform fee (£)", "Host payout (£)", "Driver (£)", "Currency",
+      ],
+      rows: [...payments]
+        .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+        .map((p) => {
+          const b = bookingMap.get(p.bookingId);
+          const refunded = p.payoutStatus === "refunded" || b?.status === "cancelled";
+          return [
+            friendly(p.createdAt), b?.reference ?? p.bookingId, p.method,
+            refunded ? "refunded" : p.payoutStatus, pounds(p.amount),
+            pounds(p.split.platform), pounds(p.split.hostPayout),
+            pounds(p.split.driverPayout), p.currency,
+          ];
+        }),
     };
   }
   if (type === "users") {

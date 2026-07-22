@@ -18,6 +18,7 @@ import {
   ScrollText,
   Search,
   ShieldAlert,
+  TrendingUp,
   Users,
   Warehouse,
   XCircle,
@@ -73,9 +74,14 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({ title: "Admin", path: "/admin", noindex: true });
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; bstatus?: string }>;
+}) {
   const user = await requireRole("admin");
   const { t, locale } = await getI18n();
+  const { q: qRaw, bstatus: bstatusRaw } = await searchParams;
   const pending = await listPendingVerificationsLive();
   const allVerifications = await listAllVerificationsLive();
   const spaces = await listAllSpaces();
@@ -121,10 +127,24 @@ export default async function AdminDashboard() {
   const activeBookings = bookings.filter(
     (b) => b.status === "paid" || b.status === "active"
   ).length;
-  const recentBookings = [...bookings]
+
+  // Bookings list filter (?bstatus=) — pills above the recent-bookings card.
+  const BOOKING_FILTERS = ["paid", "active", "completed", "cancelled"] as const;
+  const bstatus = (BOOKING_FILTERS as readonly string[]).includes(bstatusRaw ?? "")
+    ? (bstatusRaw as (typeof BOOKING_FILTERS)[number])
+    : null;
+  const filteredBookings = bstatus ? bookings.filter((b) => b.status === bstatus) : bookings;
+  const recentBookings = [...filteredBookings]
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .slice(0, 8);
-  const travellerMap = await getUsersByIds(recentBookings.map((b) => b.travellerId));
+  const bookingFilterHref = (s?: string) => {
+    const p = new URLSearchParams();
+    if (qRaw) p.set("q", qRaw);
+    if (s) p.set("bstatus", s);
+    const qs = p.toString();
+    return `/admin${qs ? `?${qs}` : ""}#bookings`;
+  };
+  const travellerMap = await getUsersByIds(bookings.map((b) => b.travellerId));
   const spaceMap = new Map(spaces.map((s) => [s.id, s]));
   const recentUsers = allUsers
     .slice()
@@ -132,6 +152,51 @@ export default async function AdminDashboard() {
     .slice(0, 10);
   const waitlist = await listWaitlist().catch(() => []);
   const supportTickets = await listSupportTickets().catch(() => []);
+
+  // Global admin search (?q=): bookings, listings, users and tickets.
+  const q = (qRaw ?? "").trim().toLowerCase();
+  const contains = (s?: string | null) => !!s && s.toLowerCase().includes(q);
+  const searchResults =
+    q.length >= 2
+      ? {
+          bookings: bookings
+            .filter(
+              (b) =>
+                contains(b.reference) ||
+                contains(travellerMap.get(b.travellerId)?.name) ||
+                contains(travellerMap.get(b.travellerId)?.email) ||
+                contains(spaceMap.get(b.spaceId)?.title)
+            )
+            .slice(0, 6),
+          spaces: spaces
+            .filter(
+              (s) =>
+                contains(s.title) ||
+                contains(spaceHostMap.get(s.hostId)?.displayName) ||
+                contains(getAirport(s.airportSlug)?.name)
+            )
+            .slice(0, 6),
+          users: allUsers.filter((u) => contains(u.name) || contains(u.email)).slice(0, 6),
+          tickets: supportTickets
+            .filter((tk) => contains(tk.email) || contains(tk.name) || contains(tk.topic))
+            .slice(0, 4),
+        }
+      : null;
+  const searchTotal = searchResults
+    ? searchResults.bookings.length +
+      searchResults.spaces.length +
+      searchResults.users.length +
+      searchResults.tickets.length
+    : 0;
+
+  // Money KPIs beyond raw GMV.
+  const avgBookingValue = earnedPayments.length ? Math.round(gmv / earnedPayments.length) : 0;
+  const cancelRate = bookings.length
+    ? Math.round((cancelledBookingIds.size / bookings.length) * 100)
+    : 0;
+  const recentPayments = [...payments]
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .slice(0, 8);
 
   // Monthly GMV (last six months) + booking revenue per destination.
   const localeTag =
@@ -159,6 +224,12 @@ export default async function AdminDashboard() {
   }
   const topDests = [...destAgg.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 6);
   const maxDestRevenue = Math.max(...topDests.map((d) => d.revenue), 1);
+  const thisMonthRevenue = revenueMonths[5].value;
+  const lastMonthRevenue = revenueMonths[4].value;
+  const momPct =
+    lastMonthRevenue > 0
+      ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
+      : null;
 
   // Transfer is fulfilled by an independent licensed operator, integrated by API.
   const operator = getOperatorStatus();
@@ -171,7 +242,7 @@ export default async function AdminDashboard() {
     <PortalShell user={user} nav={adminNav} title="admin.pageTitle">
       <div className="space-y-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard label={t("admin.stat.hostReview")} value={String(pending.length)} sub={t("admin.stat.hostReviewSub")} icon={ShieldAlert} tone="accent" />
           <StatCard label={t("admin.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("admin.total")}`} icon={Warehouse} tone="brand" />
           <StatCard
@@ -198,7 +269,174 @@ export default async function AdminDashboard() {
             tone="go"
           />
           <StatCard label={t("admin.stat.payoutsDue")} value={formatMoney(payoutsDue)} sub={t("admin.stat.payoutsDueSub")} icon={Banknote} tone="navy" />
+          <StatCard
+            label={t("admin.stat.avgBooking")}
+            value={formatMoney(avgBookingValue)}
+            sub={t("admin.stat.avgBookingSub")}
+            icon={TrendingUp}
+            tone="go"
+          />
+          <StatCard
+            label={t("admin.stat.cancelRate")}
+            value={`${cancelRate}%`}
+            sub={`${cancelledBookingIds.size} ${t("admin.stat.cancelledSub")}`}
+            icon={XCircle}
+            tone="accent"
+          />
         </div>
+
+        {/* Global search across the whole marketplace */}
+        <form action="/admin" role="search" className="relative">
+          <Search
+            className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400"
+            aria-hidden
+          />
+          <input
+            type="search"
+            name="q"
+            defaultValue={qRaw ?? ""}
+            placeholder={t("admin.search.placeholder")}
+            className="w-full rounded-2xl border border-navy-200 bg-white py-2.5 pe-28 ps-10 text-sm shadow-card focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          />
+          <div className="absolute end-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
+            {q && (
+              <Link
+                href="/admin"
+                className="rounded-lg px-2 py-1 text-xs font-semibold text-navy-400 hover:text-navy-700"
+              >
+                {t("admin.search.clear")}
+              </Link>
+            )}
+            <button type="submit" className={buttonVariants({ size: "sm" })}>
+              {t("admin.search.go")}
+            </button>
+          </div>
+        </form>
+
+        {/* Search results */}
+        {searchResults && (
+          <section id="search-results" className="scroll-mt-20">
+            <div className="mb-3 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-navy-900">
+                {t("admin.search.results")} “{qRaw}”
+              </h3>
+              <Badge tone={searchTotal > 0 ? "brand" : "neutral"}>{searchTotal}</Badge>
+            </div>
+            {searchTotal === 0 ? (
+              <Card className="p-6 text-center text-navy-500">{t("admin.search.empty")}</Card>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {searchResults.bookings.length > 0 && (
+                  <Card className="p-4">
+                    <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-navy-500">
+                      {t("nav.bookings")} · {searchResults.bookings.length}
+                    </h4>
+                    <div className="divide-y divide-navy-100">
+                      {searchResults.bookings.map((b) => (
+                        <div key={b.id} className="flex items-center justify-between gap-3 py-2.5">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono text-sm font-bold text-navy-900">{b.reference}</span>
+                              <StatusBadge status={b.status} />
+                            </div>
+                            <div className="truncate text-xs text-navy-400">
+                              {travellerMap.get(b.travellerId)?.name ?? "—"} ·{" "}
+                              {spaceMap.get(b.spaceId)?.title ?? b.spaceId}
+                            </div>
+                          </div>
+                          <Link
+                            href={`/app/booking/${b.id}`}
+                            className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
+                          >
+                            <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+                {searchResults.spaces.length > 0 && (
+                  <Card className="p-4">
+                    <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-navy-500">
+                      {t("nav.listings")} · {searchResults.spaces.length}
+                    </h4>
+                    <div className="divide-y divide-navy-100">
+                      {searchResults.spaces.map((s) => (
+                        <div key={s.id} className="flex items-center justify-between gap-3 py-2.5">
+                          <div className="min-w-0">
+                            <div className="truncate font-semibold text-navy-900">{s.title}</div>
+                            <div className="truncate text-xs text-navy-400">
+                              {spaceHostMap.get(s.hostId)?.displayName} ·{" "}
+                              {getAirport(s.airportSlug)?.name}
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <StatusBadge status={s.status} />
+                            <Link
+                              href={`/app/space/${s.id}`}
+                              className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
+                            >
+                              <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+                {searchResults.users.length > 0 && (
+                  <Card className="p-4">
+                    <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-navy-500">
+                      {t("nav.users")} · {searchResults.users.length}
+                    </h4>
+                    <div className="divide-y divide-navy-100">
+                      {searchResults.users.map((u) => (
+                        <div key={u.id} className="flex items-center justify-between gap-3 py-2.5">
+                          <div className="min-w-0">
+                            <div className="truncate font-semibold text-navy-900">{u.name}</div>
+                            <div className="truncate text-xs text-navy-400">{u.email}</div>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <Badge tone={u.role === "admin" ? "accent" : u.role === "host" ? "brand" : "neutral"}>
+                              {u.role}
+                            </Badge>
+                            <span className="text-xs text-navy-400">{formatDate(u.createdAt)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+                {searchResults.tickets.length > 0 && (
+                  <Card className="p-4">
+                    <h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-navy-500">
+                      {t("admin.support.title")} · {searchResults.tickets.length}
+                    </h4>
+                    <div className="divide-y divide-navy-100">
+                      {searchResults.tickets.map((tk) => (
+                        <div key={tk.id} className="flex items-center justify-between gap-3 py-2.5">
+                          <div className="min-w-0">
+                            <div className="truncate font-semibold text-navy-900">
+                              {tk.name || tk.email}
+                            </div>
+                            <div className="truncate text-xs text-navy-400">
+                              {tk.topic} · {formatDateTime(tk.createdAt)}
+                            </div>
+                          </div>
+                          <Badge tone={tk.status === "open" ? "accent" : "go"}>
+                            {tk.status === "open"
+                              ? t("admin.support.openBadge")
+                              : t("admin.support.resolvedBadge")}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Triage: what needs an admin right now */}
         {(pending.length > 0 ||
@@ -267,7 +505,17 @@ export default async function AdminDashboard() {
           <Card className="p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h3 className="font-bold text-navy-900">{t("admin.insights.revenue")}</h3>
-              <span className="text-xs text-navy-400">{t("admin.insights.sub")}</span>
+              <div className="text-end">
+                <div className="text-xs text-navy-400">{t("admin.insights.sub")}</div>
+                {momPct !== null && (
+                  <div
+                    className={`text-xs font-bold ${momPct >= 0 ? "text-go-600" : "text-red-600"}`}
+                  >
+                    {momPct >= 0 ? "+" : ""}
+                    {momPct}% {t("admin.insights.vsLastMonth")}
+                  </div>
+                )}
+              </div>
             </div>
             <EarningsChart
               months={revenueMonths}
@@ -505,9 +753,17 @@ export default async function AdminDashboard() {
 
           {/* Payments */}
           <section id="payments" className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.payments")}</h3>
+            <div className="mb-3 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-navy-900">{t("admin.section.payments")}</h3>
+              <a
+                href="/admin/export?type=payments"
+                className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}
+              >
+                <Download className="h-4 w-4" /> {t("admin.exportCsv")}
+              </a>
+            </div>
             <Card className="divide-y divide-navy-100">
-              {payments.map((p) => (
+              {recentPayments.map((p) => (
                 <div key={p.id} className="p-4">
                   <div className="flex items-center justify-between">
                     <span
@@ -522,6 +778,7 @@ export default async function AdminDashboard() {
                     <StatusBadge status={isRefunded(p) ? "refunded" : p.payoutStatus} />
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-navy-400">
+                    <span>{formatDate(p.createdAt)}</span>
                     <span>{t("admin.pay.platform")} {formatMoney(p.split.platform, p.currency)}</span>
                     <span>{t("admin.pay.host")} {formatMoney(p.split.hostPayout, p.currency)}</span>
                     <span>{t("admin.pay.driver")} {formatMoney(p.split.driverPayout, p.currency)}</span>
@@ -622,6 +879,25 @@ export default async function AdminDashboard() {
               <CalendarCheck className="h-5 w-5 text-navy-500" /> {t("admin.section.recentBookings")}
             </h3>
             <a href="/admin/export?type=bookings" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
+          </div>
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {[null, ...BOOKING_FILTERS].map((s) => {
+              const active = s === null ? !bstatus : bstatus === s;
+              const count = s ? bookings.filter((b) => b.status === s).length : bookings.length;
+              return (
+                <Link
+                  key={s ?? "all"}
+                  href={bookingFilterHref(s ?? undefined)}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    active
+                      ? "border-navy-900 bg-navy-900 text-white"
+                      : "border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
+                  }`}
+                >
+                  {s ? t(`status.${s}`) : t("admin.filter.all")} · {count}
+                </Link>
+              );
+            })}
           </div>
           <Card className="divide-y divide-navy-100">
             {recentBookings.length === 0 && (
