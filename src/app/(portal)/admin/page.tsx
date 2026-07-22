@@ -171,6 +171,68 @@ export default async function AdminDashboard() {
           <StatCard label={t("admin.stat.payoutsDue")} value={formatMoney(payoutsDue)} sub={t("admin.stat.payoutsDueSub")} icon={Banknote} tone="navy" />
         </div>
 
+        {/* Triage: what needs an admin right now */}
+        {(pending.length > 0 ||
+          pendingListings > 0 ||
+          supportTickets.some((x) => x.status === "open")) && (
+          <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3">
+            <ShieldAlert className="h-5 w-5 shrink-0 text-accent-500" aria-hidden />
+            <span className="font-bold text-navy-900">{t("admin.attention.title")}</span>
+            {pending.length > 0 && (
+              <a
+                href="#verification"
+                className="rounded-full border border-accent-300 bg-white px-3 py-1 text-sm font-semibold text-navy-800 transition-colors hover:bg-accent-100"
+              >
+                {pending.length} {t("admin.attention.verifications")}
+              </a>
+            )}
+            {pendingListings > 0 && (
+              <a
+                href="#listings"
+                className="rounded-full border border-accent-300 bg-white px-3 py-1 text-sm font-semibold text-navy-800 transition-colors hover:bg-accent-100"
+              >
+                {pendingListings} {t("admin.attention.listings")}
+              </a>
+            )}
+            {supportTickets.filter((x) => x.status === "open").length > 0 && (
+              <a
+                href="#support"
+                className="rounded-full border border-accent-300 bg-white px-3 py-1 text-sm font-semibold text-navy-800 transition-colors hover:bg-accent-100"
+              >
+                {supportTickets.filter((x) => x.status === "open").length}{" "}
+                {t("admin.attention.tickets")}
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* In-page section navigation for this long dashboard */}
+        <nav
+          aria-label={t("admin.sectionsNav")}
+          className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1"
+        >
+          {(
+            [
+              ["#verification", t("nav.hostVerification")],
+              ["#listings", t("nav.listings")],
+              ["#bookings", t("nav.bookings")],
+              ["#users", t("nav.users")],
+              ["#payments", t("nav.payments")],
+              ["#support", t("admin.support.title")],
+              ["#waitlist", t("admin.section.waitlist")],
+              ["#audit", t("nav.audit")],
+            ] as const
+          ).map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              className="shrink-0 whitespace-nowrap rounded-full border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 transition-colors hover:bg-navy-50"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+
         {/* Quick access — the admin account passes every role guard */}
         <section id="portals" className="scroll-mt-20">
           <h3 className="mb-1 text-lg font-bold text-navy-900">{t("admin.section.portals")}</h3>

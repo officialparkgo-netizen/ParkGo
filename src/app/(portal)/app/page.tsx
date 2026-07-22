@@ -47,6 +47,16 @@ export default async function TravellerDashboard() {
       (b.status === "paid" || b.status === "active") && new Date(b.startAt).getTime() > now
   ).length;
   const toReviewCount = bookings.filter(isFinishedUnreviewed).length;
+  const nextTrip = bookings
+    .filter(
+      (b) => (b.status === "paid" || b.status === "active") && new Date(b.startAt).getTime() > now
+    )
+    .sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt))[0];
+  const nextTripSpace = nextTrip ? spaceMap.get(nextTrip.spaceId) : undefined;
+  const nextTripDest = nextTripSpace ? getAirport(nextTripSpace.airportSlug) : undefined;
+  const daysToGo = nextTrip
+    ? Math.max(0, Math.ceil((new Date(nextTrip.startAt).getTime() - now) / 86_400_000))
+    : 0;
 
   return (
     <PortalShell user={user} nav={travellerNav} title="nav.dashboard">
@@ -83,6 +93,49 @@ export default async function TravellerDashboard() {
               tone="go"
             />
           </div>
+        )}
+
+        {/* Next trip */}
+        {nextTrip && (
+          <Card className="flex flex-wrap items-center justify-between gap-4 border-brand-200 bg-gradient-to-br from-brand-50/60 to-white p-5">
+            <div className="flex items-center gap-4">
+              <Photo
+                token={nextTripSpace?.photos[0] ?? "drive-1"}
+                className="hidden h-16 w-24 shrink-0 sm:block"
+                rounded="rounded-xl"
+              />
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wide text-brand-600">
+                  {t("app.dash.nextTrip")}
+                </div>
+                <div className="mt-0.5 font-bold text-navy-900">
+                  {nextTripSpace?.title} · {nextTripDest?.name}
+                </div>
+                <div className="text-sm text-navy-500">
+                  {formatDate(nextTrip.startAt)} → {formatDate(nextTrip.endAt)}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-center">
+                <div className="text-2xl font-extrabold leading-none text-navy-900">
+                  {daysToGo === 0 ? t("app.dash.today") : daysToGo}
+                </div>
+                {daysToGo > 0 && (
+                  <div className="mt-0.5 text-[11px] text-navy-400">
+                    {daysToGo === 1 ? t("common.day") : t("common.days")} ·{" "}
+                    {t("app.dash.untilDropOff")}
+                  </div>
+                )}
+              </div>
+              <Link
+                href={`/app/booking/${nextTrip.id}`}
+                className={buttonVariants({ size: "sm" })}
+              >
+                {t("app.dash.booking")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
+              </Link>
+            </div>
+          </Card>
         )}
 
         {/* Quick search */}

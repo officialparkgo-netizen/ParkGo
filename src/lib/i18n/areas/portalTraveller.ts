@@ -10,6 +10,9 @@ export const portalTraveller: AreaDict = {
 
     // Dashboard
     "app.dash.welcome": "Welcome back,",
+    "app.dash.nextTrip": "Your next trip",
+    "app.dash.untilDropOff": "until drop-off",
+    "app.dash.today": "Today",
     "app.dash.sub": "Find a space or jump back into a trip.",
     "app.dash.yourTrips": "Your trips",
     "app.dash.noTrips": "No trips yet.",
@@ -193,6 +196,9 @@ export const portalTraveller: AreaDict = {
 
     // Dashboard
     "app.dash.welcome": "واپسی پر خوش آمدید،",
+    "app.dash.nextTrip": "آپ کا اگلا سفر",
+    "app.dash.untilDropOff": "ڈراپ آف تک",
+    "app.dash.today": "آج",
     "app.dash.sub": "کوئی جگہ تلاش کریں یا کسی سفر میں واپس جائیں۔",
     "app.dash.yourTrips": "آپ کے سفر",
     "app.dash.noTrips": "ابھی کوئی سفر نہیں۔",
@@ -376,6 +382,9 @@ export const portalTraveller: AreaDict = {
 
     // Dashboard
     "app.dash.welcome": "वापसी पर स्वागत है,",
+    "app.dash.nextTrip": "आपकी अगली यात्रा",
+    "app.dash.untilDropOff": "ड्रॉप-ऑफ़ तक",
+    "app.dash.today": "आज",
     "app.dash.sub": "कोई स्थान खोजें या किसी यात्रा में वापस जाएं।",
     "app.dash.yourTrips": "आपकी यात्राएँ",
     "app.dash.noTrips": "अभी कोई यात्रा नहीं।",
@@ -559,6 +568,9 @@ export const portalTraveller: AreaDict = {
 
     // Dashboard
     "app.dash.welcome": "Willkommen zurück,",
+    "app.dash.nextTrip": "Ihre nächste Reise",
+    "app.dash.untilDropOff": "bis zur Abgabe",
+    "app.dash.today": "Heute",
     "app.dash.sub": "Finden Sie einen Platz oder setzen Sie eine Reise fort.",
     "app.dash.yourTrips": "Ihre Reisen",
     "app.dash.noTrips": "Noch keine Reisen.",
@@ -742,6 +754,9 @@ export const portalTraveller: AreaDict = {
 
     // Dashboard
     "app.dash.welcome": "欢迎回来，",
+    "app.dash.nextTrip": "您的下一次出行",
+    "app.dash.untilDropOff": "距停车",
+    "app.dash.today": "今天",
     "app.dash.sub": "查找车位或返回某段行程。",
     "app.dash.yourTrips": "您的行程",
     "app.dash.noTrips": "暂无行程。",

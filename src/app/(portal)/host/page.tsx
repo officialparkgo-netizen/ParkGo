@@ -17,6 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { EarningsChart } from "@/components/portal/earnings-chart";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Photo } from "@/components/common/photo";
@@ -50,7 +51,7 @@ export default async function HostDashboard({
   }>;
 }) {
   const user = await requireRole("host");
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
   const { listed, updated, verify, profile } = await searchParams;
   const host = await getHostForUser(user);
 
@@ -91,6 +92,20 @@ export default async function HostDashboard({
   const earnedPayments = payments.filter((p) => !isRefunded(p));
 
   const lifetimeEarnings = earnedPayments.reduce((s, p) => s + p.split.hostPayout, 0);
+
+  // Host payouts by calendar month, last six months (for the earnings chart).
+  const localeTag =
+    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN" }[locale] ?? "en-GB";
+  const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const nowDate = new Date();
+  const earningsMonths = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(nowDate.getFullYear(), nowDate.getMonth() - (5 - i), 1);
+    return { key: monthKey(d), label: d.toLocaleDateString(localeTag, { month: "short" }), value: 0 };
+  });
+  for (const pay of earnedPayments) {
+    const m = earningsMonths.find((x) => x.key === monthKey(new Date(pay.createdAt)));
+    if (m) m.value += pay.split.hostPayout;
+  }
   const pendingPayouts = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout, 0);
@@ -172,6 +187,19 @@ export default async function HostDashboard({
           <StatCard label={t("host.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("host.total")}`} icon={Warehouse} tone="brand" />
           <StatCard label={t("host.stat.trustScore")} value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" />
         </div>
+
+        {/* Earnings trend */}
+        <Card className="p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="font-bold text-navy-900">{t("host.earnings.title")}</h3>
+            <span className="text-xs text-navy-400">{t("host.earnings.sub")}</span>
+          </div>
+          <EarningsChart
+            months={earningsMonths}
+            currency="GBP"
+            title={t("host.earnings.title")}
+          />
+        </Card>
 
         {/* Next arrival */}
         {nextBooking && (
