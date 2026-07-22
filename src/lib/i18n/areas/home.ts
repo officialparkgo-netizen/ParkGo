@@ -48,7 +48,7 @@ export const home: AreaDict = {
     "home.audience.business.body": "Corporate accounts with monthly invoicing, priority support and team bookings.",
     "home.audience.business.cta": "Talk to us",
 
-    "home.stats.airports": "Launch airports",
+    "home.stats.airports": "Destinations",
     "home.stats.onePrice": "1 price",
     "home.stats.onePriceLabel": "Parking + transfer + EV",
     "home.stats.verified": "ID-verified hosts",
@@ -123,7 +123,7 @@ export const home: AreaDict = {
     "home.audience.business.body": "ماہانہ انوائسنگ، ترجیحی سپورٹ اور ٹیم بکنگز کے ساتھ کارپوریٹ اکاؤنٹس۔",
     "home.audience.business.cta": "ہم سے بات کریں",
 
-    "home.stats.airports": "لانچ ایئرپورٹس",
+    "home.stats.airports": "منزلیں",
     "home.stats.onePrice": "1 قیمت",
     "home.stats.onePriceLabel": "پارکنگ + ٹرانسفر + ای وی",
     "home.stats.verified": "شناختی تصدیق شدہ میزبان",
@@ -198,7 +198,7 @@ export const home: AreaDict = {
     "home.audience.business.body": "मासिक इनवॉइसिंग, प्राथमिकता समर्थन और टीम बुकिंग के साथ कॉर्पोरेट खाते।",
     "home.audience.business.cta": "हमसे बात करें",
 
-    "home.stats.airports": "लॉन्च एयरपोर्ट",
+    "home.stats.airports": "गंतव्य",
     "home.stats.onePrice": "1 कीमत",
     "home.stats.onePriceLabel": "पार्किंग + ट्रांसफर + ईवी",
     "home.stats.verified": "आईडी-सत्यापित होस्ट",
@@ -273,7 +273,7 @@ export const home: AreaDict = {
     "home.audience.business.body": "Firmenkonten mit monatlicher Rechnungsstellung, priorisiertem Support und Teambuchungen.",
     "home.audience.business.cta": "Sprechen Sie mit uns",
 
-    "home.stats.airports": "Start-Flughäfen",
+    "home.stats.airports": "Reiseziele",
     "home.stats.onePrice": "1 Preis",
     "home.stats.onePriceLabel": "Parken + Transfer + E-Auto",
     "home.stats.verified": "ID-geprüfte Gastgeber",
@@ -348,7 +348,7 @@ export const home: AreaDict = {
     "home.audience.business.body": "企业账户，支持按月开票、优先支持和团队预订。",
     "home.audience.business.cta": "联系我们",
 
-    "home.stats.airports": "首发机场",
+    "home.stats.airports": "目的地",
     "home.stats.onePrice": "1 个价格",
     "home.stats.onePriceLabel": "停车 + 接送 + 电动车",
     "home.stats.verified": "身份认证房东",

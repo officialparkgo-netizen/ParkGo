@@ -36,6 +36,8 @@ export function Checkout({
   // "2026-07-21T09:00"-style props mean an hourly (same-day) stay.
   const hourly = startDate.includes("T");
   const [transfer, setTransfer] = useState(initialTransfer && allowTransfer);
+  const [transferReturn, setTransferReturn] = useState(true);
+  const [transferTime, setTransferTime] = useState("09:00");
   const [ev, setEv] = useState(initialEv && !!space.evCharger);
   const [method, setMethod] = useState<(typeof METHODS)[number]["id"]>("card");
   const [start, setStart] = useState(startDate);
@@ -53,12 +55,12 @@ export function Checkout({
     () =>
       priceBundle(
         space,
-        { parking: true, transfer, ev },
+        { parking: true, transfer, ev, transferReturn },
         new Date(start).toISOString(),
         new Date(end).toISOString(),
         currency
       ),
-    [space, transfer, ev, start, end, currency]
+    [space, transfer, ev, transferReturn, start, end, currency]
   );
 
   return (
@@ -81,13 +83,62 @@ export function Checkout({
             )}`}
           />
           {allowTransfer && (
-            <Line
-              checked={transfer}
-              onChange={setTransfer}
-              icon={CarTaxiFront}
-              title={t("app.checkout.licensedTransfer")}
-              subtitle={t("app.checkout.transferSub")}
-            />
+            <>
+              <Line
+                checked={transfer}
+                onChange={setTransfer}
+                icon={CarTaxiFront}
+                title={t("app.checkout.licensedTransfer")}
+                subtitle={t("app.checkout.transferSub")}
+              />
+              {transfer && (
+                <div className="ms-4 space-y-3 rounded-xl border border-navy-100 bg-navy-50/50 p-3.5">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="mb-1 block text-xs font-semibold text-navy-500">
+                        {t("app.checkout.tripType")}
+                      </span>
+                      <div className="grid grid-cols-2 gap-1 rounded-xl border border-navy-200 bg-white p-1">
+                        {(
+                          [
+                            [false, t("app.checkout.oneWay")],
+                            [true, t("app.checkout.returnTrip")],
+                          ] as const
+                        ).map(([val, label]) => (
+                          <button
+                            key={label}
+                            type="button"
+                            aria-pressed={transferReturn === val}
+                            onClick={() => setTransferReturn(val)}
+                            className={`rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors ${
+                              transferReturn === val
+                                ? "bg-navy-900 text-white"
+                                : "text-navy-600 hover:bg-navy-50"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-semibold text-navy-500">
+                        {t("app.checkout.taxiTime")}
+                      </span>
+                      <input
+                        type="time"
+                        value={transferTime}
+                        onChange={(e) => setTransferTime(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-navy-200 bg-white px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                      />
+                    </label>
+                  </div>
+                  {transferReturn && (
+                    <p className="text-xs text-navy-500">{t("app.checkout.returnNote")}</p>
+                  )}
+                </div>
+              )}
+            </>
           )}
           <Line
             checked={ev}
@@ -185,7 +236,14 @@ export function Checkout({
           <h3 className="font-bold text-navy-900">{t("app.checkout.orderSummary")}</h3>
           <dl className="mt-4 space-y-2 text-sm">
             <Row label={t("app.checkout.parking")} value={formatMoney(price.parking, currency)} />
-            {transfer && <Row label={t("app.checkout.licensedTransferRow")} value={formatMoney(price.transfer, currency)} />}
+            {transfer && (
+              <Row
+                label={`${t("app.checkout.licensedTransferRow")} · ${
+                  transferReturn ? t("app.checkout.returnTrip") : t("app.checkout.oneWay")
+                }`}
+                value={formatMoney(price.transfer, currency)}
+              />
+            )}
             {ev && <Row label={t("app.checkout.evCharging")} value={formatMoney(price.ev, currency)} />}
             <Row label={t("app.checkout.serviceFee")} value={formatMoney(price.serviceFee, currency)} />
             <div className="my-2 border-t border-navy-100" />
@@ -202,6 +260,8 @@ export function Checkout({
             <input type="hidden" name="startAt" value={new Date(start).toISOString()} />
             <input type="hidden" name="endAt" value={new Date(end).toISOString()} />
             <input type="hidden" name="transfer" value={transfer ? "1" : ""} />
+            <input type="hidden" name="transferReturn" value={transfer && transferReturn ? "1" : ""} />
+            <input type="hidden" name="transferTime" value={transfer ? transferTime : ""} />
             <input type="hidden" name="ev" value={ev ? "1" : ""} />
             <input type="hidden" name="method" value={method} />
             <Button type="submit" size="lg" className="w-full">

@@ -181,7 +181,14 @@ export default async function BookingPage({
             <dl className="mt-4 space-y-1.5 text-sm">
               <Row label={t("app.booking.parking")} value={formatMoney(booking.price.parking, currency)} />
               {booking.bundle.transfer && (
-                <Row label={t("app.booking.licensedTransfer")} value={formatMoney(booking.price.transfer, currency)} />
+                <Row
+                  label={`${t("app.booking.licensedTransfer")}${
+                    booking.bundle.transferReturn === undefined
+                      ? ""
+                      : ` · ${booking.bundle.transferReturn ? t("app.checkout.returnTrip") : t("app.checkout.oneWay")}`
+                  }${booking.bundle.transferTime ? ` · ${booking.bundle.transferTime}` : ""}`}
+                  value={formatMoney(booking.price.transfer, currency)}
+                />
               )}
               {booking.bundle.ev && (
                 <Row label={t("app.booking.evCharging")} value={formatMoney(booking.price.ev, currency)} />

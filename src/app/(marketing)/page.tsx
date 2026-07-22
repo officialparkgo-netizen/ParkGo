@@ -276,7 +276,7 @@ export default async function HomePage() {
       <Section className="pt-0">
         <div className="grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { k: "8", v: t("home.stats.airports") },
+            { k: String(getAirports().length), v: t("home.stats.airports") },
             { k: t("home.stats.onePrice"), v: t("home.stats.onePriceLabel") },
             { k: "100%", v: t("home.stats.verified") },
             { k: "5", v: t("home.stats.languages") },

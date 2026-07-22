@@ -131,3 +131,23 @@ describe("hourly stays", () => {
     expect(p.parking).toBe(2000);
   });
 });
+
+describe("transfer trip types", () => {
+  it("prices a return transfer at double the one-way fare", () => {
+    const oneWay = priceBundle(
+      space,
+      { parking: true, transfer: true, ev: false },
+      start,
+      end
+    );
+    const rtn = priceBundle(
+      space,
+      { parking: true, transfer: true, ev: false, transferReturn: true },
+      start,
+      end
+    );
+    expect(oneWay.transfer).toBe(TRANSFER_BASE_FARE);
+    expect(rtn.transfer).toBe(TRANSFER_BASE_FARE * 2);
+    expect(splitReconciles(rtn)).toBe(true);
+  });
+});

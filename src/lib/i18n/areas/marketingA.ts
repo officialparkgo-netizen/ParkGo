@@ -117,7 +117,7 @@ export const marketingA: AreaDict = {
       "Start a booking in minutes, or join the waitlist for your airport and we'll let you know the moment we go live.",
     "how.cta.start": "Start a booking",
     "how.cta.travellers": "For travellers",
-    "how.cta.airports": "8 launch airports across the UK & Ireland.",
+    "how.cta.airports": "Parking across the UK & Ireland — airports, cities & events.",
 
     // ----------------------------------------------------------------------- FAQ
     "faq.hero.badge": "Frequently asked questions",
@@ -142,9 +142,9 @@ export const marketingA: AreaDict = {
     "faq.t4.q": "What happens if my flight is delayed?",
     "faq.t4.a":
       "Your parking and your return transfer are tied to your trip, so a delay is handled gracefully — you will not lose your space or your ride home. If plans change significantly, you can manage your booking in the app.",
-    "faq.t5.q": "Which airports does ParkGo cover?",
+    "faq.t5.q": "Which locations does ParkGo cover?",
     "faq.t5.a":
-      "We are launching at eight airports across the UK and Ireland: Heathrow, Gatwick, Stansted, Luton, Manchester, Birmingham, Edinburgh and Dublin — with more to follow. Join the waitlist to hear when we reach yours.",
+      "We cover Heathrow, Gatwick, Stansted, Luton, Manchester, Birmingham, Edinburgh and Dublin airports, plus city-centre, station and stadium parking across the UK and Ireland — with more locations to follow. Join the waitlist to hear when we reach yours.",
 
     "faq.h1.q": "Who can become a host?",
     "faq.h1.a":
@@ -295,7 +295,7 @@ export const marketingA: AreaDict = {
       "منٹوں میں بکنگ شروع کریں، یا اپنے ایئرپورٹ کے لیے ویٹ لسٹ میں شامل ہوں اور جیسے ہی ہم لائیو ہوں گے ہم آپ کو بتا دیں گے۔",
     "how.cta.start": "بکنگ شروع کریں",
     "how.cta.travellers": "مسافروں کے لیے",
-    "how.cta.airports": "برطانیہ اور آئرلینڈ بھر میں 8 لانچ ایئرپورٹس۔",
+    "how.cta.airports": "برطانیہ اور آئرلینڈ بھر میں پارکنگ — ہوائی اڈے، شہر اور ایونٹس۔",
 
     // ----------------------------------------------------------------------- FAQ
     "faq.hero.badge": "اکثر پوچھے جانے والے سوالات",
@@ -320,9 +320,9 @@ export const marketingA: AreaDict = {
     "faq.t4.q": "اگر میری پرواز میں تاخیر ہو تو کیا ہوگا؟",
     "faq.t4.a":
       "آپ کی پارکنگ اور آپ کا واپسی ٹرانسفر آپ کے سفر سے جڑے ہوتے ہیں، لہٰذا تاخیر کو احسن طریقے سے سنبھالا جاتا ہے — آپ اپنی جگہ یا گھر واپسی کی سواری نہیں کھوئیں گے۔ اگر منصوبے نمایاں طور پر بدل جائیں، تو آپ ایپ میں اپنی بکنگ کا انتظام کر سکتے ہیں۔",
-    "faq.t5.q": "پارک گو کن ایئرپورٹس کا احاطہ کرتا ہے؟",
+    "faq.t5.q": "پارک گو کن مقامات کا احاطہ کرتا ہے؟",
     "faq.t5.a":
-      "ہم برطانیہ اور آئرلینڈ بھر میں آٹھ ایئرپورٹس پر لانچ کر رہے ہیں: ہیتھرو، گیٹوک، سٹینسٹڈ، لیوٹن، مانچسٹر، برمنگھم، ایڈنبرا اور ڈبلن — مزید جلد آئیں گے۔ یہ جاننے کے لیے کہ ہم آپ کے ایئرپورٹ تک کب پہنچیں گے، ویٹ لسٹ میں شامل ہوں۔",
+      "ہم ہیتھرو، گیٹوک، سٹینسٹڈ، لیوٹن، مانچسٹر، برمنگھم، ایڈنبرا اور ڈبلن کے ہوائی اڈوں کے ساتھ ساتھ برطانیہ اور آئرلینڈ بھر میں شہر، اسٹیشن اور اسٹیڈیم پارکنگ کا احاطہ کرتے ہیں — مزید مقامات جلد۔ یہ جاننے کے لیے کہ ہم آپ تک کب پہنچیں گے، ویٹ لسٹ میں شامل ہوں۔",
 
     "faq.h1.q": "میزبان کون بن سکتا ہے؟",
     "faq.h1.a":
@@ -473,7 +473,7 @@ export const marketingA: AreaDict = {
       "मिनटों में बुकिंग शुरू करें, या अपने एयरपोर्ट के लिए वेटलिस्ट में शामिल हों और जैसे ही हम लाइव होंगे हम आपको बता देंगे।",
     "how.cta.start": "बुकिंग शुरू करें",
     "how.cta.travellers": "यात्रियों के लिए",
-    "how.cta.airports": "यूके और आयरलैंड भर में 8 लॉन्च एयरपोर्ट।",
+    "how.cta.airports": "यूके और आयरलैंड भर में पार्किंग — एयरपोर्ट, शहर और इवेंट।",
 
     // ----------------------------------------------------------------------- FAQ
     "faq.hero.badge": "अक्सर पूछे जाने वाले प्रश्न",
@@ -498,9 +498,9 @@ export const marketingA: AreaDict = {
     "faq.t4.q": "अगर मेरी उड़ान में देरी हो तो क्या होगा?",
     "faq.t4.a":
       "आपकी पार्किंग और आपका वापसी ट्रांसफर आपकी यात्रा से जुड़े होते हैं, इसलिए देरी को सहजता से संभाला जाता है — आप अपना स्थान या घर वापसी की सवारी नहीं खोएंगे। यदि योजनाएं काफी बदल जाती हैं, तो आप ऐप में अपनी बुकिंग प्रबंधित कर सकते हैं।",
-    "faq.t5.q": "ParkGo किन एयरपोर्ट को कवर करता है?",
+    "faq.t5.q": "ParkGo किन स्थानों को कवर करता है?",
     "faq.t5.a":
-      "हम यूके और आयरलैंड भर में आठ एयरपोर्ट पर लॉन्च कर रहे हैं: हीथ्रो, गैटविक, स्टैनस्टेड, ल्यूटन, मैनचेस्टर, बर्मिंघम, एडिनबर्ग और डबलिन — और अधिक जल्द ही। यह जानने के लिए कि हम आपके एयरपोर्ट तक कब पहुंचेंगे, वेटलिस्ट में शामिल हों।",
+      "हम हीथ्रो, गैटविक, स्टैनस्टेड, ल्यूटन, मैनचेस्टर, बर्मिंघम, एडिनबर्ग और डबलिन एयरपोर्ट के साथ-साथ यूके और आयरलैंड भर में शहर, स्टेशन और स्टेडियम पार्किंग कवर करते हैं — और स्थान जल्द ही। यह जानने के लिए कि हम आप तक कब पहुंचेंगे, वेटलिस्ट में शामिल हों।",
 
     "faq.h1.q": "होस्ट कौन बन सकता है?",
     "faq.h1.a":
@@ -651,7 +651,7 @@ export const marketingA: AreaDict = {
       "Starten Sie in wenigen Minuten eine Buchung oder tragen Sie sich in die Warteliste für Ihren Flughafen ein, und wir informieren Sie, sobald wir live gehen.",
     "how.cta.start": "Buchung starten",
     "how.cta.travellers": "Für Reisende",
-    "how.cta.airports": "8 Startflughäfen in Großbritannien & Irland.",
+    "how.cta.airports": "Parken in Großbritannien & Irland — Flughäfen, Städte & Events.",
 
     // ----------------------------------------------------------------------- FAQ
     "faq.hero.badge": "Häufig gestellte Fragen",
@@ -676,9 +676,9 @@ export const marketingA: AreaDict = {
     "faq.t4.q": "Was passiert, wenn mein Flug verspätet ist?",
     "faq.t4.a":
       "Ihr Parkplatz und Ihr Rücktransfer sind an Ihre Reise gebunden, sodass eine Verspätung problemlos gehandhabt wird — Sie verlieren weder Ihren Platz noch Ihre Fahrt nach Hause. Wenn sich Pläne wesentlich ändern, können Sie Ihre Buchung in der App verwalten.",
-    "faq.t5.q": "Welche Flughäfen deckt ParkGo ab?",
+    "faq.t5.q": "Welche Orte deckt ParkGo ab?",
     "faq.t5.a":
-      "Wir starten an acht Flughäfen in Großbritannien und Irland: Heathrow, Gatwick, Stansted, Luton, Manchester, Birmingham, Edinburgh und Dublin — weitere folgen. Tragen Sie sich in die Warteliste ein, um zu erfahren, wann wir Ihren erreichen.",
+      "Wir decken die Flughäfen Heathrow, Gatwick, Stansted, Luton, Manchester, Birmingham, Edinburgh und Dublin ab — plus Innenstadt-, Bahnhofs- und Stadionparken in Großbritannien und Irland, weitere Orte folgen. Tragen Sie sich in die Warteliste ein, um zu erfahren, wann wir Sie erreichen.",
 
     "faq.h1.q": "Wer kann Gastgeber werden?",
     "faq.h1.a":
@@ -829,7 +829,7 @@ export const marketingA: AreaDict = {
       "几分钟内即可开始预订，或加入您所在机场的等候名单，我们上线时会第一时间通知您。",
     "how.cta.start": "开始预订",
     "how.cta.travellers": "旅客专区",
-    "how.cta.airports": "覆盖英国和爱尔兰的 8 个首发机场。",
+    "how.cta.airports": "覆盖英国和爱尔兰 — 机场、城市与活动场馆。",
 
     // ----------------------------------------------------------------------- FAQ
     "faq.hero.badge": "常见问题",
@@ -854,9 +854,9 @@ export const marketingA: AreaDict = {
     "faq.t4.q": "如果我的航班延误了怎么办？",
     "faq.t4.a":
       "您的停车和返程接送都与您的行程绑定，因此延误会被妥善处理——您不会失去车位或回家的车。如果计划有重大变动，您可以在应用内管理您的预订。",
-    "faq.t5.q": "ParkGo 覆盖哪些机场？",
+    "faq.t5.q": "ParkGo 覆盖哪些地点？",
     "faq.t5.a":
-      "我们正在英国和爱尔兰的八个机场启动：希思罗、盖特威克、斯坦斯特德、卢顿、曼彻斯特、伯明翰、爱丁堡和都柏林——更多机场即将推出。加入等候名单，了解我们何时覆盖您的机场。",
+      "我们覆盖希思罗、盖特威克、斯坦斯特德、卢顿、曼彻斯特、伯明翰、爱丁堡和都柏林机场，以及英国和爱尔兰的市中心、车站与球场停车 — 更多地点即将上线。加入候补名单，第一时间获知我们何时到达您的城市。",
 
     "faq.h1.q": "谁可以成为房东？",
     "faq.h1.a":

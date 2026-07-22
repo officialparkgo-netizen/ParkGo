@@ -39,10 +39,18 @@ export async function createBookingAction(formData: FormData) {
   // hidden from search but still reachable by direct link.
   if (space.status !== "live") redirect(`/app/search?airport=${space.airportSlug}`);
 
+  const transferOn = formData.get("transfer") === "1";
+  const transferTime = String(formData.get("transferTime") || "");
   const bundle: BookingBundle = {
     parking: true,
-    transfer: formData.get("transfer") === "1",
+    transfer: transferOn,
     ev: formData.get("ev") === "1" && !!space.evCharger,
+    ...(transferOn
+      ? {
+          transferReturn: formData.get("transferReturn") === "1",
+          ...(/^\d{2}:\d{2}$/.test(transferTime) ? { transferTime } : {}),
+        }
+      : {}),
   };
   const startAt = String(formData.get("startAt") || new Date().toISOString());
   const endAt = String(formData.get("endAt") || new Date().toISOString());

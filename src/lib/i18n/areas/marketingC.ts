@@ -250,7 +250,7 @@ export const marketingC: AreaDict = {
       "Start a booking or explore how ParkGo brings parking, transfers and EV charging into one trusted journey.",
     "contact.cta.start": "Start a booking",
     "contact.cta.how": "How it works",
-    "contact.cta.note": "8 launch airports across the UK & Ireland.",
+    "contact.cta.note": "Parking across the UK & Ireland — airports, cities & events.",
   },
 
   ur: {
@@ -501,7 +501,7 @@ export const marketingC: AreaDict = {
       "بکنگ شروع کریں یا دریافت کریں کہ پارک گو پارکنگ، ٹرانسفر اور ای وی چارجنگ کو ایک قابل اعتماد سفر میں کیسے جوڑتا ہے۔",
     "contact.cta.start": "بکنگ شروع کریں",
     "contact.cta.how": "یہ کیسے کام کرتا ہے",
-    "contact.cta.note": "برطانیہ اور آئرلینڈ بھر میں 8 لانچ ایئرپورٹس۔",
+    "contact.cta.note": "برطانیہ اور آئرلینڈ بھر میں پارکنگ — ہوائی اڈے، شہر اور ایونٹس۔",
   },
 
   hi: {
@@ -752,7 +752,7 @@ export const marketingC: AreaDict = {
       "बुकिंग शुरू करें या जानें कि ParkGo पार्किंग, ट्रांसफर और ईवी चार्जिंग को एक भरोसेमंद यात्रा में कैसे जोड़ता है।",
     "contact.cta.start": "बुकिंग शुरू करें",
     "contact.cta.how": "यह कैसे काम करता है",
-    "contact.cta.note": "यूके और आयरलैंड भर में 8 लॉन्च एयरपोर्ट।",
+    "contact.cta.note": "यूके और आयरलैंड भर में पार्किंग — एयरपोर्ट, शहर और इवेंट।",
   },
 
   de: {
@@ -1007,7 +1007,7 @@ export const marketingC: AreaDict = {
       "Starten Sie eine Buchung oder entdecken Sie, wie ParkGo Parken, Transfers und E-Auto-Laden zu einer vertrauenswürdigen Reise verbindet.",
     "contact.cta.start": "Buchung starten",
     "contact.cta.how": "So funktioniert's",
-    "contact.cta.note": "8 Startflughäfen in ganz Großbritannien & Irland.",
+    "contact.cta.note": "Parken in ganz Großbritannien & Irland — Flughäfen, Städte & Events.",
   },
 
   zh: {
@@ -1258,6 +1258,6 @@ export const marketingC: AreaDict = {
       "开始预订，或了解 ParkGo 如何将停车、接送和电动车充电融为一段值得信赖的旅程。",
     "contact.cta.start": "开始预订",
     "contact.cta.how": "运作方式",
-    "contact.cta.note": "遍布英国和爱尔兰的 8 个首发机场。",
+    "contact.cta.note": "覆盖英国和爱尔兰 — 机场、城市与活动场馆。",
   },
 };

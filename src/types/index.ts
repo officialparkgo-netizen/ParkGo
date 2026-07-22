@@ -225,6 +225,10 @@ export interface BookingBundle {
   parking: true;
   transfer: boolean;
   ev: boolean;
+  /** Transfer covers both directions (return leg on the pick-up day). */
+  transferReturn?: boolean;
+  /** Requested taxi pickup time on drop-off day, "HH:MM". */
+  transferTime?: string;
 }
 
 export interface Booking {

@@ -67,7 +67,9 @@ export function priceBundle(
   const parking: Pence = isHourlyStay(space, startAt, endAt)
     ? Math.min(hoursBetween(startAt, endAt) * (space.pricePerHour as Pence), space.pricePerDay)
     : space.pricePerDay * daysBetween(startAt, endAt);
-  const transfer: Pence = bundle.transfer ? TRANSFER_BASE_FARE : 0;
+  const transfer: Pence = bundle.transfer
+    ? TRANSFER_BASE_FARE * (bundle.transferReturn ? 2 : 1)
+    : 0;
   const ev: Pence = bundle.ev ? evCost(space.evCharger) : 0;
   const serviceFee: Pence = SERVICE_FEE;
 
