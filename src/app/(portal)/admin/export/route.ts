@@ -2,7 +2,8 @@ import { requireRole } from "@/lib/auth";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
-import { listAllSpaces } from "@/lib/data/hosts";
+import { listAllHosts, listAllSpaces } from "@/lib/data/hosts";
+import { listAllVerificationsLive } from "@/lib/data/verifications";
 import { getAirport } from "@/lib/data/store";
 import { sheetResponse } from "@/lib/export-sheet";
 
@@ -68,6 +69,36 @@ async function buildRows(type: string): Promise<{ header: string[]; rows: (strin
     return {
       header: ["Name", "Email", "Role", "Joined"],
       rows: users.map((u) => [u.name, u.email, u.role, friendly(u.createdAt)]),
+    };
+  }
+  if (type === "verifications") {
+    const [verifications, hosts, users] = await Promise.all([
+      listAllVerificationsLive(),
+      listAllHosts(),
+      listAllUsers(),
+    ]);
+    const hostMap = new Map(hosts.map((h) => [h.id, h]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    return {
+      header: [
+        "Submitted", "Name", "Email", "Type", "Status",
+        "Documents", "Notes", "Reviewed", "Reviewer",
+      ],
+      rows: verifications.map((v) => {
+        const host = v.subjectType === "host" ? hostMap.get(v.subjectId) : undefined;
+        const hostUser = host ? userMap.get(host.userId) : undefined;
+        return [
+          v.submittedAt ? friendly(v.submittedAt) : "",
+          host?.displayName ?? v.subjectId,
+          hostUser?.email ?? "",
+          v.subjectType,
+          v.status,
+          v.documents.map((d) => d.label).join(", "),
+          v.notes ?? "",
+          v.reviewedAt ? friendly(v.reviewedAt) : "",
+          v.reviewerId ? userMap.get(v.reviewerId)?.name ?? v.reviewerId : "",
+        ];
+      }),
     };
   }
   if (type === "waitlist") {

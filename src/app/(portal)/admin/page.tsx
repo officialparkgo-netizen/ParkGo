@@ -648,7 +648,15 @@ export default async function AdminDashboard({
 
         {/* Host verification queue (driver/vehicle/insurance compliance sits with the operator) */}
         <section id="verification" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.verificationQueue")}</h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-navy-900">{t("admin.section.verificationQueue")}</h3>
+            <a
+              href="/admin/export?type=verifications"
+              className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}
+            >
+              <Download className="h-4 w-4" /> {t("admin.exportCsv")}
+            </a>
+          </div>
           {pending.length === 0 ? (
             <Card className="p-6 text-center text-navy-500">{t("admin.queueClear")}</Card>
           ) : (
