@@ -90,7 +90,7 @@ export async function PortalShell({
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher current={locale} className="hidden sm:inline-flex" />
             <Link
-              href={`${nav[0]?.href ?? "#"}`}
+              href="/notifications"
               className="relative flex h-9 w-9 items-center justify-center rounded-lg text-navy-600 hover:bg-navy-50"
               aria-label={t("portal.notifications")}
             >

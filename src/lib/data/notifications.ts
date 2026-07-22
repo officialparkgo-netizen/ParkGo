@@ -2,6 +2,7 @@ import type { Notification } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import {
   getNotifications as mockGetNotifications,
+  markNotificationsRead as mockMarkRead,
   unreadCount as mockUnreadCount,
 } from "@/lib/data/store";
 
@@ -42,4 +43,18 @@ export async function unreadCountForUser(userId: string): Promise<number> {
     .eq("user_id", userId)
     .eq("read", false);
   return count ?? 0;
+}
+
+/** Opening the notifications page clears the unread badge. */
+export async function markAllNotificationsRead(userId: string): Promise<void> {
+  if (!IS_LIVE) {
+    mockMarkRead(userId);
+    return;
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  await supabaseAdmin()
+    .from("notifications")
+    .update({ read: true })
+    .eq("user_id", userId)
+    .eq("read", false);
 }

@@ -624,6 +624,11 @@ export const getNotifications = (userId: string) =>
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 export const unreadCount = (userId: string) =>
   db.notifications.filter((n) => n.userId === userId && !n.read).length;
+export function markNotificationsRead(userId: string): void {
+  db.notifications.forEach((n) => {
+    if (n.userId === userId) n.read = true;
+  });
+}
 
 export function addNotification(
   input: Omit<Notification, "id" | "createdAt" | "read"> & { read?: boolean }
