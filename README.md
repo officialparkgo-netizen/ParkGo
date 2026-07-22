@@ -2,22 +2,24 @@
 
 **Park Smart. Travel Easy.**
 
-ParkGo is an integrated airport-access marketplace for the **UK & Ireland**. It
-bundles four things travellers normally arrange separately — a **verified private
-parking space**, an optional **licensed terminal transfer**, **EV charging**, and
-**trust & security** (verification, CCTV, live camera, verified handover) — into
-**one booking and one payment**.
+ParkGo (PARKGO LIMITED) is a parking marketplace for the **UK & Ireland** — live
+at **[www.parkgo.ai](https://www.parkgo.ai)**. Travellers book a **verified
+private parking space** near an **airport, city centre, station or stadium**,
+and can bundle an optional **licensed terminal transfer** (airports), **EV
+charging** and **trust & security** (host verification, CCTV, live camera,
+verified handover) into **one booking and one payment** — for days or just a
+few hours.
 
-This repository is a full-stack foundation: the **public marketing site** and the
+This repository is the full product: the **public marketing site** and the
 **three-role portal** (Traveller, Host, Admin) in a single Next.js codebase,
-**web-first** and ready to wrap for iOS/Android with Capacitor. The terminal
-transfer is provided by an **independent licensed operator, integrated by API**
-(there is no driver sign-up or transfer-provider portal).
+web-first and ready to wrap for iOS/Android with Capacitor. The terminal
+transfer is fulfilled by an **independent licensed operator, integrated by
+API** — there is no driver sign-up and no ParkGo driver app.
 
-> It runs **end-to-end with zero API keys** — every integration (payments, maps,
-> live camera, AI, KYC, notifications) has a mock implementation behind a clean
-> interface, so you can demo the whole product today and swap in real providers
-> per `.env`.
+> It runs **end-to-end with zero API keys**: every integration (database,
+> payments, maps, camera, email, support AI) has a mock implementation behind a
+> clean interface. Set `PARKGO_MODE=live` plus the Supabase/Stripe keys and the
+> same code runs against real providers.
 
 ---
 
@@ -28,18 +30,13 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-Then open the site and click **Get started → Sign in** (or go to `/login`) and
-pick any of the three **demo accounts** (no password — mock mode):
+Open `/login` and pick a **demo account** (no password in mock mode):
 
 | Role | What you can do |
 | --- | --- |
-| **Traveller** | Search (CCTV/EV/transfer filters) → view host profile → bundle → pay → QR → live track + camera + EV status + verified handover → review |
-| **Host / Landlord** | List spaces, edit the guest-facing profile (photo + bio), see bookings, earnings & payouts, verification status |
-| **Admin / Compliance** | Host verification queue (approve/reject), **Transfer Operator API** monitoring (status, live jobs, ETAs, handovers, SLA), listings, trust scores, payments, audit log |
-
-The terminal transfer is fulfilled by an external licensed operator via API — the
-customer still gets bundled booking, live driver location/ETA and a verified
-handover; there is no ParkGo driver app.
+| **Traveller** | Search daily or hourly, filter (price / covered / CCTV / EV), map with price pins → build the bundle (parking + transfer one-way/return with pickup time + EV) → pay → QR access code → extend or cancel → travel-day page (status stepper, live driver map, chat with driver) → review |
+| **Host / Landlord** | List spaces (photos, hourly rate, capacity), pause/reactivate a listing (holiday mode), bookings calendar, earnings chart, payout history + Excel export, KYC verification, guest-facing profile |
+| **Admin / Compliance** | Triage strip, marketplace-wide search, status + date-range filters, money KPIs, host verification queue (open KYC documents, approve/reject, Excel export), listing moderation, user management (suspend / role change), payments, support tickets, transfer-operator monitoring, audit log, 5 Excel exports |
 
 ### Scripts
 
@@ -48,67 +45,115 @@ npm run dev          # dev server
 npm run build        # production build
 npm start            # run the production build
 npm run typecheck    # tsc --noEmit
-npm test             # vitest (pricing split, trust, booking lifecycle, handover)
+npm test             # vitest (pricing split, hourly pricing, trust, booking lifecycle, handover, storage paths)
 npm run lint         # next lint
 ```
 
 ---
 
-## The demo walkthrough (acceptance criteria)
+## What's in the product
 
-1. **Bundle & pay** — as the Traveller, search an airport → open a space →
-   *Build your bundle* (parking + transfer + EV) → pay → you get a **QR access code**.
-2. **Travel day** — open the active trip → **live map** of the driver, **live
-   camera** of your car, and a **verified handover** (enter the 6-char code).
-3. **Host → verify → live** — as the Host, *List a new space* (it enters review);
-   as the Admin, approve it under **Verification queue** → it appears in search.
-4. **Transfer onboarding** — the Admin approves a transfer provider's
-   licence/insurance → the provider can be assigned jobs.
-5. **Languages** — the language switcher (top bar) toggles **English / Urdu /
-   Hindi / German / Chinese**, with right-to-left layout for Urdu.
+**Traveller**
+- Search by destination (airports **and** city centres, stations, stadiums) with
+  daily **or hourly** stays; sort and filter by price, covered, CCTV, EV.
+- Space pages with host profile, reviews, price breakdown; checkout with
+  transfer options (one-way/return, pickup time — airports only), EV add-on,
+  card/wallet via **Stripe** (mock gateway without keys).
+- Booking page with QR access code, directions, extend-stay (price difference
+  charged), cancellation (free >24h, late fee within 24h, refund shown).
+- Travel-day page: 4-step status stepper, live map (driver route only when a
+  transfer is booked), live camera & EV status, verified handover code,
+  **chat with the transfer driver**, review after the trip.
 
----
+**Host**
+- Listings with photo upload/removal (Supabase Storage in live mode, orphaned
+  files purged), hourly rate badge, capacity, covered/CCTV/EV flags.
+- **Pause/Reactivate** own listings (holiday mode) — hidden from search, no data
+  lost.
+- Dashboard: next-arrival countdown, grouped bookings (upcoming vs past),
+  6-month earnings chart, **bookings calendar** (cars on site per day,
+  month navigation), payout history with **Excel export**, Stripe Connect
+  payout onboarding, KYC submission (ID + proof of address).
 
-## Tech stack
+**Admin**
+- Stat row (GMV, platform revenue, payouts due, avg booking value, cancellation
+  rate) with **All time / 7 / 30 / 90-day range**, month-over-month revenue
+  delta, top destinations.
+- **Marketplace-wide search** (`?q=`) across bookings, listings, users and
+  support tickets; booking status filter pills.
+- Host verification queue showing the host's email/phone/join date/listings,
+  submitted legal name & address, and **clickable KYC documents** served from
+  the private bucket by an admin-only viewer route.
+- Listing moderation (approve/reject/pause), **user management** (suspend /
+  restore, traveller↔host role switch — admins protected), support-ticket
+  queue, transfer-operator API monitoring, audit feed.
+- **Excel exports** (styled workbooks + CSV fallback): bookings, users,
+  waitlist, payments, verifications.
 
-- **Next.js 15** (App Router) + **React 19** + **TypeScript** (strict)
-- **Tailwind CSS** with the ParkGo brand system — **orange `#F26A1B`** + **black
-  `#15171A`**, white surfaces and neutral greys (semantic tokens, themed in one place)
-- **Vitest** for unit tests of core logic
-- **lucide-react** icons, **qrcode** for QR generation, **zod** for validation
-- **Supabase** (Postgres + RLS + Auth + Realtime + Storage) for production data —
-  schema provided in `supabase/migrations` (mock mode needs none of it)
-- **Capacitor** to ship the web build as iOS/Android apps (`capacitor.config.ts`)
-
-### Why one codebase?
-
-Per the chosen **web-first + Capacitor** strategy, the marketing site and the
-portal share components, types and branding. The web build is SEO-strong
-(server-rendered, sitemap, JSON-LD, airport landing pages); the same build is
-exported statically and wrapped for the app stores.
+**Platform**
+- **Instant support chat** on every page: guided assistant answers common
+  questions; unresolved chats escalate to a support ticket + email to the
+  support inbox, visible in the admin queue.
+- **Notifications**: in-app feed per user with a bell + unread badge that
+  clears on the `/notifications` page.
+- **i18n ×5** (English, Urdu, Hindi, German, Chinese) with RTL for Urdu;
+  locale-aware dates and month names.
+- SEO: server-rendered, sitemap/robots, per-destination landing pages with
+  JSON-LD, blog.
 
 ---
 
 ## Mock mode vs live mode
 
-Everything is gated by `PARKGO_MODE` (default `mock`) and per-provider env vars.
-Each integration is an interface with a mock implementation and a documented swap
-point — see `.env.example`.
+`IS_LIVE` is true only when `PARKGO_MODE=live` **and** the Supabase server keys
+are set. Every data module has a mock branch (in-memory seed on `globalThis`)
+and a live branch (Supabase) returning identical shapes.
 
-| Concern | Interface | Mock | Live (swap in) |
+| Concern | Where | Mock | Live |
 | --- | --- | --- | --- |
-| Data / Auth | `src/lib/data/store.ts`, `src/lib/auth.ts` | In-memory seed + cookie session | Supabase (schema in `supabase/migrations`) |
-| Payments (split) | `src/lib/services/payments.ts` | Simulated charge + split | **Stripe Connect** (+ crypto provider TBD) |
-| Maps / live location | `src/lib/services/maps.ts` + `LiveMap` | Schematic animated map | Mapbox / Google Maps |
-| Live camera | `src/lib/services/camera.ts` + `CameraView` | Simulated CCTV feed | IP/RTSP → HLS/WebRTC |
-| AI | `src/lib/services/ai.ts` | Transparent heuristics | LLM (Anthropic/OpenAI) |
-| Identity / KYC | (documents in data model) | Marked verified | Stripe Identity / Onfido |
-| Notifications | `src/lib/services/notifications.ts` | Console + in-app feed | Expo Push / Resend / SendGrid |
-| Transfer (driver, ETA, handover) | `src/lib/services/transfer-operator.ts` | Derived from booking data | Independent licensed operator REST API |
+| Data | `src/lib/data/*` | In-memory seed | **Supabase Postgres** (schema + RLS in `supabase/migrations`) |
+| Auth | `src/lib/auth.ts` | Cookie session + demo logins | **Supabase Auth** (password + magic link), role-aware redirects |
+| Payments | `src/lib/stripe.ts`, `services/payments.ts` | Simulated charge + split | **Stripe Checkout + Connect** (host payouts to connected accounts, webhook confirm) |
+| Storage | `src/lib/storage.ts` | Token placeholders | **Supabase Storage** — public `space-photos`, private `kyc-docs` |
+| Maps | `components/portal/mapbox-map.tsx` / `live-map.tsx` | Schematic animated map | **Mapbox GL** price-pin + route maps (`NEXT_PUBLIC_MAPBOX_TOKEN`) |
+| Email | `src/lib/email.ts` | Console log | **Resend** (`RESEND_API_KEY`, `EMAIL_FROM`) |
+| Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
+| Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
+| Transfer operator | `services/transfer-operator.ts` | Derived from bookings | Licensed operator REST API |
 
 The **marketplace split** is real logic in both modes (`src/lib/pricing.ts`):
-platform commission (~18% parking / ~12% transfers, configurable) + host/driver
-payouts, with a unit test asserting `platform + host + driver === total`.
+platform commission (~18% parking / ~12% transfers, configurable via env) +
+host/driver payouts, unit-tested so `platform + host + driver === total`.
+Hourly pricing bills `ceil(hours) × price/hour`, capped at the daily rate.
+
+---
+
+## Database & migrations (Supabase)
+
+Apply `supabase/migrations` in order — either `supabase db push` with the CLI,
+or paste each file into the **Supabase SQL editor**:
+
+| File | What it adds |
+| --- | --- |
+| `0001_init.sql` | Full schema + Row-Level Security |
+| `0002_auth_profiles.sql` | Auth → profile row trigger |
+| `0003_seed_airports.sql` | Destination seed |
+| `0004_demo_data.sql` | Demo rows (optional; see `launch_cleanup.sql`) |
+| `0005_payments_external_ref.sql` | Stripe payment references |
+| `0006_payout_refunded.sql` | Refunded payout status |
+| `0007_space_capacity.sql` | Multi-car capacity |
+| `0008_spaces_covered.sql` | Covered-parking flag |
+| `0009_hosts_bio.sql` | Host guest-facing bio |
+| `0010_spaces_price_per_hour.sql` | Hourly rates |
+| `0011_support_tickets.sql` | Escalated support tickets |
+| `0012_transfer_messages.sql` | Traveller↔driver chat relay |
+| `0013_user_suspended.sql` | Account suspension flag |
+
+RLS keeps each role to its own rows; the exact address and camera stream are
+released only to the paying traveller. KYC files live in the **private**
+`kyc-docs` bucket (never public URLs — an admin-only route streams them);
+listing photos live in the public `space-photos` bucket. Buckets are created
+lazily by the app.
 
 ---
 
@@ -117,77 +162,56 @@ payouts, with a unit test asserting `platform + host + driver === total`.
 ```
 src/
   app/
-    (marketing)/        Public site: home, how-it-works, travellers, hosts,
-                        pricing, trust-safety, about, faq, contact, blog,
-                        airports/[slug], privacy, terms
+    (marketing)/          Home, how-it-works, travellers, hosts, pricing,
+                          trust-safety, about, faq, contact, blog,
+                          airports/[slug] (all destination kinds), privacy, terms
     (portal)/
-      login/            Demo logins per role (Traveller, Host, Admin)
-      app/              Traveller: dashboard, search, space/[id], book/[spaceId],
-                        booking/[id], booking/[id]/track  (live map + camera + EV + handover)
-      host/             Host dashboard (+ guest-facing profile) + new listing
-      admin/            Admin & compliance + Transfer Operator API monitoring
-    sitemap.ts robots.ts layout.tsx globals.css
+      login/              Demo logins (mock) / Supabase Auth (live)
+      app/                Traveller: dashboard, search, space/[id], book/[spaceId],
+                          booking/[id] (+ /track: stepper, map, camera, chat)
+      host/               Dashboard (calendar, earnings, payouts), new, verify,
+                          spaces/[id]/edit, export (payout .xlsx)
+      admin/              Dashboard (search, filters, KPIs, queues),
+                          export (5 report types), kyc (private doc viewer)
+      account/            Profile & preferences
+      notifications/      Notification feed (marks read on open)
   components/
-    ui/                 Button, Card, Badge, Field, Section (brand primitives)
-    brand/              Logo / wordmark
-    common/             Photo, Stars, LanguageSwitcher
-    marketing/          Header, Footer, SearchWidget, Waitlist/Contact forms
-    portal/             Shell, StatusBadge, StatCard, SpaceCard, LiveMap,
-                        CameraView, HandoverPanel, Checkout, QR, ReviewForm
+    ui/ brand/ common/    Primitives, logo, Photo, LanguageSwitcher, SupportWidget
+    marketing/            Header, Footer, SearchWidget (daily/hourly, destinations)
+    portal/               Shell, Checkout, LiveMap/MapboxMap, EarningsChart,
+                          HostCalendar, DriverChat, HandoverPanel, ReviewForm, QR
+    host/                 PhotoManager (upload + remove)
   lib/
-    data/               seed.ts (demo dataset) + store.ts (data API)
-    services/           payments, maps, camera, ai, notifications, transfer-operator
-    i18n/               config, dictionaries (en/ur/hi/de/zh), switcher action
-    auth.ts auth-actions.ts pricing.ts trust.ts seo.ts utils.ts
-    booking-actions.ts host-actions.ts   (server actions)
-  content/blog.ts       Blog posts
-  types/index.ts        Domain model (single source of truth)
-supabase/migrations/    Production Postgres schema + Row-Level Security
-capacitor.config.ts     iOS/Android wrapper config
+    data/                 store.ts (mock seed/API) + per-entity modules with
+                          mock/live branches (bookings, hosts, users, reviews,
+                          verifications, notifications, messages, support, waitlist)
+    i18n/                 areas/* dictionaries (en/ur/hi/de/zh), registry, RTL
+    services/             payments, maps, camera, ai, notifications, transfer-operator
+    stripe.ts storage.ts email.ts export-sheet.ts pricing.ts trust.ts auth.ts
+    booking-actions.ts host-actions.ts user-actions.ts chat-actions.ts
+    support-actions.ts support-intents.ts        (server actions & support brain)
+  types/index.ts          Domain model (single source of truth)
+supabase/migrations/      Postgres schema + RLS (0001–0013)
+capacitor.config.ts       iOS/Android wrapper config
 ```
 
 ---
 
-## Data model
+## Go-live checklist
 
-TypeScript types in `src/types/index.ts` mirror the Postgres schema in
-`supabase/migrations/0001_init.sql`. Entities: `users`, `verifications`,
-`hosts`, `spaces`, `transfer_providers`, `drivers`, `vehicles`, `bookings`,
-`transfers`, `locations_live`, `camera_streams`, `payments`, `reviews`,
-`trust_scores`, `notifications`, `corporate_accounts`, `referrals`, `audit_log`,
-`waitlist`. Money is stored in **minor units (pence)** throughout.
+1. **Supabase**: create the project, run migrations **0001 → 0013**, run
+   `launch_cleanup.sql` on launch day to drop demo rows.
+2. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
+   `NEXT_PUBLIC_SITE_URL`, Supabase URL + anon + service-role keys.
+3. **Stripe**: live secret/publishable keys + webhook secret
+   (`/api/stripe/webhook`), Connect enabled for host payouts.
+4. **Email**: `RESEND_API_KEY` + `EMAIL_FROM`; mailboxes (info@, support@) in
+   Microsoft 365.
+5. **Maps**: `NEXT_PUBLIC_MAPS_PROVIDER=mapbox` + `NEXT_PUBLIC_MAPBOX_TOKEN`.
+6. Optional: Sentry DSN, commission overrides
+   (`PARKGO_COMMISSION_PARKING_BPS` / `_TRANSFER_BPS`).
 
-### Production database (Supabase)
-
-```bash
-# with the Supabase CLI configured
-supabase db push          # applies supabase/migrations/0001_init.sql
-```
-
-Row-Level Security is enabled on every table so each role sees only its own data
-(travellers their bookings, hosts their spaces/bookings, admins everything). The
-exact address and live camera are gated to the paying traveller — both in the app
-layer and in the `camera_streams` RLS policy.
-
----
-
-## Internationalisation
-
-Lightweight dictionary i18n in `src/lib/i18n` covering **English, Urdu, Hindi,
-German, Chinese**, with English fallback for any missing key and **RTL** layout
-for Urdu. The locale is stored in a cookie and applied on `<html lang dir>`. UI
-chrome (nav, hero, CTAs) is translated; long-form marketing/legal copy is English
-with the switcher demonstrated — full content translation is a content task, and
-the AI `translate()` hook is ready for on-the-fly translation of host free-text.
-
----
-
-## SEO
-
-Server-rendered pages, `metadataBase` + per-page OpenGraph/canonical
-(`src/lib/seo.ts`), `sitemap.xml`, `robots.txt`, and **per-airport landing
-pages** (`/airports/[slug]`, statically generated) with `AggregateOffer` /
-`FAQPage` / `BreadcrumbList` JSON-LD. The blog is statically generated.
+See `.env.example` for the full annotated list.
 
 ---
 
@@ -201,58 +225,30 @@ npx cap add ios && npx cap add android
 npx cap sync && npx cap open ios          # or android
 ```
 
-`BUILD_TARGET=capacitor` switches `next.config.mjs` to `output: 'export'`. Add the
-permission usage strings (location, camera, notifications) in the native projects
-to satisfy the iOS privacy manifest and Android Data safety form. Because ParkGo
-sells **real-world services**, external/card payment is generally allowed (not
-in-app purchase) — confirm with legal.
+`BUILD_TARGET=capacitor` switches `next.config.mjs` to `output: 'export'`. Add
+permission usage strings (location, camera, notifications) in the native
+projects. ParkGo sells real-world services, so external/card payment is
+generally allowed rather than in-app purchase — confirm with legal.
 
 ---
 
 ## Security, privacy & compliance
 
-- **UK GDPR / ICO aligned**: minimal data capture, lawful basis, consent,
-  retention, and data-subject access/erasure (see `/privacy`).
-- **KYC separated** from operational data; sensitive data encrypted at rest/in
-  transit; **no secrets in the client**.
-- **Least-privilege + row-level security**; append-only **audit log**.
-- Traveller exact address & host contact are **released only after payment**.
+- **UK GDPR / ICO aligned**: minimal data capture, lawful basis, retention and
+  data-subject rights (see `/privacy`).
+- **KYC separated** from operational data — private storage bucket, admin-only
+  streaming viewer, no public URLs, path-traversal guarded.
+- **Least privilege + RLS** everywhere; suspended accounts are blocked at the
+  sign-in guard (admins can never be suspended or demoted).
+- Exact address & host contact released **only after payment**.
+- Append-only audit feed in the admin portal.
 
 ---
 
-## What's implemented vs. scaffolded
+## Tech stack
 
-**Implemented (works in mock mode, end-to-end):** marketing site + SEO; auth &
-RBAC with demo logins; traveller search → bundle → checkout → QR → live tracking →
-live camera → verified handover → review; host dashboard + new-listing flow;
-transfer dashboard + handover; admin verification queue/trust/payments/audit;
-marketplace split pricing; i18n + RTL; QR codes; tests for the core logic.
-
-**Scaffolded behind interfaces (swap providers for production):** Stripe Connect
-charges & payouts; crypto payments; Mapbox/Google maps; real HLS/WebRTC camera;
-Stripe Identity/Onfido KYC; Expo/Resend notifications; LLM-backed AI; Supabase
-persistence (schema + RLS provided). Photo uploads use on-brand placeholders.
-
-This maps to the brief's milestones: **1 Foundations**, **2 Core booking**,
-**3 Real-time**, **4 Trust & compliance**, **5 AI & multilingual**, **6 Website +
-store config** are all represented; production hardening of each provider is the
-next phase.
-
----
-
-## Decisions to confirm (from the brief)
-
-These are wired with sensible defaults; confirm before production:
-
-1. **Stack** — web-first + Capacitor (chosen). Backend: **Supabase** (recommended).
-2. **Crypto payment** provider & supported coins/rails — _TBD_.
-3. **Live-camera** approach & supported IP-camera hardware — _TBD_ (HLS/WebRTC interface ready).
-4. **Identity/KYC** (Stripe Identity vs Onfido) and **maps** (Mapbox vs Google).
-5. **Pricing/commission** — defaults: ~£49 bundle, 18% parking / 12% transfer (configurable in `.env`).
-6. **Launch airports** — 8 seeded (Heathrow, Gatwick, Stansted, Luton, Manchester,
-   Birmingham, Edinburgh, Dublin) and a go-live date.
-
----
-
-_Figures such as the £49 bundle, commission rates and launch list are indicative
-and to be confirmed against live data._
+**Next.js 15** (App Router) · **React 19** · **TypeScript** (strict) ·
+**Tailwind CSS** (brand system: orange `#F26A1B` + ink `#15171A`) ·
+**Supabase** (Postgres, Auth, Storage, RLS) · **Stripe Connect** ·
+**Mapbox GL** · **Resend** · **ExcelJS** (styled exports) · **Vitest** ·
+**lucide-react** · **qrcode** · **zod** · **Capacitor**.
