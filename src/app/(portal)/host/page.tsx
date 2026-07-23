@@ -120,6 +120,15 @@ export default async function HostDashboard({
   const pendingPayouts = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout, 0);
+  const refundedPayoutTotal = payments
+    .filter(isRefunded)
+    .reduce((s, p) => s + p.split.hostPayout, 0);
+  // Latest payouts, enriched with the booking reference + space (full list
+  // lives in the Excel export).
+  const recentPayments = [...payments]
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .slice(0, 10);
+  const verified = host.verificationStatus === "approved";
   const liveCount = spaces.filter((s) => s.status === "live").length;
   const upcoming = bookings
     .filter(
@@ -181,6 +190,12 @@ export default async function HostDashboard({
   };
 
   const spaceMap = new Map(spaces.map((s) => [s.id, s]));
+  const paymentMeta = new Map(
+    bookings.map((b) => [
+      b.id,
+      { reference: b.reference, spaceTitle: spaceMap.get(b.spaceId)?.title },
+    ])
+  );
 
   // Confirmed bookings per listing (cancelled ones don't count).
   const bookingsBySpace = new Map<string, number>();
@@ -515,22 +530,50 @@ export default async function HostDashboard({
                 <Download className="h-4 w-4" /> {t("host.export")}
               </a>
             </div>
+            {/* Money at a glance */}
+            <div className="mb-3 flex flex-wrap gap-2 text-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-500">
+                {t("host.pay.summary.pending")}{" "}
+                <span className="font-bold">{formatMoney(pendingPayouts)}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-go-50 px-3 py-1 font-semibold text-go-700">
+                {t("host.pay.summary.paid")}{" "}
+                <span className="font-bold">{formatMoney(lifetimeEarnings - pendingPayouts)}</span>
+              </span>
+              {refundedPayoutTotal > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1 font-semibold text-navy-500">
+                  {t("host.pay.summary.refunded")}{" "}
+                  <span className="font-bold">{formatMoney(refundedPayoutTotal)}</span>
+                </span>
+              )}
+            </div>
             <Card className="divide-y divide-navy-100">
-              {payments.map((p) => {
+              {recentPayments.map((p) => {
                 const refunded = isRefunded(p);
+                const meta = paymentMeta.get(p.bookingId);
                 return (
-                  <div key={p.id} className="flex items-center justify-between p-4">
-                    <div>
-                      <div
-                        className={
-                          refunded
-                            ? "text-sm font-semibold text-navy-300 line-through"
-                            : "text-sm font-semibold text-navy-900"
-                        }
-                      >
-                        {formatMoney(p.split.hostPayout, p.currency)}
+                  <div key={p.id} className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-x-2">
+                        <span
+                          className={
+                            refunded
+                              ? "text-sm font-semibold text-navy-300 line-through"
+                              : "text-sm font-semibold text-navy-900"
+                          }
+                        >
+                          {formatMoney(p.split.hostPayout, p.currency)}
+                        </span>
+                        {meta?.reference && (
+                          <span className="font-mono text-xs font-bold text-navy-500">
+                            {meta.reference}
+                          </span>
+                        )}
                       </div>
-                      <div className="text-xs text-navy-400">{formatDate(p.createdAt)}</div>
+                      <div className="truncate text-xs text-navy-400">
+                        {formatDate(p.createdAt)}
+                        {meta?.spaceTitle ? ` · ${meta.spaceTitle}` : ""}
+                      </div>
                     </div>
                     <StatusBadge status={refunded ? "refunded" : p.payoutStatus} />
                   </div>
@@ -542,12 +585,14 @@ export default async function HostDashboard({
             </p>
           </section>
 
-          {/* Verification */}
+          {/* Verification — checklist reflects the real status */}
           <section id="verification" className="scroll-mt-20">
             <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.verification")}</h3>
             <Card className="p-5">
               <div className="flex items-center gap-2">
-                <BadgeCheck className="h-5 w-5 text-go-600" />
+                <BadgeCheck
+                  className={`h-5 w-5 ${verified ? "text-go-600" : "text-navy-300"}`}
+                />
                 <span className="font-bold text-navy-900">{t("host.verifStatus")}</span>
                 <span className="ml-auto">
                   <StatusBadge status={host.verificationStatus} />
@@ -555,9 +600,9 @@ export default async function HostDashboard({
               </div>
               <ul className="mt-4 space-y-2 text-sm">
                 {[
-                  [t("host.verif.id"), true],
-                  [t("host.verif.address"), true],
-                  [t("host.verif.rightToList"), true],
+                  [t("host.verif.id"), verified],
+                  [t("host.verif.address"), verified],
+                  [t("host.verif.rightToList"), verified],
                   [t("host.verif.bank"), !!host.payoutAccountRef],
                 ].map(([label, done]) => (
                   <li key={String(label)} className="flex items-center gap-2 text-navy-700">
@@ -572,6 +617,22 @@ export default async function HostDashboard({
                   </li>
                 ))}
               </ul>
+              {host.verificationStatus === "in_review" && (
+                <p className="mt-4 rounded-xl bg-accent-50 px-3.5 py-2.5 text-sm text-accent-500">
+                  {t("host.verif.inReview")}
+                </p>
+              )}
+              {!verified && host.verificationStatus !== "in_review" && (
+                <Link
+                  href="/host/verify"
+                  className={buttonVariants({ size: "sm", className: "mt-4" })}
+                >
+                  <ShieldCheck className="h-4 w-4" /> {t("host.verify.cta")}
+                </Link>
+              )}
+              {!verified && (
+                <p className="mt-3 text-xs text-navy-400">{t("host.verif.why")}</p>
+              )}
             </Card>
           </section>
         </div>
