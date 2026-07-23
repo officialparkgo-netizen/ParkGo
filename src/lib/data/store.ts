@@ -141,17 +141,29 @@ export function setUserTwofa(userId: string, enabled: boolean): User | undefined
   return user;
 }
 
-/** Self-service profile edit (name, phone, traveller vehicle). */
+/** Self-service profile edit (name, phone, avatar, traveller vehicle). */
 export function updateUserProfile(
   userId: string,
-  input: { name: string; phone?: string; vehicle?: User["vehicle"] | null }
+  input: {
+    name: string;
+    phone?: string;
+    vehicle?: User["vehicle"] | null;
+    avatarUrl?: string;
+  }
 ): User | undefined {
   const user = getUser(userId);
   if (!user) return undefined;
   user.name = input.name;
   user.phone = input.phone || undefined;
   if (input.vehicle !== undefined) user.vehicle = input.vehicle ?? undefined;
+  if (input.avatarUrl !== undefined) user.avatarUrl = input.avatarUrl;
   return user;
+}
+
+/** First-run profile setup finished. */
+export function setUserOnboarded(userId: string): void {
+  const user = getUser(userId);
+  if (user) user.onboarded = true;
 }
 export const getAllBookings = () => db.bookings;
 export const getAllReviews = () => db.reviews;

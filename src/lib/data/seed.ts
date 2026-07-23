@@ -68,6 +68,7 @@ export const users: User[] = [
     avatarColor: "#F26A1B",
     vehicle: { make: "Tesla", model: "Model 3", colour: "White", reg: "LV71 OGB", size: "medium", ev: true },
     corporateAccountId: "corp_acme",
+    onboarded: true,
     createdAt: iso(-220 * DAY),
   },
   {
@@ -78,6 +79,7 @@ export const users: User[] = [
     phone: "+44 7700 900456",
     locale: "en",
     avatarColor: "#15171A",
+    onboarded: true,
     createdAt: iso(-410 * DAY),
   },
   {
@@ -88,11 +90,14 @@ export const users: User[] = [
     phone: "+44 7700 900000",
     locale: "en",
     avatarColor: "#5B616B",
+    onboarded: true,
     createdAt: iso(-500 * DAY),
   },
   // extra hosts for richer listings
-  { id: "user_host2", role: "host", name: "Grace O'Neill", email: "grace@parkgo.demo", locale: "en", avatarColor: "#D4560F", createdAt: iso(-260 * DAY) },
-  { id: "user_host3", role: "host", name: "Derek Shaw", email: "derek@parkgo.demo", locale: "en", avatarColor: "#A9430C", createdAt: iso(-150 * DAY) },
+  { id: "user_host2", role: "host", name: "Grace O'Neill", email: "grace@parkgo.demo", locale: "en", avatarColor: "#D4560F", onboarded: true, createdAt: iso(-260 * DAY) },
+  { id: "user_host3", role: "host", name: "Derek Shaw", email: "derek@parkgo.demo", locale: "en", avatarColor: "#A9430C", onboarded: true, createdAt: iso(-150 * DAY) },
+  // Fresh sign-up used to exercise the /welcome onboarding flow (no demo button).
+  { id: "user_newbie", role: "traveller", name: "New Traveller", email: "new@parkgo.demo", locale: "en", avatarColor: "#1B6CB3", onboarded: false, createdAt: iso(-1 * DAY) },
 ];
 
 // -----------------------------------------------------------------------------

@@ -2,13 +2,13 @@ import Link from "next/link";
 import { Bell, LogOut, Settings } from "lucide-react";
 import type { User } from "@/types";
 import { Logo } from "@/components/brand/logo";
+import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { MobileNav } from "@/components/common/mobile-nav";
 import { logout } from "@/lib/auth-actions";
 import { getI18n } from "@/lib/i18n";
 import { unreadCountForUser } from "@/lib/data/notifications";
-import { initials } from "@/lib/utils";
 
 export interface NavItem {
   href: string;
@@ -117,12 +117,12 @@ function UserCard({ user, signOut }: { user: User; signOut: string }) {
   return (
     <div className="border-t border-navy-100 p-3">
       <div className="flex items-center gap-3 rounded-xl px-2 py-2">
-        <span
-          className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white"
-          style={{ backgroundColor: user.avatarColor ?? "#F26A1B" }}
-        >
-          {initials(user.name)}
-        </span>
+        <Avatar
+          name={user.name}
+          avatarUrl={user.avatarUrl}
+          color={user.avatarColor}
+          className="h-9 w-9 text-sm"
+        />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-navy-900">{user.name}</div>
           <div className="truncate text-xs text-navy-400">{user.email}</div>

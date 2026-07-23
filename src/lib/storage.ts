@@ -70,6 +70,30 @@ export async function deleteSpacePhotos(urls: string[]): Promise<void> {
   }
 }
 
+/**
+ * Upload a profile photo. Live: public `avatars` bucket URL. Mock: an inline
+ * data URL (kept in the in-memory store) so the demo works without storage.
+ */
+export async function uploadAvatar(file: File, userId: string): Promise<string | null> {
+  if (!file || file.size === 0) return null;
+  if (!file.type.startsWith("image/")) return null;
+  if (file.size > 2 * 1024 * 1024) return null;
+
+  if (!IS_LIVE) {
+    const buf = Buffer.from(await file.arrayBuffer());
+    return `data:${file.type};base64,${buf.toString("base64")}`;
+  }
+
+  await ensureBucket("avatars", true);
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const storage = supabaseAdmin().storage.from("avatars");
+  const path = `${userId}/${crypto.randomUUID()}.${extFor(file)}`;
+  const buf = Buffer.from(await file.arrayBuffer());
+  const { error } = await storage.upload(path, buf, { contentType: file.type, upsert: false });
+  if (error) return null;
+  return storage.getPublicUrl(path).data.publicUrl;
+}
+
 /** Upload a private KYC document; returns the storage path (not a URL). */
 export async function uploadKycDoc(file: File, hostId: string): Promise<string | null> {
   if (!IS_LIVE) return `mock/${file.name}`;

@@ -2,24 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole, requireUser } from "@/lib/auth";
+import type { User } from "@/types";
+import { getCurrentUser, requireRole, requireUser, rolePath } from "@/lib/auth";
 import {
   getUserProfile,
+  setUserOnboarded,
   setUserRoleAdmin,
   setUserSuspendedAdmin,
   setUserTwofa,
   updateOwnProfile,
 } from "@/lib/data/users";
 import { createSupportTicket } from "@/lib/data/support";
+import { uploadAvatar } from "@/lib/storage";
 
-/** Self-service: edit own name, phone and (travellers) vehicle details. */
-export async function updateOwnProfileAction(formData: FormData) {
-  const user = await requireUser();
+/** Shared profile-form parsing (account page + first-run welcome). */
+function readProfileForm(formData: FormData, user: User) {
   const name = String(formData.get("name") || "").trim().slice(0, 80);
   const phone = String(formData.get("phone") || "").trim().slice(0, 30);
-  if (name.length < 2) redirect("/account?profile=invalid");
 
-  let vehicle: typeof user.vehicle | null | undefined;
+  let vehicle: User["vehicle"] | null | undefined;
   if (user.role === "traveller") {
     const reg = String(formData.get("vehicleReg") || "").trim().toUpperCase().slice(0, 12);
     const make = String(formData.get("vehicleMake") || "").trim().slice(0, 40);
@@ -38,10 +39,40 @@ export async function updateOwnProfileAction(formData: FormData) {
           }
         : null;
   }
+  return { name, phone, vehicle };
+}
 
-  await updateOwnProfile(user.id, { name, phone: phone || undefined, vehicle });
+async function readAvatar(formData: FormData, userId: string): Promise<string | undefined> {
+  const file = formData.get("avatar");
+  if (!(file instanceof File) || file.size === 0) return undefined;
+  return (await uploadAvatar(file, userId)) ?? undefined;
+}
+
+/** Self-service: edit own name, phone, photo and (travellers) vehicle. */
+export async function updateOwnProfileAction(formData: FormData) {
+  const user = await requireUser();
+  const { name, phone, vehicle } = readProfileForm(formData, user);
+  if (name.length < 2) redirect("/account?profile=invalid");
+  const avatarUrl = await readAvatar(formData, user.id);
+
+  await updateOwnProfile(user.id, { name, phone: phone || undefined, vehicle, avatarUrl });
   revalidatePath("/account");
   redirect("/account?profile=saved");
+}
+
+/** First-run onboarding: save the profile, then unlock the portal. */
+export async function completeOnboardingAction(formData: FormData) {
+  // getCurrentUser, not requireUser — the guard would bounce back to /welcome.
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  const { name, phone, vehicle } = readProfileForm(formData, user);
+  if (name.length < 2) redirect("/welcome?invalid=1");
+  const avatarUrl = await readAvatar(formData, user.id);
+
+  await updateOwnProfile(user.id, { name, phone: phone || undefined, vehicle, avatarUrl });
+  await setUserOnboarded(user.id);
+  revalidatePath("/account");
+  redirect(rolePath(user.role));
 }
 
 /** GDPR self-service: file a data-export or deletion request as a ticket. */

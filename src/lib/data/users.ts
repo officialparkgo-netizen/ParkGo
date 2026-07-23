@@ -5,6 +5,7 @@ import {
   getUser as getUserMock,
   setUserRole as mockSetUserRole,
   setUserSuspended as mockSetUserSuspended,
+  setUserOnboarded as mockSetUserOnboarded,
   setUserTwofa as mockSetUserTwofa,
   updateUserProfile as mockUpdateUserProfile,
 } from "@/lib/data/store";
@@ -20,6 +21,8 @@ type UserRow = {
   corporate_account_id: string | null;
   suspended?: boolean | null;
   twofa_enabled?: boolean | null;
+  avatar_url?: string | null;
+  onboarded?: boolean | null;
   created_at: string;
 };
 
@@ -35,6 +38,10 @@ export function userFromRow(r: UserRow): User {
     corporateAccountId: r.corporate_account_id ?? undefined,
     suspended: !!r.suspended,
     twofaEnabled: !!r.twofa_enabled,
+    avatarUrl: r.avatar_url ?? undefined,
+    // Keep undefined (not false) when the column doesn't exist yet — the
+    // onboarding gate only fires on a strict `false`.
+    onboarded: r.onboarded ?? undefined,
     createdAt: r.created_at,
   };
 }
@@ -110,10 +117,15 @@ export async function setUserRoleAdmin(
   return userFromRow(data as UserRow);
 }
 
-/** Self-service profile edit: name, phone and (travellers) vehicle. */
+/** Self-service profile edit: name, phone, avatar and (travellers) vehicle. */
 export async function updateOwnProfile(
   userId: string,
-  input: { name: string; phone?: string; vehicle?: User["vehicle"] | null }
+  input: {
+    name: string;
+    phone?: string;
+    vehicle?: User["vehicle"] | null;
+    avatarUrl?: string;
+  }
 ): Promise<User | null> {
   if (!IS_LIVE) return mockUpdateUserProfile(userId, input) ?? null;
 
@@ -123,14 +135,30 @@ export async function updateOwnProfile(
     phone: input.phone ?? null,
   };
   if (input.vehicle !== undefined) payload.vehicle = input.vehicle;
-  const { data, error } = await supabaseAdmin()
-    .from("users")
-    .update(payload)
-    .eq("id", userId)
-    .select(PROFILE_COLS)
-    .single();
+  const withAvatar =
+    input.avatarUrl !== undefined ? { ...payload, avatar_url: input.avatarUrl } : payload;
+
+  const doUpdate = (p: Record<string, unknown>) =>
+    supabaseAdmin().from("users").update(p).eq("id", userId).select(PROFILE_COLS).single();
+
+  let { data, error } = await doUpdate(withAvatar);
+  // Pre-0016 databases have no avatar_url column — save the rest anyway.
+  if (error && input.avatarUrl !== undefined) {
+    ({ data, error } = await doUpdate(payload));
+  }
   if (error || !data) return null;
   return userFromRow(data as UserRow);
+}
+
+/** First-run profile setup finished — stop gating this user to /welcome. */
+export async function setUserOnboarded(userId: string): Promise<void> {
+  if (!IS_LIVE) {
+    mockSetUserOnboarded(userId);
+    return;
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  // Best-effort: pre-0016 databases have no column, and then no gate either.
+  await supabaseAdmin().from("users").update({ onboarded: true }).eq("id", userId);
 }
 
 /** Self-service: turn the admin email-code second factor on or off. */

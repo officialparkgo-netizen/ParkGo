@@ -14,6 +14,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
+import { Avatar } from "@/components/common/avatar";
+import { AvatarPicker } from "@/components/common/avatar-picker";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav, hostNav, travellerNav } from "@/components/portal/navs";
 import { PasswordForm } from "@/components/auth/password-form";
@@ -26,7 +28,7 @@ import {
 import { listBookingsForTraveller, listPaymentsForHost } from "@/lib/data/bookings";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { getI18n } from "@/lib/i18n";
-import { formatDate, formatMoney, initials } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -91,12 +93,12 @@ export default async function AccountPage({
         {/* Profile summary */}
         <Card className="p-5">
           <div className="flex items-center gap-4">
-            <span
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
-              style={{ backgroundColor: user.avatarColor ?? "#F26A1B" }}
-            >
-              {initials(user.name)}
-            </span>
+            <Avatar
+              name={user.name}
+              avatarUrl={user.avatarUrl}
+              color={user.avatarColor}
+              className="h-14 w-14 text-lg"
+            />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="truncate font-bold text-navy-900">{user.name}</span>
@@ -141,6 +143,18 @@ export default async function AccountPage({
           </h2>
           <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.profile.sub")}</p>
           <form action={updateOwnProfileAction} className="space-y-4">
+            <div>
+              <Label>{t("account.profile.photo")}</Label>
+              <div className="mt-1">
+                <AvatarPicker
+                  name={user.name}
+                  avatarUrl={user.avatarUrl}
+                  color={user.avatarColor}
+                  chooseLabel={t("avatar.choose")}
+                  changeLabel={t("avatar.change")}
+                />
+              </div>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="name">{t("account.profile.name")}</Label>

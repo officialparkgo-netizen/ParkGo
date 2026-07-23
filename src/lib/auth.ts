@@ -47,11 +47,17 @@ async function assertAdmin2fa(user: User, next: string): Promise<void> {
   }
 }
 
+/** New non-admin accounts set up their profile first (strict false only). */
+function assertOnboarded(user: User): void {
+  if (user.role !== "admin" && user.onboarded === false) redirect("/welcome");
+}
+
 /** Guard: require a signed-in user, else redirect to /login. */
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
+  assertOnboarded(user);
   await assertAdmin2fa(user, rolePath(user.role));
   return user;
 }
@@ -64,6 +70,7 @@ export async function requireRole(role: Role): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${rolePath(role)}`);
   if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
+  assertOnboarded(user);
   await assertAdmin2fa(user, rolePath(role));
   if (user.role !== role && user.role !== "admin") redirect(rolePath(user.role));
   return user;

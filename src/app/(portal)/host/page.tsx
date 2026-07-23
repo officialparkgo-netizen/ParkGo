@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Avatar } from "@/components/common/avatar";
 import { EarningsChart } from "@/components/portal/earnings-chart";
 import { HostCalendar } from "@/components/portal/host-calendar";
 import { Badge } from "@/components/ui/badge";
@@ -151,12 +152,12 @@ export default async function HostDashboard({
               return (
                 <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div className="flex items-center gap-3">
-                    <span
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
-                      style={{ backgroundColor: traveller?.avatarColor ?? "#1B6CB3" }}
-                    >
-                      {initials(traveller?.name ?? "PG")}
-                    </span>
+                    <Avatar
+                      name={traveller?.name ?? "PG"}
+                      avatarUrl={traveller?.avatarUrl}
+                      color={traveller?.avatarColor ?? "#1B6CB3"}
+                      className="h-9 w-9 text-xs"
+                    />
                     <div>
                       <div className="font-mono text-sm font-bold text-navy-900">{b.reference}</div>
                       <div className="text-sm text-navy-500">

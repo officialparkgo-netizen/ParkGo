@@ -36,6 +36,13 @@ export interface User {
   suspended?: boolean;
   /** Admin self-service: require an email code at sign-in (2FA). */
   twofaEnabled?: boolean;
+  /** Uploaded profile photo (public URL in live; data URL in mock). */
+  avatarUrl?: string;
+  /**
+   * First-run profile setup done. Strictly `false` gates non-admins to
+   * /welcome; undefined (pre-migration rows) never gates.
+   */
+  onboarded?: boolean;
   createdAt: ISODateString;
 }
 
