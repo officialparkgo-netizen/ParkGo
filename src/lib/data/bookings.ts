@@ -72,6 +72,11 @@ export async function isSpaceAvailable(
   endAt: string,
   capacity: number
 ): Promise<boolean> {
+  // Host-blocked days close the space in both modes.
+  const space = await getSpaceById(spaceId);
+  const { isRangeBlocked } = await import("@/lib/utils");
+  if (isRangeBlocked(space?.blockedDates, startAt, endAt)) return false;
+
   if (!IS_LIVE) return true; // demo data isn't capacity-managed
   const { supabaseAdmin } = await import("@/lib/supabase/server");
   const { count } = await supabaseAdmin()

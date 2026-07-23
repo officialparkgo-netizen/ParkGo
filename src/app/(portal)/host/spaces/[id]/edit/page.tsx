@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { PhotoManager } from "@/components/host/photo-manager";
+import { BlockedDatesPicker } from "@/components/host/blocked-dates-picker";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { hostNav } from "@/components/portal/navs";
@@ -23,7 +24,9 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function EditSpacePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireRole("host");
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const localeTag =
+    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN" }[locale] ?? "en-GB";
   const { id } = await params;
 
   const host = await getHostForUser(user);
@@ -60,6 +63,23 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
                 keepLabel={t("host.edit.keepPhoto")}
               />
               <p className="mt-1 text-xs text-navy-400">{t("host.edit.removeHint")}</p>
+            </div>
+
+            <div>
+              <Label>{t("host.blocked.label")}</Label>
+              <div className="mt-1 rounded-2xl border border-navy-100 p-4">
+                <BlockedDatesPicker
+                  initial={space.blockedDates ?? []}
+                  locale={localeTag}
+                  labels={{
+                    prev: t("host.cal.prev"),
+                    next: t("host.cal.next"),
+                    hint: t("host.blocked.hint"),
+                    clear: t("host.blocked.clear"),
+                    blockedCount: t("host.blocked.count"),
+                  }}
+                />
+              </div>
             </div>
 
             <div>

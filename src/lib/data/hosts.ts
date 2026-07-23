@@ -23,10 +23,10 @@ function fitsVehicle(space: Space, size: SearchQuery["vehicleSize"]) {
   return SIZE_ORDER[space.maxVehicleSize] >= SIZE_ORDER[size];
 }
 
-// "*" keeps reads tolerant of optional columns (e.g. bio, added in 0009).
+// "*" keeps reads tolerant of optional columns added by later migrations
+// (hosts.bio in 0009, spaces.blocked_dates in 0014).
 const HOST_COLS = "*";
-const SPACE_COLS =
-  "id, host_id, title, airport_slug, approx_area, exact_address, lat, lng, distance_miles, drive_minutes, dimensions, capacity, max_vehicle_size, ev_charger, cctv, live_camera, covered, access_rules, photos, price_per_day, price_per_hour, rating, review_count, status, created_at";
+const SPACE_COLS = "*";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function hostFromRow(r: any): Host {
@@ -65,6 +65,7 @@ function spaceFromRow(r: any): Space {
     photos: r.photos ?? [],
     pricePerDay: r.price_per_day,
     pricePerHour: r.price_per_hour ?? undefined,
+    blockedDates: r.blocked_dates ?? undefined,
     rating: Number(r.rating ?? 0),
     reviewCount: r.review_count ?? 0,
     status: r.status,
@@ -409,6 +410,8 @@ export interface UpdateSpaceInput {
   newPhotos?: string[];
   /** Existing photo entries (URL or scene token) to drop from the listing. */
   removePhotos?: string[];
+  /** Full replacement set of host-blocked days ("YYYY-MM-DD"); omit = unchanged. */
+  blockedDates?: string[];
 }
 
 /**
@@ -436,6 +439,7 @@ export async function updateSpaceForHost(
     s.evCharger = input.evCharger;
     s.accessRules = input.accessRules;
     s.dimensions = { lengthM: input.lengthM, widthM: input.widthM };
+    if (input.blockedDates !== undefined) s.blockedDates = input.blockedDates;
     {
       const removeSet = new Set(input.removePhotos ?? []);
       let photos = s.photos.filter((p) => !removeSet.has(p));
@@ -461,29 +465,41 @@ export async function updateSpaceForHost(
   photos = (photos.length ? photos : ["drive-1"]).slice(0, 6);
 
   const { supabaseAdmin } = await import("@/lib/supabase/server");
-  const { data, error } = await supabaseAdmin()
-    .from("spaces")
-    .update({
-      title: input.title,
-      approx_area: input.approxArea,
-      exact_address: input.exactAddress,
-      price_per_day: input.pricePerDay,
-      price_per_hour: input.pricePerHour ?? null,
-      capacity: Math.max(1, input.capacity || 1),
-      max_vehicle_size: input.maxVehicleSize,
-      cctv: input.cctv,
-      live_camera: input.liveCamera,
-      covered: input.covered ?? false,
-      ev_charger: input.evCharger,
-      access_rules: input.accessRules,
-      dimensions: { lengthM: input.lengthM, widthM: input.widthM },
-      photos,
-      ...(current.status === "rejected" ? { status: "pending_review" } : {}),
-    })
-    .eq("id", spaceId)
-    .eq("host_id", hostId)
-    .select(SPACE_COLS)
-    .single();
+  const baseUpdate = {
+    title: input.title,
+    approx_area: input.approxArea,
+    exact_address: input.exactAddress,
+    price_per_day: input.pricePerDay,
+    price_per_hour: input.pricePerHour ?? null,
+    capacity: Math.max(1, input.capacity || 1),
+    max_vehicle_size: input.maxVehicleSize,
+    cctv: input.cctv,
+    live_camera: input.liveCamera,
+    covered: input.covered ?? false,
+    ev_charger: input.evCharger,
+    access_rules: input.accessRules,
+    dimensions: { lengthM: input.lengthM, widthM: input.widthM },
+    photos,
+    ...(current.status === "rejected" ? { status: "pending_review" } : {}),
+  };
+  const doUpdate = (payload: Record<string, unknown>) =>
+    supabaseAdmin()
+      .from("spaces")
+      .update(payload)
+      .eq("id", spaceId)
+      .eq("host_id", hostId)
+      .select(SPACE_COLS)
+      .single();
+
+  let { data, error } = await doUpdate(
+    input.blockedDates !== undefined
+      ? { ...baseUpdate, blocked_dates: input.blockedDates }
+      : baseUpdate
+  );
+  // Pre-0014 databases have no blocked_dates column — save the rest anyway.
+  if (error && input.blockedDates !== undefined) {
+    ({ data, error } = await doUpdate(baseUpdate));
+  }
   if (error || !data) return null;
 
   // Purge files for uploads that actually came off this listing (never raw

@@ -163,6 +163,8 @@ export interface Space {
   pricePerDay: Pence;
   /** Optional hourly rate — enables short (under-a-day) stays. */
   pricePerHour?: Pence;
+  /** Host-blocked days ("YYYY-MM-DD") — not bookable (holiday / own use). */
+  blockedDates?: string[];
   rating: number;
   reviewCount: number;
   status: SpaceStatus;

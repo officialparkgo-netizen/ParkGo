@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   daysBetween,
+  isRangeBlocked,
   formatMoney,
   formatMoneyShort,
   initials,
@@ -58,5 +59,32 @@ describe("storagePathFromPublicUrl", () => {
     expect(storagePathFromPublicUrl(`${base}/kyc-docs/h/secret.pdf`, "space-photos")).toBeNull();
     expect(storagePathFromPublicUrl("https://evil.example/x.jpg", "space-photos")).toBeNull();
     expect(storagePathFromPublicUrl("drive-1", "space-photos")).toBeNull();
+  });
+});
+
+describe("isRangeBlocked", () => {
+  it("blocks a booking overlapping a blocked day", () => {
+    expect(
+      isRangeBlocked(["2026-08-10"], "2026-08-09T12:00:00Z", "2026-08-11T12:00:00Z")
+    ).toBe(true);
+    expect(
+      isRangeBlocked(["2026-08-10"], "2026-08-10T08:00:00Z", "2026-08-10T18:00:00Z")
+    ).toBe(true);
+  });
+
+  it("allows bookings that do not touch blocked days", () => {
+    expect(
+      isRangeBlocked(["2026-08-10"], "2026-08-11T00:00:00Z", "2026-08-14T00:00:00Z")
+    ).toBe(false);
+    expect(
+      isRangeBlocked(["2026-08-10"], "2026-08-05T00:00:00Z", "2026-08-10T00:00:00Z")
+    ).toBe(false);
+    expect(isRangeBlocked([], "2026-08-05T00:00:00Z", "2026-08-20T00:00:00Z")).toBe(false);
+    expect(isRangeBlocked(undefined, "2026-08-05T00:00:00Z", "2026-08-20T00:00:00Z")).toBe(false);
+  });
+
+  it("ignores malformed entries and bad dates", () => {
+    expect(isRangeBlocked(["not-a-date"], "2026-08-05T00:00:00Z", "2026-08-20T00:00:00Z")).toBe(false);
+    expect(isRangeBlocked(["2026-08-10"], "bad", "worse")).toBe(false);
   });
 });

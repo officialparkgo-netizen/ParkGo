@@ -38,11 +38,21 @@ export async function getCurrentUser(): Promise<User | null> {
   return getUser(id) ?? null;
 }
 
+/** Admin accounts additionally need a valid second-factor session. */
+async function assertAdmin2fa(user: User, next: string): Promise<void> {
+  if (user.role !== "admin") return;
+  const { admin2faEnabled, hasAdmin2faSession } = await import("@/lib/admin-2fa");
+  if (admin2faEnabled() && !(await hasAdmin2faSession(user.id))) {
+    redirect(`/admin-2fa?next=${encodeURIComponent(next)}`);
+  }
+}
+
 /** Guard: require a signed-in user, else redirect to /login. */
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
+  await assertAdmin2fa(user, rolePath(user.role));
   return user;
 }
 
@@ -54,6 +64,7 @@ export async function requireRole(role: Role): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${rolePath(role)}`);
   if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
+  await assertAdmin2fa(user, rolePath(role));
   if (user.role !== role && user.role !== "admin") redirect(rolePath(user.role));
   return user;
 }

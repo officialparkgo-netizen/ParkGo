@@ -41,6 +41,21 @@ function parseSpaceForm(formData: FormData) {
   };
 }
 
+/** Blocked days from the edit form (JSON array of "YYYY-MM-DD", capped). */
+function parseBlockedDates(formData: FormData): string[] | undefined {
+  const raw = formData.get("blockedDates");
+  if (typeof raw !== "string") return undefined;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return [...new Set(parsed.filter(
+      (d): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)
+    ))].sort().slice(0, 120);
+  } catch {
+    return undefined;
+  }
+}
+
 async function uploadPhotos(formData: FormData, key: string): Promise<string[]> {
   const files = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
   const urls: string[] = [];
@@ -92,8 +107,9 @@ export async function updateSpaceAction(formData: FormData) {
   const fields = parseSpaceForm(formData);
   const newPhotos = await uploadPhotos(formData, host.id);
   const removePhotos = formData.getAll("removePhotos").map(String).filter(Boolean);
+  const blockedDates = parseBlockedDates(formData);
 
-  await updateSpaceForHost(spaceId, host.id, { ...fields, newPhotos, removePhotos });
+  await updateSpaceForHost(spaceId, host.id, { ...fields, newPhotos, removePhotos, blockedDates });
 
   revalidatePath("/host");
   revalidatePath("/admin");

@@ -5,6 +5,7 @@ import "./globals.css";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { I18nProvider } from "@/lib/i18n/client";
 import { SupportWidget } from "@/components/common/support-widget";
+import { CookieConsent } from "@/components/common/cookie-consent";
 import { localeMeta } from "@/lib/i18n/config";
 import { SITE } from "@/lib/seo";
 
@@ -51,6 +52,7 @@ export default async function RootLayout({
         <I18nProvider dict={dict}>
           {children}
           <SupportWidget />
+          <CookieConsent />
         </I18nProvider>
         <SpeedInsights />
         <Analytics />

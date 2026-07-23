@@ -105,3 +105,23 @@ export function initials(name: string): string {
 export function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
+
+/**
+ * Does a host-blocked day ("YYYY-MM-DD", UTC) overlap the [startAt, endAt)
+ * booking window? Used by availability checks in both mock and live mode.
+ */
+export function isRangeBlocked(
+  blockedDates: string[] | undefined,
+  startAt: string,
+  endAt: string
+): boolean {
+  if (!blockedDates?.length) return false;
+  const start = new Date(startAt).getTime();
+  const end = new Date(endAt).getTime();
+  if (isNaN(start) || isNaN(end)) return false;
+  return blockedDates.some((d) => {
+    const dayStart = Date.parse(`${d}T00:00:00Z`);
+    if (isNaN(dayStart)) return false;
+    return dayStart < end && dayStart + 86_400_000 > start;
+  });
+}
