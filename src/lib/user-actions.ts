@@ -8,7 +8,62 @@ import {
   setUserRoleAdmin,
   setUserSuspendedAdmin,
   setUserTwofa,
+  updateOwnProfile,
 } from "@/lib/data/users";
+import { createSupportTicket } from "@/lib/data/support";
+
+/** Self-service: edit own name, phone and (travellers) vehicle details. */
+export async function updateOwnProfileAction(formData: FormData) {
+  const user = await requireUser();
+  const name = String(formData.get("name") || "").trim().slice(0, 80);
+  const phone = String(formData.get("phone") || "").trim().slice(0, 30);
+  if (name.length < 2) redirect("/account?profile=invalid");
+
+  let vehicle: typeof user.vehicle | null | undefined;
+  if (user.role === "traveller") {
+    const reg = String(formData.get("vehicleReg") || "").trim().toUpperCase().slice(0, 12);
+    const make = String(formData.get("vehicleMake") || "").trim().slice(0, 40);
+    const model = String(formData.get("vehicleModel") || "").trim().slice(0, 40);
+    const colour = String(formData.get("vehicleColour") || "").trim().slice(0, 30);
+    vehicle =
+      reg || make || model || colour
+        ? {
+            reg,
+            make,
+            model,
+            colour,
+            // Size/EV aren't asked on the form — keep any existing values.
+            size: user.vehicle?.size ?? "medium",
+            ev: user.vehicle?.ev ?? false,
+          }
+        : null;
+  }
+
+  await updateOwnProfile(user.id, { name, phone: phone || undefined, vehicle });
+  revalidatePath("/account");
+  redirect("/account?profile=saved");
+}
+
+/** GDPR self-service: file a data-export or deletion request as a ticket. */
+export async function requestPrivacyAction(formData: FormData) {
+  const user = await requireUser();
+  const kind = String(formData.get("kind")) === "delete" ? "delete" : "export";
+  await createSupportTicket({
+    name: user.name,
+    email: user.email,
+    topic: "privacy",
+    transcript: [
+      {
+        role: "user",
+        text:
+          kind === "delete"
+            ? "GDPR request: please delete my account and personal data."
+            : "GDPR request: please send me a copy of my personal data.",
+      },
+    ],
+  });
+  redirect("/account?privacy=1");
+}
 
 /** Admin self-service: toggle their own email-code second factor. */
 export async function setOwnTwofaAction(formData: FormData) {

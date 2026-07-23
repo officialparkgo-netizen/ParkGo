@@ -1,15 +1,32 @@
 import type { Metadata } from "next";
-import { CheckCircle2, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
+import {
+  CalendarCheck,
+  Car,
+  CheckCircle2,
+  FileDown,
+  LockKeyhole,
+  ShieldCheck,
+  Trash2,
+  UserRound,
+  Warehouse,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Input, Label } from "@/components/ui/field";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav, hostNav, travellerNav } from "@/components/portal/navs";
 import { PasswordForm } from "@/components/auth/password-form";
 import { requireUser } from "@/lib/auth";
-import { setOwnTwofaAction } from "@/lib/user-actions";
+import {
+  requestPrivacyAction,
+  setOwnTwofaAction,
+  updateOwnProfileAction,
+} from "@/lib/user-actions";
+import { listBookingsForTraveller, listPaymentsForHost } from "@/lib/data/bookings";
+import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { getI18n } from "@/lib/i18n";
-import { initials } from "@/lib/utils";
+import { formatDate, formatMoney, initials } from "@/lib/utils";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -21,14 +38,31 @@ export const metadata: Metadata = pageMetadata({
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string; twofa?: string }>;
+  searchParams: Promise<{ reset?: string; twofa?: string; profile?: string; privacy?: string }>;
 }) {
   const user = await requireUser();
   const { t } = await getI18n();
-  const { reset, twofa } = await searchParams;
+  const { reset, twofa, profile, privacy } = await searchParams;
 
   const nav =
     user.role === "admin" ? adminNav : user.role === "host" ? hostNav : travellerNav;
+
+  // Role-aware summary chips.
+  let tripCount = 0;
+  let listingCount = 0;
+  let lifetimeEarned = 0;
+  if (user.role === "traveller") {
+    const bookings = await listBookingsForTraveller(user.id);
+    tripCount = bookings.filter((b) => b.status !== "cancelled").length;
+  } else if (user.role === "host") {
+    const host = await getHostForUser(user);
+    if (host) {
+      listingCount = (await getSpacesForHost(host.id)).length;
+      lifetimeEarned = (await listPaymentsForHost(host.id))
+        .filter((p) => p.payoutStatus !== "refunded")
+        .reduce((s, p) => s + p.split.hostPayout, 0);
+    }
+  }
 
   return (
     <PortalShell user={user} nav={nav} title="account.title">
@@ -38,23 +72,144 @@ export default async function AccountPage({
             <LockKeyhole className="h-5 w-5" /> {t("account.resetBanner")}
           </div>
         )}
-
-        {/* Profile */}
-        <Card className="flex items-center gap-4 p-5">
-          <span
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
-            style={{ backgroundColor: user.avatarColor ?? "#F26A1B" }}
-          >
-            {initials(user.name)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="truncate font-bold text-navy-900">{user.name}</span>
-              <Badge tone="navy">{t(`role.${user.role}`)}</Badge>
-            </div>
-            <p className="truncate text-sm text-navy-500">{user.email}</p>
+        {profile === "saved" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5 shrink-0" /> {t("account.profile.saved")}
           </div>
-          <UserRound className="hidden h-6 w-6 text-navy-300 sm:block" />
+        )}
+        {profile === "invalid" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            {t("account.profile.invalid")}
+          </div>
+        )}
+        {privacy && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5 shrink-0" /> {t("account.privacy.done")}
+          </div>
+        )}
+
+        {/* Profile summary */}
+        <Card className="p-5">
+          <div className="flex items-center gap-4">
+            <span
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
+              style={{ backgroundColor: user.avatarColor ?? "#F26A1B" }}
+            >
+              {initials(user.name)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="truncate font-bold text-navy-900">{user.name}</span>
+                <Badge tone="navy">{t(`role.${user.role}`)}</Badge>
+              </div>
+              <p className="truncate text-sm text-navy-500">{user.email}</p>
+            </div>
+            <UserRound className="hidden h-6 w-6 text-navy-300 sm:block" />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-navy-100 pt-4 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1 font-semibold text-navy-700">
+              <CalendarCheck className="h-3.5 w-3.5 text-navy-400" />
+              {t("account.member")} {formatDate(user.createdAt)}
+            </span>
+            {user.role === "traveller" && (
+              <span
+                data-stat-trips
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 font-semibold text-brand-700"
+              >
+                <Car className="h-3.5 w-3.5" />
+                {tripCount} {t("account.stats.trips")}
+              </span>
+            )}
+            {user.role === "host" && (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 font-semibold text-brand-700">
+                  <Warehouse className="h-3.5 w-3.5" />
+                  {listingCount} {t("account.stats.listings")}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-go-50 px-3 py-1 font-semibold text-go-700">
+                  {formatMoney(lifetimeEarned)} {t("account.stats.earned")}
+                </span>
+              </>
+            )}
+          </div>
+        </Card>
+
+        {/* Editable profile details */}
+        <Card className="p-5">
+          <h2 className="flex items-center gap-2 font-bold text-navy-900">
+            <UserRound className="h-4 w-4 text-brand-600" /> {t("account.profile.title")}
+          </h2>
+          <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.profile.sub")}</p>
+          <form action={updateOwnProfileAction} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="name">{t("account.profile.name")}</Label>
+                <Input id="name" name="name" required minLength={2} defaultValue={user.name} />
+              </div>
+              <div>
+                <Label htmlFor="phone">{t("account.profile.phone")}</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  defaultValue={user.phone ?? ""}
+                  placeholder="+44 7…"
+                />
+              </div>
+            </div>
+
+            {user.role === "traveller" && (
+              <div className="rounded-2xl border border-navy-100 p-4">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
+                  <Car className="h-4 w-4 text-brand-600" /> {t("account.vehicle.title")}
+                </h3>
+                <p className="mb-3 mt-0.5 text-xs text-navy-500">{t("account.vehicle.sub")}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="vehicleReg">{t("account.vehicle.reg")}</Label>
+                    <Input
+                      id="vehicleReg"
+                      name="vehicleReg"
+                      defaultValue={user.vehicle?.reg ?? ""}
+                      placeholder="AB12 CDE"
+                      className="uppercase"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicleMake">{t("account.vehicle.make")}</Label>
+                    <Input
+                      id="vehicleMake"
+                      name="vehicleMake"
+                      defaultValue={user.vehicle?.make ?? ""}
+                      placeholder="Toyota"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicleModel">{t("account.vehicle.model")}</Label>
+                    <Input
+                      id="vehicleModel"
+                      name="vehicleModel"
+                      defaultValue={user.vehicle?.model ?? ""}
+                      placeholder="Corolla"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vehicleColour">{t("account.vehicle.colour")}</Label>
+                    <Input
+                      id="vehicleColour"
+                      name="vehicleColour"
+                      defaultValue={user.vehicle?.colour ?? ""}
+                      placeholder="Silver"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button type="submit" className={buttonVariants({ size: "sm" })}>
+              {t("account.profile.save")}
+            </button>
+          </form>
         </Card>
 
         {/* Admin 2FA (self-service) */}
@@ -99,6 +254,34 @@ export default async function AccountPage({
           </h2>
           <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.password.sub")}</p>
           <PasswordForm />
+        </Card>
+
+        {/* Privacy & data (UK GDPR) */}
+        <Card className="p-5">
+          <h2 className="flex items-center gap-2 font-bold text-navy-900">
+            <ShieldCheck className="h-4 w-4 text-brand-600" /> {t("account.privacy.title")}
+          </h2>
+          <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.privacy.sub")}</p>
+          <div className="flex flex-wrap gap-2">
+            <form action={requestPrivacyAction}>
+              <input type="hidden" name="kind" value="export" />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <FileDown className="h-3.5 w-3.5" /> {t("account.privacy.export")}
+              </button>
+            </form>
+            <form action={requestPrivacyAction}>
+              <input type="hidden" name="kind" value="delete" />
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> {t("account.privacy.delete")}
+              </button>
+            </form>
+          </div>
         </Card>
 
         <p className="flex items-center gap-2 text-xs text-navy-400">

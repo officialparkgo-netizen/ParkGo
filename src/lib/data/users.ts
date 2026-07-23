@@ -6,6 +6,7 @@ import {
   setUserRole as mockSetUserRole,
   setUserSuspended as mockSetUserSuspended,
   setUserTwofa as mockSetUserTwofa,
+  updateUserProfile as mockUpdateUserProfile,
 } from "@/lib/data/store";
 
 type UserRow = {
@@ -103,6 +104,29 @@ export async function setUserRoleAdmin(
     .update({ role })
     .eq("id", userId)
     .neq("role", "admin")
+    .select(PROFILE_COLS)
+    .single();
+  if (error || !data) return null;
+  return userFromRow(data as UserRow);
+}
+
+/** Self-service profile edit: name, phone and (travellers) vehicle. */
+export async function updateOwnProfile(
+  userId: string,
+  input: { name: string; phone?: string; vehicle?: User["vehicle"] | null }
+): Promise<User | null> {
+  if (!IS_LIVE) return mockUpdateUserProfile(userId, input) ?? null;
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const payload: Record<string, unknown> = {
+    name: input.name,
+    phone: input.phone ?? null,
+  };
+  if (input.vehicle !== undefined) payload.vehicle = input.vehicle;
+  const { data, error } = await supabaseAdmin()
+    .from("users")
+    .update(payload)
+    .eq("id", userId)
     .select(PROFILE_COLS)
     .single();
   if (error || !data) return null;

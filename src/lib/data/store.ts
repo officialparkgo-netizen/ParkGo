@@ -140,6 +140,19 @@ export function setUserTwofa(userId: string, enabled: boolean): User | undefined
   user.twofaEnabled = enabled;
   return user;
 }
+
+/** Self-service profile edit (name, phone, traveller vehicle). */
+export function updateUserProfile(
+  userId: string,
+  input: { name: string; phone?: string; vehicle?: User["vehicle"] | null }
+): User | undefined {
+  const user = getUser(userId);
+  if (!user) return undefined;
+  user.name = input.name;
+  user.phone = input.phone || undefined;
+  if (input.vehicle !== undefined) user.vehicle = input.vehicle ?? undefined;
+  return user;
+}
 export const getAllBookings = () => db.bookings;
 export const getAllReviews = () => db.reviews;
 export const getAllHosts = () => db.hosts;
