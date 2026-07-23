@@ -25,6 +25,7 @@ import {
   setOwnTwofaAction,
   updateOwnProfileAction,
 } from "@/lib/user-actions";
+import { updateHostProfileAction } from "@/lib/host-actions";
 import { listBookingsForTraveller, listPaymentsForHost } from "@/lib/data/bookings";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { getI18n } from "@/lib/i18n";
@@ -40,11 +41,17 @@ export const metadata: Metadata = pageMetadata({
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string; twofa?: string; profile?: string; privacy?: string }>;
+  searchParams: Promise<{
+    reset?: string;
+    twofa?: string;
+    profile?: string;
+    privacy?: string;
+    hostbio?: string;
+  }>;
 }) {
   const user = await requireUser();
   const { t } = await getI18n();
-  const { reset, twofa, profile, privacy } = await searchParams;
+  const { reset, twofa, profile, privacy, hostbio } = await searchParams;
 
   const nav =
     user.role === "admin" ? adminNav : user.role === "host" ? hostNav : travellerNav;
@@ -53,17 +60,15 @@ export default async function AccountPage({
   let tripCount = 0;
   let listingCount = 0;
   let lifetimeEarned = 0;
+  const host = user.role === "host" ? await getHostForUser(user) : null;
   if (user.role === "traveller") {
     const bookings = await listBookingsForTraveller(user.id);
     tripCount = bookings.filter((b) => b.status !== "cancelled").length;
-  } else if (user.role === "host") {
-    const host = await getHostForUser(user);
-    if (host) {
-      listingCount = (await getSpacesForHost(host.id)).length;
-      lifetimeEarned = (await listPaymentsForHost(host.id))
-        .filter((p) => p.payoutStatus !== "refunded")
-        .reduce((s, p) => s + p.split.hostPayout, 0);
-    }
+  } else if (host) {
+    listingCount = (await getSpacesForHost(host.id)).length;
+    lifetimeEarned = (await listPaymentsForHost(host.id))
+      .filter((p) => p.payoutStatus !== "refunded")
+      .reduce((s, p) => s + p.split.hostPayout, 0);
   }
 
   return (
@@ -225,6 +230,48 @@ export default async function AccountPage({
             </button>
           </form>
         </Card>
+
+        {/* Host guest-facing profile (moved from the host dashboard) */}
+        {host && (
+          <Card className="p-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="flex items-center gap-2 font-bold text-navy-900">
+                <Warehouse className="h-4 w-4 text-brand-600" /> {t("host.section.yourProfile")}
+              </h2>
+              <Badge tone="go">
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t("host.profileShownToGuests")}
+              </Badge>
+            </div>
+            <p className="mb-4 mt-1 text-sm text-navy-500">{t("host.profileBlurb")}</p>
+            {hostbio === "saved" && (
+              <div className="mb-4 flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700">
+                <CheckCircle2 className="h-5 w-5 shrink-0" /> {t("host.profileSavedBanner")}
+              </div>
+            )}
+            {hostbio === "error" && (
+              <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                {t("host.profileErrorBanner")}
+              </div>
+            )}
+            <form action={updateHostProfileAction}>
+              <Label htmlFor="bio">{t("host.bioLabel")}</Label>
+              <textarea
+                id="bio"
+                name="bio"
+                rows={3}
+                defaultValue={host.bio ?? ""}
+                placeholder={t("host.bioPlaceholder")}
+                className="mt-1 w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline", size: "sm", className: "mt-2" })}
+              >
+                {t("host.saveProfile")}
+              </button>
+            </form>
+          </Card>
+        )}
 
         {/* Admin 2FA (self-service) */}
         {user.role === "admin" && (

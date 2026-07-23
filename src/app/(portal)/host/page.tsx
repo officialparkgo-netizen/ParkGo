@@ -38,8 +38,8 @@ import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { listBookingsForHost, listPaymentsForHost } from "@/lib/data/bookings";
 import { getUsersByIds } from "@/lib/data/users";
 import { listNotificationsForUser } from "@/lib/data/notifications";
-import { formatDate, formatDateTime, formatMoney, initials } from "@/lib/utils";
-import { connectPayoutsAction, updateHostProfileAction } from "@/lib/host-actions";
+import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
+import { connectPayoutsAction } from "@/lib/host-actions";
 import { pauseOwnSpaceAction } from "@/lib/booking-actions";
 import { isStripeConfigured, getConnectStatus } from "@/lib/stripe";
 import { getI18n } from "@/lib/i18n";
@@ -54,13 +54,12 @@ export default async function HostDashboard({
     listed?: string;
     updated?: string;
     verify?: string;
-    profile?: string;
     cal?: string;
   }>;
 }) {
   const user = await requireRole("host");
   const { t, locale } = await getI18n();
-  const { listed, updated, verify, profile, cal } = await searchParams;
+  const { listed, updated, verify, cal } = await searchParams;
   const host = await getHostForUser(user);
 
   // A brand-new host has no host record / listings yet — show onboarding
@@ -228,16 +227,6 @@ export default async function HostDashboard({
         {verify === "submitted" && (
           <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
             <ShieldCheck className="h-5 w-5" /> {t("host.verify.submittedBanner")}
-          </div>
-        )}
-        {profile === "saved" && (
-          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
-            <CheckCircle2 className="h-5 w-5" /> {t("host.profileSavedBanner")}
-          </div>
-        )}
-        {profile === "error" && (
-          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
-            <ShieldCheck className="h-5 w-5" /> {t("host.profileErrorBanner")}
           </div>
         )}
 
@@ -453,51 +442,6 @@ export default async function HostDashboard({
               );
             })}
           </div>
-        </section>
-
-        {/* Profile shown to guests (Airbnb-style) */}
-        <section id="profile" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.yourProfile")}</h3>
-          <Card className="p-5">
-            <div className="flex items-start gap-4">
-              <span
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
-                style={{ backgroundColor: user.avatarColor ?? "#F26A1B" }}
-              >
-                {initials(user.name)}
-              </span>
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-navy-900">{user.name}</span>
-                  <Badge tone="go">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> {t("host.profileShownToGuests")}
-                  </Badge>
-                </div>
-                <p className="text-sm text-navy-500">
-                  {t("host.profileBlurb")}
-                </p>
-              </div>
-            </div>
-            <form action={updateHostProfileAction} className="mt-4">
-              <label htmlFor="bio" className="mb-1.5 block text-sm font-semibold text-navy-700">
-                {t("host.bioLabel")}
-              </label>
-              <textarea
-                id="bio"
-                name="bio"
-                rows={3}
-                defaultValue={host.bio ?? ""}
-                placeholder={t("host.bioPlaceholder")}
-                className="w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
-              />
-              <button
-                type="submit"
-                className={buttonVariants({ variant: "outline", size: "sm", className: "mt-2" })}
-              >
-                {t("host.saveProfile")}
-              </button>
-            </form>
-          </Card>
         </section>
 
         {/* Bookings */}

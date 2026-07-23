@@ -191,5 +191,6 @@ export async function updateHostProfileAction(formData: FormData) {
   const host = await ensureHostForUser(user);
   const ok = await updateHostBio(host.id, String(formData.get("bio") || "").trim());
   revalidatePath("/host");
-  redirect(`/host?profile=${ok ? "saved" : "error"}#profile`);
+  revalidatePath("/account");
+  redirect(`/account?hostbio=${ok ? "saved" : "error"}`);
 }
