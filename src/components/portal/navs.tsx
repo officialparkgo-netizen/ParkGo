@@ -25,8 +25,8 @@ export const hostNav: NavItem[] = [
   { href: "/host", label: "nav.dashboard", icon: LayoutGrid },
   { href: "/host#listings", label: "nav.listings", icon: Warehouse },
   { href: "/host#bookings", label: "nav.bookings", icon: CalendarCheck },
-  { href: "/host#earnings", label: "nav.earnings", icon: Banknote },
-  { href: "/host#verification", label: "nav.verification", icon: BadgeCheck },
+  { href: "/host/payouts", label: "nav.earnings", icon: Banknote },
+  { href: "/host/verify", label: "nav.verification", icon: BadgeCheck },
 ];
 
 export const adminNav: NavItem[] = [

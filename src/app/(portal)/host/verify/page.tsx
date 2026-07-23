@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BadgeCheck, Clock, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
+import { StatusBadge } from "@/components/portal/status";
 import { hostNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { ensureHostForUser } from "@/lib/data/hosts";
@@ -15,7 +15,7 @@ import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Get verified",
+  title: "Verification",
   path: "/host/verify",
   noindex: true,
 });
@@ -25,12 +25,12 @@ export default async function HostVerifyPage() {
   const { t } = await getI18n();
   const host = await ensureHostForUser(user);
 
-  if (host.verificationStatus === "approved") redirect("/host");
-
+  const verified = host.verificationStatus === "approved";
   const underReview =
-    host.verificationStatus === "in_review" ||
-    host.verificationStatus === "pending" ||
-    (await hasPendingHostVerification(host.id));
+    !verified &&
+    (host.verificationStatus === "in_review" ||
+      host.verificationStatus === "pending" ||
+      (await hasPendingHostVerification(host.id)));
 
   return (
     <PortalShell user={user} nav={hostNav} title="host.verify.pageTitle">
@@ -39,7 +39,54 @@ export default async function HostVerifyPage() {
           ← {t("common.backToDash")}
         </Link>
 
-        {underReview ? (
+        {/* Status at a glance — the checklist reflects the real status */}
+        <Card className="p-5">
+          <div className="flex items-center gap-2">
+            <BadgeCheck
+              className={`h-5 w-5 ${verified ? "text-go-600" : "text-navy-300"}`}
+            />
+            <span className="font-bold text-navy-900">{t("host.verifStatus")}</span>
+            <span className="ml-auto">
+              <StatusBadge status={host.verificationStatus} />
+            </span>
+          </div>
+          <ul className="mt-4 space-y-2 text-sm">
+            {[
+              [t("host.verif.id"), verified],
+              [t("host.verif.address"), verified],
+              [t("host.verif.rightToList"), verified],
+              [t("host.verif.bank"), !!host.payoutAccountRef],
+            ].map(([label, done]) => (
+              <li key={String(label)} className="flex items-center gap-2 text-navy-700">
+                <span
+                  className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                    done ? "bg-go-100 text-go-700" : "bg-navy-100 text-navy-400"
+                  }`}
+                >
+                  {done ? "✓" : "–"}
+                </span>
+                {label}
+              </li>
+            ))}
+          </ul>
+          {!verified && (
+            <p className="mt-3 text-xs text-navy-400">{t("host.verif.why")}</p>
+          )}
+        </Card>
+
+        {verified ? (
+          <Card className="border-go-200 bg-go-50/40 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-go-100 text-go-700">
+              <BadgeCheck className="h-7 w-7" />
+            </div>
+            <h2 className="text-xl font-extrabold text-navy-900">
+              {t("host.verify.doneTitle")}
+            </h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-navy-600">
+              {t("host.verify.doneBody")}
+            </p>
+          </Card>
+        ) : underReview ? (
           <Card className="p-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-accent-500">
               <Clock className="h-7 w-7" />

@@ -9,7 +9,7 @@ import {
   Car,
   CheckCircle2,
   ChevronDown,
-  Download,
+  ChevronRight,
   PauseCircle,
   PlayCircle,
   Image as ImageIcon,
@@ -39,9 +39,7 @@ import { listBookingsForHost, listPaymentsForHost } from "@/lib/data/bookings";
 import { getUsersByIds } from "@/lib/data/users";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
-import { connectPayoutsAction } from "@/lib/host-actions";
 import { pauseOwnSpaceAction } from "@/lib/booking-actions";
-import { isStripeConfigured, getConnectStatus } from "@/lib/stripe";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -120,15 +118,6 @@ export default async function HostDashboard({
   const pendingPayouts = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout, 0);
-  const refundedPayoutTotal = payments
-    .filter(isRefunded)
-    .reduce((s, p) => s + p.split.hostPayout, 0);
-  // Latest payouts, enriched with the booking reference + space (full list
-  // lives in the Excel export).
-  const recentPayments = [...payments]
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-    .slice(0, 10);
-  const verified = host.verificationStatus === "approved";
   const liveCount = spaces.filter((s) => s.status === "live").length;
   const upcoming = bookings
     .filter(
@@ -190,12 +179,6 @@ export default async function HostDashboard({
   };
 
   const spaceMap = new Map(spaces.map((s) => [s.id, s]));
-  const paymentMeta = new Map(
-    bookings.map((b) => [
-      b.id,
-      { reference: b.reference, spaceTitle: spaceMap.get(b.spaceId)?.title },
-    ])
-  );
 
   // Confirmed bookings per listing (cancelled ones don't count).
   const bookingsBySpace = new Map<string, number>();
@@ -203,12 +186,6 @@ export default async function HostDashboard({
     if (b.status === "cancelled" || b.status === "requested") return;
     bookingsBySpace.set(b.spaceId, (bookingsBySpace.get(b.spaceId) ?? 0) + 1);
   });
-
-  // Stripe Connect payout status (only when Stripe is configured).
-  const stripeOn = isStripeConfigured();
-  const payoutStatus =
-    stripeOn && host.payoutAccountRef ? await getConnectStatus(host.payoutAccountRef) : null;
-  const payoutsReady = !!payoutStatus?.chargesEnabled;
 
   return (
     <PortalShell user={user} nav={hostNav} title="host.pageTitle">
@@ -301,38 +278,6 @@ export default async function HostDashboard({
                 +{formatMoney(nextBooking.price.split.hostPayout, nextBooking.price.currency)}
               </span>
             </div>
-          </Card>
-        )}
-
-        {/* Payouts (Stripe Connect) */}
-        {stripeOn && (
-          <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
-                <Banknote className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="font-bold text-navy-900">{t("host.payouts.title")}</div>
-                <div className="text-sm text-navy-500">
-                  {payoutsReady
-                    ? t("host.payouts.connected")
-                    : host.payoutAccountRef
-                      ? t("host.payouts.finish")
-                      : t("host.payouts.setup")}
-                </div>
-              </div>
-            </div>
-            {payoutsReady ? (
-              <Badge tone="go">
-                <BadgeCheck className="h-3.5 w-3.5" /> {t("host.payouts.badge")}
-              </Badge>
-            ) : (
-              <form action={connectPayoutsAction}>
-                <button type="submit" className={buttonVariants({ size: "sm" })}>
-                  {host.payoutAccountRef ? t("host.payouts.finishBtn") : t("host.payouts.setupBtn")}
-                </button>
-              </form>
-            )}
           </Card>
         )}
 
@@ -518,123 +463,45 @@ export default async function HostDashboard({
           </Card>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Earnings / payouts */}
-          <section id="earnings" className="scroll-mt-20">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h3 className="text-lg font-bold text-navy-900">{t("host.section.payouts")}</h3>
-              <a
-                href="/host/export"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                <Download className="h-4 w-4" /> {t("host.export")}
-              </a>
-            </div>
-            {/* Money at a glance */}
-            <div className="mb-3 flex flex-wrap gap-2 text-sm">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-500">
-                {t("host.pay.summary.pending")}{" "}
-                <span className="font-bold">{formatMoney(pendingPayouts)}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-go-50 px-3 py-1 font-semibold text-go-700">
-                {t("host.pay.summary.paid")}{" "}
-                <span className="font-bold">{formatMoney(lifetimeEarnings - pendingPayouts)}</span>
-              </span>
-              {refundedPayoutTotal > 0 && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1 font-semibold text-navy-500">
-                  {t("host.pay.summary.refunded")}{" "}
-                  <span className="font-bold">{formatMoney(refundedPayoutTotal)}</span>
+        {/* Payouts + verification live on their own pages */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link href="/host/payouts" className="group">
+            <Card className="flex h-full items-center justify-between gap-3 p-5 transition-colors group-hover:border-brand-300">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-go-50 text-go-600">
+                  <Banknote className="h-5 w-5" />
                 </span>
-              )}
-            </div>
-            <Card className="divide-y divide-navy-100">
-              {recentPayments.map((p) => {
-                const refunded = isRefunded(p);
-                const meta = paymentMeta.get(p.bookingId);
-                return (
-                  <div key={p.id} className="flex items-center justify-between gap-3 p-4">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-baseline gap-x-2">
-                        <span
-                          className={
-                            refunded
-                              ? "text-sm font-semibold text-navy-300 line-through"
-                              : "text-sm font-semibold text-navy-900"
-                          }
-                        >
-                          {formatMoney(p.split.hostPayout, p.currency)}
-                        </span>
-                        {meta?.reference && (
-                          <span className="font-mono text-xs font-bold text-navy-500">
-                            {meta.reference}
-                          </span>
-                        )}
-                      </div>
-                      <div className="truncate text-xs text-navy-400">
-                        {formatDate(p.createdAt)}
-                        {meta?.spaceTitle ? ` · ${meta.spaceTitle}` : ""}
-                      </div>
-                    </div>
-                    <StatusBadge status={refunded ? "refunded" : p.payoutStatus} />
-                  </div>
-                );
-              })}
-            </Card>
-            <p className="mt-2 text-xs text-navy-400">
-              {t("host.payoutsNote")}
-            </p>
-          </section>
-
-          {/* Verification — checklist reflects the real status */}
-          <section id="verification" className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("host.section.verification")}</h3>
-            <Card className="p-5">
-              <div className="flex items-center gap-2">
-                <BadgeCheck
-                  className={`h-5 w-5 ${verified ? "text-go-600" : "text-navy-300"}`}
-                />
-                <span className="font-bold text-navy-900">{t("host.verifStatus")}</span>
-                <span className="ml-auto">
-                  <StatusBadge status={host.verificationStatus} />
-                </span>
-              </div>
-              <ul className="mt-4 space-y-2 text-sm">
-                {[
-                  [t("host.verif.id"), verified],
-                  [t("host.verif.address"), verified],
-                  [t("host.verif.rightToList"), verified],
-                  [t("host.verif.bank"), !!host.payoutAccountRef],
-                ].map(([label, done]) => (
-                  <li key={String(label)} className="flex items-center gap-2 text-navy-700">
-                    <span
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                        done ? "bg-go-100 text-go-700" : "bg-navy-100 text-navy-400"
-                      }`}
-                    >
-                      {done ? "✓" : "–"}
+                <div>
+                  <div className="font-bold text-navy-900">{t("host.section.payouts")}</div>
+                  <div className="text-sm text-navy-500">
+                    {t("host.pay.summary.pending")}{" "}
+                    <span className="font-semibold text-navy-700">
+                      {formatMoney(pendingPayouts)}
                     </span>
-                    {label}
-                  </li>
-                ))}
-              </ul>
-              {host.verificationStatus === "in_review" && (
-                <p className="mt-4 rounded-xl bg-accent-50 px-3.5 py-2.5 text-sm text-accent-500">
-                  {t("host.verif.inReview")}
-                </p>
-              )}
-              {!verified && host.verificationStatus !== "in_review" && (
-                <Link
-                  href="/host/verify"
-                  className={buttonVariants({ size: "sm", className: "mt-4" })}
-                >
-                  <ShieldCheck className="h-4 w-4" /> {t("host.verify.cta")}
-                </Link>
-              )}
-              {!verified && (
-                <p className="mt-3 text-xs text-navy-400">{t("host.verif.why")}</p>
-              )}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 shrink-0 text-navy-300 transition-transform group-hover:translate-x-0.5" />
             </Card>
-          </section>
+          </Link>
+          <Link href="/host/verify" className="group">
+            <Card className="flex h-full items-center justify-between gap-3 p-5 transition-colors group-hover:border-brand-300">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-500">
+                  <BadgeCheck className="h-5 w-5" />
+                </span>
+                <div>
+                  <div className="font-bold text-navy-900">
+                    {t("host.section.verification")}
+                  </div>
+                  <div className="mt-1">
+                    <StatusBadge status={host.verificationStatus} />
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 shrink-0 text-navy-300 transition-transform group-hover:translate-x-0.5" />
+            </Card>
+          </Link>
         </div>
       </div>
     </PortalShell>
