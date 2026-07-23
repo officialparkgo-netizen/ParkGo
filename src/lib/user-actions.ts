@@ -96,10 +96,10 @@ export async function requestPrivacyAction(formData: FormData) {
   redirect("/account?privacy=1");
 }
 
-/** Admin self-service: toggle their own email-code second factor. */
+/** Admin/host self-service: toggle their own email-code second factor. */
 export async function setOwnTwofaAction(formData: FormData) {
   const user = await requireUser();
-  if (user.role !== "admin") return;
+  if (user.role !== "admin" && user.role !== "host") return;
   const state = String(formData.get("state") || "");
   if (state !== "on" && state !== "off") return;
 

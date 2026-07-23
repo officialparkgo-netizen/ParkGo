@@ -11,14 +11,18 @@ import {
 export const ADMIN_2FA_COOKIE = "parkgo_admin_2fa";
 
 /**
- * Per-admin opt-in from Account settings (default OFF). The ADMIN_2FA env
- * overrides both ways: "on" forces it for every admin (used by tests),
- * "off" is an emergency kill switch if an admin ever locks themselves out.
+ * Who needs the email-code second factor. Admins and hosts opt in from
+ * Account settings (default OFF). The ADMIN_2FA env overrides: "on" forces
+ * it for every ADMIN (tests/demos; hosts stay purely opt-in), "off" is an
+ * emergency kill switch for everyone.
  */
-export function admin2faEnabledFor(user: Pick<User, "twofaEnabled">): boolean {
+export function twofaRequiredFor(user: Pick<User, "role" | "twofaEnabled">): boolean {
   if (process.env.ADMIN_2FA === "off") return false;
-  if (process.env.ADMIN_2FA === "on") return true;
-  return user.twofaEnabled === true;
+  if (user.role === "admin") {
+    return process.env.ADMIN_2FA === "on" || user.twofaEnabled === true;
+  }
+  if (user.role === "host") return user.twofaEnabled === true;
+  return false;
 }
 
 export async function hasAdmin2faSession(userId: string): Promise<boolean> {

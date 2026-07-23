@@ -5,7 +5,7 @@ import { Logo } from "@/components/brand/logo";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser, rolePath } from "@/lib/auth";
-import { admin2faEnabledFor, hasAdmin2faSession } from "@/lib/admin-2fa";
+import { twofaRequiredFor, hasAdmin2faSession } from "@/lib/admin-2fa";
 import { currentAdminCode } from "@/lib/admin-2fa-core";
 import { verifyAdmin2faAction, sendAdmin2faCodeAction } from "@/lib/admin-2fa-actions";
 import { isEmailConfigured } from "@/lib/email";
@@ -15,11 +15,11 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Admin verification",
-  path: "/admin-2fa",
+  path: "/verify-2fa",
   noindex: true,
 });
 
-/** Second-factor gate for admin accounts. Deliberately outside PortalShell. */
+/** Second-factor gate for admin and host accounts (outside PortalShell). */
 export default async function Admin2faPage({
   searchParams,
 }: {
@@ -28,10 +28,11 @@ export default async function Admin2faPage({
   const { next: nextRaw, error, sent } = await searchParams;
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "admin") redirect(rolePath(user.role));
-  if (!admin2faEnabledFor(user)) redirect("/admin");
+  if (user.role !== "admin" && user.role !== "host") redirect(rolePath(user.role));
+  if (!twofaRequiredFor(user)) redirect(rolePath(user.role));
 
-  const next = nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/admin";
+  const home = rolePath(user.role);
+  const next = nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : home;
   if (await hasAdmin2faSession(user.id)) redirect(next);
 
   const { t } = await getI18n();

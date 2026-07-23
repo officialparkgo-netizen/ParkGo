@@ -38,12 +38,12 @@ export async function getCurrentUser(): Promise<User | null> {
   return getUser(id) ?? null;
 }
 
-/** Admin accounts additionally need a valid second-factor session. */
-async function assertAdmin2fa(user: User, next: string): Promise<void> {
-  if (user.role !== "admin") return;
-  const { admin2faEnabledFor, hasAdmin2faSession } = await import("@/lib/admin-2fa");
-  if (admin2faEnabledFor(user) && !(await hasAdmin2faSession(user.id))) {
-    redirect(`/admin-2fa?next=${encodeURIComponent(next)}`);
+/** Admin/host accounts with 2FA on need a valid second-factor session. */
+async function assertTwofa(user: User, next: string): Promise<void> {
+  if (user.role !== "admin" && user.role !== "host") return;
+  const { twofaRequiredFor, hasAdmin2faSession } = await import("@/lib/admin-2fa");
+  if (twofaRequiredFor(user) && !(await hasAdmin2faSession(user.id))) {
+    redirect(`/verify-2fa?next=${encodeURIComponent(next)}`);
   }
 }
 
@@ -58,7 +58,7 @@ export async function requireUser(): Promise<User> {
   if (!user) redirect("/login");
   if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
   assertOnboarded(user);
-  await assertAdmin2fa(user, rolePath(user.role));
+  await assertTwofa(user, rolePath(user.role));
   return user;
 }
 
@@ -71,7 +71,7 @@ export async function requireRole(role: Role): Promise<User> {
   if (!user) redirect(`/login?next=${rolePath(role)}`);
   if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
   assertOnboarded(user);
-  await assertAdmin2fa(user, rolePath(role));
+  await assertTwofa(user, rolePath(role));
   if (user.role !== role && user.role !== "admin") redirect(rolePath(user.role));
   return user;
 }

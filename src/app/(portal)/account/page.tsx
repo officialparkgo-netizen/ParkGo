@@ -273,8 +273,8 @@ export default async function AccountPage({
           </Card>
         )}
 
-        {/* Admin 2FA (self-service) */}
-        {user.role === "admin" && (
+        {/* 2FA (admins + hosts, self-service) */}
+        {(user.role === "admin" || user.role === "host") && (
           <Card className="p-5">
             {twofa && (
               <div className="mb-4 flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700">

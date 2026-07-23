@@ -6,33 +6,33 @@ import { verifyAdminCode, currentAdminCode } from "@/lib/admin-2fa-core";
 import { grantAdmin2faSession } from "@/lib/admin-2fa";
 import { sendEmail, emailShell } from "@/lib/email";
 
-function safeNext(raw: FormDataEntryValue | null): string {
-  const next = String(raw || "/admin");
-  return next.startsWith("/") && !next.startsWith("//") ? next : "/admin";
+function safeNext(raw: FormDataEntryValue | null, home: string): string {
+  const next = String(raw || home);
+  return next.startsWith("/") && !next.startsWith("//") ? next : home;
 }
 
-/** Second factor for admins: check the 6-digit code, then set the signed cookie. */
+/** Second factor (admins + hosts): check the code, then set the signed cookie. */
 export async function verifyAdmin2faAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "admin") redirect("/login");
+  if (user.role !== "admin" && user.role !== "host") redirect("/login");
 
-  const next = safeNext(formData.get("next"));
+  const next = safeNext(formData.get("next"), user.role === "host" ? "/host" : "/admin");
   const code = String(formData.get("code") || "");
   if (!verifyAdminCode(user.id, code)) {
-    redirect(`/admin-2fa?error=1&next=${encodeURIComponent(next)}`);
+    redirect(`/verify-2fa?error=1&next=${encodeURIComponent(next)}`);
   }
   await grantAdmin2faSession(user.id);
   redirect(next);
 }
 
-/** Email the current window's code to the signed-in admin (live mode). */
+/** Email the current window's code to the signed-in admin/host (live mode). */
 export async function sendAdmin2faCodeAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== "admin") redirect("/login");
+  if (user.role !== "admin" && user.role !== "host") redirect("/login");
 
-  const next = safeNext(formData.get("next"));
+  const next = safeNext(formData.get("next"), user.role === "host" ? "/host" : "/admin");
   const code = currentAdminCode(user.id);
   await sendEmail(
     user.email,
@@ -43,5 +43,5 @@ export async function sendAdmin2faCodeAction(formData: FormData) {
        <p style="font-size:12px;color:#878D96">It expires in about 5 minutes. If you didn't try to sign in, change your password immediately.</p>`
     )
   );
-  redirect(`/admin-2fa?sent=1&next=${encodeURIComponent(next)}`);
+  redirect(`/verify-2fa?sent=1&next=${encodeURIComponent(next)}`);
 }
