@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Banknote,
   Bell,
+  Building2,
   CalendarCheck,
   Camera,
   CarTaxiFront,
@@ -12,11 +13,14 @@ import {
   LifeBuoy,
   Lock,
   MapPin,
+  Plane,
   QrCode,
   Radio,
   Search,
   ShieldCheck,
   Sparkles,
+  TrainFront,
+  Trophy,
   Warehouse,
   Zap,
 } from "lucide-react";
@@ -28,11 +32,36 @@ import { SearchWidget } from "@/components/marketing/search-widget";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { FeatureCarousel } from "@/components/marketing/feature-carousel";
 import { getAirports } from "@/lib/data/store";
+import { listAllSpaces } from "@/lib/data/hosts";
+import { formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
+
+const KIND_ICONS = {
+  airport: Plane,
+  city: Building2,
+  station: TrainFront,
+  stadium: Trophy,
+} as const;
 
 export default async function HomePage() {
   const { t } = await getI18n();
   const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind }));
+
+  // Popular destinations: live spaces + lowest daily price per destination.
+  const allSpaces = await listAllSpaces();
+  const destCards = getAirports()
+    .map((a) => {
+      const live = allSpaces.filter((s) => s.status === "live" && s.airportSlug === a.slug);
+      return {
+        slug: a.slug,
+        name: a.name,
+        kind: (a.kind ?? "airport") as keyof typeof KIND_ICONS,
+        count: live.length,
+        from: live.length ? Math.min(...live.map((s) => s.pricePerDay)) : null,
+      };
+    })
+    .sort((x, y) => y.count - x.count)
+    .slice(0, 8);
 
   return (
     <>
@@ -112,6 +141,50 @@ export default async function HomePage() {
           ))}
         </Container>
       </div>
+
+      {/* ---------------------------------------------- Popular destinations */}
+      <Section className="bg-navy-50/50">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Eyebrow>{t("home.dest.eyebrow")}</Eyebrow>
+            <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
+              {t("home.dest.heading")}
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm text-navy-500">{t("home.dest.sub")}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {destCards.map((d) => {
+            const KindIcon = KIND_ICONS[d.kind];
+            return (
+              <Link
+                key={d.slug}
+                href={`/airports/${d.slug}`}
+                className="card-hover group rounded-2xl border border-navy-100 bg-white p-5 shadow-card"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                    <KindIcon className="h-5 w-5" aria-hidden />
+                  </span>
+                  {d.count > 0 && (
+                    <Badge tone="neutral">
+                      {d.count} {t("home.dest.spaces")}
+                    </Badge>
+                  )}
+                </div>
+                <h3 className="mt-3 font-bold text-navy-900 transition-colors group-hover:text-brand-600">
+                  {d.name}
+                </h3>
+                <p className="mt-0.5 text-sm text-navy-500">
+                  {d.from
+                    ? `${t("home.dest.from")} ${formatMoney(d.from)}/${t("common.day")}`
+                    : t("home.dest.comingSoon")}
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      </Section>
 
       {/* ------------------------------------------------------ Bundle value */}
       <Section>

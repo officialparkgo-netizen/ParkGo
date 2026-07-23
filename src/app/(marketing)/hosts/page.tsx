@@ -26,6 +26,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
+import { EarningsEstimator } from "@/components/marketing/earnings-estimator";
 import { pageMetadata } from "@/lib/seo";
 import { COMMISSION } from "@/lib/pricing";
 import { getI18n } from "@/lib/i18n";
@@ -180,6 +181,28 @@ export default async function HostsPage() {
             </Card>
           ))}
         </div>
+      </Section>
+
+      {/* -------------------------------------------------------- Estimator */}
+      <Section className="pt-0" id="estimate">
+        <div className="mx-auto mb-10 max-w-2xl text-center">
+          <Eyebrow>{t("hosts.calc.eyebrow")}</Eyebrow>
+          <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
+            {t("hosts.calc.heading")}
+          </h2>
+          <p className="mt-4 text-navy-600">{t("hosts.calc.sub")}</p>
+        </div>
+        <EarningsEstimator
+          keepPct={hostKeepPct}
+          labels={{
+            price: t("hosts.calc.price"),
+            days: t("hosts.calc.days"),
+            monthly: t("hosts.calc.monthly"),
+            yearly: t("hosts.calc.yearly"),
+            afterCommission: `${t("hosts.calc.youKeep")} ${hostKeepPct}%`,
+            note: t("hosts.calc.note"),
+          }}
+        />
       </Section>
 
       {/* -------------------------------------------------------- Onboarding */}

@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BadgeCheck,
   Camera,
+  CheckCircle2,
   CarTaxiFront,
   CreditCard,
   Gift,
@@ -144,6 +145,60 @@ export default async function TravellersPage() {
             </Card>
           ))}
         </div>
+      </Section>
+
+      {/* -------------------------------------------------------- Compare */}
+      <Section className="pt-0">
+        <div className="mx-auto max-w-2xl text-center">
+          <Eyebrow>{t("trav.compare.eyebrow")}</Eyebrow>
+          <h2 className="text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
+            {t("trav.compare.heading")}
+          </h2>
+          <p className="mt-4 text-navy-600">{t("trav.compare.sub")}</p>
+        </div>
+        <div className="mx-auto mt-10 max-w-3xl overflow-x-auto">
+          <table className="w-full min-w-[560px] border-separate border-spacing-0 overflow-hidden rounded-2xl border border-navy-100 bg-white text-sm shadow-card">
+            <thead>
+              <tr className="bg-navy-900 text-white">
+                <th className="p-4 text-start font-semibold">{t("trav.compare.col.feature")}</th>
+                <th className="p-4 text-start font-semibold text-navy-200">
+                  {t("trav.compare.col.official")}
+                </th>
+                <th className="p-4 text-start font-bold text-brand-400">ParkGo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(
+                [
+                  ["price", false],
+                  ["camera", false],
+                  ["cancel", false],
+                  ["transfer", false],
+                  ["ev", false],
+                  ["support", false],
+                ] as const
+              ).map(([row]) => (
+                <tr key={row}>
+                  <td className="border-t border-navy-100 p-4 font-semibold text-navy-900">
+                    {t(`trav.compare.${row}`)}
+                  </td>
+                  <td className="border-t border-navy-100 p-4 text-navy-500">
+                    {t(`trav.compare.${row}.official`)}
+                  </td>
+                  <td className="border-t border-navy-100 bg-brand-50/40 p-4">
+                    <span className="flex items-start gap-1.5 font-semibold text-navy-900">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-go-600" aria-hidden />
+                      {t(`trav.compare.${row}.parkgo`)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mx-auto mt-3 max-w-3xl text-center text-xs text-navy-400">
+          {t("trav.compare.note")}
+        </p>
       </Section>
 
       {/* ------------------------------------------------------ How it works */}
