@@ -23,6 +23,9 @@ export async function GET(request: Request) {
   const user = await requireRole("host");
   const host = await getHostForUser(user);
   if (!host) return new Response("No host profile", { status: 404 });
+  // ?month=YYYY-MM turns the full history into a single-month statement.
+  const month = new URL(request.url).searchParams.get("month");
+  const monthOk = !!month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month);
 
   const [bookings, payments, spaces] = await Promise.all([
     listBookingsForHost(host.id),
@@ -37,6 +40,7 @@ export async function GET(request: Request) {
     "Payout status", "Gross (£)", "ParkGo fee (£)", "Driver (£)", "Your payout (£)", "Currency",
   ];
   const rows = [...payments]
+    .filter((p) => !monthOk || p.createdAt.slice(0, 7) === month)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .map((p) => {
       const b = bookingMap.get(p.bookingId);
@@ -61,7 +65,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   return sheetResponse({
     sheetName: "Payouts",
-    filename: "parkgo-payouts",
+    filename: monthOk ? `parkgo-statement-${month}` : "parkgo-payouts",
     header,
     rows,
     format: url.searchParams.get("format"),

@@ -23,6 +23,7 @@ type UserRow = {
   twofa_enabled?: boolean | null;
   avatar_url?: string | null;
   onboarded?: boolean | null;
+  admin_scope?: string | null;
   created_at: string;
 };
 
@@ -39,6 +40,7 @@ export function userFromRow(r: UserRow): User {
     suspended: !!r.suspended,
     twofaEnabled: !!r.twofa_enabled,
     avatarUrl: r.avatar_url ?? undefined,
+    adminScope: (r.admin_scope as User["adminScope"]) ?? undefined,
     // Keep undefined (not false) when the column doesn't exist yet — the
     // onboarding gate only fires on a strict `false`.
     onboarded: r.onboarded ?? undefined,
@@ -229,4 +231,50 @@ export async function ensureUserProfile(authUser: AuthUserLike): Promise<User | 
 
   if (error || !data) return null;
   return userFromRow(data as UserRow);
+}
+
+/** Admin: set another admin's scope ("support" = no money pages). */
+export async function setAdminScopeAdmin(
+  userId: string,
+  scope: "full" | "support"
+): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { setUserAdminScope } = await import("@/lib/data/store");
+    return !!setUserAdminScope(userId, scope);
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { error } = await supabaseAdmin()
+    .from("users")
+    .update({ admin_scope: scope })
+    .eq("id", userId)
+    .eq("role", "admin");
+  return !error;
+}
+
+/**
+ * GDPR: anonymize an account in place. Financial records (bookings/payments)
+ * are kept for accounting; everything personal is wiped and the account is
+ * locked. Irreversible by design.
+ */
+export async function anonymizeUserAdmin(userId: string): Promise<boolean> {
+  const scrubbed = {
+    name: "Deleted user",
+    email: `deleted-${userId.slice(0, 12)}@removed.parkgo.ai`,
+    phone: null,
+    avatar_url: null,
+    vehicle: null,
+    suspended: true,
+    twofa_enabled: false,
+  };
+  if (!IS_LIVE) {
+    const { anonymizeUser } = await import("@/lib/data/store");
+    return !!anonymizeUser(userId);
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { error } = await supabaseAdmin()
+    .from("users")
+    .update(scrubbed)
+    .eq("id", userId)
+    .neq("role", "admin");
+  return !error;
 }

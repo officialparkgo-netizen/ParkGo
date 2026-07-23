@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireFinanceAdmin } from "@/lib/auth";
 import { broadcastEmailAction } from "@/lib/admin-suite-actions";
 import { listWaitlist } from "@/lib/data/waitlist";
 import { listAllUsers } from "@/lib/data/users";
@@ -24,7 +24,7 @@ export default async function AdminBroadcastPage({
 }: {
   searchParams: Promise<{ sent?: string; total?: string; preview?: string; error?: string }>;
 }) {
-  const user = await requireRole("admin");
+  const user = await requireFinanceAdmin();
   const { t } = await getI18n();
   const { sent, total, preview, error } = await searchParams;
 

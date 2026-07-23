@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { CarTaxiFront, CheckCircle2, CreditCard, Lock, ShieldCheck, Wallet, Zap } from "lucide-react";
 import type { Space } from "@/types";
-import { priceBundle } from "@/lib/pricing";
+import { priceBundle, type PriceConfig } from "@/lib/pricing";
 import { formatMoney } from "@/lib/utils";
 import { createBookingAction } from "@/lib/booking-actions";
 import { useT } from "@/lib/i18n/client";
@@ -23,6 +23,7 @@ export function Checkout({
   initialEv = false,
   allowTransfer = true,
   promoInvalid = false,
+  priceCfg,
 }: {
   space: Space;
   startDate: string; // YYYY-MM-DD
@@ -34,6 +35,8 @@ export function Checkout({
   allowTransfer?: boolean;
   /** The promo the traveller typed was rejected server-side. */
   promoInvalid?: boolean;
+  /** Fee overrides from /admin/settings so the preview matches the charge. */
+  priceCfg?: PriceConfig;
 }) {
   const t = useT();
   // "2026-07-21T09:00"-style props mean an hourly (same-day) stay.
@@ -61,9 +64,10 @@ export function Checkout({
         { parking: true, transfer, ev, transferReturn },
         new Date(start).toISOString(),
         new Date(end).toISOString(),
-        currency
+        currency,
+        priceCfg
       ),
-    [space, transfer, ev, transferReturn, start, end, currency]
+    [space, transfer, ev, transferReturn, start, end, currency, priceCfg]
   );
 
   return (

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireFinanceAdmin } from "@/lib/auth";
 import { createPromoAction, setPromoActiveAction } from "@/lib/admin-suite-actions";
 import { listPromos } from "@/lib/data/promos";
 import { formatDate, formatMoney } from "@/lib/utils";
@@ -25,7 +25,7 @@ export default async function AdminPromosPage({
 }: {
   searchParams: Promise<{ created?: string; createerror?: string }>;
 }) {
-  const user = await requireRole("admin");
+  const user = await requireFinanceAdmin();
   const { t } = await getI18n();
   const { created, createerror } = await searchParams;
   const promos = await listPromos();

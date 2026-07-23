@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireFinanceAdmin } from "@/lib/auth";
 import { markPayoutPaidAction } from "@/lib/admin-suite-actions";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { formatDate, formatMoney } from "@/lib/utils";
@@ -20,7 +20,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function AdminPaymentsPage() {
-  const user = await requireRole("admin");
+  const user = await requireFinanceAdmin();
   const { t, locale } = await getI18n();
 
   const payments = await listAllPayments();

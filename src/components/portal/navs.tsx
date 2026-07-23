@@ -2,6 +2,7 @@ import {
   BadgeCheck,
   Banknote,
   CalendarCheck,
+  CalendarClock,
   Headset,
   LayoutGrid,
   LifeBuoy,
@@ -9,6 +10,7 @@ import {
   Radio,
   ScrollText,
   Search,
+  Settings,
   ShieldAlert,
   Star,
   Tag,
@@ -36,6 +38,7 @@ export const hostNav: NavItem[] = [
 
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "nav.dashboard", icon: LayoutGrid },
+  { href: "/admin/today", label: "admin.today.title", icon: CalendarClock },
   { href: "/admin/verification", label: "nav.hostVerification", icon: BadgeCheck },
   { href: "/admin/operator", label: "nav.operator", icon: Radio },
   { href: "/admin/listings", label: "nav.listings", icon: Warehouse },
@@ -48,4 +51,5 @@ export const adminNav: NavItem[] = [
   { href: "/admin/support", label: "admin.support.title", icon: Headset },
   { href: "/admin/broadcast", label: "admin.broadcast.title", icon: Megaphone },
   { href: "/admin/audit", label: "nav.audit", icon: ScrollText },
+  { href: "/admin/settings", label: "admin.settings.title", icon: Settings },
 ];

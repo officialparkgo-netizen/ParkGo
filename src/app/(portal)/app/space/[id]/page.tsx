@@ -30,6 +30,7 @@ import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { listReviewsForSpace } from "@/lib/data/reviews";
 import { getUserProfile, getUsersByIds } from "@/lib/data/users";
 import { isHourlyStay, priceBundle } from "@/lib/pricing";
+import { getPlatformSettings } from "@/lib/data/settings";
 import { projectToViewport } from "@/lib/services/maps";
 import { daysBetween, formatDate, formatMoneyShort, hoursBetween, initials } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
@@ -77,12 +78,18 @@ export default async function SpaceDetail({
     : `${nights} ${nights === 1 ? t("common.day") : t("common.days")}`;
   const withTransfer = sp.transfer === "1";
   const withEv = sp.ev === "1" && !!space.evCharger;
+  const feeCfg = await getPlatformSettings();
   const price = priceBundle(
     space,
     { parking: true, transfer: withTransfer, ev: withEv },
     start,
     end,
-    currency
+    currency,
+    {
+      serviceFee: feeCfg.serviceFee,
+      parkingCommissionBps: feeCfg.parkingCommissionBps,
+      transferCommissionBps: feeCfg.transferCommissionBps,
+    }
   );
   const priceTotal = price.total;
 

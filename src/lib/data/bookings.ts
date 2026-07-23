@@ -95,6 +95,19 @@ export async function createBookingLive(
   input: CreateBookingInput,
   opts: { status?: Booking["status"]; recordPayment?: boolean } = {}
 ): Promise<Booking> {
+  // Fees are DB-configurable (/admin/settings) — thread them into pricing.
+  if (!input.priceCfg) {
+    const { getPlatformSettings } = await import("@/lib/data/settings");
+    const cfg = await getPlatformSettings();
+    input = {
+      ...input,
+      priceCfg: {
+        serviceFee: cfg.serviceFee,
+        parkingCommissionBps: cfg.parkingCommissionBps,
+        transferCommissionBps: cfg.transferCommissionBps,
+      },
+    };
+  }
   if (!IS_LIVE) return mockCreateBooking(input);
 
   const status = opts.status ?? "paid";
@@ -114,7 +127,7 @@ export async function createBookingLive(
 
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
-  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency);
+  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency, input.priceCfg);
   if (input.promo) price = applyPromoToPrice(price, input.promo);
   const reference = shortRef(`${input.spaceId}|${input.travellerId}|${new Date().toISOString()}`);
   const qrToken = `${reference}|${space.id}|${input.travellerId}`;
@@ -341,8 +354,13 @@ export async function cancelBooking(
     return { ok: false, error: "The booking has already started." };
   }
 
-  const feeApplied = start - now < CANCEL_FREE_WINDOW_MS;
-  const fee = feeApplied ? Math.round((booking.price.total * CANCEL_FEE_BPS) / 10_000) : 0;
+  // Policy is DB-configurable (/admin/settings); constants are the defaults.
+  const { getPlatformSettings } = await import("@/lib/data/settings");
+  const policy = await getPlatformSettings();
+  const feeApplied = start - now < policy.cancelWindowHours * 3_600_000;
+  const fee = feeApplied
+    ? Math.round((booking.price.total * policy.cancelFeeBps) / 10_000)
+    : 0;
   const refund = Math.max(0, booking.price.total - fee);
 
   if (!IS_LIVE) {

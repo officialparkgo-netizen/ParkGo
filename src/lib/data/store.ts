@@ -133,6 +133,31 @@ export function setUserSuspended(userId: string, suspended: boolean): User | und
   return user;
 }
 
+/** Admin: set another admin's scope. */
+export function setUserAdminScope(
+  userId: string,
+  scope: "full" | "support"
+): User | undefined {
+  const user = getUser(userId);
+  if (!user || user.role !== "admin") return undefined;
+  user.adminScope = scope;
+  return user;
+}
+
+/** GDPR: wipe personal data in place; bookings stay for the books. */
+export function anonymizeUser(userId: string): User | undefined {
+  const user = getUser(userId);
+  if (!user || user.role === "admin") return undefined;
+  user.name = "Deleted user";
+  user.email = `deleted-${userId.slice(0, 12)}@removed.parkgo.ai`;
+  user.phone = undefined;
+  user.avatarUrl = undefined;
+  user.vehicle = undefined;
+  user.suspended = true;
+  user.twofaEnabled = false;
+  return user;
+}
+
 /** Self-service: toggle the admin email-code second factor. */
 export function setUserTwofa(userId: string, enabled: boolean): User | undefined {
   const user = getUser(userId);
@@ -298,6 +323,8 @@ export interface CreateBookingInput {
   method?: Payment["method"];
   /** Validated promo to apply (platform absorbs the discount). */
   promo?: { code: string; kind: "percent" | "fixed"; value: number };
+  /** Fee overrides from /admin/settings (threaded in by the data layer). */
+  priceCfg?: import("@/lib/pricing").PriceConfig;
 }
 
 /** Create a booking + payment (+ transfer job if bundled). Returns the booking. */
@@ -307,7 +334,7 @@ export function createBooking(input: CreateBookingInput): Booking {
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
 
-  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency);
+  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency, input.priceCfg);
   if (input.promo) price = applyPromoToPrice(price, input.promo);
   const reference = shortRef(`${input.spaceId}|${input.travellerId}|${db.bookings.length}`);
   const id = `bk_${reference.replace("PG-", "").toLowerCase()}`;
@@ -780,6 +807,13 @@ export function resolveSupportTicket(id: string): boolean {
   if (!t) return false;
   t.status = "resolved";
   return true;
+}
+
+/** Assign an open ticket to an admin (display name). */
+export function assignSupportTicket(id: string, adminName: string): SupportTicket | undefined {
+  const t = supportTickets.find((x) => x.id === id);
+  if (t) t.assignedTo = adminName;
+  return t;
 }
 
 // Re-export for convenience in admin views.

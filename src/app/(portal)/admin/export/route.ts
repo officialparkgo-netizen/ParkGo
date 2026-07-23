@@ -1,4 +1,5 @@
 import { requireRole } from "@/lib/auth";
+import { listSupportTickets } from "@/lib/data/support";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
@@ -186,11 +187,57 @@ async function buildRows(type: string): Promise<{ header: string[]; rows: (strin
   return null;
 }
 
+/** GDPR: everything we hold on one user, in one sheet. */
+async function buildUserDataRows(userId: string) {
+  const [users, bookings, payments, tickets] = await Promise.all([
+    listAllUsers(),
+    listAllBookings(),
+    listAllPayments(),
+    listSupportTickets().catch(() => []),
+  ]);
+  const u = users.find((x) => x.id === userId);
+  if (!u) return null;
+  const own = bookings.filter((b) => b.travellerId === userId);
+  const ownIds = new Set(own.map((b) => b.id));
+  const rows: (string | number)[][] = [
+    ["PROFILE", "", ""],
+    ["Name", u.name, ""],
+    ["Email", u.email, ""],
+    ["Phone", u.phone ?? "", ""],
+    ["Role", u.role, ""],
+    ["Joined", friendly(u.createdAt), ""],
+    ["", "", ""],
+    ["BOOKINGS", "", ""],
+    ...own.map((b) => [b.reference, b.status, `${friendly(b.startAt)} → ${friendly(b.endAt)}`]),
+    ["", "", ""],
+    ["PAYMENTS", "", ""],
+    ...payments
+      .filter((pm) => ownIds.has(pm.bookingId))
+      .map((pm) => [friendly(pm.createdAt), pm.payoutStatus, pounds(pm.amount)]),
+    ["", "", ""],
+    ["SUPPORT TICKETS", "", ""],
+    ...tickets
+      .filter((tk) => tk.email.toLowerCase() === u.email.toLowerCase())
+      .map((tk) => [friendly(tk.createdAt), tk.topic, tk.status]),
+  ];
+  return { header: ["Field", "Value", "Detail"], rows };
+}
+
 export async function GET(request: Request) {
-  await requireRole("admin");
+  const admin = await requireRole("admin");
   const url = new URL(request.url);
   const type = url.searchParams.get("type") ?? "bookings";
-  const data = await buildRows(type);
+  // "support"-scope admins are locked out of money + personal-data exports.
+  if (
+    admin.adminScope === "support" &&
+    ["payments", "payouts", "finance", "userdata"].includes(type)
+  ) {
+    return new Response("Forbidden", { status: 403 });
+  }
+  const data =
+    type === "userdata"
+      ? await buildUserDataRows(url.searchParams.get("user") ?? "")
+      : await buildRows(type);
   if (!data) return new Response("Unknown export type", { status: 400 });
 
   return sheetResponse({

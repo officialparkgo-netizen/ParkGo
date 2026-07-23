@@ -166,6 +166,8 @@ export async function submitKycAction(formData: FormData) {
 
   // Give the team a nudge — verification queues shouldn't rely on polling.
   try {
+    const { sendOpsAlert } = await import("@/lib/ops-alerts");
+    await sendOpsAlert(`📄 New host verification from ${host.displayName}`);
     const { notifyAdminsByEmail } = await import("@/lib/admin-suite-actions");
     await notifyAdminsByEmail(
       `New host verification · ${host.displayName}`,

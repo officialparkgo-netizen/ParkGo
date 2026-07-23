@@ -2,12 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import {
+  AlertTriangle,
   ArrowLeftRight,
   ArrowUpRight,
   CalendarCheck,
+  Download,
   KeyRound,
   ScrollText,
   ShieldCheck,
+  Trash2,
   UserCheck,
   UserX,
   Warehouse,
@@ -26,7 +29,13 @@ import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { listSupportTickets } from "@/lib/data/support";
 import { listAdminActionsForTarget } from "@/lib/data/admin-actions";
 import { setUserRoleAction, setUserSuspendedAction } from "@/lib/user-actions";
-import { addUserNoteAction, startImpersonationAction } from "@/lib/admin-suite-actions";
+import {
+  addUserNoteAction,
+  anonymizeUserAction,
+  setAdminScopeAction,
+  startImpersonationAction,
+} from "@/lib/admin-suite-actions";
+import { computeRiskFlags } from "@/lib/risk";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -39,12 +48,15 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function AdminUserDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ gdpr?: string }>;
 }) {
   const admin = await requireRole("admin");
   const { t } = await getI18n();
   const { id } = await params;
+  const { gdpr } = await searchParams;
 
   const target = (await getUsersByIds([id])).get(id);
   if (!target) redirect("/admin/users");
@@ -60,6 +72,12 @@ export default async function AdminUserDetailPage({
     (tk) => tk.email.toLowerCase() === target.email.toLowerCase()
   );
   const activity = await listAdminActionsForTarget(target.id);
+  const riskFlags = computeRiskFlags({
+    user: target,
+    bookings,
+    actions: activity,
+  });
+  const anonymized = target.email.endsWith("@removed.parkgo.ai");
 
   return (
     <PortalShell user={admin} nav={adminNav} title="nav.users">
@@ -67,6 +85,37 @@ export default async function AdminUserDetailPage({
         <Link href="/admin/users" className="text-sm font-semibold text-brand-600">
           ← {t("nav.users")}
         </Link>
+
+        {gdpr === "done" && (
+          <div className="rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            {t("admin.gdpr.done")}
+          </div>
+        )}
+        {gdpr === "confirm" && (
+          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+            {t("admin.gdpr.confirmNote")}
+          </div>
+        )}
+
+        {/* Risk screening */}
+        {riskFlags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-accent-500" />
+            <span className="font-bold text-navy-900">{t("admin.risk.title")}</span>
+            {riskFlags.map((f) => (
+              <span
+                key={f.key}
+                className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                  f.severity === "high"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-white text-navy-700"
+                }`}
+              >
+                {t(`admin.risk.${f.key}`)}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Profile */}
         <Card className="p-6">
@@ -120,6 +169,34 @@ export default async function AdminUserDetailPage({
               </>
             )}
           </div>
+
+          {/* Admin scope (other admins only, full-scope admins only) */}
+          {target.role === "admin" &&
+            target.id !== admin.id &&
+            admin.adminScope !== "support" && (
+              <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-navy-100 pt-4">
+                <span className="text-sm font-semibold text-navy-700">
+                  {t("admin.scope.label")}
+                </span>
+                {(["full", "support"] as const).map((sc) => (
+                  <form key={sc} action={setAdminScopeAction}>
+                    <input type="hidden" name="userId" value={target.id} />
+                    <input type="hidden" name="scope" value={sc} />
+                    <button
+                      type="submit"
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        (target.adminScope ?? "full") === sc
+                          ? "border-navy-900 bg-navy-900 text-white"
+                          : "border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
+                      }`}
+                    >
+                      {t(`admin.scope.${sc}`)}
+                    </button>
+                  </form>
+                ))}
+                <span className="text-xs text-navy-400">{t("admin.scope.note")}</span>
+              </div>
+            )}
 
           {/* Actions */}
           {target.role !== "admin" && (
@@ -227,6 +304,40 @@ export default async function AdminUserDetailPage({
               ))}
             </Card>
           </section>
+        )}
+
+        {/* GDPR: export everything / anonymize */}
+        {target.role !== "admin" && admin.adminScope !== "support" && (
+          <Card className="border-red-100 p-5">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <ShieldCheck className="h-5 w-5 text-navy-500" /> {t("admin.gdpr.title")}
+            </h3>
+            <p className="mt-0.5 text-sm text-navy-500">{t("admin.gdpr.sub")}</p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <a
+                href={`/admin/export?type=userdata&user=${target.id}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 bg-white px-3 py-2 text-xs font-semibold text-navy-700 hover:bg-navy-50"
+              >
+                <Download className="h-3.5 w-3.5" /> {t("admin.gdpr.export")}
+              </a>
+              {!anonymized && (
+                <form action={anonymizeUserAction} className="flex items-center gap-2">
+                  <input type="hidden" name="userId" value={target.id} />
+                  <input
+                    name="confirm"
+                    placeholder={t("admin.gdpr.typeDelete")}
+                    className="w-32 rounded-lg border border-red-200 bg-white px-2.5 py-2 text-xs font-mono text-red-700 placeholder:text-navy-300"
+                  />
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> {t("admin.gdpr.anonymize")}
+                  </button>
+                </form>
+              )}
+            </div>
+          </Card>
         )}
 
         {/* Internal notes + admin activity on this user */}

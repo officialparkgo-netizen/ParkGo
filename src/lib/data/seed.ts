@@ -98,6 +98,19 @@ export const users: User[] = [
   { id: "user_host3", role: "host", name: "Derek Shaw", email: "derek@parkgo.demo", locale: "en", avatarColor: "#A9430C", onboarded: true, createdAt: iso(-150 * DAY) },
   // Fresh sign-up used to exercise the /welcome onboarding flow (no demo button).
   { id: "user_newbie", role: "traveller", name: "New Traveller", email: "new@parkgo.demo", locale: "en", avatarColor: "#1B6CB3", onboarded: false, createdAt: iso(-1 * DAY) },
+  {
+    // Hidden second admin with "support" scope (no money pages) — exercises
+    // the scope guard in tests; sign in via the parkgo_session cookie.
+    id: "user_admin2",
+    role: "admin",
+    name: "Ops Support",
+    email: "ops@parkgo.demo",
+    locale: "en",
+    avatarColor: "#403A3A",
+    adminScope: "support",
+    onboarded: true,
+    createdAt: iso(-30 * DAY),
+  },
 ];
 
 // -----------------------------------------------------------------------------

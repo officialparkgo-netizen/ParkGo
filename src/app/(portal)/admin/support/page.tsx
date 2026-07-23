@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Headset } from "lucide-react";
+import { Clock, Headset, UserCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { listSupportTickets } from "@/lib/data/support";
 import { resolveSupportTicketAction } from "@/lib/support-actions";
+import { assignSupportTicketAction } from "@/lib/admin-suite-actions";
 import { formatDateTime } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -24,6 +25,12 @@ export default async function AdminSupportPage() {
   const { t } = await getI18n();
 
   const supportTickets = await listSupportTickets().catch(() => []);
+  const ageOf = (iso: string) => {
+    const h = Math.floor((Date.now() - +new Date(iso)) / 3_600_000);
+    return h < 1 ? "<1h" : h < 48 ? `${h}h` : `${Math.floor(h / 24)}d`;
+  };
+  const isOverdue = (tk: (typeof supportTickets)[number]) =>
+    tk.status === "open" && Date.now() - +new Date(tk.createdAt) > 24 * 3_600_000;
 
   return (
     <PortalShell user={user} nav={adminNav} title="admin.support.title">
@@ -58,12 +65,34 @@ export default async function AdminSupportPage() {
                       {ticket.topic} · {formatDateTime(ticket.createdAt)}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-navy-400">
+                      <Clock className="h-3 w-3" /> {ageOf(ticket.createdAt)}
+                    </span>
+                    {isOverdue(ticket) && (
+                      <Badge tone="danger">{t("admin.sla.overdue")}</Badge>
+                    )}
+                    {ticket.assignedTo && (
+                      <Badge tone="navy">
+                        <UserCheck className="h-3 w-3" /> {ticket.assignedTo}
+                      </Badge>
+                    )}
                     <Badge tone={ticket.status === "open" ? "accent" : "go"}>
                       {ticket.status === "open"
                         ? t("admin.support.openBadge")
                         : t("admin.support.resolvedBadge")}
                     </Badge>
+                    {ticket.status === "open" && !ticket.assignedTo && (
+                      <form action={assignSupportTicketAction}>
+                        <input type="hidden" name="ticketId" value={ticket.id} />
+                        <button
+                          type="submit"
+                          className={buttonVariants({ variant: "outline", size: "sm" })}
+                        >
+                          <UserCheck className="h-3.5 w-3.5" /> {t("admin.sla.assignMe")}
+                        </button>
+                      </form>
+                    )}
                     {ticket.status === "open" && (
                       <form action={resolveSupportTicketAction}>
                         <input type="hidden" name="ticketId" value={ticket.id} />

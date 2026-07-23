@@ -107,6 +107,16 @@ export async function requireRole(role: Role): Promise<User> {
   return user;
 }
 
+/**
+ * Guard for the money pages (payments, promos, broadcast, settings, finance
+ * exports): "support"-scope admins are bounced back to the dashboard.
+ */
+export async function requireFinanceAdmin(): Promise<User> {
+  const user = await requireRole("admin");
+  if (user.adminScope === "support") redirect("/admin");
+  return user;
+}
+
 export function rolePath(role: Role): string {
   switch (role) {
     case "traveller":

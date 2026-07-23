@@ -44,6 +44,11 @@ export interface User {
    */
   impersonatedBy?: UUID;
   /**
+   * Admin-only: "support" scope is locked out of the money pages
+   * (payments, promos, broadcast, settings, finance exports). Absent = full.
+   */
+  adminScope?: "full" | "support";
+  /**
    * First-run profile setup done. Strictly `false` gates non-admins to
    * /welcome; undefined (pre-migration rows) never gates.
    */
@@ -399,6 +404,27 @@ export interface PromoCode {
   createdAt: ISODateString;
 }
 
+/** DB-backed platform configuration, editable at /admin/settings. */
+export interface PlatformSettings {
+  /** Flat traveller service fee, pence. */
+  serviceFee: Pence;
+  /** Commission on parking + EV lines, basis points. */
+  parkingCommissionBps: number;
+  /** Commission on the transfer line, basis points. */
+  transferCommissionBps: number;
+  /** Free-cancellation cut-off before drop-off, hours. */
+  cancelWindowHours: number;
+  /** Late-cancellation fee, basis points of the total. */
+  cancelFeeBps: number;
+  /** Overrides ADMIN_ALERT_EMAIL for admin notification emails. */
+  adminAlertEmail?: string;
+  /** Slack-compatible webhook for instant ops alerts. */
+  opsWebhookUrl?: string;
+  /** Site-wide announcement banner (marketing pages). */
+  announcement?: string;
+  announcementOn: boolean;
+}
+
 export type ClaimStatus = "open" | "in_review" | "resolved" | "rejected";
 
 /** Damage / incident claim raised against a booking. */
@@ -529,4 +555,6 @@ export interface SupportTicket {
   transcript: SupportMessage[];
   status: "open" | "resolved";
   createdAt: ISODateString;
+  /** Admin who picked the ticket up (display name). */
+  assignedTo?: string;
 }

@@ -9,6 +9,7 @@ import { Photo } from "@/components/common/photo";
 import { requireRole } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
 import { getSpaceById } from "@/lib/data/hosts";
+import { getPlatformSettings } from "@/lib/data/settings";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -37,6 +38,12 @@ export default async function BookPage({
   if (space.status !== "live") redirect(`/app/search?airport=${space.airportSlug}`);
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
+  const cfg = await getPlatformSettings();
+  const priceCfg = {
+    serviceFee: cfg.serviceFee,
+    parkingCommissionBps: cfg.parkingCommissionBps,
+    transferCommissionBps: cfg.transferCommissionBps,
+  };
 
   return (
     <PortalShell user={user} nav={travellerNav} title="app.checkout.title">
@@ -64,6 +71,7 @@ export default async function BookPage({
           initialEv={sp.ev === "1"}
           allowTransfer={!airport?.kind || airport.kind === "airport"}
           promoInvalid={sp.promo === "invalid"}
+          priceCfg={priceCfg}
         />
       </div>
     </PortalShell>

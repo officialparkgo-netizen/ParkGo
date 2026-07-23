@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { requireRole, requireUser, rolePath } from "@/lib/auth";
+import { requireFinanceAdmin, requireRole, requireUser, rolePath } from "@/lib/auth";
 import { recordAdminAction } from "@/lib/data/admin-actions";
 import { adminCancelBooking, getBookingById, markPayoutPaid } from "@/lib/data/bookings";
 import { setReviewHiddenAdmin } from "@/lib/data/reviews";
@@ -163,6 +163,8 @@ export async function fileClaimAction(formData: FormData) {
     openedByRole: user.role,
     description,
   });
+  const { sendOpsAlert } = await import("@/lib/ops-alerts");
+  await sendOpsAlert(`🛑 New claim on ${booking.reference} from ${user.name}`);
   await notifyAdminsByEmail(
     `New claim on ${booking.reference}`,
     `<p><strong>${user.name}</strong> filed a claim on booking ${booking.reference}:</p><p>${description
@@ -239,7 +241,9 @@ export async function broadcastEmailAction(formData: FormData) {
 export async function notifyAdminsByEmail(subject: string, bodyHtml: string): Promise<void> {
   try {
     if (!isEmailConfigured()) return;
-    const override = process.env.ADMIN_ALERT_EMAIL;
+    const { getPlatformSettings } = await import("@/lib/data/settings");
+    const settings = await getPlatformSettings();
+    const override = settings.adminAlertEmail || process.env.ADMIN_ALERT_EMAIL;
     let recipients: string[];
     if (override) {
       recipients = [override];
@@ -255,4 +259,107 @@ export async function notifyAdminsByEmail(subject: string, bodyHtml: string): Pr
   } catch {
     // alerts must never break the underlying flow
   }
+}
+
+/** Save platform settings (fees, cancel policy, alerts, announcement). */
+export async function savePlatformSettingsAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const { savePlatformSettings } = await import("@/lib/data/settings");
+  const num = (k: string) => Number(formData.get(k));
+  await savePlatformSettings({
+    serviceFee: Math.round(num("serviceFee") * 100),
+    parkingCommissionBps: Math.round(num("parkingPct") * 100),
+    transferCommissionBps: Math.round(num("transferPct") * 100),
+    cancelWindowHours: num("cancelWindowHours"),
+    cancelFeeBps: Math.round(num("cancelFeePct") * 100),
+    adminAlertEmail: String(formData.get("adminAlertEmail") || ""),
+    opsWebhookUrl: String(formData.get("opsWebhookUrl") || ""),
+    announcement: String(formData.get("announcement") || ""),
+    announcementOn: formData.get("announcementOn") === "on",
+  });
+  await recordAdminAction(admin, "settings.updated", "broadcast", "platform");
+  revalidatePath("/admin/settings");
+  revalidatePath("/");
+  redirect("/admin/settings?saved=1");
+}
+
+/** Send the daily digest right now (same content as the cron). */
+export async function sendDigestNowAction() {
+  const admin = await requireFinanceAdmin();
+  const { composeAndSendDigest } = await import("@/lib/digest");
+  const summary = await composeAndSendDigest();
+  await recordAdminAction(
+    admin,
+    "digest.sent",
+    "broadcast",
+    "digest",
+    summary.emailed ? `emailed ${summary.sentTo.length}` : "preview (email not configured)"
+  );
+  redirect(`/admin/settings?digest=${summary.emailed ? "sent" : "preview"}`);
+}
+
+/** Pick up an open support ticket. */
+export async function assignSupportTicketAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const id = String(formData.get("ticketId") || "");
+  if (!id) return;
+  const { setSupportTicketAssigned } = await import("@/lib/data/support");
+  await setSupportTicketAssigned(id, admin.name);
+  await recordAdminAction(admin, "support.assigned", "user", id, admin.name);
+  revalidatePath("/admin/support");
+}
+
+/** Approve every listing waiting for review in one click. */
+export async function bulkApproveListingsAction() {
+  const admin = await requireRole("admin");
+  const { listAllSpaces, reviewSpaceListing } = await import("@/lib/data/hosts");
+  const spaces = await listAllSpaces();
+  const pending = spaces.filter(
+    (s) => s.status === "pending_review" || s.status === "draft"
+  );
+  for (const space of pending) {
+    await reviewSpaceListing(space.id, "approved", admin.id);
+  }
+  await recordAdminAction(
+    admin,
+    "listing.bulk_approved",
+    "space",
+    "all",
+    `${pending.length} listings`
+  );
+  revalidatePath("/admin/listings");
+  revalidatePath("/admin");
+  redirect(`/admin/listings?bulk=${pending.length}`);
+}
+
+/** GDPR: anonymize an account (typed confirmation required). */
+export async function anonymizeUserAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const userId = String(formData.get("userId") || "");
+  const confirm = String(formData.get("confirm") || "");
+  if (!userId || confirm !== "DELETE") {
+    redirect(`/admin/users/${userId}?gdpr=confirm`);
+  }
+  const target = (await getUsersByIds([userId])).get(userId);
+  if (!target || target.role === "admin") redirect("/admin/users");
+  const { anonymizeUserAdmin } = await import("@/lib/data/users");
+  const ok = await anonymizeUserAdmin(userId);
+  if (ok) {
+    await recordAdminAction(admin, "user.anonymized", "user", userId, target.email);
+  }
+  revalidatePath(`/admin/users/${userId}`);
+  redirect(`/admin/users/${userId}?gdpr=${ok ? "done" : "error"}`);
+}
+
+/** Set another admin's scope (full vs support). */
+export async function setAdminScopeAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const userId = String(formData.get("userId") || "");
+  const scope = String(formData.get("scope") || "");
+  if (!userId || userId === admin.id) return;
+  if (scope !== "full" && scope !== "support") return;
+  const { setAdminScopeAdmin } = await import("@/lib/data/users");
+  const ok = await setAdminScopeAdmin(userId, scope);
+  if (ok) await recordAdminAction(admin, `admin.scope_${scope}`, "user", userId);
+  revalidatePath(`/admin/users/${userId}`);
 }

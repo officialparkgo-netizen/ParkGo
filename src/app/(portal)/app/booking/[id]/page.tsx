@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import {
   CalendarPlus,
   CheckCircle2,
+  FileText,
   Clock,
   KeyRound,
   MapPin,
@@ -24,11 +25,8 @@ import { QrCode } from "@/components/portal/qr";
 import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
-import {
-  CANCEL_FEE_BPS,
-  CANCEL_FREE_WINDOW_MS,
-  getBookingById,
-} from "@/lib/data/bookings";
+import { getBookingById } from "@/lib/data/bookings";
+import { getPlatformSettings } from "@/lib/data/settings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
 import { cancelBookingAction, extendBookingAction } from "@/lib/booking-actions";
@@ -106,9 +104,11 @@ export default async function BookingPage({
   const minExtendDate = new Date(new Date(booking.endAt).getTime() + 86_400_000)
     .toISOString()
     .slice(0, 10);
-  const lateCancel = cancellable && msToStart < CANCEL_FREE_WINDOW_MS;
+  const policy = await getPlatformSettings();
+  const lateCancel = cancellable && msToStart < policy.cancelWindowHours * 3_600_000;
   const previewRefund = lateCancel
-    ? booking.price.total - Math.round((booking.price.total * CANCEL_FEE_BPS) / 10_000)
+    ? booking.price.total -
+      Math.round((booking.price.total * policy.cancelFeeBps) / 10_000)
     : booking.price.total;
 
   return (
@@ -405,6 +405,14 @@ export default async function BookingPage({
                   className={buttonVariants({ variant: "outline" })}
                 >
                   <Star className="h-4 w-4" /> {t("app.booking.viewReview")}
+                </Link>
+              )}
+              {paid && (
+                <Link
+                  href={`/app/booking/${booking.id}/receipt`}
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  <FileText className="h-4 w-4" /> {t("receipt.title")}
                 </Link>
               )}
               <Link href="/app" className={buttonVariants({ variant: "ghost" })}>

@@ -175,8 +175,16 @@ export default async function HostPayoutsPage() {
             <section key={g.key}>
               <div className="mb-2 flex items-baseline justify-between gap-2">
                 <h3 className="font-bold text-navy-900">{g.label}</h3>
-                <span className="text-sm font-bold text-navy-500">
-                  {formatMoney(g.total)}
+                <span className="flex items-baseline gap-3">
+                  <a
+                    href={`/host/export?month=${g.key}`}
+                    className="text-xs font-semibold text-brand-600 hover:underline"
+                  >
+                    {t("host.pay.statement")}
+                  </a>
+                  <span className="text-sm font-bold text-navy-500">
+                    {formatMoney(g.total)}
+                  </span>
                 </span>
               </div>
               <Card className="divide-y divide-navy-100">

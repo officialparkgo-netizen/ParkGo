@@ -57,12 +57,20 @@ export function evCost(charger: EvCharger | null): Pence {
  * Compute the full bundle price + marketplace split for a booking.
  * Single price, single checkout — the differentiator in the brief.
  */
+/** Runtime fee overrides (from /admin/settings); defaults = code constants. */
+export interface PriceConfig {
+  serviceFee: Pence;
+  parkingCommissionBps: number;
+  transferCommissionBps: number;
+}
+
 export function priceBundle(
   space: Space,
   bundle: BookingBundle,
   startAt: string,
   endAt: string,
-  currency: "GBP" | "EUR" = "GBP"
+  currency: "GBP" | "EUR" = "GBP",
+  cfg?: PriceConfig
 ): PriceBreakdown {
   const parking: Pence = isHourlyStay(space, startAt, endAt)
     ? Math.min(hoursBetween(startAt, endAt) * (space.pricePerHour as Pence), space.pricePerDay)
@@ -71,10 +79,10 @@ export function priceBundle(
     ? TRANSFER_BASE_FARE * (bundle.transferReturn ? 2 : 1)
     : 0;
   const ev: Pence = bundle.ev ? evCost(space.evCharger) : 0;
-  const serviceFee: Pence = SERVICE_FEE;
+  const serviceFee: Pence = cfg?.serviceFee ?? SERVICE_FEE;
 
   const total = parking + transfer + ev + serviceFee;
-  const split = computeSplit({ parking, transfer, ev, serviceFee });
+  const split = computeSplit({ parking, transfer, ev, serviceFee }, cfg);
 
   return { parking, transfer, ev, serviceFee, total, split, currency };
 }
@@ -85,14 +93,23 @@ export function priceBundle(
  * pure platform revenue. EV revenue follows the parking commission (the host
  * owns the charger).
  */
-export function computeSplit(lines: {
-  parking: Pence;
-  transfer: Pence;
-  ev: Pence;
-  serviceFee: Pence;
-}): PaymentSplit {
-  const parkingCommission = bps(lines.parking + lines.ev, COMMISSION.parkingBps);
-  const transferCommission = bps(lines.transfer, COMMISSION.transferBps);
+export function computeSplit(
+  lines: {
+    parking: Pence;
+    transfer: Pence;
+    ev: Pence;
+    serviceFee: Pence;
+  },
+  cfg?: PriceConfig
+): PaymentSplit {
+  const parkingCommission = bps(
+    lines.parking + lines.ev,
+    cfg?.parkingCommissionBps ?? COMMISSION.parkingBps
+  );
+  const transferCommission = bps(
+    lines.transfer,
+    cfg?.transferCommissionBps ?? COMMISSION.transferBps
+  );
 
   const platform = parkingCommission + transferCommission + lines.serviceFee;
   const hostPayout = lines.parking + lines.ev - parkingCommission;

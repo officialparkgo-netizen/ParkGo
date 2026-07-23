@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowUpRight, CheckCircle2, PauseCircle, XCircle } from "lucide-react";
+import { ArrowUpRight, CheckCheck, CheckCircle2, PauseCircle, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { pauseSpaceAction, reviewSpaceAction } from "@/lib/booking-actions";
+import { bulkApproveListingsAction } from "@/lib/admin-suite-actions";
 import { getAirport } from "@/lib/data/store";
 import { getHostsByIds, listAllSpaces } from "@/lib/data/hosts";
 import { formatMoney } from "@/lib/utils";
@@ -20,9 +21,14 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 });
 
-export default async function AdminListingsPage() {
+export default async function AdminListingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bulk?: string }>;
+}) {
   const user = await requireRole("admin");
   const { t } = await getI18n();
+  const { bulk } = await searchParams;
 
   const spaces = await listAllSpaces();
   const spaceHostMap = await getHostsByIds(spaces.map((s) => s.hostId));
@@ -43,12 +49,28 @@ export default async function AdminListingsPage() {
           ← {t("common.backToDash")}
         </Link>
 
+        {bulk && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {bulk} {t("admin.bulk.done")}
+          </div>
+        )}
+
         <section id="listings">
           <div className="mb-3 flex items-center gap-2">
             <h3 className="text-lg font-bold text-navy-900">{t("nav.listings")}</h3>
             <Badge tone="neutral">{spaces.length} {t("admin.total")}</Badge>
             {pendingListings > 0 && (
               <Badge tone="accent">{pendingListings} {t("admin.awaitingReview")}</Badge>
+            )}
+            {pendingListings > 0 && (
+              <form action={bulkApproveListingsAction} className="ms-auto">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                >
+                  <CheckCheck className="h-3.5 w-3.5" /> {t("admin.bulk.approveAll")} ({pendingListings})
+                </button>
+              </form>
             )}
           </div>
           <Card className="divide-y divide-navy-100">

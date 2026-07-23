@@ -5,6 +5,7 @@ import {
   addSupportTicket as addSupportTicketMock,
   getSupportTickets as getSupportTicketsMock,
   resolveSupportTicket as resolveSupportTicketMock,
+  assignSupportTicket as assignSupportTicketMock,
 } from "@/lib/data/store";
 
 /**
@@ -21,6 +22,7 @@ type TicketRow = {
   transcript: SupportMessage[] | null;
   status: string;
   created_at: string;
+  assigned_to?: string | null;
 };
 
 function fromRow(r: TicketRow): SupportTicket {
@@ -32,10 +34,11 @@ function fromRow(r: TicketRow): SupportTicket {
     transcript: Array.isArray(r.transcript) ? r.transcript : [],
     status: r.status === "resolved" ? "resolved" : "open",
     createdAt: r.created_at,
+    assignedTo: r.assigned_to ?? undefined,
   };
 }
 
-const COLS = "id, name, email, topic, transcript, status, created_at";
+const COLS = "*";
 
 export async function createSupportTicket(
   entry: Omit<SupportTicket, "id" | "createdAt" | "status">
@@ -75,6 +78,19 @@ export async function setSupportTicketResolved(id: string): Promise<boolean> {
   const { error } = await supabaseAdmin()
     .from("support_tickets")
     .update({ status: "resolved" })
+    .eq("id", id);
+  return !error;
+}
+
+/** Assign an open ticket to an admin by display name. */
+export async function setSupportTicketAssigned(
+  id: string,
+  adminName: string
+): Promise<boolean> {
+  if (!IS_LIVE) return !!assignSupportTicketMock(id, adminName);
+  const { error } = await supabaseAdmin()
+    .from("support_tickets")
+    .update({ assigned_to: adminName.slice(0, 120) })
     .eq("id", id);
   return !error;
 }

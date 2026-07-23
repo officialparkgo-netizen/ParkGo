@@ -39,6 +39,8 @@ export async function submitSupportTicket(input: {
     }));
 
   try {
+    const { sendOpsAlert } = await import("@/lib/ops-alerts");
+    await sendOpsAlert(`🎧 New support ticket from ${String(input.name || email)}`);
     const ticket = await createSupportTicket({
       name: String(input.name || "").trim().slice(0, 120),
       email: email.slice(0, 200),
