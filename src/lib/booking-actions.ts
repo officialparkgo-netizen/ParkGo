@@ -267,6 +267,7 @@ export async function reviewVerificationAction(formData: FormData) {
     String(formData.get("notes") || "") || undefined
   );
   revalidatePath("/admin");
+  revalidatePath("/admin/verification");
   revalidatePath("/host");
 }
 
@@ -278,6 +279,7 @@ export async function reviewSpaceAction(formData: FormData) {
   if (decision !== "approved" && decision !== "rejected") return;
   const space = await reviewSpaceListing(spaceId, decision, admin.id);
   revalidatePath("/admin");
+  revalidatePath("/admin/listings");
   revalidatePath("/host");
   revalidatePath("/app/search");
   if (space) revalidatePath(`/airports/${space.airportSlug}`);
@@ -291,6 +293,7 @@ export async function pauseSpaceAction(formData: FormData) {
   if (!spaceId || (state !== "pause" && state !== "reactivate")) return;
   const space = await setSpacePausedAdmin(spaceId, state === "pause");
   revalidatePath("/admin");
+  revalidatePath("/admin/listings");
   revalidatePath("/host");
   revalidatePath("/app/search");
   if (space) revalidatePath(`/airports/${space.airportSlug}`);

@@ -81,4 +81,5 @@ export async function resolveSupportTicketAction(formData: FormData) {
   const id = String(formData.get("ticketId") || "");
   if (id) await setSupportTicketResolved(id);
   revalidatePath("/admin");
+  revalidatePath("/admin/support");
 }

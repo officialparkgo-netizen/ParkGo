@@ -128,6 +128,7 @@ export async function setUserRoleAction(formData: FormData) {
 
   await setUserRoleAdmin(userId, role);
   revalidatePath("/admin");
+  revalidatePath("/admin/users");
 }
 
 /** Admin: suspend or restore an account. Admin accounts can't be suspended. */
@@ -143,4 +144,5 @@ export async function setUserSuspendedAction(formData: FormData) {
 
   await setUserSuspendedAdmin(userId, state === "suspend");
   revalidatePath("/admin");
+  revalidatePath("/admin/users");
 }

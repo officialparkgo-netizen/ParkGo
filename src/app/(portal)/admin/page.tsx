@@ -1,29 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ArrowLeftRight,
   ArrowUpRight,
   Banknote,
   CalendarCheck,
-  Car,
-  CheckCircle2,
-  Clock,
-  FileText,
-  Download,
   Globe,
-  Headset,
   History,
   LayoutGrid,
-  Mail,
-  PauseCircle,
-  Phone,
-  Radio,
-  ScrollText,
   Search,
   ShieldAlert,
   TrendingUp,
-  UserCheck,
-  UserX,
   Users,
   Warehouse,
   XCircle,
@@ -36,44 +22,14 @@ import { StatusBadge } from "@/components/portal/status";
 import { StatCard } from "@/components/portal/stat-card";
 import { EarningsChart } from "@/components/portal/earnings-chart";
 import { adminNav } from "@/components/portal/navs";
-import { trustBand, computeTrustScore } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
-import {
-  pauseSpaceAction,
-  reviewSpaceAction,
-  reviewVerificationAction,
-} from "@/lib/booking-actions";
-import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
 import { getAirport } from "@/lib/data/store";
-import { listAllReviews } from "@/lib/data/reviews";
-import { getHostsByIds, listAllHosts, listAllSpaces } from "@/lib/data/hosts";
-import {
-  listAllVerificationsLive,
-  listPendingVerificationsLive,
-} from "@/lib/data/verifications";
+import { getHostsByIds, listAllSpaces } from "@/lib/data/hosts";
+import { listPendingVerificationsLive } from "@/lib/data/verifications";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { getUsersByIds, listAllUsers } from "@/lib/data/users";
-import { listWaitlist } from "@/lib/data/waitlist";
 import { listSupportTickets } from "@/lib/data/support";
-import { resolveSupportTicketAction } from "@/lib/support-actions";
-import { setUserRoleAction, setUserSuspendedAction } from "@/lib/user-actions";
-import type { Host } from "@/types";
-
-function hostTrustScore(h: Host) {
-  return computeTrustScore({
-    subjectId: h.id,
-    subjectType: "host",
-    verification: h.verificationStatus,
-    reviews: [],
-    reliability: 0.95,
-    tenureDays: Math.max(
-      0,
-      Math.floor((Date.now() - new Date(h.joinedAt).getTime()) / 86_400_000)
-    ),
-    updatedAt: new Date().toISOString(),
-  });
-}
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -83,11 +39,11 @@ export const metadata: Metadata = pageMetadata({ title: "Admin", path: "/admin",
 export default async function AdminDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; bstatus?: string; range?: string }>;
+  searchParams: Promise<{ q?: string; range?: string }>;
 }) {
   const user = await requireRole("admin");
   const { t, locale } = await getI18n();
-  const { q: qRaw, bstatus: bstatusRaw, range: rangeRaw } = await searchParams;
+  const { q: qRaw, range: rangeRaw } = await searchParams;
 
   // Time window for the money/booking metrics (?range=7d|30d|90d, default all).
   const RANGES = ["7d", "30d", "90d"] as const;
@@ -99,15 +55,8 @@ export default async function AdminDashboard({
     : null;
   const inRange = (iso: string) => rangeCutoff === null || +new Date(iso) >= rangeCutoff;
   const pending = await listPendingVerificationsLive();
-  const allVerifications = await listAllVerificationsLive();
   const spaces = await listAllSpaces();
-  const spaceHostMap = await getHostsByIds([
-    ...spaces.map((s) => s.hostId),
-    ...pending.filter((v) => v.subjectType === "host").map((v) => v.subjectId),
-  ]);
-  const hostUserMap = await getUsersByIds(
-    [...spaceHostMap.values()].map((h) => h.userId)
-  );
+  const spaceHostMap = await getHostsByIds(spaces.map((s) => s.hostId));
   const payments = await listAllPayments();
   const bookings = await listAllBookings();
 
@@ -133,15 +82,6 @@ export default async function AdminDashboard({
   const pendingListings = spaces.filter(
     (s) => s.status === "pending_review" || s.status === "draft"
   ).length;
-  const listingRank = (status: string) =>
-    status === "pending_review" || status === "draft" ? 0 : status === "live" ? 1 : 2;
-  const sortedSpaces = [...spaces].sort(
-    (a, b) => listingRank(a.status) - listingRank(b.status)
-  );
-
-  const trustRows = (await listAllHosts())
-    .map((h) => ({ name: h.displayName, type: "Host", score: hostTrustScore(h) }))
-    .sort((a, b) => b.score.score - a.score.score);
 
   // People & bookings overview.
   const allUsers = await listAllUsers();
@@ -152,40 +92,15 @@ export default async function AdminDashboard({
     (b) => b.status === "paid" || b.status === "active"
   ).length;
 
-  // Bookings list filter (?bstatus=) — pills above the recent-bookings card.
-  const BOOKING_FILTERS = ["paid", "active", "completed", "cancelled"] as const;
-  const bstatus = (BOOKING_FILTERS as readonly string[]).includes(bstatusRaw ?? "")
-    ? (bstatusRaw as (typeof BOOKING_FILTERS)[number])
-    : null;
-  const filteredBookings = bstatus
-    ? rangeBookings.filter((b) => b.status === bstatus)
-    : rangeBookings;
-  const recentBookings = [...filteredBookings]
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-    .slice(0, 8);
-  const bookingFilterHref = (s?: string) => {
-    const p = new URLSearchParams();
-    if (qRaw) p.set("q", qRaw);
-    if (range) p.set("range", range);
-    if (s) p.set("bstatus", s);
-    const qs = p.toString();
-    return `/admin${qs ? `?${qs}` : ""}#bookings`;
-  };
   const rangeHref = (r?: string) => {
     const p = new URLSearchParams();
     if (qRaw) p.set("q", qRaw);
-    if (bstatus) p.set("bstatus", bstatus);
     if (r) p.set("range", r);
     const qs = p.toString();
     return `/admin${qs ? `?${qs}` : ""}`;
   };
   const travellerMap = await getUsersByIds(bookings.map((b) => b.travellerId));
   const spaceMap = new Map(spaces.map((s) => [s.id, s]));
-  const recentUsers = allUsers
-    .slice()
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-    .slice(0, 10);
-  const waitlist = await listWaitlist().catch(() => []);
   const supportTickets = await listSupportTickets().catch(() => []);
 
   // Global admin search (?q=): bookings, listings, users and tickets.
@@ -230,10 +145,6 @@ export default async function AdminDashboard({
   const cancelRate = rangeBookings.length
     ? Math.round((rangeCancelled / rangeBookings.length) * 100)
     : 0;
-  const recentPayments = payments
-    .filter((p) => inRange(p.createdAt))
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-    .slice(0, 8);
 
   // Monthly GMV (last six months) + booking revenue per destination.
   const localeTag =
@@ -268,11 +179,6 @@ export default async function AdminDashboard({
       ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
       : null;
 
-  // Transfer is fulfilled by an independent licensed operator, integrated by API.
-  const operator = getOperatorStatus();
-  const operatorJobs = getOperatorJobs();
-
-  const audit = buildAuditFeed({ bookings, verifications: allVerifications, reviews: await listAllReviews() });
   const alerts = (await listNotificationsForUser(user.id)).slice(0, 6);
 
   return (
@@ -507,57 +413,57 @@ export default async function AdminDashboard({
             <ShieldAlert className="h-5 w-5 shrink-0 text-accent-500" aria-hidden />
             <span className="font-bold text-navy-900">{t("admin.attention.title")}</span>
             {pending.length > 0 && (
-              <a
-                href="#verification"
+              <Link
+                href="/admin/verification"
                 className="rounded-full border border-accent-300 bg-white px-3 py-1 text-sm font-semibold text-navy-800 transition-colors hover:bg-accent-100"
               >
                 {pending.length} {t("admin.attention.verifications")}
-              </a>
+              </Link>
             )}
             {pendingListings > 0 && (
-              <a
-                href="#listings"
+              <Link
+                href="/admin/listings"
                 className="rounded-full border border-accent-300 bg-white px-3 py-1 text-sm font-semibold text-navy-800 transition-colors hover:bg-accent-100"
               >
                 {pendingListings} {t("admin.attention.listings")}
-              </a>
+              </Link>
             )}
             {supportTickets.filter((x) => x.status === "open").length > 0 && (
-              <a
-                href="#support"
+              <Link
+                href="/admin/support"
                 className="rounded-full border border-accent-300 bg-white px-3 py-1 text-sm font-semibold text-navy-800 transition-colors hover:bg-accent-100"
               >
                 {supportTickets.filter((x) => x.status === "open").length}{" "}
                 {t("admin.attention.tickets")}
-              </a>
+              </Link>
             )}
           </div>
         )}
 
-        {/* In-page section navigation for this long dashboard */}
+        {/* Every admin area now lives on its own page */}
         <nav
           aria-label={t("admin.sectionsNav")}
           className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1"
         >
           {(
             [
-              ["#verification", t("nav.hostVerification")],
-              ["#listings", t("nav.listings")],
-              ["#bookings", t("nav.bookings")],
-              ["#users", t("nav.users")],
-              ["#payments", t("nav.payments")],
-              ["#support", t("admin.support.title")],
-              ["#waitlist", t("admin.section.waitlist")],
-              ["#audit", t("nav.audit")],
+              ["/admin/verification", t("nav.hostVerification")],
+              ["/admin/listings", t("nav.listings")],
+              ["/admin/bookings", t("nav.bookings")],
+              ["/admin/users", t("nav.users")],
+              ["/admin/payments", t("nav.payments")],
+              ["/admin/support", t("admin.support.title")],
+              ["/admin/users#waitlist", t("admin.section.waitlist")],
+              ["/admin/audit", t("nav.audit")],
             ] as const
           ).map(([href, label]) => (
-            <a
+            <Link
               key={href}
               href={href}
               className="shrink-0 whitespace-nowrap rounded-full border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 transition-colors hover:bg-navy-50"
             >
               {label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -646,590 +552,6 @@ export default async function AdminDashboard({
           </div>
         </section>
 
-        {/* Host verification queue (driver/vehicle/insurance compliance sits with the operator) */}
-        <section id="verification" className="scroll-mt-20">
-          <div className="mb-3 flex items-center gap-2">
-            <h3 className="text-lg font-bold text-navy-900">{t("admin.section.verificationQueue")}</h3>
-            <a
-              href="/admin/export?type=verifications"
-              className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}
-            >
-              <Download className="h-4 w-4" /> {t("admin.exportCsv")}
-            </a>
-          </div>
-          {pending.length === 0 ? (
-            <Card className="p-6 text-center text-navy-500">{t("admin.queueClear")}</Card>
-          ) : (
-            <div className="space-y-4">
-              {pending.map((v) => {
-                const vHost = v.subjectType === "host" ? spaceHostMap.get(v.subjectId) : undefined;
-                const vUser = vHost ? hostUserMap.get(vHost.userId) : undefined;
-                const vListings = vHost ? spaces.filter((s) => s.hostId === vHost.id) : [];
-                return (
-                  <Card key={v.id} className="p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-bold text-navy-900">
-                            {vHost?.displayName ?? v.subjectId}
-                          </span>
-                          <Badge tone="neutral">{v.subjectType}</Badge>
-                          <StatusBadge status={v.status} />
-                        </div>
-                        <p className="mt-0.5 text-sm text-navy-500">
-                          {t("admin.submitted")} {v.submittedAt ? formatDate(v.submittedAt) : "—"}
-                        </p>
-
-                        {/* Who the admin is actually approving */}
-                        {vUser && (
-                          <div className="mt-3 grid gap-x-6 gap-y-1.5 text-sm text-navy-700 sm:grid-cols-2">
-                            <span className="inline-flex items-center gap-1.5 break-all">
-                              <Mail className="h-3.5 w-3.5 shrink-0 text-navy-400" /> {vUser.email}
-                            </span>
-                            <span className="inline-flex items-center gap-1.5">
-                              <Phone className="h-3.5 w-3.5 shrink-0 text-navy-400" />{" "}
-                              {vUser.phone ?? "—"}
-                            </span>
-                            <span className="inline-flex items-center gap-1.5">
-                              <CalendarCheck className="h-3.5 w-3.5 shrink-0 text-navy-400" />{" "}
-                              {t("admin.users.joined")} {formatDate(vUser.createdAt)}
-                            </span>
-                            <span className="inline-flex items-center gap-1.5">
-                              <Warehouse className="h-3.5 w-3.5 shrink-0 text-navy-400" />{" "}
-                              {vListings.length} {t("admin.verif.listings")}
-                            </span>
-                          </div>
-                        )}
-                        {vListings.length > 0 && (
-                          <ul className="mt-2.5 flex flex-wrap gap-2">
-                            {vListings.slice(0, 3).map((s) => (
-                              <li key={s.id}>
-                                <Link
-                                  href={`/app/space/${s.id}`}
-                                  className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-2.5 py-1 text-xs font-semibold text-navy-600 hover:bg-navy-50"
-                                >
-                                  {s.title} <ArrowUpRight className="h-3 w-3" />
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        {v.notes && (
-                          <p className="mt-3 rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-700">
-                            {v.notes}
-                          </p>
-                        )}
-
-                        {/* Submitted documents — open from the private KYC store */}
-                        <ul className="mt-3 flex flex-wrap gap-2">
-                          {v.documents.map((d) => (
-                            <li key={d.id}>
-                              <a
-                                href={`/admin/kyc?ref=${encodeURIComponent(d.fileRef)}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                title={`${t("admin.verif.uploaded")} ${formatDate(d.uploadedAt)}`}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100"
-                              >
-                                <FileText className="h-3.5 w-3.5" /> {d.label}
-                                <ArrowUpRight className="h-3 w-3" />
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                        <p className="mt-2 text-xs text-navy-400">{t("admin.verif.docsNote")}</p>
-                      </div>
-                      <form action={reviewVerificationAction} className="flex gap-2">
-                        <input type="hidden" name="verificationId" value={v.id} />
-                        <button
-                          type="submit"
-                          name="decision"
-                          value="approved"
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2 text-sm font-semibold text-white hover:bg-go-600"
-                        >
-                          <CheckCircle2 className="h-4 w-4" /> {t("admin.approve")}
-                        </button>
-                        <button
-                          type="submit"
-                          name="decision"
-                          value="rejected"
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
-                        >
-                          <XCircle className="h-4 w-4" /> {t("admin.reject")}
-                        </button>
-                      </form>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* Transfer operator — API integration & monitoring (replaces driver verification) */}
-        <section id="operator" className="scroll-mt-20">
-          <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.operator")}</h3>
-          <Card className="p-5">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                  <Radio className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-navy-900">{operator.name}</span>
-                    <Badge tone={operator.connected ? "go" : "danger"}>
-                      {operator.connected && (
-                        <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-go-500 opacity-75" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-go-500" />
-                        </span>
-                      )}
-                      {operator.connected ? t("admin.connected") : t("admin.offline")}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-navy-500">
-                    {t("admin.operatorSubtitle")}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-6 text-sm">
-                <Metric value={String(operator.activeJobs)} label={t("admin.metric.activeJobs")} />
-                <Metric value={`${operator.slaMinutes}m`} label={t("admin.metric.pickupSla")} />
-                <Metric value={`${operator.rating.toFixed(1)}★`} label={t("admin.metric.rating")} />
-                <Metric value={String(operator.handoversConfirmed)} label={t("admin.metric.handovers")} />
-              </div>
-            </div>
-          </Card>
-
-          <div className="mt-4">
-            <h4 className="mb-2 text-sm font-bold text-navy-700">{t("admin.liveJobs")}</h4>
-            <Card className="divide-y divide-navy-100">
-              {operatorJobs.length === 0 && (
-                <div className="p-6 text-center text-navy-500">{t("admin.noJobs")}</div>
-              )}
-              {operatorJobs.map((job) => (
-                <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-bold text-navy-900">{job.bookingRef}</span>
-                      <StatusBadge status={job.status} />
-                      {job.handoverConfirmed && (
-                        <Badge tone="go">
-                          <CheckCircle2 className="h-3 w-3" /> {t("admin.handover")}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-navy-500">
-                      <span className="inline-flex items-center gap-1">
-                        <Car className="h-3.5 w-3.5" /> {job.driverName}
-                      </span>
-                      <span className="hidden text-navy-400 sm:inline">{job.vehicle}</span>
-                    </div>
-                  </div>
-                  <div className="text-right text-sm">
-                    {job.etaMinutes !== null ? (
-                      <span className="inline-flex items-center gap-1 font-semibold text-navy-800">
-                        <Clock className="h-3.5 w-3.5" /> {t("admin.eta")} {job.etaMinutes} {t("admin.min")}
-                      </span>
-                    ) : (
-                      <span className="text-navy-400">—</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </Card>
-            <p className="mt-2 text-xs text-navy-400">
-              {t("admin.operatorNote")}
-            </p>
-          </div>
-        </section>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Trust scores */}
-          <section className="scroll-mt-20">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">{t("admin.section.trustScores")}</h3>
-            <Card className="divide-y divide-navy-100">
-              {trustRows.map((row) => {
-                const band = trustBand(row.score.score);
-                return (
-                  <div key={row.type + row.name} className="flex items-center justify-between p-4">
-                    <div>
-                      <div className="font-semibold text-navy-900">{row.name}</div>
-                      <div className="text-xs text-navy-400">{row.type === "Host" ? t("admin.hostType") : row.type}</div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-2 w-24 overflow-hidden rounded-full bg-navy-100">
-                        <div
-                          className="h-full rounded-full bg-go-500"
-                          style={{ width: `${row.score.score}%` }}
-                        />
-                      </div>
-                      <span className="w-8 text-right font-bold text-navy-900">{row.score.score}</span>
-                      <Badge tone={band.tone}>{band.label}</Badge>
-                    </div>
-                  </div>
-                );
-              })}
-            </Card>
-          </section>
-
-          {/* Payments */}
-          <section id="payments" className="scroll-mt-20">
-            <div className="mb-3 flex items-center gap-2">
-              <h3 className="text-lg font-bold text-navy-900">{t("admin.section.payments")}</h3>
-              <a
-                href="/admin/export?type=payments"
-                className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}
-              >
-                <Download className="h-4 w-4" /> {t("admin.exportCsv")}
-              </a>
-            </div>
-            <Card className="divide-y divide-navy-100">
-              {recentPayments.map((p) => (
-                <div key={p.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={
-                        isRefunded(p)
-                          ? "font-semibold text-navy-300 line-through"
-                          : "font-semibold text-navy-900"
-                      }
-                    >
-                      {formatMoney(p.amount, p.currency)}
-                    </span>
-                    <StatusBadge status={isRefunded(p) ? "refunded" : p.payoutStatus} />
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-navy-400">
-                    <span>{formatDate(p.createdAt)}</span>
-                    <span>{t("admin.pay.platform")} {formatMoney(p.split.platform, p.currency)}</span>
-                    <span>{t("admin.pay.host")} {formatMoney(p.split.hostPayout, p.currency)}</span>
-                    <span>{t("admin.pay.driver")} {formatMoney(p.split.driverPayout, p.currency)}</span>
-                    <span className="capitalize">· {p.method}</span>
-                  </div>
-                </div>
-              ))}
-            </Card>
-          </section>
-        </div>
-
-        {/* Listings */}
-        <section id="listings" className="scroll-mt-20">
-          <div className="mb-3 flex items-center gap-2">
-            <h3 className="text-lg font-bold text-navy-900">{t("admin.section.listingsUsers")}</h3>
-            {pendingListings > 0 && (
-              <Badge tone="accent">{pendingListings} {t("admin.awaitingReview")}</Badge>
-            )}
-          </div>
-          <Card className="divide-y divide-navy-100">
-            {sortedSpaces.map((s) => {
-              const host = spaceHostMap.get(s.hostId);
-              const airport = getAirport(s.airportSlug);
-              const needsReview = s.status === "pending_review" || s.status === "draft";
-              return (
-                <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div>
-                    <div className="font-semibold text-navy-900">{s.title}</div>
-                    <div className="text-xs text-navy-400">
-                      {host?.displayName} · {airport?.name} · {formatMoney(s.pricePerDay)}/day
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status={s.status} />
-                    <Link
-                      href={`/app/space/${s.id}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
-                    >
-                      <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
-                    </Link>
-                    {(s.status === "live" || s.status === "paused") && (
-                      <form action={pauseSpaceAction}>
-                        <input type="hidden" name="spaceId" value={s.id} />
-                        <input
-                          type="hidden"
-                          name="state"
-                          value={s.status === "live" ? "pause" : "reactivate"}
-                        />
-                        {s.status === "live" ? (
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-lg border border-accent-200 bg-white px-3 py-1.5 text-xs font-semibold text-accent-500 hover:bg-accent-50"
-                          >
-                            <PauseCircle className="h-3.5 w-3.5" /> {t("admin.pause")}
-                          </button>
-                        ) : (
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" /> {t("admin.reactivate")}
-                          </button>
-                        )}
-                      </form>
-                    )}
-                    {needsReview && (
-                      <form action={reviewSpaceAction} className="flex gap-2">
-                        <input type="hidden" name="spaceId" value={s.id} />
-                        <button
-                          type="submit"
-                          name="decision"
-                          value="approved"
-                          className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5" /> {t("admin.approve")}
-                        </button>
-                        <button
-                          type="submit"
-                          name="decision"
-                          value="rejected"
-                          className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
-                        >
-                          <XCircle className="h-3.5 w-3.5" /> {t("admin.reject")}
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </Card>
-        </section>
-
-        {/* Recent bookings — every booking is one click away for support */}
-        <section id="bookings" className="scroll-mt-20">
-          <div className="mb-3 flex items-center gap-2">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-              <CalendarCheck className="h-5 w-5 text-navy-500" /> {t("admin.section.recentBookings")}
-            </h3>
-            <a href="/admin/export?type=bookings" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
-          </div>
-          <div className="mb-3 flex flex-wrap gap-1.5">
-            {[null, ...BOOKING_FILTERS].map((s) => {
-              const active = s === null ? !bstatus : bstatus === s;
-              const count = s ? bookings.filter((b) => b.status === s).length : bookings.length;
-              return (
-                <Link
-                  key={s ?? "all"}
-                  href={bookingFilterHref(s ?? undefined)}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    active
-                      ? "border-navy-900 bg-navy-900 text-white"
-                      : "border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
-                  }`}
-                >
-                  {s ? t(`status.${s}`) : t("admin.filter.all")} · {count}
-                </Link>
-              );
-            })}
-          </div>
-          <Card className="divide-y divide-navy-100">
-            {recentBookings.length === 0 && (
-              <div className="p-6 text-center text-navy-500">{t("admin.bookings.empty")}</div>
-            )}
-            {recentBookings.map((b) => {
-              const traveller = travellerMap.get(b.travellerId);
-              const bSpace = spaceMap.get(b.spaceId);
-              return (
-                <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-sm font-bold text-navy-900">{b.reference}</span>
-                      <StatusBadge status={b.status} />
-                    </div>
-                    <div className="mt-1 text-xs text-navy-400">
-                      {traveller?.name ?? "—"} · {bSpace?.title ?? b.spaceId} ·{" "}
-                      {formatDate(b.startAt)} → {formatDate(b.endAt)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={
-                        b.status === "cancelled"
-                          ? "text-sm font-semibold text-navy-300 line-through"
-                          : "text-sm font-semibold text-navy-900"
-                      }
-                    >
-                      {formatMoney(b.price.total, b.price.currency)}
-                    </span>
-                    <Link
-                      href={`/app/booking/${b.id}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
-                    >
-                      <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </Card>
-        </section>
-
-        {/* Users */}
-        <section id="users" className="scroll-mt-20">
-          <div className="mb-3 flex items-center gap-2">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-              <Users className="h-5 w-5 text-navy-500" /> {t("admin.section.users")}
-            </h3>
-            <Badge tone="neutral">{allUsers.length} {t("admin.total")}</Badge>
-          <a href="/admin/export?type=users" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
-          </div>
-          <Card className="divide-y divide-navy-100">
-            {recentUsers.length === 0 && (
-              <div className="p-6 text-center text-navy-500">{t("admin.users.empty")}</div>
-            )}
-            {recentUsers.map((u) => (
-              <div key={u.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div className="min-w-0">
-                  <div className="font-semibold text-navy-900">{u.name}</div>
-                  <div className="truncate text-xs text-navy-400">{u.email}</div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {u.suspended && <Badge tone="danger">{t("admin.users.suspended")}</Badge>}
-                  <Badge tone={u.role === "admin" ? "accent" : u.role === "host" ? "brand" : "neutral"}>
-                    {u.role}
-                  </Badge>
-                  <span className="text-xs text-navy-400">
-                    {t("admin.users.joined")} {formatDate(u.createdAt)}
-                  </span>
-                  {u.role !== "admin" && (
-                    <>
-                      <form action={setUserRoleAction}>
-                        <input type="hidden" name="userId" value={u.id} />
-                        <input
-                          type="hidden"
-                          name="role"
-                          value={u.role === "host" ? "traveller" : "host"}
-                        />
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1 rounded-lg border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-600 hover:bg-navy-50"
-                        >
-                          <ArrowLeftRight className="h-3.5 w-3.5" />{" "}
-                          {u.role === "host"
-                            ? t("admin.users.makeTraveller")
-                            : t("admin.users.makeHost")}
-                        </button>
-                      </form>
-                      <form action={setUserSuspendedAction}>
-                        <input type="hidden" name="userId" value={u.id} />
-                        <input
-                          type="hidden"
-                          name="state"
-                          value={u.suspended ? "restore" : "suspend"}
-                        />
-                        {u.suspended ? (
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
-                          >
-                            <UserCheck className="h-3.5 w-3.5" /> {t("admin.users.restore")}
-                          </button>
-                        ) : (
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
-                          >
-                            <UserX className="h-3.5 w-3.5" /> {t("admin.users.suspend")}
-                          </button>
-                        )}
-                      </form>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </Card>
-        </section>
-
-        {/* Support tickets escalated from the chat assistant */}
-        <section id="support" className="scroll-mt-20">
-          <div className="mb-3 flex items-center gap-2">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-              <Headset className="h-5 w-5 text-navy-500" /> {t("admin.support.title")}
-            </h3>
-            <Badge tone={supportTickets.some((x) => x.status === "open") ? "accent" : "neutral"}>
-              {supportTickets.filter((x) => x.status === "open").length} {t("admin.support.openBadge")}
-            </Badge>
-          </div>
-          <p className="mb-3 text-sm text-navy-500">{t("admin.support.sub")}</p>
-          <Card className="divide-y divide-navy-100">
-            {supportTickets.length === 0 && (
-              <div className="p-6 text-center text-navy-500">{t("admin.support.empty")}</div>
-            )}
-            {supportTickets.slice(0, 10).map((ticket) => (
-              <div key={ticket.id} className="p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate font-semibold text-navy-900">
-                      {ticket.name || ticket.email}
-                      <span className="ms-2 text-xs font-normal text-navy-400">{ticket.email}</span>
-                    </div>
-                    <div className="text-xs text-navy-400">
-                      {ticket.topic} · {formatDateTime(ticket.createdAt)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge tone={ticket.status === "open" ? "accent" : "go"}>
-                      {ticket.status === "open"
-                        ? t("admin.support.openBadge")
-                        : t("admin.support.resolvedBadge")}
-                    </Badge>
-                    {ticket.status === "open" && (
-                      <form action={resolveSupportTicketAction}>
-                        <input type="hidden" name="ticketId" value={ticket.id} />
-                        <button
-                          type="submit"
-                          className={buttonVariants({ variant: "outline", size: "sm" })}
-                        >
-                          {t("admin.support.resolve")}
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                </div>
-                {ticket.transcript.length > 0 && (
-                  <p className="mt-2 line-clamp-2 text-sm text-navy-600">
-                    {ticket.transcript
-                      .filter((m) => m.role === "user")
-                      .map((m) => m.text)
-                      .join(" · ") || ticket.transcript[ticket.transcript.length - 1]?.text}
-                  </p>
-                )}
-              </div>
-            ))}
-          </Card>
-        </section>
-
-        {/* Waitlist signups from the marketing site */}
-        <section id="waitlist" className="scroll-mt-20">
-          <div className="mb-3 flex items-center gap-2">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-              <Mail className="h-5 w-5 text-navy-500" /> {t("admin.section.waitlist")}
-            </h3>
-            <Badge tone="neutral">{waitlist.length} {t("admin.total")}</Badge>
-          <a href="/admin/export?type=waitlist" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
-          </div>
-          <Card className="divide-y divide-navy-100">
-            {waitlist.length === 0 && (
-              <div className="p-6 text-center text-navy-500">{t("admin.waitlist.empty")}</div>
-            )}
-            {waitlist.slice(0, 10).map((w) => (
-              <div key={w.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div className="min-w-0">
-                  <div className="truncate font-semibold text-navy-900">{w.email}</div>
-                  {w.airport && <div className="text-xs text-navy-400">{w.airport}</div>}
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge tone={w.role === "host" ? "brand" : "neutral"}>{w.role}</Badge>
-                  <span className="text-xs text-navy-400">
-                    {t("admin.waitlist.signedUp")} {formatDate(w.createdAt)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </Card>
-        </section>
-
         {/* Alerts (cancellations, refunds, new activity for the admin) */}
         {alerts.length > 0 && (
           <section id="alerts" className="scroll-mt-20">
@@ -1258,35 +580,8 @@ export default async function AdminDashboard({
             </Card>
           </section>
         )}
-
-        {/* Audit log */}
-        <section id="audit" className="scroll-mt-20">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
-            <ScrollText className="h-5 w-5 text-navy-500" /> {t("admin.section.audit")}
-          </h3>
-          <Card className="divide-y divide-navy-100">
-            {audit.map((e, i) => (
-              <div key={i} className="flex items-center justify-between p-3.5 text-sm">
-                <span className="text-navy-700">{e.label}</span>
-                <span className="text-xs text-navy-400">{formatDateTime(e.at)}</span>
-              </div>
-            ))}
-          </Card>
-          <p className="mt-2 text-xs text-navy-400">
-            {t("admin.auditNote")}
-          </p>
-        </section>
       </div>
     </PortalShell>
-  );
-}
-
-function Metric({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div className="font-bold text-navy-900">{value}</div>
-      <div className="text-xs text-navy-400">{label}</div>
-    </div>
   );
 }
 
@@ -1318,34 +613,4 @@ function PortalLink({
       </span>
     </Link>
   );
-}
-
-interface AuditEntry {
-  label: string;
-  at: string;
-}
-
-function buildAuditFeed({
-  bookings,
-  verifications,
-  reviews,
-}: {
-  bookings: Awaited<ReturnType<typeof listAllBookings>>;
-  verifications: Awaited<ReturnType<typeof listAllVerificationsLive>>;
-  reviews: Awaited<ReturnType<typeof listAllReviews>>;
-}): AuditEntry[] {
-  const entries: AuditEntry[] = [];
-  bookings.forEach((b) =>
-    entries.push({ label: `Booking ${b.reference} created (${b.status})`, at: b.createdAt })
-  );
-  verifications.forEach((v) => {
-    if (v.submittedAt)
-      entries.push({ label: `Verification submitted · ${v.subjectType}`, at: v.submittedAt });
-    if (v.reviewedAt)
-      entries.push({ label: `Verification ${v.status} · ${v.subjectType}`, at: v.reviewedAt });
-  });
-  reviews.forEach((r) =>
-    entries.push({ label: `Review left (${r.rating}★) on ${r.subjectType}`, at: r.createdAt })
-  );
-  return entries.sort((a, b) => +new Date(b.at) - +new Date(a.at)).slice(0, 12);
 }
