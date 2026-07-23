@@ -34,6 +34,8 @@ export interface User {
   corporateAccountId?: UUID;
   /** Admin-set: suspended accounts are bounced at the sign-in guard. */
   suspended?: boolean;
+  /** Admin self-service: require an email code at sign-in (2FA). */
+  twofaEnabled?: boolean;
   createdAt: ISODateString;
 }
 

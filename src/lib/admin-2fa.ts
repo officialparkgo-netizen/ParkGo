@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { IS_LIVE } from "@/lib/config";
+import type { User } from "@/types";
 import {
   ADMIN_2FA_SESSION_MS,
   isValidAdmin2faSession,
@@ -9,9 +10,15 @@ import {
 
 export const ADMIN_2FA_COOKIE = "parkgo_admin_2fa";
 
-/** On in live mode always; in mock only with ADMIN_2FA=on (demo/testing). */
-export function admin2faEnabled(): boolean {
-  return IS_LIVE || process.env.ADMIN_2FA === "on";
+/**
+ * Per-admin opt-in from Account settings (default OFF). The ADMIN_2FA env
+ * overrides both ways: "on" forces it for every admin (used by tests),
+ * "off" is an emergency kill switch if an admin ever locks themselves out.
+ */
+export function admin2faEnabledFor(user: Pick<User, "twofaEnabled">): boolean {
+  if (process.env.ADMIN_2FA === "off") return false;
+  if (process.env.ADMIN_2FA === "on") return true;
+  return user.twofaEnabled === true;
 }
 
 export async function hasAdmin2faSession(userId: string): Promise<boolean> {

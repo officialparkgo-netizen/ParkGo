@@ -132,6 +132,14 @@ export function setUserSuspended(userId: string, suspended: boolean): User | und
   user.suspended = suspended;
   return user;
 }
+
+/** Self-service: toggle the admin email-code second factor. */
+export function setUserTwofa(userId: string, enabled: boolean): User | undefined {
+  const user = getUser(userId);
+  if (!user) return undefined;
+  user.twofaEnabled = enabled;
+  return user;
+}
 export const getAllBookings = () => db.bookings;
 export const getAllReviews = () => db.reviews;
 export const getAllHosts = () => db.hosts;

@@ -41,8 +41,8 @@ export async function getCurrentUser(): Promise<User | null> {
 /** Admin accounts additionally need a valid second-factor session. */
 async function assertAdmin2fa(user: User, next: string): Promise<void> {
   if (user.role !== "admin") return;
-  const { admin2faEnabled, hasAdmin2faSession } = await import("@/lib/admin-2fa");
-  if (admin2faEnabled() && !(await hasAdmin2faSession(user.id))) {
+  const { admin2faEnabledFor, hasAdmin2faSession } = await import("@/lib/admin-2fa");
+  if (admin2faEnabledFor(user) && !(await hasAdmin2faSession(user.id))) {
     redirect(`/admin-2fa?next=${encodeURIComponent(next)}`);
   }
 }

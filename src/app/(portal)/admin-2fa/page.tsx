@@ -5,9 +5,10 @@ import { Logo } from "@/components/brand/logo";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser, rolePath } from "@/lib/auth";
-import { admin2faEnabled, hasAdmin2faSession } from "@/lib/admin-2fa";
+import { admin2faEnabledFor, hasAdmin2faSession } from "@/lib/admin-2fa";
 import { currentAdminCode } from "@/lib/admin-2fa-core";
 import { verifyAdmin2faAction, sendAdmin2faCodeAction } from "@/lib/admin-2fa-actions";
+import { isEmailConfigured } from "@/lib/email";
 import { IS_LIVE } from "@/lib/config";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -28,13 +29,17 @@ export default async function Admin2faPage({
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (user.role !== "admin") redirect(rolePath(user.role));
-  if (!admin2faEnabled()) redirect("/admin");
+  if (!admin2faEnabledFor(user)) redirect("/admin");
 
   const next = nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/admin";
   if (await hasAdmin2faSession(user.id)) redirect(next);
 
   const { t } = await getI18n();
   const maskedEmail = user.email.replace(/^(..).*(@.*)$/, "$1•••$2");
+  // Without a configured email service the code is shown on-page instead —
+  // degraded 2FA beats locking every admin out.
+  const emailOk = isEmailConfigured();
+  const showCodeOnPage = !IS_LIVE || !emailOk;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-navy-50/70 to-white px-4">
@@ -62,12 +67,17 @@ export default async function Admin2faPage({
             {t("twofa.sent")}
           </p>
         )}
-        {!IS_LIVE && (
+        {showCodeOnPage && (
           <p className="mt-4 rounded-xl bg-navy-50 px-4 py-3 text-sm text-navy-700">
             {t("twofa.demo")}{" "}
             <code data-demo-code className="font-mono text-base font-bold tracking-widest text-navy-900">
               {currentAdminCode(user.id)}
             </code>
+          </p>
+        )}
+        {IS_LIVE && !emailOk && (
+          <p className="mt-2 rounded-xl bg-accent-50 px-4 py-3 text-xs text-accent-500">
+            {t("twofa.noEmail")}
           </p>
         )}
 
@@ -92,7 +102,7 @@ export default async function Admin2faPage({
           </button>
         </form>
 
-        {IS_LIVE && (
+        {IS_LIVE && emailOk && (
           <form action={sendAdmin2faCodeAction} className="mt-3">
             <input type="hidden" name="next" value={next} />
             <button

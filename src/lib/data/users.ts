@@ -5,6 +5,7 @@ import {
   getUser as getUserMock,
   setUserRole as mockSetUserRole,
   setUserSuspended as mockSetUserSuspended,
+  setUserTwofa as mockSetUserTwofa,
 } from "@/lib/data/store";
 
 type UserRow = {
@@ -17,6 +18,7 @@ type UserRow = {
   vehicle: unknown;
   corporate_account_id: string | null;
   suspended?: boolean | null;
+  twofa_enabled?: boolean | null;
   created_at: string;
 };
 
@@ -31,6 +33,7 @@ export function userFromRow(r: UserRow): User {
     vehicle: (r.vehicle as User["vehicle"]) ?? undefined,
     corporateAccountId: r.corporate_account_id ?? undefined,
     suspended: !!r.suspended,
+    twofaEnabled: !!r.twofa_enabled,
     createdAt: r.created_at,
   };
 }
@@ -100,6 +103,21 @@ export async function setUserRoleAdmin(
     .update({ role })
     .eq("id", userId)
     .neq("role", "admin")
+    .select(PROFILE_COLS)
+    .single();
+  if (error || !data) return null;
+  return userFromRow(data as UserRow);
+}
+
+/** Self-service: turn the admin email-code second factor on or off. */
+export async function setUserTwofa(userId: string, enabled: boolean): Promise<User | null> {
+  if (!IS_LIVE) return mockSetUserTwofa(userId, enabled) ?? null;
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data, error } = await supabaseAdmin()
+    .from("users")
+    .update({ twofa_enabled: enabled })
+    .eq("id", userId)
     .select(PROFILE_COLS)
     .single();
   if (error || !data) return null;
