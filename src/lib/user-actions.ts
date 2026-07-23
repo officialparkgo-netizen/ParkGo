@@ -127,8 +127,11 @@ export async function setUserRoleAction(formData: FormData) {
   if (!target || target.role === "admin") return;
 
   await setUserRoleAdmin(userId, role);
+  const { recordAdminAction } = await import("@/lib/data/admin-actions");
+  await recordAdminAction(admin, `user.role_${role}`, "user", userId, target.email);
   revalidatePath("/admin");
   revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
 }
 
 /** Admin: suspend or restore an account. Admin accounts can't be suspended. */
@@ -143,6 +146,15 @@ export async function setUserSuspendedAction(formData: FormData) {
   if (!target || target.role === "admin") return;
 
   await setUserSuspendedAdmin(userId, state === "suspend");
+  const { recordAdminAction } = await import("@/lib/data/admin-actions");
+  await recordAdminAction(
+    admin,
+    state === "suspend" ? "user.suspended" : "user.restored",
+    "user",
+    userId,
+    target.email
+  );
   revalidatePath("/admin");
   revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
 }

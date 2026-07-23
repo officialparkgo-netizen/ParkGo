@@ -22,6 +22,7 @@ export const DEMO_LOGINS: { role: Role; userId: string; label: string; blurb: st
 ];
 
 export async function getCurrentUser(): Promise<User | null> {
+  let real: User | null = null;
   if (IS_LIVE) {
     const { createServerSupabase } = await import("@/lib/supabase/auth-server");
     const supabase = await createServerSupabase();
@@ -29,17 +30,44 @@ export async function getCurrentUser(): Promise<User | null> {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return null;
-    return ensureUserProfile(user);
+    real = await ensureUserProfile(user);
+  } else {
+    const store = await cookies();
+    const id = store.get(SESSION_COOKIE)?.value;
+    if (!id) return null;
+    real = getUser(id) ?? null;
   }
+  if (!real) return null;
 
-  const store = await cookies();
-  const id = store.get(SESSION_COOKIE)?.value;
-  if (!id) return null;
-  return getUser(id) ?? null;
+  // Support impersonation: an admin with a valid cookie sees the app as the
+  // target user. The cookie is inert for non-admin sessions.
+  if (real.role === "admin") {
+    const impersonated = await resolveImpersonation(real);
+    if (impersonated) return impersonated;
+  }
+  return real;
+}
+
+async function resolveImpersonation(admin: User): Promise<User | null> {
+  try {
+    const { IMPERSONATE_COOKIE, parseImpersonationToken } = await import(
+      "@/lib/impersonation"
+    );
+    const store = await cookies();
+    const targetId = parseImpersonationToken(store.get(IMPERSONATE_COOKIE)?.value);
+    if (!targetId || targetId === admin.id) return null;
+    const { getUsersByIds } = await import("@/lib/data/users");
+    const target = (await getUsersByIds([targetId])).get(targetId);
+    if (!target || target.role === "admin") return null;
+    return { ...target, impersonatedBy: admin.id };
+  } catch {
+    return null;
+  }
 }
 
 /** Admin/host accounts with 2FA on need a valid second-factor session. */
 async function assertTwofa(user: User, next: string): Promise<void> {
+  if (user.impersonatedBy) return; // the real admin already passed their own gates
   if (user.role !== "admin" && user.role !== "host") return;
   const { twofaRequiredFor, hasAdmin2faSession } = await import("@/lib/admin-2fa");
   if (twofaRequiredFor(user) && !(await hasAdmin2faSession(user.id))) {
@@ -49,6 +77,7 @@ async function assertTwofa(user: User, next: string): Promise<void> {
 
 /** New non-admin accounts set up their profile first (strict false only). */
 function assertOnboarded(user: User): void {
+  if (user.impersonatedBy) return;
   if (user.role !== "admin" && user.onboarded === false) redirect("/welcome");
 }
 
@@ -56,7 +85,8 @@ function assertOnboarded(user: User): void {
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
+  if (user.suspended && user.role !== "admin" && !user.impersonatedBy)
+    redirect("/login?suspended=1");
   assertOnboarded(user);
   await assertTwofa(user, rolePath(user.role));
   return user;
@@ -69,7 +99,8 @@ export async function requireUser(): Promise<User> {
 export async function requireRole(role: Role): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${rolePath(role)}`);
-  if (user.suspended && user.role !== "admin") redirect("/login?suspended=1");
+  if (user.suspended && user.role !== "admin" && !user.impersonatedBy)
+    redirect("/login?suspended=1");
   assertOnboarded(user);
   await assertTwofa(user, rolePath(role));
   if (user.role !== role && user.role !== "admin") redirect(rolePath(user.role));

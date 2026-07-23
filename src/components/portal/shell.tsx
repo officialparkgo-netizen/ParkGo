@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, LogOut, Settings } from "lucide-react";
+import { Bell, KeyRound, LogOut, Settings } from "lucide-react";
 import type { User } from "@/types";
 import { Logo } from "@/components/brand/logo";
 import { Avatar } from "@/components/common/avatar";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { MobileNav } from "@/components/common/mobile-nav";
 import { logout } from "@/lib/auth-actions";
+import { stopImpersonationAction } from "@/lib/admin-suite-actions";
 import { getI18n } from "@/lib/i18n";
 import { unreadCountForUser } from "@/lib/data/notifications";
 
@@ -37,7 +38,7 @@ export async function PortalShell({
         <div className="px-5 py-4">
           <Logo />
         </div>
-        <nav className="flex-1 space-y-1 px-3 py-2">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
           {nav.map((item) => (
             <Link
               key={item.href}
@@ -54,6 +55,25 @@ export async function PortalShell({
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Support impersonation banner — the admin is browsing as this user */}
+        {user.impersonatedBy && (
+          <div className="flex items-center justify-between gap-3 bg-navy-900 px-4 py-2 text-sm font-semibold text-white sm:px-6">
+            <span className="inline-flex min-w-0 items-center gap-2 truncate">
+              <KeyRound className="h-4 w-4 shrink-0 text-accent-400" />
+              <span className="truncate">
+                {t("imp.banner")} {user.name} ({user.email})
+              </span>
+            </span>
+            <form action={stopImpersonationAction}>
+              <button
+                type="submit"
+                className="rounded-lg bg-white/15 px-3 py-1 text-xs font-bold transition-colors hover:bg-white/25"
+              >
+                {t("imp.exit")}
+              </button>
+            </form>
+          </div>
+        )}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-navy-100 bg-white/90 px-4 backdrop-blur sm:px-6">
           <div className="flex items-center gap-3">
             {/* Mobile nav (accessible slide-in drawer) */}

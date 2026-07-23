@@ -10,6 +10,7 @@ import {
   Navigation,
   Phone,
   Radio,
+  ShieldAlert,
   Star,
   UserRound,
   XCircle,
@@ -31,7 +32,8 @@ import {
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
 import { cancelBookingAction, extendBookingAction } from "@/lib/booking-actions";
-import { daysBetween, formatDateTime, formatMoney, formatMoneyShort, hoursBetween } from "@/lib/utils";
+import { fileClaimAction } from "@/lib/admin-suite-actions";
+import { daysBetween, formatDate, formatDateTime, formatMoney, formatMoneyShort, hoursBetween } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -49,6 +51,7 @@ export default async function BookingPage({
     cancelError?: string;
     extended?: string;
     extendError?: string;
+    claim?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
@@ -61,6 +64,7 @@ export default async function BookingPage({
     cancelError,
     extended,
     extendError,
+    claim,
   } = await searchParams;
   const booking = await getBookingById(id);
   const canView = booking && (booking.travellerId === user.id || user.role === "admin");
@@ -73,6 +77,19 @@ export default async function BookingPage({
   const hostUser = host ? await getUserProfile(host.userId) : null;
   const currency = booking.price.currency;
   const paid = booking.status !== "requested" && booking.status !== "cancelled";
+  const { listClaimsForBooking } = await import("@/lib/data/claims");
+  const claims = await listClaimsForBooking(booking.id);
+  // Claims make sense once the car is (or was) on site: any active/finished
+  // stay, or a paid one whose drop-off time has passed.
+  const stayStarted =
+    booking.status === "active" ||
+    booking.status === "completed" ||
+    booking.status === "reviewed" ||
+    (booking.status === "paid" && new Date(booking.startAt).getTime() < Date.now());
+  const canClaim =
+    booking.travellerId === user.id &&
+    stayStarted &&
+    !claims.some((c) => c.status === "open" || c.status === "in_review");
 
   // Cancellation: allowed while paid and before drop-off. Free until 24h
   // before; within 24h the late fee is kept and the rest refunded. Only the
@@ -128,6 +145,16 @@ export default async function BookingPage({
             {extendError === "full"
               ? t("app.booking.extend.errorFull")
               : t("app.booking.extend.error")}
+          </div>
+        )}
+        {claim === "filed" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("app.booking.claim.filed")}
+          </div>
+        )}
+        {claim === "error" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            <XCircle className="h-5 w-5" /> {t("app.booking.claim.error")}
           </div>
         )}
 
@@ -241,6 +268,17 @@ export default async function BookingPage({
                 <Row label={t("app.booking.evCharging")} value={formatMoney(booking.price.ev, currency)} />
               )}
               <Row label={t("app.booking.serviceFee")} value={formatMoney(booking.price.serviceFee, currency)} />
+              {(booking.price.discount ?? 0) > 0 && (
+                <div className="flex items-center justify-between text-go-700">
+                  <dt>
+                    {t("app.booking.discount")}
+                    {booking.price.promoCode ? ` (${booking.price.promoCode})` : ""}
+                  </dt>
+                  <dd className="font-semibold">
+                    −{formatMoney(booking.price.discount ?? 0, currency)}
+                  </dd>
+                </div>
+              )}
               <div className="my-1.5 border-t border-navy-100" />
               <div className="flex items-center justify-between text-base font-bold text-navy-900">
                 <dt>{t("app.booking.totalPaid")}</dt>
@@ -305,6 +343,53 @@ export default async function BookingPage({
                     <XCircle className="h-4 w-4" /> {t("app.booking.cancel.btn")}
                   </button>
                 </form>
+              </div>
+            )}
+
+            {(canClaim || claims.length > 0) && (
+              <div className="mt-5 rounded-xl border border-navy-100 bg-navy-50/50 p-4">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
+                  <ShieldAlert className="h-4 w-4 text-navy-500" /> {t("app.booking.claim.title")}
+                </h3>
+                {claims.length > 0 && (
+                  <ul className="mt-2 space-y-2">
+                    {claims.map((c) => (
+                      <li key={c.id} className="rounded-lg bg-white px-3 py-2 text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-navy-800">
+                            {t("app.booking.claim.existing")} · {formatDate(c.createdAt)}
+                          </span>
+                          <StatusBadge status={c.status} />
+                        </div>
+                        {c.resolution && (
+                          <p className="mt-1 text-xs text-navy-600">{c.resolution}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {canClaim && (
+                  <>
+                    <p className="mt-1 text-xs text-navy-500">{t("app.booking.claim.desc")}</p>
+                    <form action={fileClaimAction} className="mt-3 space-y-2">
+                      <input type="hidden" name="bookingId" value={booking.id} />
+                      <textarea
+                        name="description"
+                        required
+                        rows={3}
+                        maxLength={2000}
+                        placeholder={t("app.booking.claim.ph")}
+                        className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                      />
+                      <button
+                        type="submit"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-navy-200 bg-white px-4 py-2 text-sm font-semibold text-navy-700 hover:bg-navy-50"
+                      >
+                        <ShieldAlert className="h-4 w-4" /> {t("app.booking.claim.submit")}
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
             )}
 

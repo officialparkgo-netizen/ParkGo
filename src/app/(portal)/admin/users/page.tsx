@@ -52,10 +52,12 @@ export default async function AdminUsersPage() {
             )}
             {recentUsers.map((u) => (
               <div key={u.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div className="min-w-0">
-                  <div className="font-semibold text-navy-900">{u.name}</div>
+                <Link href={`/admin/users/${u.id}`} className="min-w-0 hover:opacity-80">
+                  <div className="font-semibold text-navy-900 underline-offset-2 hover:underline">
+                    {u.name}
+                  </div>
                   <div className="truncate text-xs text-navy-400">{u.email}</div>
-                </div>
+                </Link>
                 <div className="flex flex-wrap items-center gap-2">
                   {u.suspended && <Badge tone="danger">{t("admin.users.suspended")}</Badge>}
                   <Badge tone={u.role === "admin" ? "accent" : u.role === "host" ? "brand" : "neutral"}>

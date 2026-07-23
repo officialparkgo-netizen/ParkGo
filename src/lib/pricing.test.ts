@@ -4,6 +4,7 @@ import {
   COMMISSION,
   SERVICE_FEE,
   TRANSFER_BASE_FARE,
+  applyPromoToPrice,
   computeSplit,
   evCost,
   priceBundle,
@@ -149,5 +150,35 @@ describe("transfer trip types", () => {
     expect(oneWay.transfer).toBe(TRANSFER_BASE_FARE);
     expect(rtn.transfer).toBe(TRANSFER_BASE_FARE * 2);
     expect(splitReconciles(rtn)).toBe(true);
+  });
+});
+
+describe("applyPromoToPrice", () => {
+  const base = () =>
+    priceBundle(space, { parking: true, transfer: false, ev: false }, "2026-08-01", "2026-08-06");
+
+  it("percent discount comes off total and platform, still reconciles", () => {
+    const p = base();
+    const d = applyPromoToPrice(p, { code: "PARKGO10", kind: "percent", value: 10 });
+    expect(d.discount).toBeGreaterThan(0);
+    expect(d.total).toBe(p.total - (d.discount ?? 0));
+    expect(d.split.platform).toBe(p.split.platform - (d.discount ?? 0));
+    expect(d.split.hostPayout).toBe(p.split.hostPayout);
+    expect(d.promoCode).toBe("PARKGO10");
+    expect(splitReconciles(d)).toBe(true);
+  });
+
+  it("fixed discount is capped at the platform share (host stays whole)", () => {
+    const p = base();
+    const d = applyPromoToPrice(p, { code: "BIG", kind: "fixed", value: 1_000_000 });
+    expect(d.discount).toBe(p.split.platform);
+    expect(d.split.platform).toBe(0);
+    expect(d.split.hostPayout).toBe(p.split.hostPayout);
+    expect(splitReconciles(d)).toBe(true);
+  });
+
+  it("zero/negative values leave the price untouched", () => {
+    const p = base();
+    expect(applyPromoToPrice(p, { code: "X", kind: "percent", value: 0 })).toEqual(p);
   });
 });

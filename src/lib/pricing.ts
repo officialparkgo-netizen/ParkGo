@@ -101,6 +101,30 @@ export function computeSplit(lines: {
   return { platform, hostPayout, driverPayout };
 }
 
+/**
+ * Apply a promo discount to a computed price. The discount is absorbed by the
+ * platform share (host and driver payouts stay whole), so it is capped at the
+ * platform's cut — the split keeps reconciling with the new total.
+ */
+export function applyPromoToPrice(
+  price: PriceBreakdown,
+  promo: { code: string; kind: "percent" | "fixed"; value: number }
+): PriceBreakdown {
+  const raw =
+    promo.kind === "percent"
+      ? Math.round((price.total * Math.min(Math.max(promo.value, 0), 100)) / 100)
+      : Math.max(promo.value, 0);
+  const discount = Math.min(raw, price.split.platform);
+  if (discount <= 0) return price;
+  return {
+    ...price,
+    total: price.total - discount,
+    split: { ...price.split, platform: price.split.platform - discount },
+    promoCode: promo.code,
+    discount,
+  };
+}
+
 /** Sanity invariant used in tests: payouts + platform === total. */
 export function splitReconciles(price: PriceBreakdown): boolean {
   const { platform, hostPayout, driverPayout } = price.split;

@@ -141,9 +141,35 @@ export async function reviewVerificationLive(
         body:
           decision === "approved"
             ? "You're verified — you can now list spaces and they'll go live after review."
-            : "Your verification needs attention. Please review your details and resubmit.",
+            : notes
+              ? `Reason: ${notes} — please fix this and resubmit your documents.`
+              : "Your verification needs attention. Please review your details and resubmit.",
         kind: "verification",
       });
     }
   }
+}
+
+/** Newest verification record for a host (drives the /host/verify status UI). */
+export async function latestVerificationForHost(hostId: string): Promise<Verification | null> {
+  if (!IS_LIVE) {
+    const all = mockGetVerifications().filter(
+      (v) => v.subjectType === "host" && v.subjectId === hostId
+    );
+    return (
+      [...all].sort((a, b) =>
+        (b.submittedAt ?? "").localeCompare(a.submittedAt ?? "")
+      )[0] ?? null
+    );
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin()
+    .from("verifications")
+    .select(COLS)
+    .eq("subject_type", "host")
+    .eq("subject_id", hostId)
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ? fromRow(data) : null;
 }

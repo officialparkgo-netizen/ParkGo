@@ -9,7 +9,10 @@ import { StatusBadge } from "@/components/portal/status";
 import { hostNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { ensureHostForUser } from "@/lib/data/hosts";
-import { hasPendingHostVerification } from "@/lib/data/verifications";
+import {
+  hasPendingHostVerification,
+  latestVerificationForHost,
+} from "@/lib/data/verifications";
 import { submitKycAction } from "@/lib/host-actions";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -31,6 +34,11 @@ export default async function HostVerifyPage() {
     (host.verificationStatus === "in_review" ||
       host.verificationStatus === "pending" ||
       (await hasPendingHostVerification(host.id)));
+  // Rejected? Show the admin's reason so the host knows what to fix.
+  const latest =
+    !verified && !underReview ? await latestVerificationForHost(host.id) : null;
+  const rejectionReason =
+    latest?.status === "rejected" && latest.notes ? latest.notes : null;
 
   return (
     <PortalShell user={user} nav={hostNav} title="host.verify.pageTitle">
@@ -73,6 +81,13 @@ export default async function HostVerifyPage() {
             <p className="mt-3 text-xs text-navy-400">{t("host.verif.why")}</p>
           )}
         </Card>
+
+        {rejectionReason && (
+          <Card className="border-red-200 bg-red-50/50 p-4">
+            <p className="text-sm font-bold text-red-700">{t("host.verify.rejectedTitle")}</p>
+            <p className="mt-1 text-sm text-navy-700">{rejectionReason}</p>
+          </Card>
+        )}
 
         {verified ? (
           <Card className="border-go-200 bg-go-50/40 p-8 text-center">

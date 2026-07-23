@@ -34,7 +34,7 @@ import type {
   TransferMessage,
 } from "@/types";
 import * as seed from "@/lib/data/seed";
-import { priceBundle } from "@/lib/pricing";
+import { applyPromoToPrice, priceBundle } from "@/lib/pricing";
 import { averageRating, computeTrustScore } from "@/lib/trust";
 import { accessCode, nextId, shortRef } from "@/lib/utils";
 
@@ -296,6 +296,8 @@ export interface CreateBookingInput {
   startAt: string;
   endAt: string;
   method?: Payment["method"];
+  /** Validated promo to apply (platform absorbs the discount). */
+  promo?: { code: string; kind: "percent" | "fixed"; value: number };
 }
 
 /** Create a booking + payment (+ transfer job if bundled). Returns the booking. */
@@ -305,7 +307,8 @@ export function createBooking(input: CreateBookingInput): Booking {
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
 
-  const price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency);
+  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency);
+  if (input.promo) price = applyPromoToPrice(price, input.promo);
   const reference = shortRef(`${input.spaceId}|${input.travellerId}|${db.bookings.length}`);
   const id = `bk_${reference.replace("PG-", "").toLowerCase()}`;
   const qrToken = `${reference}|${space.id}|${input.travellerId}`;
@@ -647,6 +650,23 @@ export const getPaymentsForHost = (hostId: string) => {
   return db.payments.filter((p) => bookingIds.has(p.bookingId));
 };
 export const getAllPayments = () => db.payments;
+
+/** Admin: manually settle (or reset) a payout on a payment. */
+export function setPaymentPayoutStatus(
+  paymentId: string,
+  status: Payment["payoutStatus"]
+): Payment | undefined {
+  const p = db.payments.find((x) => x.id === paymentId);
+  if (p) p.payoutStatus = status;
+  return p;
+}
+
+/** Admin moderation: hide/unhide a review from public pages. */
+export function setReviewHidden(reviewId: string, hidden: boolean): Review | undefined {
+  const r = db.reviews.find((x) => x.id === reviewId);
+  if (r) r.hidden = hidden;
+  return r;
+}
 
 // -----------------------------------------------------------------------------
 // Notifications

@@ -164,8 +164,21 @@ export async function submitKycAction(formData: FormData) {
       .join(" · ") || undefined
   );
 
+  // Give the team a nudge — verification queues shouldn't rely on polling.
+  try {
+    const { notifyAdminsByEmail } = await import("@/lib/admin-suite-actions");
+    await notifyAdminsByEmail(
+      `New host verification · ${host.displayName}`,
+      `<p><strong>${legalName || user.name}</strong> submitted ${documents.length} document(s) for review.</p>
+       <p>Open the queue: <a href="https://www.parkgo.ai/admin/verification">parkgo.ai/admin/verification</a></p>`
+    );
+  } catch {
+    // alert is best-effort
+  }
+
   revalidatePath("/host");
   revalidatePath("/admin");
+  revalidatePath("/admin/verification");
   redirect("/host?verify=submitted");
 }
 

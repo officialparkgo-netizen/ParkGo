@@ -25,7 +25,7 @@ export default async function BookPage({
   searchParams,
 }: {
   params: Promise<{ spaceId: string }>;
-  searchParams: Promise<{ from?: string; to?: string; ev?: string; transfer?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; ev?: string; transfer?: string; promo?: string }>;
 }) {
   const user = await requireRole("traveller");
   const { t } = await getI18n();
@@ -63,6 +63,7 @@ export default async function BookPage({
           initialTransfer={sp.transfer === "1"}
           initialEv={sp.ev === "1"}
           allowTransfer={!airport?.kind || airport.kind === "airport"}
+          promoInvalid={sp.promo === "invalid"}
         />
       </div>
     </PortalShell>

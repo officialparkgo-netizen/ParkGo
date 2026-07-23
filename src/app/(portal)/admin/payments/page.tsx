@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Download } from "lucide-react";
+import { Banknote, CheckCircle2, Download, FileSpreadsheet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
+import { markPayoutPaidAction } from "@/lib/admin-suite-actions";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
@@ -75,14 +76,28 @@ export default async function AdminPaymentsPage() {
         </Link>
 
         <section id="payments">
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-bold text-navy-900">{t("admin.section.payments")}</h3>
-            <a
-              href="/admin/export?type=payments"
-              className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}
-            >
-              <Download className="h-4 w-4" /> {t("admin.exportCsv")}
-            </a>
+            <div className="ms-auto flex flex-wrap gap-2">
+              <a
+                href="/admin/export?type=payouts"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <Banknote className="h-4 w-4" /> {t("admin.pay.payoutRun")}
+              </a>
+              <a
+                href="/admin/export?type=finance"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <FileSpreadsheet className="h-4 w-4" /> {t("admin.pay.finance")}
+              </a>
+              <a
+                href="/admin/export?type=payments"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <Download className="h-4 w-4" /> {t("admin.exportCsv")}
+              </a>
+            </div>
           </div>
 
           {/* Money at a glance (all-time) */}
@@ -135,7 +150,20 @@ export default async function AdminPaymentsPage() {
                               </span>
                             )}
                           </div>
-                          <StatusBadge status={isRefunded(p) ? "refunded" : p.payoutStatus} />
+                          <span className="flex items-center gap-2">
+                            <StatusBadge status={isRefunded(p) ? "refunded" : p.payoutStatus} />
+                            {!isRefunded(p) && p.payoutStatus !== "paid" && (
+                              <form action={markPayoutPaidAction}>
+                                <input type="hidden" name="paymentId" value={p.id} />
+                                <button
+                                  type="submit"
+                                  className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-go-600"
+                                >
+                                  <CheckCircle2 className="h-3 w-3" /> {t("admin.pay.markPaid")}
+                                </button>
+                              </form>
+                            )}
+                          </span>
                         </div>
                         <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-navy-400">
                           <span>{formatDate(p.createdAt)}</span>

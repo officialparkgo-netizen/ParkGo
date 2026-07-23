@@ -77,9 +77,13 @@ export async function submitSupportTicket(input: {
 
 /** Admin: mark a ticket handled. */
 export async function resolveSupportTicketAction(formData: FormData) {
-  await requireRole("admin");
+  const admin = await requireRole("admin");
   const id = String(formData.get("ticketId") || "");
-  if (id) await setSupportTicketResolved(id);
+  if (id) {
+    await setSupportTicketResolved(id);
+    const { recordAdminAction } = await import("@/lib/data/admin-actions");
+    await recordAdminAction(admin, "support.resolved", "user", id);
+  }
   revalidatePath("/admin");
   revalidatePath("/admin/support");
 }

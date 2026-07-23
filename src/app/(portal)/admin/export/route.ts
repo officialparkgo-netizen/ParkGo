@@ -108,6 +108,81 @@ async function buildRows(type: string): Promise<{ header: string[]; rows: (strin
       rows: entries.map((w) => [w.email, w.role, w.airport ?? "", friendly(w.createdAt)]),
     };
   }
+  if (type === "payouts") {
+    // Payout run: everything still owed, grouped per host — hand to the bank.
+    const [payments, bookings, spaces, hosts, users] = await Promise.all([
+      listAllPayments(),
+      listAllBookings(),
+      listAllSpaces(),
+      listAllHosts(),
+      listAllUsers(),
+    ]);
+    const bookingMap = new Map(bookings.map((b) => [b.id, b]));
+    const spaceMap = new Map(spaces.map((s) => [s.id, s]));
+    const hostMap = new Map(hosts.map((h) => [h.id, h]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const due = payments.filter((p) => {
+      const b = bookingMap.get(p.bookingId);
+      const refunded = p.payoutStatus === "refunded" || b?.status === "cancelled";
+      return !refunded && p.payoutStatus !== "paid" && p.split.hostPayout > 0;
+    });
+    return {
+      header: [
+        "Host", "Host email", "Payout account", "Reference", "Date",
+        "Host payout (£)", "Currency", "Payment id",
+      ],
+      rows: due.map((p) => {
+        const b = bookingMap.get(p.bookingId);
+        const host = b ? hostMap.get(spaceMap.get(b.spaceId)?.hostId ?? "") : undefined;
+        const hostUser = host ? userMap.get(host.userId) : undefined;
+        return [
+          host?.displayName ?? "", hostUser?.email ?? "", host?.payoutAccountRef ?? "",
+          b?.reference ?? p.bookingId, friendly(p.createdAt),
+          pounds(p.split.hostPayout), p.currency, p.id,
+        ];
+      }),
+    };
+  }
+  if (type === "finance") {
+    // Month-by-month statement for accounting: GMV, fees, payouts, refunds.
+    const [payments, bookings] = await Promise.all([listAllPayments(), listAllBookings()]);
+    const cancelled = new Set(
+      bookings.filter((b) => b.status === "cancelled").map((b) => b.id)
+    );
+    const months = new Map<
+      string,
+      { gmv: number; platform: number; host: number; driver: number; refunded: number; count: number }
+    >();
+    for (const p of payments) {
+      const key = p.createdAt.slice(0, 7); // YYYY-MM
+      const m = months.get(key) ?? {
+        gmv: 0, platform: 0, host: 0, driver: 0, refunded: 0, count: 0,
+      };
+      const refunded = p.payoutStatus === "refunded" || cancelled.has(p.bookingId);
+      if (refunded) {
+        m.refunded += p.amount;
+      } else {
+        m.gmv += p.amount;
+        m.platform += p.split.platform;
+        m.host += p.split.hostPayout;
+        m.driver += p.split.driverPayout;
+        m.count += 1;
+      }
+      months.set(key, m);
+    }
+    return {
+      header: [
+        "Month", "Paid bookings", "GMV (£)", "Platform revenue (£)",
+        "Host payouts (£)", "Driver payouts (£)", "Refunded (£)",
+      ],
+      rows: [...months.entries()]
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .map(([month, m]) => [
+          month, m.count, pounds(m.gmv), pounds(m.platform),
+          pounds(m.host), pounds(m.driver), pounds(m.refunded),
+        ]),
+    };
+  }
   return null;
 }
 

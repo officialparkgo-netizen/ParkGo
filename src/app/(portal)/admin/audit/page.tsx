@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/portal/shell";
 import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { buildAuditFeed } from "@/lib/admin-insights";
+import { listAdminActions } from "@/lib/data/admin-actions";
 import { listAllBookings } from "@/lib/data/bookings";
 import { listAllVerificationsLive } from "@/lib/data/verifications";
 import { listAllReviews } from "@/lib/data/reviews";
@@ -23,6 +24,7 @@ export default async function AdminAuditPage() {
   const user = await requireRole("admin");
   const { t } = await getI18n();
 
+  const adminActions = await listAdminActions(40);
   const audit = buildAuditFeed(
     {
       bookings: await listAllBookings(),
@@ -38,6 +40,31 @@ export default async function AdminAuditPage() {
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
         </Link>
+
+        {/* Real admin actions — who did what */}
+        <section id="admin-actions">
+          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
+            <ScrollText className="h-5 w-5 text-navy-500" /> {t("admin.actions.title")}
+          </h3>
+          <Card className="divide-y divide-navy-100">
+            {adminActions.length === 0 && (
+              <div className="p-6 text-center text-sm text-navy-500">
+                {t("admin.actions.empty")}
+              </div>
+            )}
+            {adminActions.map((a) => (
+              <div key={a.id} className="flex items-start justify-between gap-3 p-3.5 text-sm">
+                <div className="min-w-0">
+                  <span className="font-semibold text-navy-900">{a.adminName}</span>{" "}
+                  <span className="font-mono text-xs text-navy-500">{a.action}</span>
+                  <span className="text-xs text-navy-400"> · {a.targetType} {a.targetId}</span>
+                  {a.detail && <p className="truncate text-navy-600">{a.detail}</p>}
+                </div>
+                <span className="shrink-0 text-xs text-navy-400">{formatDateTime(a.createdAt)}</span>
+              </div>
+            ))}
+          </Card>
+        </section>
 
         <section id="audit">
           <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">

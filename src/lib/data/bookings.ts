@@ -1,6 +1,6 @@
 import type { Booking, Payment, PaymentMethod, PaymentSplit } from "@/types";
 import { IS_LIVE } from "@/lib/config";
-import { priceBundle } from "@/lib/pricing";
+import { applyPromoToPrice, priceBundle } from "@/lib/pricing";
 import { shortRef } from "@/lib/utils";
 import { getSpaceById } from "@/lib/data/hosts";
 import {
@@ -13,6 +13,8 @@ import {
   getAllBookings as mockGetAllBookings,
   getAllPayments as mockGetAllPayments,
   setBookingStatus as mockSetBookingStatus,
+  setPaymentPayoutStatus as mockSetPaymentPayoutStatus,
+  addNotification as mockAddNotification,
   getAirport,
   type CreateBookingInput,
 } from "@/lib/data/store";
@@ -112,7 +114,8 @@ export async function createBookingLive(
 
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
-  const price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency);
+  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency);
+  if (input.promo) price = applyPromoToPrice(price, input.promo);
   const reference = shortRef(`${input.spaceId}|${input.travellerId}|${new Date().toISOString()}`);
   const qrToken = `${reference}|${space.id}|${input.travellerId}`;
 
@@ -414,6 +417,82 @@ export async function cancelBooking(
   await sendBookingCancelledEmails(booking, refund, feeApplied);
 
   return { ok: true, refund, feeApplied };
+}
+
+/**
+ * Admin cancellation (support cases): full refund, no late fee, allowed for
+ * any booking that hasn't finished. Mirrors the traveller flow's refund and
+ * notification behaviour.
+ */
+export async function adminCancelBooking(bookingId: string): Promise<CancelResult> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return { ok: false, error: "Booking not found." };
+  if (!["requested", "paid", "active"].includes(booking.status)) {
+    return { ok: false, error: "This booking can no longer be cancelled." };
+  }
+  const refund = booking.price.total;
+
+  if (!IS_LIVE) {
+    mockSetBookingStatus(bookingId, "cancelled");
+    mockAddNotification({
+      userId: booking.travellerId,
+      title: "Booking cancelled by ParkGo",
+      body: `${booking.reference} was cancelled by our support team. Full refund issued.`,
+      kind: "booking",
+    });
+    return { ok: true, refund, feeApplied: false };
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+
+  // Refund every Stripe charge on the booking, newest first.
+  const { data: pays } = await admin
+    .from("payments")
+    .select("id, provider, amount, external_ref")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: false });
+  let remaining = refund;
+  for (const pay of pays ?? []) {
+    if (remaining <= 0) break;
+    if (pay.provider === "stripe" && pay.external_ref) {
+      const amount = Math.min(remaining, pay.amount);
+      try {
+        const { getStripe } = await import("@/lib/stripe");
+        await getStripe().refunds.create({ payment_intent: pay.external_ref, amount });
+        remaining -= amount;
+      } catch {
+        return { ok: false, error: "Refund could not be processed." };
+      }
+    }
+  }
+
+  await admin.from("bookings").update({ status: "cancelled" }).eq("id", bookingId);
+  await admin.from("payments").update({ payout_status: "refunded" }).eq("booking_id", bookingId);
+
+  await admin.from("notifications").insert({
+    user_id: booking.travellerId,
+    title: "Booking cancelled by ParkGo",
+    body: `${booking.reference} was cancelled by our support team. Full refund issued.`,
+    kind: "booking",
+  });
+  await notifyHostOfBooking(booking, "Booking cancelled");
+
+  const { sendBookingCancelledEmails } = await import("@/lib/booking-emails");
+  await sendBookingCancelledEmails(booking, refund, false);
+
+  return { ok: true, refund, feeApplied: false };
+}
+
+/** Admin: manually mark a pending host/driver payout as paid (bank transfer). */
+export async function markPayoutPaid(paymentId: string): Promise<boolean> {
+  if (!IS_LIVE) return !!mockSetPaymentPayoutStatus(paymentId, "paid");
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { error } = await supabaseAdmin()
+    .from("payments")
+    .update({ payout_status: "paid" })
+    .eq("id", paymentId);
+  return !error;
 }
 
 /** Bookings on a host's spaces (abandoned checkouts excluded). */

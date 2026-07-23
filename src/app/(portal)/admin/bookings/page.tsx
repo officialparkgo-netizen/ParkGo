@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowUpRight, CalendarCheck, Download } from "lucide-react";
+import { ArrowUpRight, CalendarCheck, CheckCircle2, Download, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
+import { adminCancelBookingAction } from "@/lib/admin-suite-actions";
 import { listAllBookings } from "@/lib/data/bookings";
 import { listAllSpaces } from "@/lib/data/hosts";
 import { getUsersByIds } from "@/lib/data/users";
@@ -23,11 +24,11 @@ export const metadata: Metadata = pageMetadata({
 export default async function AdminBookingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ bstatus?: string }>;
+  searchParams: Promise<{ bstatus?: string; cancelled?: string; cancelerror?: string }>;
 }) {
   const user = await requireRole("admin");
   const { t } = await getI18n();
-  const { bstatus: bstatusRaw } = await searchParams;
+  const { bstatus: bstatusRaw, cancelled, cancelerror } = await searchParams;
 
   const bookings = await listAllBookings();
   const spaces = await listAllSpaces();
@@ -52,6 +53,17 @@ export default async function AdminBookingsPage({
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
         </Link>
+
+        {cancelled && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("admin.cancel.done")}
+          </div>
+        )}
+        {cancelerror && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-600">
+            <XCircle className="h-5 w-5" /> {t("admin.cancel.fail")}
+          </div>
+        )}
 
         <section id="bookings">
           <div className="mb-3 flex items-center gap-2">
@@ -98,7 +110,7 @@ export default async function AdminBookingsPage({
                       {formatDate(b.startAt)} → {formatDate(b.endAt)}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={
                         b.status === "cancelled"
@@ -114,6 +126,22 @@ export default async function AdminBookingsPage({
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
                     </Link>
+                    {["requested", "paid", "active"].includes(b.status) && (
+                      <form action={adminCancelBookingAction} className="flex items-center gap-1.5">
+                        <input type="hidden" name="bookingId" value={b.id} />
+                        <input
+                          name="reason"
+                          placeholder={t("admin.cancel.reason")}
+                          className="w-36 rounded-lg border border-navy-200 bg-white px-2 py-1.5 text-xs text-navy-700 placeholder:text-navy-300"
+                        />
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                        >
+                          <XCircle className="h-3.5 w-3.5" /> {t("admin.cancel.btn")}
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
               );

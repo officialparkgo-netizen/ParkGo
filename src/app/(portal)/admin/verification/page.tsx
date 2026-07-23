@@ -152,8 +152,13 @@ export default async function AdminVerificationPage() {
                         </ul>
                         <p className="mt-2 text-xs text-navy-400">{t("admin.verif.docsNote")}</p>
                       </div>
-                      <form action={reviewVerificationAction} className="flex gap-2">
+                      <form action={reviewVerificationAction} className="flex flex-col items-stretch gap-2 sm:w-56">
                         <input type="hidden" name="verificationId" value={v.id} />
+                        <input
+                          name="notes"
+                          placeholder={t("admin.verif.notesPh")}
+                          className="rounded-lg border border-navy-200 bg-white px-2.5 py-2 text-xs text-navy-700 placeholder:text-navy-300"
+                        />
                         <button
                           type="submit"
                           name="decision"

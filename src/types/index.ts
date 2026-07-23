@@ -39,6 +39,11 @@ export interface User {
   /** Uploaded profile photo (public URL in live; data URL in mock). */
   avatarUrl?: string;
   /**
+   * Set at runtime (never stored) when an admin is viewing the app as this
+   * user via the support impersonation cookie. Holds the real admin's id.
+   */
+  impersonatedBy?: UUID;
+  /**
    * First-run profile setup done. Strictly `false` gates non-admins to
    * /welcome; undefined (pre-migration rows) never gates.
    */
@@ -268,6 +273,9 @@ export interface PriceBreakdown {
   /** Marketplace split derived from the total. */
   split: PaymentSplit;
   currency: "GBP" | "EUR";
+  /** Promo discount already subtracted from total (absorbed by the platform). */
+  promoCode?: string;
+  discount?: Pence;
 }
 
 export type TransferStatus =
@@ -356,6 +364,56 @@ export interface Review {
   rating: number; // 1–5
   comment: string;
   createdAt: ISODateString;
+  /** Hidden by an admin (inappropriate content) — excluded from public pages. */
+  hidden?: boolean;
+}
+
+// -----------------------------------------------------------------------------
+// Admin suite: action log, promo codes, damage claims
+// -----------------------------------------------------------------------------
+
+/** A record of something an admin did (approve, suspend, refund, note …). */
+export interface AdminAction {
+  id: UUID;
+  adminId: UUID;
+  adminName: string;
+  action: string; // e.g. "verification.approved", "user.suspended", "note"
+  targetType: "user" | "host" | "space" | "booking" | "payment" | "review" | "promo" | "claim" | "verification" | "broadcast";
+  targetId: string;
+  detail?: string;
+  createdAt: ISODateString;
+}
+
+export type PromoKind = "percent" | "fixed";
+
+export interface PromoCode {
+  id: UUID;
+  code: string; // uppercase, e.g. PARKGO10
+  kind: PromoKind;
+  /** Percent (1–100) for "percent", pence for "fixed". */
+  value: number;
+  active: boolean;
+  uses: number;
+  maxUses?: number;
+  expiresAt?: ISODateString;
+  createdAt: ISODateString;
+}
+
+export type ClaimStatus = "open" | "in_review" | "resolved" | "rejected";
+
+/** Damage / incident claim raised against a booking. */
+export interface Claim {
+  id: UUID;
+  bookingId: UUID;
+  bookingRef: string;
+  openedBy: UUID;
+  openedByRole: Role;
+  description: string;
+  status: ClaimStatus;
+  /** Admin's decision note, shown to the claimant. */
+  resolution?: string;
+  createdAt: ISODateString;
+  updatedAt?: ISODateString;
 }
 
 export interface TrustScore {

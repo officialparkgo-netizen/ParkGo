@@ -5,10 +5,10 @@ import {
   getAllReviews as mockGetAllReviews,
   getReviewsForSpace as mockGetReviewsForSpace,
   setBookingStatus as mockSetBookingStatus,
+  setReviewHidden as mockSetReviewHidden,
 } from "@/lib/data/store";
 
-const COLS =
-  "id, booking_id, author_id, author_role, subject_id, subject_type, rating, comment, created_at";
+const COLS = "*";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function fromRow(r: any): Review {
@@ -22,6 +22,7 @@ function fromRow(r: any): Review {
     rating: r.rating,
     comment: r.comment ?? "",
     createdAt: r.created_at,
+    hidden: !!r.hidden,
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -38,9 +39,9 @@ export async function listAllReviews(): Promise<Review[]> {
   return (data ?? []).map(fromRow);
 }
 
-/** Reviews for a space, newest first. */
+/** Reviews for a space, newest first (admin-hidden ones excluded). */
 export async function listReviewsForSpace(spaceId: string): Promise<Review[]> {
-  if (!IS_LIVE) return mockGetReviewsForSpace(spaceId);
+  if (!IS_LIVE) return mockGetReviewsForSpace(spaceId).filter((r) => !r.hidden);
   const { supabaseAdmin } = await import("@/lib/supabase/server");
   const { data } = await supabaseAdmin()
     .from("reviews")
@@ -48,7 +49,18 @@ export async function listReviewsForSpace(spaceId: string): Promise<Review[]> {
     .eq("subject_id", spaceId)
     .eq("subject_type", "space")
     .order("created_at", { ascending: false });
-  return (data ?? []).map(fromRow);
+  return (data ?? []).map(fromRow).filter((r) => !r.hidden);
+}
+
+/** Admin moderation: hide or restore a review on public pages. */
+export async function setReviewHiddenAdmin(reviewId: string, hidden: boolean): Promise<boolean> {
+  if (!IS_LIVE) return !!mockSetReviewHidden(reviewId, hidden);
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { error } = await supabaseAdmin()
+    .from("reviews")
+    .update({ hidden })
+    .eq("id", reviewId);
+  return !error;
 }
 
 /**

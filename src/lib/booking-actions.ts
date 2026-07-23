@@ -72,13 +72,34 @@ export async function createBookingAction(formData: FormData) {
     redirect(`/app/space/${spaceId}?soldout=1`);
   }
 
+  // Optional promo code — invalid codes bounce back to checkout with a notice.
+  const promoRaw = String(formData.get("promo") || "").trim();
+  let promo: { id: string; code: string; kind: "percent" | "fixed"; value: number } | undefined;
+  if (promoRaw) {
+    const { findActivePromo } = await import("@/lib/data/promos");
+    const found = await findActivePromo(promoRaw);
+    if (!found) {
+      const back = new URLSearchParams({
+        from: startAt.slice(0, 10),
+        to: endAt.slice(0, 10),
+        promo: "invalid",
+      });
+      redirect(`/app/book/${spaceId}?${back.toString()}`);
+    }
+    promo = { id: found.id, code: found.code, kind: found.kind, value: found.value };
+  }
+
   // Stripe path: create a pending booking, then redirect to Stripe Checkout.
   // The /api/stripe/confirm route marks it paid on return.
   if (isStripeConfigured()) {
     const pending = await createBookingLive(
-      { travellerId: user.id, spaceId, bundle, startAt, endAt, method },
+      { travellerId: user.id, spaceId, bundle, startAt, endAt, method, promo },
       { status: "requested", recordPayment: false }
     );
+    if (promo) {
+      const { incrementPromoUse } = await import("@/lib/data/promos");
+      await incrementPromoUse(promo.id);
+    }
     // Split to the host's connected account when they've onboarded payouts.
     const host = await getHostById(space.hostId);
     const url = await createBookingCheckoutSession(pending, space, host?.payoutAccountRef);
@@ -93,7 +114,12 @@ export async function createBookingAction(formData: FormData) {
     startAt,
     endAt,
     method,
+    promo,
   });
+  if (promo) {
+    const { incrementPromoUse } = await import("@/lib/data/promos");
+    await incrementPromoUse(promo.id);
+  }
   await getPaymentGateway().charge({
     bookingRef: booking.reference,
     amount: booking.price.total,
@@ -260,12 +286,10 @@ export async function reviewVerificationAction(formData: FormData) {
   const id = String(formData.get("verificationId") || "");
   const decision = String(formData.get("decision") || "") as "approved" | "rejected";
   if (decision !== "approved" && decision !== "rejected") return;
-  await reviewVerificationLive(
-    id,
-    decision,
-    admin.id,
-    String(formData.get("notes") || "") || undefined
-  );
+  const notes = String(formData.get("notes") || "").trim().slice(0, 300) || undefined;
+  await reviewVerificationLive(id, decision, admin.id, notes);
+  const { recordAdminAction } = await import("@/lib/data/admin-actions");
+  await recordAdminAction(admin, `verification.${decision}`, "verification", id, notes);
   revalidatePath("/admin");
   revalidatePath("/admin/verification");
   revalidatePath("/host");
@@ -278,6 +302,8 @@ export async function reviewSpaceAction(formData: FormData) {
   const decision = String(formData.get("decision") || "") as "approved" | "rejected";
   if (decision !== "approved" && decision !== "rejected") return;
   const space = await reviewSpaceListing(spaceId, decision, admin.id);
+  const { recordAdminAction } = await import("@/lib/data/admin-actions");
+  await recordAdminAction(admin, `listing.${decision}`, "space", spaceId, space?.title);
   revalidatePath("/admin");
   revalidatePath("/admin/listings");
   revalidatePath("/host");
@@ -287,11 +313,19 @@ export async function reviewSpaceAction(formData: FormData) {
 
 /** Admin: pause a live listing (hide from search) or put it back live. */
 export async function pauseSpaceAction(formData: FormData) {
-  await requireRole("admin");
+  const admin = await requireRole("admin");
   const spaceId = String(formData.get("spaceId") || "");
   const state = String(formData.get("state") || "");
   if (!spaceId || (state !== "pause" && state !== "reactivate")) return;
   const space = await setSpacePausedAdmin(spaceId, state === "pause");
+  const { recordAdminAction } = await import("@/lib/data/admin-actions");
+  await recordAdminAction(
+    admin,
+    state === "pause" ? "listing.paused" : "listing.reactivated",
+    "space",
+    spaceId,
+    space?.title
+  );
   revalidatePath("/admin");
   revalidatePath("/admin/listings");
   revalidatePath("/host");

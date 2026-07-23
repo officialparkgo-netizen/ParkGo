@@ -22,6 +22,7 @@ export function Checkout({
   initialTransfer = false,
   initialEv = false,
   allowTransfer = true,
+  promoInvalid = false,
 }: {
   space: Space;
   startDate: string; // YYYY-MM-DD
@@ -31,6 +32,8 @@ export function Checkout({
   initialEv?: boolean;
   /** Terminal transfer exists only at airport destinations. */
   allowTransfer?: boolean;
+  /** The promo the traveller typed was rejected server-side. */
+  promoInvalid?: boolean;
 }) {
   const t = useT();
   // "2026-07-21T09:00"-style props mean an hourly (same-day) stay.
@@ -256,6 +259,24 @@ export function Checkout({
           </dl>
 
           <form id="checkout-form" action={createBookingAction} className="mt-4">
+            {/* Promo code (validated server-side; discount comes off the platform fee) */}
+            <div className="mb-3">
+              <label htmlFor="promo" className="mb-1 block text-xs font-bold text-navy-600">
+                {t("book.promo.label")}
+              </label>
+              <input
+                id="promo"
+                name="promo"
+                defaultValue={promoInvalid ? "" : undefined}
+                placeholder={t("book.promo.ph")}
+                className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm uppercase text-navy-900 placeholder:normal-case placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+              />
+              {promoInvalid && (
+                <p className="mt-1 text-xs font-semibold text-red-600">
+                  {t("book.promo.invalid")}
+                </p>
+              )}
+            </div>
             <input type="hidden" name="spaceId" value={space.id} />
             <input type="hidden" name="startAt" value={new Date(start).toISOString()} />
             <input type="hidden" name="endAt" value={new Date(end).toISOString()} />

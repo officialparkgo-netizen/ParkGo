@@ -30,6 +30,9 @@ const TONE: Record<string, Tone> = {
   draft: "neutral",
   paused: "neutral",
   not_started: "neutral",
+  // claims
+  open: "accent",
+  resolved: "go",
 };
 
 export function StatusBadge({ status }: { status: string }) {
