@@ -124,8 +124,8 @@ export default async function PrivacyPage() {
             <ul>
               <li>
                 {t("privacy.dpo.emailLabel")}{" "}
-                <Link href="mailto:dpo@parkgo.ai" className="font-semibold text-brand-600">
-                  dpo@parkgo.ai
+                <Link href="mailto:info@parkgo.ai" className="font-semibold text-brand-600">
+                  info@parkgo.ai
                 </Link>
               </li>
               <li>{t("privacy.dpo.post")}</li>
