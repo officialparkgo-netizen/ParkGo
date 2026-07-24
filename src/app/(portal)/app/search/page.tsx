@@ -28,6 +28,9 @@ export default async function SearchPage({
   searchParams: Promise<{
     airport?: string;
     q?: string;
+    near?: string;
+    lat?: string;
+    lng?: string;
     from?: string;
     to?: string;
     ev?: string;
@@ -42,7 +45,7 @@ export default async function SearchPage({
   const user = await requireRole("traveller");
   const { t } = await getI18n();
   const sp = await searchParams;
-  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind }));
+  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind, lat: a.lat, lng: a.lng }));
 
   // Free-text destination: "Gatwick", "LGW", an area, or a postcode. Only
   // consulted when no explicit airport was picked.
@@ -50,9 +53,21 @@ export default async function SearchPage({
   let airportSlug = sp.airport || "";
   let matchedSpaceIds: Set<string> | null = null;
   let noMatch = false;
+  // A geocoded point ("near me" spot): results sort by distance to it.
+  let nearPoint: { lat: number; lng: number; label: string } | null = null;
+  if (
+    airportSlug &&
+    sp.near &&
+    Number.isFinite(Number(sp.lat)) &&
+    Number.isFinite(Number(sp.lng))
+  ) {
+    nearPoint = { lat: Number(sp.lat), lng: Number(sp.lng), label: sp.near };
+  }
   if (!airportSlug && rawQ) {
     const { listAllSpaces } = await import("@/lib/data/hosts");
-    const { resolveSearchQuery } = await import("@/lib/geo-search");
+    const { geocodeUk, nearestDestination, resolveSearchQuery } = await import(
+      "@/lib/geo-search"
+    );
     const resolution = resolveSearchQuery(rawQ, airports, await listAllSpaces());
     if (resolution.kind === "destination") {
       airportSlug = resolution.slug;
@@ -60,7 +75,16 @@ export default async function SearchPage({
       airportSlug = resolution.slug;
       matchedSpaceIds = new Set(resolution.spaceIds);
     } else {
-      noMatch = true;
+      // Nothing of ours matches — geocode it (Mapbox, UK/IE) and show the
+      // nearest destination we serve, closest spaces first.
+      const [hit] = await geocodeUk(rawQ);
+      const nearest = hit ? nearestDestination(hit.lat, hit.lng, airports) : null;
+      if (hit && nearest) {
+        airportSlug = nearest.slug;
+        nearPoint = { lat: hit.lat, lng: hit.lng, label: rawQ };
+      } else {
+        noMatch = true;
+      }
     }
   }
   if (!airportSlug) airportSlug = "heathrow";
@@ -99,6 +123,15 @@ export default async function SearchPage({
   if (sort === "price") results.sort((a, b) => a.estimatedTotal - b.estimatedTotal);
   if (sort === "rating") results.sort((a, b) => b.space.rating - a.space.rating);
   if (sort === "closest") results.sort((a, b) => a.space.driveMinutes - b.space.driveMinutes);
+  if (nearPoint && sort === "recommended") {
+    const { distanceKm } = await import("@/lib/geo-search");
+    const point = nearPoint;
+    results.sort(
+      (a, b) =>
+        distanceKm(point.lat, point.lng, a.space.lat, a.space.lng) -
+        distanceKm(point.lat, point.lng, b.space.lat, b.space.lng)
+    );
+  }
 
   const sortHref = (key: string) => {
     const params = new URLSearchParams();
@@ -173,6 +206,11 @@ export default async function SearchPage({
               {matchedSpaceIds && (
                 <Badge tone="brand" data-q-badge>
                   {t("search.matchNote").replace("{q}", rawQ)}
+                </Badge>
+              )}
+              {nearPoint && (
+                <Badge tone="brand" data-near-badge>
+                  {t("search.nearNote").replace("{q}", nearPoint.label)}
                 </Badge>
               )}
               {hourlySearch && <Badge tone="brand">{t("search.mode.hourly")}</Badge>}

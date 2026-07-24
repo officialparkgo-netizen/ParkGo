@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, Search, Zap, CarTaxiFront, Camera, Car, Umbrella, Banknote } from "lucide-react";
+import {
+  Plane, Search, Zap, CarTaxiFront, Camera, Car, Umbrella, Banknote, MapPin,
+} from "lucide-react";
 import type { Airport } from "@/types";
 import { useT } from "@/lib/i18n/client";
+
+interface DestSuggestion {
+  label: string;
+  slug?: string;
+  lat?: number;
+  lng?: number;
+}
 
 function isoDay(offsetDays: number) {
   const d = new Date();
@@ -35,7 +44,7 @@ export function SearchWidget({
   compact = false,
   initial,
 }: {
-  airports: Pick<Airport, "slug" | "name" | "code" | "kind">[];
+  airports: Pick<Airport, "slug" | "name" | "code" | "kind" | "lat" | "lng">[];
   compact?: boolean;
   /** Pre-fill from the current query so refining a search keeps its state. */
   initial?: SearchWidgetInitial;
@@ -55,6 +64,46 @@ export function SearchWidget({
       airports.find((a) => a.slug === (initial?.airport ?? "heathrow")) ?? airports[0]
     );
   const [dest, setDest] = useState(initialDest ?? "");
+  // A geocoded pick (postcode / town / street) — search runs at the nearest
+  // destination we serve, sorted by distance to this point.
+  const [geoSel, setGeoSel] = useState<{ label: string; lat: number; lng: number } | null>(null);
+  const [sugs, setSugs] = useState<DestSuggestion[]>([]);
+  const [openSugs, setOpenSugs] = useState(false);
+  const pickedRef = useRef(false);
+
+  // Live suggestions: our destinations + Mapbox UK/IE places, debounced.
+  useEffect(() => {
+    if (pickedRef.current) {
+      pickedRef.current = false;
+      return;
+    }
+    const q = dest.trim();
+    if (q.length < 2) {
+      setSugs([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/geo/suggest?q=${encodeURIComponent(q)}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as { suggestions?: DestSuggestion[] };
+        setSugs(data.suggestions ?? []);
+        setOpenSugs(true);
+      } catch {
+        // suggestions are sugar — typing + submit always works without them
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [dest]);
+
+  const pickSuggestion = (s: DestSuggestion) => {
+    pickedRef.current = true;
+    setDest(s.label);
+    setGeoSel(s.slug || s.lat === undefined ? null : { label: s.label, lat: s.lat, lng: s.lng! });
+    setOpenSugs(false);
+    if (s.slug && !airportDests.some((a) => a.slug === s.slug)) setNeedsTransfer(false);
+  };
+
   const resolveDest = (text: string): string | null => {
     const q = text.trim().toLowerCase();
     if (!q) return null;
@@ -104,8 +153,31 @@ export function SearchWidget({
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Geocoded pick → nearest served destination, results sorted by distance.
+    let destParams: Record<string, string> = airport
+      ? { airport }
+      : { q: dest.trim() };
+    if (!airport && geoSel) {
+      let best: (typeof airports)[number] | null = null;
+      let bestD = Infinity;
+      for (const a of airports) {
+        const d = (a.lat - geoSel.lat) ** 2 + (a.lng - geoSel.lng) ** 2;
+        if (d < bestD) {
+          bestD = d;
+          best = a;
+        }
+      }
+      if (best) {
+        destParams = {
+          airport: best.slug,
+          near: geoSel.label,
+          lat: String(geoSel.lat),
+          lng: String(geoSel.lng),
+        };
+      }
+    }
     const params = new URLSearchParams({
-      ...(airport ? { airport } : { q: dest.trim() }),
+      ...destParams,
       from: mode === "hourly" ? `${from}T${fromTime}` : from,
       to: mode === "hourly" ? `${from}T${toTime}` : to,
       ...(vehicle ? { vehicle } : {}),
@@ -152,28 +224,58 @@ export function SearchWidget({
           <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-navy-500">
             <Plane className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {t("search.destination")}
           </span>
-          <input
-            type="text"
-            list="parkgo-destinations"
-            required
-            value={dest}
-            onChange={(e) => {
-              setDest(e.target.value);
-              const slug = resolveDest(e.target.value);
-              if (!slug || !airportDests.some((a) => a.slug === slug)) setNeedsTransfer(false);
-            }}
-            onFocus={(e) => e.target.select()}
-            placeholder={t("search.destPh")}
-            className="w-full bg-transparent text-sm font-semibold text-navy-900 placeholder:font-normal placeholder:text-navy-300 focus:outline-none"
-          />
-          <datalist id="parkgo-destinations">
-            {airportDests.map((a) => (
-              <option key={a.slug} value={`${a.name} (${a.code})`} />
-            ))}
-            {placeDests.map((a) => (
-              <option key={a.slug} value={a.name} />
-            ))}
-          </datalist>
+          <div className="relative">
+            <input
+              type="text"
+              data-dest-input
+              role="combobox"
+              aria-expanded={openSugs && sugs.length > 0}
+              aria-autocomplete="list"
+              autoComplete="off"
+              required
+              value={dest}
+              onChange={(e) => {
+                setDest(e.target.value);
+                setGeoSel(null);
+                const slug = resolveDest(e.target.value);
+                if (!slug || !airportDests.some((a) => a.slug === slug)) setNeedsTransfer(false);
+              }}
+              onFocus={(e) => {
+                e.target.select();
+                if (sugs.length > 0) setOpenSugs(true);
+              }}
+              onBlur={() => setTimeout(() => setOpenSugs(false), 150)}
+              placeholder={t("search.destPh")}
+              className="w-full bg-transparent text-sm font-semibold text-navy-900 placeholder:font-normal placeholder:text-navy-300 focus:outline-none"
+            />
+            {openSugs && sugs.length > 0 && (
+              <ul
+                role="listbox"
+                data-dest-suggestions
+                className="absolute left-0 top-full z-30 mt-2 max-h-72 w-full min-w-64 overflow-y-auto rounded-2xl border border-navy-100 bg-white py-1.5 shadow-card-lg"
+              >
+                {sugs.map((s) => (
+                  <li key={`${s.slug ?? ""}${s.label}`} role="option" aria-selected="false">
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        pickSuggestion(s);
+                      }}
+                      className="flex w-full items-start gap-2 px-3.5 py-2 text-left text-sm text-navy-800 hover:bg-navy-50"
+                    >
+                      {s.slug ? (
+                        <Plane className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" aria-hidden />
+                      ) : (
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-navy-400" aria-hidden />
+                      )}
+                      <span className="min-w-0 truncate font-semibold">{s.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </label>
 
         <span className="hidden w-px self-stretch bg-navy-100 lg:my-3.5 lg:block" aria-hidden />

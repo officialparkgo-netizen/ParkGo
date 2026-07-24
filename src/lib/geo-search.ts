@@ -19,6 +19,67 @@ export type QueryResolution =
 
 const strip = (s: string) => s.toLowerCase().replace(/\s+/g, "");
 
+/** Great-circle distance in km (haversine). */
+export function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const rad = Math.PI / 180;
+  const dLat = (bLat - aLat) * rad;
+  const dLng = (bLng - aLng) * rad;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * rad) * Math.cos(bLat * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+
+/** The destination we serve that's closest to a point (null when list empty). */
+export function nearestDestination<T extends { lat: number; lng: number }>(
+  lat: number,
+  lng: number,
+  dests: T[]
+): T | null {
+  let best: T | null = null;
+  let bestD = Infinity;
+  for (const d of dests) {
+    const dist = distanceKm(lat, lng, d.lat, d.lng);
+    if (dist < bestD) {
+      bestD = dist;
+      best = d;
+    }
+  }
+  return best;
+}
+
+export interface GeoHit {
+  label: string;
+  lat: number;
+  lng: number;
+}
+
+/**
+ * Mapbox geocoding, UK & Ireland only. Silent no-op without a token or on
+ * any failure — the rest of search keeps working exactly as before.
+ */
+export async function geocodeUk(q: string): Promise<GeoHit[]> {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const query = q.trim();
+  if (!token || query.length < 3) return [];
+  try {
+    const url =
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json` +
+      `?access_token=${token}&country=GB,IE&limit=5&autocomplete=true&language=en` +
+      `&types=postcode,place,locality,neighborhood,address,poi`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(2500), cache: "no-store" });
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      features?: Array<{ place_name?: string; center?: [number, number] }>;
+    };
+    return (data.features ?? [])
+      .filter((f) => f.place_name && Array.isArray(f.center) && f.center.length === 2)
+      .map((f) => ({ label: f.place_name as string, lat: f.center![1], lng: f.center![0] }));
+  } catch {
+    return [];
+  }
+}
+
 export function resolveSearchQuery(
   qRaw: string,
   destinations: DestLite[],

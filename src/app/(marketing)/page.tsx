@@ -45,7 +45,7 @@ const KIND_ICONS = {
 
 export default async function HomePage() {
   const { t } = await getI18n();
-  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind }));
+  const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind, lat: a.lat, lng: a.lng }));
 
   // Popular destinations: live spaces + lowest daily price per destination.
   const allSpaces = await listAllSpaces();

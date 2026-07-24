@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveSearchQuery } from "./geo-search";
+import { distanceKm, nearestDestination, resolveSearchQuery } from "./geo-search";
 
 const dests = [
   { slug: "heathrow", name: "Heathrow Airport", code: "LHR", kind: "airport" },
@@ -75,5 +75,26 @@ describe("resolveSearchQuery", () => {
     expect(resolveSearchQuery("zzzqqq", dests, spaces).kind).toBe("none");
     expect(resolveSearchQuery("rh", dests, spaces).kind).toBe("none");
     expect(resolveSearchQuery("  ", dests, spaces).kind).toBe("none");
+  });
+});
+
+describe("nearestDestination / distanceKm", () => {
+  const points = [
+    { slug: "heathrow", lat: 51.47, lng: -0.4543 },
+    { slug: "gatwick", lat: 51.1537, lng: -0.1821 },
+    { slug: "manchester", lat: 53.3654, lng: -2.2728 },
+  ];
+  it("picks the closest served destination for a Crawley postcode", () => {
+    // RH11 (Crawley) sits on Gatwick's doorstep.
+    expect(nearestDestination(51.11, -0.19, points)?.slug).toBe("gatwick");
+  });
+  it("picks Manchester for an M1 point", () => {
+    expect(nearestDestination(53.48, -2.24, points)?.slug).toBe("manchester");
+  });
+  it("distance is symmetric and zero to itself", () => {
+    expect(distanceKm(51.47, -0.45, 51.47, -0.45)).toBe(0);
+    const ab = distanceKm(51.47, -0.45, 53.36, -2.27);
+    expect(Math.round(ab)).toBeGreaterThan(200);
+    expect(distanceKm(53.36, -2.27, 51.47, -0.45)).toBeCloseTo(ab, 8);
   });
 });
