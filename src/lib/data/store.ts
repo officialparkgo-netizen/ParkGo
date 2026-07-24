@@ -211,6 +211,7 @@ export interface CreateSpaceInput {
   covered?: boolean;
   evCharger: Space["evCharger"];
   accessRules: string;
+  weekendUpliftPct?: number;
   lengthM: number;
   widthM: number;
 }
@@ -238,6 +239,7 @@ export function createSpace(input: CreateSpaceInput): Space {
     liveCamera: input.liveCamera,
     covered: input.covered ?? false,
     accessRules: input.accessRules,
+    weekendUpliftPct: input.weekendUpliftPct || undefined,
     photos: ["drive-1"],
     pricePerDay: input.pricePerDay,
     pricePerHour: input.pricePerHour ?? undefined,

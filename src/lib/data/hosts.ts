@@ -37,6 +37,8 @@ function hostFromRow(r: any): Host {
     bio: r.bio ?? undefined,
     verificationStatus: r.verification_status,
     payoutAccountRef: r.payout_account_ref ?? undefined,
+    bankSort: r.bank_sort ?? undefined,
+    bankAccount: r.bank_account ?? undefined,
     rating: Number(r.rating ?? 0),
     joinedAt: r.joined_at,
   };
@@ -66,6 +68,7 @@ function spaceFromRow(r: any): Space {
     pricePerDay: r.price_per_day,
     pricePerHour: r.price_per_hour ?? undefined,
     blockedDates: r.blocked_dates ?? undefined,
+    weekendUpliftPct: r.weekend_uplift_pct ?? undefined,
     rating: Number(r.rating ?? 0),
     reviewCount: r.review_count ?? 0,
     status: r.status,
@@ -412,6 +415,8 @@ export interface UpdateSpaceInput {
   removePhotos?: string[];
   /** Full replacement set of host-blocked days ("YYYY-MM-DD"); omit = unchanged. */
   blockedDates?: string[];
+  /** Weekend (Sat/Sun) uplift percent; omit = unchanged, 0 clears it. */
+  weekendUpliftPct?: number;
 }
 
 /**
@@ -440,6 +445,8 @@ export async function updateSpaceForHost(
     s.accessRules = input.accessRules;
     s.dimensions = { lengthM: input.lengthM, widthM: input.widthM };
     if (input.blockedDates !== undefined) s.blockedDates = input.blockedDates;
+    if (input.weekendUpliftPct !== undefined)
+      s.weekendUpliftPct = input.weekendUpliftPct || undefined;
     {
       const removeSet = new Set(input.removePhotos ?? []);
       let photos = s.photos.filter((p) => !removeSet.has(p));
@@ -492,12 +499,20 @@ export async function updateSpaceForHost(
       .single();
 
   let { data, error } = await doUpdate(
-    input.blockedDates !== undefined
-      ? { ...baseUpdate, blocked_dates: input.blockedDates }
+    input.blockedDates !== undefined || input.weekendUpliftPct !== undefined
+      ? {
+          ...baseUpdate,
+          ...(input.blockedDates !== undefined
+            ? { blocked_dates: input.blockedDates }
+            : {}),
+          ...(input.weekendUpliftPct !== undefined
+            ? { weekend_uplift_pct: input.weekendUpliftPct || null }
+            : {}),
+        }
       : baseUpdate
   );
-  // Pre-0014 databases have no blocked_dates column — save the rest anyway.
-  if (error && input.blockedDates !== undefined) {
+  // Pre-0014/0020 databases miss these columns — save the rest anyway.
+  if (error && (input.blockedDates !== undefined || input.weekendUpliftPct !== undefined)) {
     ({ data, error } = await doUpdate(baseUpdate));
   }
   if (error || !data) return null;
@@ -515,6 +530,35 @@ export async function updateSpaceForHost(
 }
 
 /** Persist the host's Stripe Connect account id (payout_account_ref). */
+/** Manual payout details for pre-Stripe bank runs (digits only, masked in UI). */
+export async function setHostBank(
+  hostId: string,
+  bankSort: string,
+  bankAccount: string
+): Promise<boolean> {
+  const sort = bankSort.replace(/\D/g, "").slice(0, 6);
+  const account = bankAccount.replace(/\D/g, "").slice(0, 8);
+  if (sort.length !== 6 || account.length !== 8) return false;
+  if (!IS_LIVE) {
+    const { getHost } = await import("@/lib/data/store");
+    const h = getHost(hostId);
+    if (!h) return false;
+    h.bankSort = sort;
+    h.bankAccount = account;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("hosts")
+      .update({ bank_sort: sort, bank_account: account })
+      .eq("id", hostId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function setHostPayoutAccount(hostId: string, accountId: string): Promise<void> {
   if (!IS_LIVE) return;
   const { supabaseAdmin } = await import("@/lib/supabase/server");

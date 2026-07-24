@@ -5,6 +5,7 @@ import {
   SERVICE_FEE,
   TRANSFER_BASE_FARE,
   applyPromoToPrice,
+  dailyParkingTotal,
   computeSplit,
   evCost,
   priceBundle,
@@ -180,5 +181,42 @@ describe("applyPromoToPrice", () => {
   it("zero/negative values leave the price untouched", () => {
     const p = base();
     expect(applyPromoToPrice(p, { code: "X", kind: "percent", value: 0 })).toEqual(p);
+  });
+});
+
+describe("dailyParkingTotal (weekend uplift)", () => {
+  // 2026-08-01 is a Saturday.
+  it("no uplift → flat pricePerDay × days", () => {
+    expect(
+      dailyParkingTotal({ pricePerDay: 1000 }, "2026-08-03", "2026-08-08")
+    ).toBe(5000);
+  });
+
+  it("uplifts Saturdays and Sundays only", () => {
+    // Fri 31 Jul → Mon 3 Aug = Fri, Sat, Sun (3 days): 1000 + 1200 + 1200.
+    expect(
+      dailyParkingTotal(
+        { pricePerDay: 1000, weekendUpliftPct: 20 },
+        "2026-07-31",
+        "2026-08-03"
+      )
+    ).toBe(3400);
+  });
+
+  it("weekday-only stays are unaffected by the uplift", () => {
+    expect(
+      dailyParkingTotal(
+        { pricePerDay: 1000, weekendUpliftPct: 50 },
+        "2026-08-03",
+        "2026-08-07"
+      )
+    ).toBe(4000);
+  });
+
+  it("priceBundle reconciles with an uplift applied", () => {
+    const spaced = { ...space, weekendUpliftPct: 25 };
+    const p = priceBundle(spaced, { parking: true, transfer: false, ev: false }, "2026-07-31", "2026-08-03");
+    expect(splitReconciles(p)).toBe(true);
+    expect(p.parking).toBe(dailyParkingTotal(spaced, "2026-07-31", "2026-08-03"));
   });
 });

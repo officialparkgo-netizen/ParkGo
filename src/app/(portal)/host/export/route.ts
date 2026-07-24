@@ -24,8 +24,14 @@ export async function GET(request: Request) {
   const host = await getHostForUser(user);
   if (!host) return new Response("No host profile", { status: 404 });
   // ?month=YYYY-MM turns the full history into a single-month statement.
-  const month = new URL(request.url).searchParams.get("month");
+  const url0 = new URL(request.url);
+  const month = url0.searchParams.get("month");
   const monthOk = !!month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month);
+  // ?taxyear=2025 → UK tax year 6 Apr 2025 – 5 Apr 2026 (self-assessment).
+  const taxyearRaw = Number(url0.searchParams.get("taxyear"));
+  const taxOk = Number.isInteger(taxyearRaw) && taxyearRaw >= 2020 && taxyearRaw <= 2100;
+  const taxFrom = taxOk ? Date.UTC(taxyearRaw, 3, 6) : 0;
+  const taxTo = taxOk ? Date.UTC(taxyearRaw + 1, 3, 6) : 0;
 
   const [bookings, payments, spaces] = await Promise.all([
     listBookingsForHost(host.id),
@@ -41,6 +47,11 @@ export async function GET(request: Request) {
   ];
   const rows = [...payments]
     .filter((p) => !monthOk || p.createdAt.slice(0, 7) === month)
+    .filter((p) => {
+      if (!taxOk) return true;
+      const ts = +new Date(p.createdAt);
+      return ts >= taxFrom && ts < taxTo;
+    })
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
     .map((p) => {
       const b = bookingMap.get(p.bookingId);
@@ -65,7 +76,11 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   return sheetResponse({
     sheetName: "Payouts",
-    filename: monthOk ? `parkgo-statement-${month}` : "parkgo-payouts",
+    filename: taxOk
+      ? `parkgo-tax-${taxyearRaw}-${taxyearRaw + 1}`
+      : monthOk
+        ? `parkgo-statement-${month}`
+        : "parkgo-payouts",
     header,
     rows,
     format: url.searchParams.get("format"),

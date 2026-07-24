@@ -48,6 +48,8 @@ export interface User {
    * (payments, promos, broadcast, settings, finance exports). Absent = full.
    */
   adminScope?: "full" | "support";
+  /** Host preference: email me when a booking lands (default on). */
+  emailBookingAlerts?: boolean;
   /**
    * First-run profile setup done. Strictly `false` gates non-admins to
    * /welcome; undefined (pre-migration rows) never gates.
@@ -150,6 +152,9 @@ export interface Host {
   bio?: string;
   verificationStatus: VerificationStatus;
   payoutAccountRef?: string; // Stripe Connect account id (live mode)
+  /** Manual payout details (pre-Stripe): UK sort code + account number. */
+  bankSort?: string;
+  bankAccount?: string;
   rating: number; // 0–5
   joinedAt: ISODateString;
 }
@@ -184,6 +189,8 @@ export interface Space {
   pricePerHour?: Pence;
   /** Host-blocked days ("YYYY-MM-DD") — not bookable (holiday / own use). */
   blockedDates?: string[];
+  /** Weekend (Sat/Sun) price uplift in percent, applied per day. 0–100. */
+  weekendUpliftPct?: number;
   rating: number;
   reviewCount: number;
   status: SpaceStatus;
@@ -371,6 +378,9 @@ export interface Review {
   createdAt: ISODateString;
   /** Hidden by an admin (inappropriate content) — excluded from public pages. */
   hidden?: boolean;
+  /** Host's public reply, shown under the review. */
+  reply?: string;
+  repliedAt?: ISODateString;
 }
 
 // -----------------------------------------------------------------------------
@@ -531,6 +541,17 @@ export interface WaitlistEntry {
   createdAt: ISODateString;
   /** Set when an admin sent this signup an invite email. */
   invitedAt?: ISODateString;
+  /** Referring user id when the signup arrived via a referral link. */
+  referredBy?: UUID;
+}
+
+/** One message between the traveller and the host on a booking. */
+export interface BookingMessage {
+  id: UUID;
+  bookingId: UUID;
+  from: "host" | "traveller";
+  text: string;
+  at: ISODateString;
 }
 
 /** One message between a traveller and their transfer driver. */

@@ -11,10 +11,13 @@ export function WaitlistForm({
   role = "traveller",
   className,
   dark = false,
+  refValue,
 }: {
   role?: "traveller" | "host";
   className?: string;
   dark?: boolean;
+  /** Referral attribution (user id from a ?ref= link). */
+  refValue?: string;
 }) {
   const [state, action, pending] = useActionState<WaitlistState, FormData>(
     joinWaitlist,
@@ -40,6 +43,7 @@ export function WaitlistForm({
   return (
     <form action={action} className={cn("w-full", className)}>
       <input type="hidden" name="role" value={role} />
+      {refValue && <input type="hidden" name="ref" value={refValue} />}
       <div className="flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <Mail

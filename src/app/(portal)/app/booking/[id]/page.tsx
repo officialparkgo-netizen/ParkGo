@@ -22,6 +22,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { QrCode } from "@/components/portal/qr";
+import { BookingThread } from "@/components/portal/booking-thread";
 import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
@@ -418,6 +419,25 @@ export default async function BookingPage({
                     </form>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* Message the host (arrival coordination, gate codes…) */}
+            {paid && booking.travellerId === user.id && (
+              <div className="mt-5">
+                <BookingThread
+                  bookingId={booking.id}
+                  viewer="traveller"
+                  backHref={`/app/booking/${booking.id}`}
+                  labels={{
+                    title: t("thread.titleHost"),
+                    empty: t("thread.empty"),
+                    placeholder: t("thread.ph"),
+                    send: t("thread.send"),
+                    you: t("thread.you"),
+                    other: t("thread.host"),
+                  }}
+                />
               </div>
             )}
 

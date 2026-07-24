@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { BadgeCheck, Banknote, Download } from "lucide-react";
+import { BadgeCheck, Banknote, CheckCircle2, Download, FileSpreadsheet, Landmark, Users, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,6 +13,9 @@ import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { listBookingsForHost, listPaymentsForHost } from "@/lib/data/bookings";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { connectPayoutsAction } from "@/lib/host-actions";
+import { saveHostBankAction } from "@/lib/host-suite-actions";
+import { listWaitlist } from "@/lib/data/waitlist";
+import { CopyLinkButton } from "@/components/common/copy-link-button";
 import { isStripeConfigured, getConnectStatus } from "@/lib/stripe";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -23,9 +26,14 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 });
 
-export default async function HostPayoutsPage() {
+export default async function HostPayoutsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bank?: string }>;
+}) {
   const user = await requireRole("host");
   const { t, locale } = await getI18n();
+  const { bank } = await searchParams;
   const host = await getHostForUser(user);
   if (!host) redirect("/host");
 
@@ -93,12 +101,37 @@ export default async function HostPayoutsPage() {
     stripeOn && host.payoutAccountRef ? await getConnectStatus(host.payoutAccountRef) : null;
   const payoutsReady = !!payoutStatus?.chargesEnabled;
 
+  // UK tax years (6 Apr – 5 Apr): current + previous, for self-assessment.
+  const now = new Date();
+  const taxYearStart =
+    now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6)
+      ? now.getFullYear()
+      : now.getFullYear() - 1;
+  const taxYears = [taxYearStart, taxYearStart - 1];
+
+  // Host referrals: waitlist signups that arrived via this host's link.
+  const referred = (await listWaitlist().catch(() => [])).filter(
+    (w) => w.referredBy === user.id
+  ).length;
+  const referralLink = `https://www.parkgo.ai/hosts?ref=${user.id}`;
+
   return (
     <PortalShell user={user} nav={hostNav} title="host.section.payouts">
       <div className="mx-auto max-w-3xl space-y-6">
         <Link href="/host" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
         </Link>
+
+        {bank === "saved" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("host.bank.saved")}
+          </div>
+        )}
+        {bank === "invalid" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            <XCircle className="h-5 w-5" /> {t("host.bank.invalid")}
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -164,6 +197,95 @@ export default async function HostPayoutsPage() {
             )}
           </Card>
         )}
+
+        {/* Manual payout bank details (pre-Stripe) */}
+        {!payoutsReady && (
+          <Card className="p-5">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
+              <Landmark className="h-4 w-4 text-navy-500" /> {t("host.bank.title")}
+            </h3>
+            <p className="mt-0.5 text-sm text-navy-500">{t("host.bank.sub")}</p>
+            {host.bankAccount && (
+              <p className="mt-2 text-sm font-semibold text-go-700">
+                {t("host.bank.onFile")} ····{host.bankAccount.slice(-4)}
+              </p>
+            )}
+            <form
+              action={saveHostBankAction}
+              className="mt-3 flex flex-wrap items-end gap-2"
+            >
+              <label className="text-xs font-semibold text-navy-600">
+                {t("host.bank.sort")}
+                <input
+                  name="bankSort"
+                  inputMode="numeric"
+                  placeholder="04-00-04"
+                  required
+                  className="mt-1 block h-10 w-28 rounded-xl border border-navy-200 bg-white px-3 font-mono text-sm"
+                />
+              </label>
+              <label className="text-xs font-semibold text-navy-600">
+                {t("host.bank.account")}
+                <input
+                  name="bankAccount"
+                  inputMode="numeric"
+                  placeholder="12345678"
+                  required
+                  className="mt-1 block h-10 w-36 rounded-xl border border-navy-200 bg-white px-3 font-mono text-sm"
+                />
+              </label>
+              <button
+                type="submit"
+                className={buttonVariants({ size: "sm" })}
+              >
+                {t("host.bank.save")}
+              </button>
+            </form>
+            <p className="mt-2 text-xs text-navy-400">{t("host.bank.note")}</p>
+          </Card>
+        )}
+
+        {/* Tax-year statements (UK: 6 Apr – 5 Apr) */}
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
+              <FileSpreadsheet className="h-4 w-4 text-navy-500" /> {t("host.tax.title")}
+            </h3>
+            <p className="mt-0.5 text-sm text-navy-500">{t("host.tax.sub")}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {taxYears.map((y) => (
+              <a
+                key={y}
+                href={`/host/export?taxyear=${y}`}
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <Download className="h-4 w-4" /> {y}/{String(y + 1).slice(-2)}
+              </a>
+            ))}
+          </div>
+        </Card>
+
+        {/* Refer a host */}
+        <Card className="p-5">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
+            <Users className="h-4 w-4 text-navy-500" /> {t("host.ref.title")}
+          </h3>
+          <p className="mt-0.5 text-sm text-navy-500">
+            {t("host.ref.sub")}
+            {referred > 0 ? ` ${t("host.ref.count")} ${referred}.` : ""}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <code className="min-w-0 flex-1 truncate rounded-xl border border-navy-200 bg-navy-50/60 px-3 py-2.5 text-xs text-navy-700">
+              {referralLink}
+            </code>
+            <CopyLinkButton
+              value={referralLink}
+              label={t("host.ref.copy")}
+              copiedLabel={t("host.ref.copied")}
+            />
+          </div>
+        </Card>
 
         {/* Full history, month by month */}
         {groups.length === 0 ? (

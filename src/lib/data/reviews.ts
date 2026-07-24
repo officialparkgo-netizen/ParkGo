@@ -23,6 +23,8 @@ function fromRow(r: any): Review {
     comment: r.comment ?? "",
     createdAt: r.created_at,
     hidden: !!r.hidden,
+    reply: r.reply ?? undefined,
+    repliedAt: r.replied_at ?? undefined,
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -131,4 +133,41 @@ export async function createSpaceReview(input: {
   }
 
   return fromRow(row);
+}
+
+/** Reviews left on any of a host's spaces (for /host/reviews). */
+export async function listReviewsForHostSpaces(spaceIds: string[]): Promise<Review[]> {
+  if (spaceIds.length === 0) return [];
+  if (!IS_LIVE) {
+    return mockGetAllReviews().filter(
+      (r) => r.subjectType === "space" && spaceIds.includes(r.subjectId)
+    );
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { data } = await supabaseAdmin()
+    .from("reviews")
+    .select(COLS)
+    .in("subject_id", spaceIds)
+    .eq("subject_type", "space")
+    .order("created_at", { ascending: false });
+  return (data ?? []).map(fromRow);
+}
+
+/** Host's public reply (one per review; overwrites are allowed). */
+export async function setReviewReply(reviewId: string, reply: string): Promise<boolean> {
+  const text = reply.trim().slice(0, 600);
+  if (!text) return false;
+  if (!IS_LIVE) {
+    const r = mockGetAllReviews().find((x) => x.id === reviewId);
+    if (!r) return false;
+    r.reply = text;
+    r.repliedAt = new Date().toISOString();
+    return true;
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const { error } = await supabaseAdmin()
+    .from("reviews")
+    .update({ reply: text, replied_at: new Date().toISOString() })
+    .eq("id", reviewId);
+  return !error;
 }

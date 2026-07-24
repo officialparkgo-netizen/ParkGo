@@ -18,6 +18,7 @@ type WaitlistRow = {
   airport: string | null;
   created_at: string;
   invited_at?: string | null;
+  referred_by?: string | null;
 };
 
 function fromRow(r: WaitlistRow): WaitlistEntry {
@@ -28,6 +29,7 @@ function fromRow(r: WaitlistRow): WaitlistEntry {
     airport: r.airport ?? undefined,
     createdAt: r.created_at,
     invitedAt: r.invited_at ?? undefined,
+    referredBy: r.referred_by ?? undefined,
   };
 }
 
@@ -38,7 +40,12 @@ export async function addWaitlistEntry(
 
   const { data, error } = await supabaseAdmin()
     .from("waitlist")
-    .insert({ email: entry.email, role: entry.role, airport: entry.airport ?? null })
+    .insert({
+      email: entry.email,
+      role: entry.role,
+      airport: entry.airport ?? null,
+      ...(entry.referredBy ? { referred_by: entry.referredBy } : {}),
+    })
     .select("*")
     .single();
 

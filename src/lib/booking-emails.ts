@@ -31,10 +31,11 @@ async function bookingParties(booking: Booking): Promise<Parties> {
     if (hostRow?.user_id) {
       const { data: hostUser } = await admin
         .from("users")
-        .select("email, name")
+        .select("email, name, email_booking_alerts")
         .eq("id", hostRow.user_id)
         .maybeSingle();
-      if (hostUser) host = hostUser;
+      // Hosts can opt out of booking emails (in-app notifications still arrive).
+      if (hostUser && hostUser.email_booking_alerts !== false) host = hostUser;
     }
   }
 

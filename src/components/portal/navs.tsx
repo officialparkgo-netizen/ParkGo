@@ -31,9 +31,11 @@ export const travellerNav: NavItem[] = [
 
 export const hostNav: NavItem[] = [
   { href: "/host", label: "nav.dashboard", icon: LayoutGrid },
+  { href: "/host/today", label: "host.today.title", icon: CalendarClock },
   { href: "/host#listings", label: "nav.listings", icon: Warehouse },
   { href: "/host#bookings", label: "nav.bookings", icon: CalendarCheck },
   { href: "/host/payouts", label: "nav.earnings", icon: Banknote },
+  { href: "/host/reviews", label: "host.reviews.title", icon: Star },
   { href: "/host/verify", label: "nav.verification", icon: BadgeCheck },
 ];
 

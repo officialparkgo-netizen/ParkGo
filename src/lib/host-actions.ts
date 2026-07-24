@@ -36,6 +36,10 @@ function parseSpaceForm(formData: FormData) {
     covered: formData.get("covered") === "1",
     evCharger: evEnabled ? { connector: "Type 2" as const, kw, pricePerKwh: 38 } : null,
     accessRules: String(formData.get("accessRules") || ""),
+    weekendUpliftPct: Math.max(
+      0,
+      Math.min(100, Math.round(Number(formData.get("weekendUpliftPct") || 0)))
+    ),
     lengthM: Number(formData.get("lengthM") || 5),
     widthM: Number(formData.get("widthM") || 2.5),
   };

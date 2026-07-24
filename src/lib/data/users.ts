@@ -24,6 +24,7 @@ type UserRow = {
   avatar_url?: string | null;
   onboarded?: boolean | null;
   admin_scope?: string | null;
+  email_booking_alerts?: boolean | null;
   created_at: string;
 };
 
@@ -41,6 +42,7 @@ export function userFromRow(r: UserRow): User {
     twofaEnabled: !!r.twofa_enabled,
     avatarUrl: r.avatar_url ?? undefined,
     adminScope: (r.admin_scope as User["adminScope"]) ?? undefined,
+    emailBookingAlerts: r.email_booking_alerts ?? undefined,
     // Keep undefined (not false) when the column doesn't exist yet — the
     // onboarding gate only fires on a strict `false`.
     onboarded: r.onboarded ?? undefined,
@@ -288,5 +290,26 @@ export async function getAuthLastSignIn(userId: string): Promise<string | null> 
     return data.user?.last_sign_in_at ?? null;
   } catch {
     return null;
+  }
+}
+
+/** Host preference: email on new bookings (default true when unset). */
+export async function setEmailBookingAlerts(userId: string, on: boolean): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return false;
+    u.emailBookingAlerts = on;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ email_booking_alerts: on })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
   }
 }

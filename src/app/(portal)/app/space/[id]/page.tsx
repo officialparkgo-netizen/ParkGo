@@ -281,6 +281,14 @@ export default async function SpaceDetail({
                         </div>
                         <p className="mt-1.5 text-sm text-navy-600">{r.comment}</p>
                         <p className="mt-1 text-xs text-navy-400">{formatDate(r.createdAt)}</p>
+                        {r.reply && (
+                          <div className="mt-2 rounded-lg bg-navy-50 px-3 py-2">
+                            <p className="text-xs font-bold text-navy-700">
+                              {t("app.space.hostReply")}
+                            </p>
+                            <p className="text-sm text-navy-600">{r.reply}</p>
+                          </div>
+                        )}
                       </Card>
                     );
                   })}

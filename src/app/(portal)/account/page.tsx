@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   FileDown,
   LockKeyhole,
+  BellRing,
   ShieldCheck,
   Trash2,
   UserRound,
@@ -26,6 +27,7 @@ import {
   updateOwnProfileAction,
 } from "@/lib/user-actions";
 import { updateHostProfileAction } from "@/lib/host-actions";
+import { setBookingAlertsAction } from "@/lib/host-suite-actions";
 import { listBookingsForTraveller, listPaymentsForHost } from "@/lib/data/bookings";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { getI18n } from "@/lib/i18n";
@@ -44,6 +46,7 @@ export default async function AccountPage({
   searchParams: Promise<{
     reset?: string;
     twofa?: string;
+    alerts?: string;
     profile?: string;
     privacy?: string;
     hostbio?: string;
@@ -51,7 +54,7 @@ export default async function AccountPage({
 }) {
   const user = await requireUser();
   const { t } = await getI18n();
-  const { reset, twofa, profile, privacy, hostbio } = await searchParams;
+  const { reset, twofa, profile, privacy, hostbio, alerts } = await searchParams;
 
   const nav =
     user.role === "admin" ? adminNav : user.role === "host" ? hostNav : travellerNav;
@@ -303,6 +306,46 @@ export default async function AccountPage({
                 })}
               >
                 {user.twofaEnabled ? t("account.twofa.disable") : t("account.twofa.enable")}
+              </button>
+            </form>
+          </Card>
+        )}
+
+        {/* Booking email alerts (hosts) */}
+        {user.role === "host" && (
+          <Card className="p-5">
+            {alerts && (
+              <div className="mb-4 flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700">
+                <CheckCircle2 className="h-5 w-5 shrink-0" />
+                {alerts === "on" ? t("account.alerts.savedOn") : t("account.alerts.savedOff")}
+              </div>
+            )}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="flex items-center gap-2 font-bold text-navy-900">
+                  <BellRing className="h-4 w-4 text-brand-600" /> {t("account.alerts.title")}
+                </h2>
+                <p className="mt-1 max-w-md text-sm text-navy-500">{t("account.alerts.sub")}</p>
+              </div>
+              <Badge tone={user.emailBookingAlerts !== false ? "go" : "neutral"} data-alerts-state>
+                {user.emailBookingAlerts !== false
+                  ? t("account.twofa.on")
+                  : t("account.twofa.off")}
+              </Badge>
+            </div>
+            <form action={setBookingAlertsAction} className="mt-4">
+              <input
+                type="hidden"
+                name="state"
+                value={user.emailBookingAlerts !== false ? "off" : "on"}
+              />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                {user.emailBookingAlerts !== false
+                  ? t("account.alerts.disable")
+                  : t("account.alerts.enable")}
               </button>
             </form>
           </Card>

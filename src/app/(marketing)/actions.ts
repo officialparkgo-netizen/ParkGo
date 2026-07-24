@@ -26,7 +26,9 @@ export async function joinWaitlist(
     return { error: t("err.email") };
   }
   try {
-    await addWaitlistEntry({ email, role, airport });
+    const referredBy =
+      String(formData.get("ref") || "").trim().slice(0, 64) || undefined;
+    await addWaitlistEntry({ email, role, airport, ...(referredBy ? { referredBy } : {}) });
   } catch {
     return { error: t("err.message") };
   }

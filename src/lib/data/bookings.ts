@@ -603,6 +603,57 @@ export async function adminUpdateBookingDates(
   return { ok: true };
 }
 
+/**
+ * Host check-in/check-out: paid → active (car arrived) and active → completed
+ * (car collected). The booking must sit on one of the host's own spaces.
+ */
+export async function hostSetBookingStatus(
+  bookingId: string,
+  hostId: string,
+  next: "active" | "completed"
+): Promise<{ ok: boolean; error?: string }> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return { ok: false, error: "Booking not found." };
+  const space = await getSpaceById(booking.spaceId);
+  if (!space || space.hostId !== hostId) return { ok: false, error: "Not your booking." };
+  const allowed =
+    (next === "active" && booking.status === "paid") ||
+    (next === "completed" && (booking.status === "active" || booking.status === "paid"));
+  if (!allowed) return { ok: false, error: "This step isn't available right now." };
+
+  if (!IS_LIVE) {
+    mockSetBookingStatus(bookingId, next);
+  } else {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("bookings")
+      .update({ status: next })
+      .eq("id", bookingId);
+    if (error) return { ok: false, error: "Update failed." };
+  }
+
+  const note =
+    next === "active"
+      ? { title: "Car checked in", body: `${booking.reference}: your car has arrived safely.` }
+      : { title: "Car collected", body: `${booking.reference}: thanks for parking with ParkGo — leave a review!` };
+  if (!IS_LIVE) {
+    mockAddNotification({ userId: booking.travellerId, kind: "booking", ...note });
+  } else {
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/server");
+      await supabaseAdmin().from("notifications").insert({
+        user_id: booking.travellerId,
+        title: note.title,
+        body: note.body,
+        kind: "booking",
+      });
+    } catch {
+      // notification is best-effort
+    }
+  }
+  return { ok: true };
+}
+
 /** Admin: manually mark a pending host/driver payout as paid (bank transfer). */
 export async function markPayoutPaid(paymentId: string): Promise<boolean> {
   if (!IS_LIVE) return !!mockSetPaymentPayoutStatus(paymentId, "paid");

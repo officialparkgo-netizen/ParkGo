@@ -125,6 +125,19 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
               />
               <p className="mt-1 text-xs text-navy-400">{t("host.new.pricePerHourHint")}</p>
             </div>
+              <div>
+                <Label htmlFor="weekendUpliftPct">{t("host.edit.weekendPct")}</Label>
+                <Input
+                  id="weekendUpliftPct"
+                  name="weekendUpliftPct"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  defaultValue={space.weekendUpliftPct ?? 0}
+                />
+                <p className="mt-1 text-xs text-navy-400">{t("host.edit.weekendPctHint")}</p>
+              </div>
 
             <div>
               <Label htmlFor="capacity">{t("host.new.capacity")}</Label>

@@ -41,7 +41,12 @@ export const metadata = pageMetadata({
 // Host keeps everything minus commission. parkingBps 1800 -> keeps ~82%.
 const hostKeepPct = Math.round((10_000 - COMMISSION.parkingBps) / 100);
 
-export default async function HostsPage() {
+export default async function HostsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const { ref } = await searchParams;
   const { t } = await getI18n();
 
   const onboarding = [
@@ -313,7 +318,7 @@ export default async function HostsPage() {
               {t("hosts.waitlist.body")}
             </p>
             <div className="mx-auto mt-7 max-w-lg">
-              <WaitlistForm role="host" dark />
+              <WaitlistForm role="host" dark refValue={ref} />
             </div>
             <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-200">
               <Star className="h-3.5 w-3.5 fill-current text-accent-300" />

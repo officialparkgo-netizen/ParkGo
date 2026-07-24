@@ -74,7 +74,7 @@ export function priceBundle(
 ): PriceBreakdown {
   const parking: Pence = isHourlyStay(space, startAt, endAt)
     ? Math.min(hoursBetween(startAt, endAt) * (space.pricePerHour as Pence), space.pricePerDay)
-    : space.pricePerDay * daysBetween(startAt, endAt);
+    : dailyParkingTotal(space, startAt, endAt);
   const transfer: Pence = bundle.transfer
     ? TRANSFER_BASE_FARE * (bundle.transferReturn ? 2 : 1)
     : 0;
@@ -85,6 +85,31 @@ export function priceBundle(
   const split = computeSplit({ parking, transfer, ev, serviceFee }, cfg);
 
   return { parking, transfer, ev, serviceFee, total, split, currency };
+}
+
+/**
+ * Daily parking total, day by day: Saturdays and Sundays get the host's
+ * weekend uplift (percent) when one is set. Equals pricePerDay × days when
+ * no uplift applies, so existing prices are untouched.
+ */
+export function dailyParkingTotal(
+  space: Pick<Space, "pricePerDay" | "weekendUpliftPct">,
+  startAt: string,
+  endAt: string
+): Pence {
+  const days = daysBetween(startAt, endAt);
+  const pct = space.weekendUpliftPct ?? 0;
+  if (pct <= 0) return space.pricePerDay * days;
+  const start = new Date(startAt);
+  let total = 0;
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start.getTime() + i * 86_400_000).getUTCDay();
+    const weekend = d === 0 || d === 6;
+    total += weekend
+      ? Math.round(space.pricePerDay * (1 + Math.min(pct, 100) / 100))
+      : space.pricePerDay;
+  }
+  return total;
 }
 
 /**

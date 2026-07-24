@@ -40,6 +40,7 @@ import { getUsersByIds } from "@/lib/data/users";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { pauseOwnSpaceAction } from "@/lib/booking-actions";
+import { setVacationModeAction } from "@/lib/host-suite-actions";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -53,11 +54,13 @@ export default async function HostDashboard({
     updated?: string;
     verify?: string;
     cal?: string;
+    vacation?: string;
+    count?: string;
   }>;
 }) {
   const user = await requireRole("host");
   const { t, locale } = await getI18n();
-  const { listed, updated, verify, cal } = await searchParams;
+  const { listed, updated, verify, cal, vacation, count } = await searchParams;
   const host = await getHostForUser(user);
 
   // A brand-new host has no host record / listings yet — show onboarding
@@ -148,7 +151,9 @@ export default async function HostDashboard({
               const traveller = travellerMap.get(b.travellerId);
               return (
                 <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div className="flex items-center gap-3">
+                  <Link
+                    href={`/host/bookings/${b.id}`}
+                    className="flex items-center gap-3 hover:opacity-80">
                     <Avatar
                       name={traveller?.name ?? "PG"}
                       avatarUrl={traveller?.avatarUrl}
@@ -161,7 +166,7 @@ export default async function HostDashboard({
                         {formatDate(b.startAt)} → {formatDate(b.endAt)}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex items-center gap-4">
                     <StatusBadge status={b.status} />
                     {b.status === "cancelled" ? (
@@ -187,6 +192,27 @@ export default async function HostDashboard({
     bookingsBySpace.set(b.spaceId, (bookingsBySpace.get(b.spaceId) ?? 0) + 1);
   });
 
+  // Occupancy this month: days with at least one confirmed booking / days in month.
+  const monthStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1).getTime();
+  const monthEnd = new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 1).getTime();
+  const daysInMonth = Math.round((monthEnd - monthStart) / 86_400_000);
+  const occupancyPct = (spaceId: string) => {
+    const days = new Set<number>();
+    for (const b of bookings) {
+      if (b.spaceId !== spaceId) continue;
+      if (b.status === "cancelled" || b.status === "requested") continue;
+      const from = Math.max(+new Date(b.startAt), monthStart);
+      const to = Math.min(+new Date(b.endAt), monthEnd);
+      for (let ts = from; ts < to; ts += 86_400_000) {
+        days.add(Math.floor((ts - monthStart) / 86_400_000));
+      }
+    }
+    return Math.min(100, Math.round((days.size / daysInMonth) * 100));
+  };
+
+  const liveSpaces = spaces.filter((s) => s.status === "live").length;
+  const pausedSpaces = spaces.filter((s) => s.status === "paused").length;
+
   return (
     <PortalShell user={user} nav={hostNav} title="host.pageTitle">
       <div className="space-y-8">
@@ -196,9 +222,34 @@ export default async function HostDashboard({
             <p className="text-navy-500">{t("host.subtitle")}</p>
           </div>
           {host.verificationStatus === "approved" ? (
-            <Link href="/host/new" className={buttonVariants()}>
-              <PlusCircle className="h-4 w-4" /> {t("host.listNewSpace")}
-            </Link>
+            <span className="flex flex-wrap gap-2">
+              {(liveSpaces > 0 || pausedSpaces > 0) && (
+                <form action={setVacationModeAction}>
+                  <input
+                    type="hidden"
+                    name="state"
+                    value={liveSpaces > 0 ? "pause" : "resume"}
+                  />
+                  <button
+                    type="submit"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    {liveSpaces > 0 ? (
+                      <>
+                        <PauseCircle className="h-4 w-4" /> {t("host.vac.pauseAll")}
+                      </>
+                    ) : (
+                      <>
+                        <PlayCircle className="h-4 w-4" /> {t("host.vac.resumeAll")}
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+              <Link href="/host/new" className={buttonVariants()}>
+                <PlusCircle className="h-4 w-4" /> {t("host.listNewSpace")}
+              </Link>
+            </span>
           ) : (
             <Link href="/host/verify" className={buttonVariants()}>
               <ShieldCheck className="h-4 w-4" /> {t("host.verify.cta")}
@@ -206,6 +257,12 @@ export default async function HostDashboard({
           )}
         </div>
 
+        {vacation && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" />
+            {count} {vacation === "pause" ? t("host.vac.pausedBanner") : t("host.vac.resumedBanner")}
+          </div>
+        )}
         {listed && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
             <CheckCircle2 className="h-5 w-5" /> {t("host.listedBanner")}
@@ -356,6 +413,9 @@ export default async function HostDashboard({
                         </Badge>
                       )}
                       <Badge tone="neutral">{formatMoney(s.pricePerDay)}/day</Badge>
+                      <Badge tone={occupancyPct(s.id) >= 50 ? "go" : "neutral"}>
+                        {occupancyPct(s.id)}% {t("host.occ.month")}
+                      </Badge>
                       {s.pricePerHour && (
                         <Badge tone="neutral">
                           {formatMoney(s.pricePerHour)}/{t("common.hour")}
