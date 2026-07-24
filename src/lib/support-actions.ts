@@ -1,10 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import type { SupportMessage } from "@/types";
 import { requireRole } from "@/lib/auth";
 import { createSupportTicket, setSupportTicketResolved } from "@/lib/data/support";
 import { isEmailConfigured, sendEmail, emailShell } from "@/lib/email";
+import {
+  makeSupportToken,
+  SUPPORT_COOKIE,
+  SUPPORT_COOKIE_MAX_AGE,
+  supportRef,
+} from "@/lib/support-thread";
 import { COMPANY } from "@/lib/seo";
 
 function escapeHtml(s: string) {
@@ -70,8 +77,35 @@ export async function submitSupportTicket(input: {
       ).catch(() => {});
     }
 
-    const ref = `SP-${ticket.id.replace(/[^a-z0-9]/gi, "").slice(-6).toUpperCase()}`;
-    return { ok: true, ref };
+    // The confirmation lives in the stored transcript so widget and server
+    // never diverge — the live poll treats the server as the single truth.
+    try {
+      const { getI18n } = await import("@/lib/i18n");
+      const { t } = await getI18n();
+      const { appendSupportThreadMessage } = await import("@/lib/data/support");
+      await appendSupportThreadMessage(
+        ticket.id,
+        "bot",
+        `${t("support.sent")} ${supportRef(ticket.id)}. ${t("support.sentNote")}`
+      );
+    } catch {
+      // cosmetic only
+    }
+
+    // Signed cookie → the visitor's live thread keeps working, account or not.
+    try {
+      const store = await cookies();
+      store.set(SUPPORT_COOKIE, makeSupportToken(ticket.id), {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: SUPPORT_COOKIE_MAX_AGE,
+      });
+    } catch {
+      // widget still shows the ref; live chat just won't resume next visit
+    }
+
+    return { ok: true, ref: supportRef(ticket.id) };
   } catch {
     return { ok: false };
   }

@@ -9,12 +9,8 @@ import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { listSupportTickets } from "@/lib/data/support";
 import { resolveSupportTicketAction } from "@/lib/support-actions";
-import {
-  assignSupportTicketAction,
-  replySupportTicketAction,
-} from "@/lib/admin-suite-actions";
-import { TemplatePicker } from "@/components/admin/template-picker";
-import { Send } from "lucide-react";
+import { assignSupportTicketAction } from "@/lib/admin-suite-actions";
+import { SupportLiveThread } from "@/components/admin/support-live-thread";
 import { formatDateTime } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -146,22 +142,17 @@ export default async function AdminSupportPage({
                   </p>
                 )}
                 {ticket.status === "open" && (
-                  <form
-                    action={replySupportTicketAction}
-                    className="mt-3 space-y-2 border-t border-navy-100 pt-3"
-                  >
-                    <input type="hidden" name="ticketId" value={ticket.id} />
-                    <TemplatePicker
-                      templates={templates}
-                      placeholder={t("admin.macros.pick")}
-                    />
-                    <button
-                      type="submit"
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-navy-900 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-700"
-                    >
-                      <Send className="h-3.5 w-3.5" /> {t("admin.macros.send")}
-                    </button>
-                  </form>
+                  <SupportLiveThread
+                    ticketId={ticket.id}
+                    initial={ticket.transcript}
+                    templates={templates}
+                    labels={{
+                      pick: t("admin.macros.pick"),
+                      send: t("admin.macros.send"),
+                      visitor: ticket.name || t("admin.support.visitor"),
+                      team: t("admin.sup.you"),
+                    }}
+                  />
                 )}
               </div>
             ))}

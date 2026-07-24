@@ -7,7 +7,13 @@ import { SUPPORT_TOPICS, matchSupportIntent } from "@/lib/support-intents";
 import { submitSupportTicket } from "@/lib/support-actions";
 import { useT } from "@/lib/i18n/client";
 
-type Stage = "topics" | "feedback" | "escalate" | "sending";
+type Stage = "topics" | "feedback" | "escalate" | "sending" | "live";
+
+interface ThreadState {
+  ref: string;
+  status: "open" | "resolved";
+  assignedTo: string | null;
+}
 
 /**
  * Instant-support chat: a guided assistant answering from the translated FAQ
@@ -24,17 +30,66 @@ export function SupportWidget() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [sentRef, setSentRef] = useState<string | null>(null);
+  const [thread, setThread] = useState<ThreadState | null>(null);
   const [seen, setSeen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const push = (...msgs: SupportMessage[]) => setMessages((m) => [...m, ...msgs]);
 
+  const applyThread = (data: {
+    ticket?: {
+      ref: string;
+      status: "open" | "resolved";
+      assignedTo: string | null;
+      transcript: SupportMessage[];
+    } | null;
+  }) => {
+    if (!data.ticket) return false;
+    setThread({
+      ref: data.ticket.ref,
+      status: data.ticket.status,
+      assignedTo: data.ticket.assignedTo,
+    });
+    setSentRef(data.ticket.ref);
+    setMessages((prev) =>
+      prev.length === data.ticket!.transcript.length ? prev : data.ticket!.transcript
+    );
+    return true;
+  };
+
   useEffect(() => {
-    if (open && messages.length === 0) {
+    if (!open || messages.length > 0) return;
+    // Returning visitor with an escalated ticket? Resume the live thread.
+    (async () => {
+      try {
+        const res = await fetch("/api/support/thread", { cache: "no-store" });
+        if (res.ok && applyThread(await res.json())) {
+          setStage("live");
+          return;
+        }
+      } catch {
+        // no thread — start the guided assistant
+      }
       push({ role: "bot", text: t("support.greeting") });
-    }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Live thread: short poll while the panel is open.
+  useEffect(() => {
+    if (!open || stage !== "live") return;
+    const timer = setInterval(async () => {
+      if (document.hidden) return;
+      try {
+        const res = await fetch("/api/support/thread", { cache: "no-store" });
+        if (res.ok) applyThread(await res.json());
+      } catch {
+        // next tick retries
+      }
+    }, 4000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, stage]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -52,10 +107,28 @@ export function SupportWidget() {
     setStage("feedback");
   }
 
+  async function sendLive(text: string) {
+    push({ role: "user", text });
+    try {
+      const res = await fetch("/api/support/thread", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (res.ok) applyThread(await res.json());
+    } catch {
+      // the poll re-syncs on the next tick
+    }
+  }
+
   function sendFreeText() {
     const text = input.trim();
     if (!text) return;
     setInput("");
+    if (stage === "live") {
+      void sendLive(text);
+      return;
+    }
     const topic = matchSupportIntent(text);
     if (topic) {
       setLastTopic(topic.id);
@@ -93,8 +166,16 @@ export function SupportWidget() {
     });
     if (result.ok && result.ref) {
       setSentRef(result.ref);
-      push({ role: "bot", text: `${t("support.sent")} ${result.ref}. ${t("support.sentNote")}` });
-      setStage("topics");
+      setThread({ ref: result.ref, status: "open", assignedTo: null });
+      // From here the chat is live — sync the canonical transcript (it
+      // already contains the confirmation line) and let the poll take over.
+      setStage("live");
+      try {
+        const res = await fetch("/api/support/thread", { cache: "no-store" });
+        if (res.ok) applyThread(await res.json());
+      } catch {
+        push({ role: "bot", text: `${t("support.sent")} ${result.ref}. ${t("support.sentNote")}` });
+      }
     } else {
       push({ role: "bot", text: t("support.sendError") });
       setStage("escalate");
@@ -165,14 +246,27 @@ export function SupportWidget() {
               <div
                 key={i}
                 className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-sm leading-relaxed ${
-                  m.role === "bot"
-                    ? "me-auto rounded-es-md border border-navy-100 bg-white text-navy-800"
-                    : "ms-auto rounded-ee-md bg-brand-500 text-white"
+                  m.role === "agent"
+                    ? "me-auto rounded-es-md border border-brand-300 bg-brand-50 text-navy-900"
+                    : m.role === "bot"
+                      ? "me-auto rounded-es-md border border-navy-100 bg-white text-navy-800"
+                      : "ms-auto rounded-ee-md bg-brand-500 text-white"
                 }`}
               >
+                {m.role === "agent" && (
+                  <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-700">
+                    {thread?.assignedTo || t("support.title")}
+                  </div>
+                )}
                 {m.text}
               </div>
             ))}
+
+            {stage === "live" && (
+              <p className="px-1 pt-1 text-center text-[11px] text-navy-400" data-live-note>
+                {t("support.live.note")}
+              </p>
+            )}
 
             {stage === "topics" && (
               <div className="flex flex-wrap gap-1.5 pt-1">

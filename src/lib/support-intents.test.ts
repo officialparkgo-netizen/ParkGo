@@ -26,3 +26,15 @@ describe("support intent matching", () => {
     }
   });
 });
+
+describe("multilingual matching", () => {
+  it("matches Urdu, Hindi, German and Chinese phrasings", () => {
+    expect(matchSupportIntent("میں بکنگ منسوخ کرنا چاہتا ہوں")?.id).toBe("cancel");
+    expect(matchSupportIntent("मुझे रिफंड चाहिए")?.id).toBe("cancel");
+    expect(matchSupportIntent("Ich möchte stornieren")?.id).toBe("cancel");
+    expect(matchSupportIntent("我要退款")?.id).toBe("cancel");
+    expect(matchSupportIntent("کیا میری گاڑی محفوظ ہے؟")?.id).toBe("safety");
+    expect(matchSupportIntent("Wie hoch ist der Preis?")?.id).toBe("payment");
+    expect(matchSupportIntent("这里有摄像吗")?.id).toBe("safety");
+  });
+});

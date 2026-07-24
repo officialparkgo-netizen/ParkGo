@@ -61,9 +61,14 @@ export default async function HostPayoutsPage({
   const paymentMeta = new Map(
     bookings.map((b) => [
       b.id,
-      { reference: b.reference, spaceTitle: spaceMap.get(b.spaceId)?.title },
+      { reference: b.reference, spaceTitle: spaceMap.get(b.spaceId)?.title, endAt: b.endAt },
     ])
   );
+
+  // Protection window: pending payouts show when the money unlocks.
+  const { getPlatformSettings } = await import("@/lib/data/settings");
+  const { isPayoutReleasable, payoutAvailableAt } = await import("@/lib/payouts");
+  const holdDays = (await getPlatformSettings()).payoutHoldDays;
 
   // Full history, newest first, grouped by calendar month with a subtotal
   // (refunded payouts don't count towards the month's total).
@@ -343,6 +348,18 @@ export default async function HostPayoutsPage({
                           {formatDate(p.createdAt)}
                           {meta?.spaceTitle ? ` · ${meta.spaceTitle}` : ""}
                         </div>
+                        {!refunded &&
+                          p.payoutStatus !== "paid" &&
+                          meta?.endAt &&
+                          !isPayoutReleasable(meta.endAt, holdDays) && (
+                            <div
+                              className="mt-0.5 text-xs font-semibold text-accent-600"
+                              data-payout-hold
+                            >
+                              {t("host.pay.availableFrom")}{" "}
+                              {formatDate(payoutAvailableAt(meta.endAt, holdDays).toISOString())}
+                            </div>
+                          )}
                       </div>
                       <StatusBadge status={refunded ? "refunded" : p.payoutStatus} />
                     </div>

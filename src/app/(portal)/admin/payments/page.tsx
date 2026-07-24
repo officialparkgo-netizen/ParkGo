@@ -51,6 +51,20 @@ export default async function AdminPaymentsPage({
     .reduce((s, p) => s + p.amount, 0);
   const bookingRefMap = new Map(bookings.map((b) => [b.id, b.reference]));
 
+  // Protection window: payouts unlock only holdDays after pick-up.
+  const { getPlatformSettings } = await import("@/lib/data/settings");
+  const { isPayoutReleasable, payoutAvailableAt } = await import("@/lib/payouts");
+  const holdDays = (await getPlatformSettings()).payoutHoldDays;
+  const bookingEndMap = new Map(bookings.map((b) => [b.id, b.endAt]));
+  const releasable = (bookingId: string) => {
+    const endAt = bookingEndMap.get(bookingId);
+    return !endAt || isPayoutReleasable(endAt, holdDays);
+  };
+  const availableFrom = (bookingId: string) => {
+    const endAt = bookingEndMap.get(bookingId);
+    return endAt ? payoutAvailableAt(endAt, holdDays) : null;
+  };
+
   // Full history, newest first, grouped by calendar month with a subtotal
   // (refunded payments don't count towards the month's total).
   const localeTag =
@@ -174,17 +188,27 @@ export default async function AdminPaymentsPage({
                           </div>
                           <span className="flex items-center gap-2">
                             <StatusBadge status={isRefunded(p) ? "refunded" : p.payoutStatus} />
-                            {!isRefunded(p) && p.payoutStatus !== "paid" && (
-                              <form action={markPayoutPaidAction}>
-                                <input type="hidden" name="paymentId" value={p.id} />
-                                <button
-                                  type="submit"
-                                  className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-go-600"
+                            {!isRefunded(p) &&
+                              p.payoutStatus !== "paid" &&
+                              (releasable(p.bookingId) ? (
+                                <form action={markPayoutPaidAction}>
+                                  <input type="hidden" name="paymentId" value={p.id} />
+                                  <button
+                                    type="submit"
+                                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-go-600"
+                                  >
+                                    <CheckCircle2 className="h-3 w-3" /> {t("admin.pay.markPaid")}
+                                  </button>
+                                </form>
+                              ) : (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-lg bg-navy-100 px-2.5 py-1 text-xs font-semibold text-navy-600"
+                                  data-payout-hold
                                 >
-                                  <CheckCircle2 className="h-3 w-3" /> {t("admin.pay.markPaid")}
-                                </button>
-                              </form>
-                            )}
+                                  {t("admin.pay.onHold")}{" "}
+                                  {formatDate(availableFrom(p.bookingId)!.toISOString())}
+                                </span>
+                              ))}
                           </span>
                         </div>
                         <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-navy-400">

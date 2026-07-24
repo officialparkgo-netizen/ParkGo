@@ -450,6 +450,8 @@ export interface PlatformSettings {
   cancelWindowHours: number;
   /** Late-cancellation fee, basis points of the total. */
   cancelFeeBps: number;
+  /** Days after pick-up before a host payout can be released (protection window). */
+  payoutHoldDays: number;
   /** Overrides ADMIN_ALERT_EMAIL for admin notification emails. */
   adminAlertEmail?: string;
   /** Slack-compatible webhook for instant ops alerts. */

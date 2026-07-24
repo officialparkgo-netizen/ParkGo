@@ -196,12 +196,21 @@ export async function runStripePayoutsDue(): Promise<{
   const hostMap = new Map(hosts.map((h) => [h.id, h]));
   const stripe = getStripe();
 
+  // Respect the protection window — nothing moves before endAt + holdDays.
+  const { getPlatformSettings } = await import("@/lib/data/settings");
+  const { isPayoutReleasable } = await import("@/lib/payouts");
+  const holdDays = (await getPlatformSettings()).payoutHoldDays;
+
   let transferred = 0;
   let skipped = 0;
   for (const p of payments) {
     const b = bookingMap.get(p.bookingId);
     const refunded = p.payoutStatus === "refunded" || b?.status === "cancelled";
     if (refunded || p.payoutStatus === "paid" || p.split.hostPayout <= 0) continue;
+    if (b && !isPayoutReleasable(b.endAt, holdDays)) {
+      skipped += 1;
+      continue;
+    }
     const host = b ? hostMap.get(spaceMap.get(b.spaceId)?.hostId ?? "") : undefined;
     if (!host?.payoutAccountRef) {
       skipped += 1;

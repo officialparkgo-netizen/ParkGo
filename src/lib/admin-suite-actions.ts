@@ -272,6 +272,7 @@ export async function savePlatformSettingsAction(formData: FormData) {
     transferCommissionBps: Math.round(num("transferPct") * 100),
     cancelWindowHours: num("cancelWindowHours"),
     cancelFeeBps: Math.round(num("cancelFeePct") * 100),
+    payoutHoldDays: num("payoutHoldDays"),
     adminAlertEmail: String(formData.get("adminAlertEmail") || ""),
     opsWebhookUrl: String(formData.get("opsWebhookUrl") || ""),
     announcement: String(formData.get("announcement") || ""),

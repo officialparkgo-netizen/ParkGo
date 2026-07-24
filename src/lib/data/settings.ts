@@ -10,6 +10,9 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   transferCommissionBps: COMMISSION.transferBps,
   cancelWindowHours: Math.round(CANCEL_FREE_WINDOW_MS / 3_600_000),
   cancelFeeBps: CANCEL_FEE_BPS,
+  // Money sits with ParkGo for a short protection window after pick-up —
+  // damage claims are checked before the host payout unlocks.
+  payoutHoldDays: 3,
   announcementOn: false,
 };
 
@@ -27,6 +30,8 @@ function clean(patch: Partial<PlatformSettings>): Partial<PlatformSettings> {
     out.cancelWindowHours = Math.min(720, int(patch.cancelWindowHours));
   if (patch.cancelFeeBps !== undefined)
     out.cancelFeeBps = Math.min(10_000, int(patch.cancelFeeBps));
+  if (patch.payoutHoldDays !== undefined)
+    out.payoutHoldDays = Math.min(14, int(patch.payoutHoldDays));
   if (patch.adminAlertEmail !== undefined)
     out.adminAlertEmail = String(patch.adminAlertEmail).trim().slice(0, 200) || undefined;
   if (patch.opsWebhookUrl !== undefined) {

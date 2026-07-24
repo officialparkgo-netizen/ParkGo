@@ -95,9 +95,29 @@ export async function setSupportTicketAssigned(
   return !error;
 }
 
-/** Append an agent reply to the stored transcript (mock + live). */
-export async function appendAgentReply(id: string, text: string): Promise<boolean> {
-  const msg = { role: "agent" as const, text: text.slice(0, 2000) };
+/** One ticket by id (mock + live). */
+export async function getSupportTicketById(id: string): Promise<SupportTicket | null> {
+  if (!IS_LIVE) return getSupportTicketsMock().find((x) => x.id === id) ?? null;
+  try {
+    const { data } = await supabaseAdmin()
+      .from("support_tickets")
+      .select(COLS)
+      .eq("id", id)
+      .maybeSingle();
+    return data ? fromRow(data as TicketRow) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Append a message to the stored transcript (mock + live). */
+export async function appendSupportThreadMessage(
+  id: string,
+  role: SupportMessage["role"],
+  text: string
+): Promise<boolean> {
+  const msg = { role, text: text.trim().slice(0, 2000) };
+  if (!msg.text) return false;
   if (!IS_LIVE) {
     const { appendSupportMessage } = await import("@/lib/data/store");
     return !!appendSupportMessage(id, msg);
@@ -117,4 +137,9 @@ export async function appendAgentReply(id: string, text: string): Promise<boolea
   } catch {
     return false;
   }
+}
+
+/** Append an agent reply to the stored transcript (mock + live). */
+export async function appendAgentReply(id: string, text: string): Promise<boolean> {
+  return appendSupportThreadMessage(id, "agent", text);
 }

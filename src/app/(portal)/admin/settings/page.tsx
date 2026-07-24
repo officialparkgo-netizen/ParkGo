@@ -142,6 +142,20 @@ export default async function AdminSettingsPage({
                   defaultValue={(s.cancelFeeBps / 100).toFixed(1)}
                 />
               </div>
+              <div>
+                <Label htmlFor="st-hold">{t("admin.settings.payoutHold")}</Label>
+                <Input
+                  id="st-hold"
+                  name="payoutHoldDays"
+                  type="number"
+                  min="0"
+                  max="14"
+                  defaultValue={s.payoutHoldDays}
+                />
+                <p className="mt-1 text-xs text-navy-400">
+                  {t("admin.settings.payoutHoldHint")}
+                </p>
+              </div>
             </div>
           </Card>
 
