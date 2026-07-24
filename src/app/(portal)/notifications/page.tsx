@@ -4,7 +4,13 @@ import { ArrowLeft, Bell, ChevronRight } from "lucide-react";
 import type { Notification, User } from "@/types";
 import { Card } from "@/components/ui/card";
 import { PortalShell } from "@/components/portal/shell";
-import { adminNav, cohostNav, hostNav, travellerNav } from "@/components/portal/navs";
+import {
+  adminNav,
+  cohostNav,
+  hostNav,
+  supportAgentNav,
+  travellerNav,
+} from "@/components/portal/navs";
 import { requireUser, rolePath } from "@/lib/auth";
 import {
   listNotificationsForUser,
@@ -68,7 +74,9 @@ export default async function NotificationsPage() {
   await markAllNotificationsRead(user.id);
   const nav =
     user.role === "admin"
-      ? adminNav
+      ? user.adminScope === "support"
+        ? supportAgentNav
+        : adminNav
       : user.role === "host"
         ? user.cohostHostId
           ? cohostNav

@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
-import { adminNav } from "@/components/portal/navs";
+import { adminNav, supportAgentNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { listAllBookings } from "@/lib/data/bookings";
 import { listAllSpaces } from "@/lib/data/hosts";
@@ -93,7 +93,7 @@ export default async function AdminTodayPage() {
   );
 
   return (
-    <PortalShell user={user} nav={adminNav} title="admin.today.title">
+    <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="admin.today.title">
       <div className="mx-auto max-w-4xl space-y-6">
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}

@@ -462,8 +462,8 @@ export default async function BookingPage({
               </div>
             )}
 
-            {/* Admin support tools — never shown while impersonating */}
-            {user.role === "admin" && !user.impersonatedBy && (
+            {/* Admin support tools — full admins only, never while impersonating */}
+            {user.role === "admin" && user.adminScope !== "support" && !user.impersonatedBy && (
               <div className="mt-5 rounded-xl border border-navy-200 bg-navy-50/60 p-4">
                 <h3 className="text-sm font-bold text-navy-900">
                   {t("admin.tools.title")}

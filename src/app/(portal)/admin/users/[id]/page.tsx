@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/common/avatar";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
-import { adminNav } from "@/components/portal/navs";
+import { adminNav, supportAgentNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAuthLastSignIn, getUsersByIds } from "@/lib/data/users";
 import { listBookingsForTraveller, listBookingsForHost } from "@/lib/data/bookings";
@@ -88,9 +88,10 @@ export default async function AdminUserDetailPage({
     actions: activity,
   });
   const anonymized = target.email.endsWith("@removed.parkgo.ai");
+  const isFullAdmin = admin.adminScope !== "support";
 
   return (
-    <PortalShell user={admin} nav={adminNav} title="nav.users">
+    <PortalShell user={admin} nav={admin.adminScope === "support" ? supportAgentNav : adminNav} title="nav.users">
       <div className="mx-auto max-w-3xl space-y-6">
         <Link href="/admin/users" className="text-sm font-semibold text-brand-600">
           ← {t("nav.users")}
@@ -229,8 +230,8 @@ export default async function AdminUserDetailPage({
               </div>
             )}
 
-          {/* Actions */}
-          {target.role !== "admin" && (
+          {/* Actions — read-only view for support agents */}
+          {isFullAdmin && target.role !== "admin" && (
             <div className="mt-5 flex flex-wrap gap-2 border-t border-navy-100 pt-4">
               <form action={setUserRoleAction}>
                 <input type="hidden" name="userId" value={target.id} />

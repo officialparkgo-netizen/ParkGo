@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
-import { adminNav } from "@/components/portal/navs";
+import { adminNav, supportAgentNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { adminCancelBookingAction } from "@/lib/admin-suite-actions";
 import { listAllBookings } from "@/lib/data/bookings";
@@ -27,6 +27,7 @@ export default async function AdminBookingsPage({
   searchParams: Promise<{ bstatus?: string; cancelled?: string; cancelerror?: string }>;
 }) {
   const user = await requireRole("admin");
+  const isFullAdmin = user.adminScope !== "support";
   const { t } = await getI18n();
   const { bstatus: bstatusRaw, cancelled, cancelerror } = await searchParams;
 
@@ -48,7 +49,7 @@ export default async function AdminBookingsPage({
     .slice(0, 20);
 
   return (
-    <PortalShell user={user} nav={adminNav} title="nav.bookings">
+    <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="nav.bookings">
       <div className="mx-auto max-w-4xl space-y-6">
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
@@ -70,7 +71,7 @@ export default async function AdminBookingsPage({
             <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
               <CalendarCheck className="h-5 w-5 text-navy-500" /> {t("admin.section.recentBookings")}
             </h3>
-            <a href="/admin/export?type=bookings" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
+            {isFullAdmin && (<a href="/admin/export?type=bookings" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>)}
           </div>
           <div className="mb-3 flex flex-wrap gap-1.5">
             {[null, ...BOOKING_FILTERS].map((s) => {
@@ -126,7 +127,7 @@ export default async function AdminBookingsPage({
                     >
                       <ArrowUpRight className="h-3.5 w-3.5" /> {t("admin.view")}
                     </Link>
-                    {["requested", "paid", "active"].includes(b.status) && (
+                    {isFullAdmin && ["requested", "paid", "active"].includes(b.status) && (
                       <form action={adminCancelBookingAction} className="flex items-center gap-1.5">
                         <input type="hidden" name="bookingId" value={b.id} />
                         <input

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ArrowUpRight,
   Banknote,
@@ -42,6 +43,8 @@ export default async function AdminDashboard({
   searchParams: Promise<{ q?: string; range?: string }>;
 }) {
   const user = await requireRole("admin");
+  // Support agents live on the ticket queue — nothing else here is theirs.
+  if (user.adminScope === "support") redirect("/admin/support");
   const { t, locale } = await getI18n();
   const { q: qRaw, range: rangeRaw } = await searchParams;
 

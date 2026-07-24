@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Car, CheckCircle2, Clock, Radio } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -28,6 +29,8 @@ function Metric({ value, label }: { value: string; label: string }) {
 
 export default async function AdminOperatorPage() {
   const user = await requireRole("admin");
+  // Support agents live on the ticket queue — nothing else here is theirs.
+  if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();
 
   // Transfer is fulfilled by an independent licensed operator, integrated by API.

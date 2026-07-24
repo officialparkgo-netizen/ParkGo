@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowUpRight, CheckCheck, CheckCircle2, PauseCircle, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -27,6 +28,8 @@ export default async function AdminListingsPage({
   searchParams: Promise<{ bulk?: string }>;
 }) {
   const user = await requireRole("admin");
+  // Support agents live on the ticket queue — nothing else here is theirs.
+  if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();
   const { bulk } = await searchParams;
 

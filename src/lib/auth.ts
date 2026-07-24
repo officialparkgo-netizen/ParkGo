@@ -113,7 +113,7 @@ export async function requireRole(role: Role): Promise<User> {
  */
 export async function requireFinanceAdmin(): Promise<User> {
   const user = await requireRole("admin");
-  if (user.adminScope === "support") redirect("/admin");
+  if (user.adminScope === "support") redirect("/admin/support");
   return user;
 }
 

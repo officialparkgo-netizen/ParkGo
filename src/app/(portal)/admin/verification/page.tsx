@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import {
   ArrowUpRight,
@@ -36,6 +37,8 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function AdminVerificationPage() {
   const user = await requireRole("admin");
+  // Support agents live on the ticket queue — nothing else here is theirs.
+  if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();
 
   const pending = await listPendingVerificationsLive();

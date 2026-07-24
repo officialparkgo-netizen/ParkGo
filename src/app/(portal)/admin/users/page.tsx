@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
-import { adminNav } from "@/components/portal/navs";
+import { adminNav, supportAgentNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
@@ -27,6 +27,7 @@ export default async function AdminUsersPage({
   searchParams: Promise<{ invited?: string }>;
 }) {
   const user = await requireRole("admin");
+  const isFullAdmin = user.adminScope !== "support";
   const { t } = await getI18n();
   const { invited } = await searchParams;
 
@@ -38,7 +39,7 @@ export default async function AdminUsersPage({
   const waitlist = await listWaitlist().catch(() => []);
 
   return (
-    <PortalShell user={user} nav={adminNav} title="nav.users">
+    <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="nav.users">
       <div className="mx-auto max-w-4xl space-y-8">
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
@@ -61,7 +62,7 @@ export default async function AdminUsersPage({
               <Users className="h-5 w-5 text-navy-500" /> {t("admin.section.users")}
             </h3>
             <Badge tone="neutral">{allUsers.length} {t("admin.total")}</Badge>
-            <a href="/admin/export?type=users" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
+            {isFullAdmin && (<a href="/admin/export?type=users" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>)}
           </div>
           <Card className="divide-y divide-navy-100">
             {recentUsers.length === 0 && (
@@ -83,7 +84,7 @@ export default async function AdminUsersPage({
                   <span className="text-xs text-navy-400">
                     {t("admin.users.joined")} {formatDate(u.createdAt)}
                   </span>
-                  {u.role !== "admin" && (
+                  {isFullAdmin && u.role !== "admin" && (
                     <>
                       <form action={setUserRoleAction}>
                         <input type="hidden" name="userId" value={u.id} />
@@ -140,7 +141,7 @@ export default async function AdminUsersPage({
               <Mail className="h-5 w-5 text-navy-500" /> {t("admin.section.waitlist")}
             </h3>
             <Badge tone="neutral">{waitlist.length} {t("admin.total")}</Badge>
-            <a href="/admin/export?type=waitlist" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>
+            {isFullAdmin && (<a href="/admin/export?type=waitlist" className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}><Download className="h-4 w-4" /> {t("admin.exportCsv")}</a>)}
           </div>
           <Card className="divide-y divide-navy-100">
             {waitlist.length === 0 && (

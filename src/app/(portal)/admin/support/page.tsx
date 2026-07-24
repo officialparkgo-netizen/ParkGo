@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
-import { adminNav } from "@/components/portal/navs";
+import { adminNav, supportAgentNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { listSupportTickets } from "@/lib/data/support";
 import { resolveSupportTicketAction } from "@/lib/support-actions";
@@ -51,7 +51,7 @@ export default async function AdminSupportPage({
     tk.status === "open" && Date.now() - +new Date(tk.createdAt) > 24 * 3_600_000;
 
   return (
-    <PortalShell user={user} nav={adminNav} title="admin.support.title">
+    <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="admin.support.title">
       <div className="mx-auto max-w-4xl space-y-6">
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}

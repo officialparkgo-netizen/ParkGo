@@ -46,6 +46,18 @@ export const cohostNav: NavItem[] = [
   { href: "/host/today", label: "host.today.title", icon: CalendarClock },
 ];
 
+/**
+ * Support agents: tickets first, plus read-only booking/user context and the
+ * ops board. Money, analytics, KYC, exports and the audit trail stay out.
+ */
+export const supportAgentNav: NavItem[] = [
+  { href: "/admin/support", label: "admin.support.title", icon: Headset },
+  { href: "/admin/today", label: "admin.today.title", icon: CalendarClock },
+  { href: "/admin/bookings", label: "nav.bookings", icon: CalendarCheck },
+  { href: "/admin/users", label: "nav.users", icon: Users },
+  { href: "/admin/claims", label: "admin.claims.title", icon: ShieldAlert },
+];
+
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "nav.dashboard", icon: LayoutGrid },
   { href: "/admin/today", label: "admin.today.title", icon: CalendarClock },

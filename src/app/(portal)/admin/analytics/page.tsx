@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ChartSpline, SearchX, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,8 @@ export const metadata: Metadata = pageMetadata({
 /** Demand funnel: searches → zero-result gaps → bookings, per destination. */
 export default async function AdminAnalyticsPage() {
   const user = await requireRole("admin");
+  // Support agents live on the ticket queue — nothing else here is theirs.
+  if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();
 
   const stats = await listSearchStats();

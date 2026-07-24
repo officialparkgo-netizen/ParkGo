@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
-import { adminNav } from "@/components/portal/navs";
+import { adminNav, supportAgentNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { setClaimStatusAction } from "@/lib/admin-suite-actions";
 import { listAllClaims } from "@/lib/data/claims";
@@ -22,6 +22,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function AdminClaimsPage() {
   const user = await requireRole("admin");
+  const isFullAdmin = user.adminScope !== "support";
   const { t } = await getI18n();
 
   const claims = await listAllClaims();
@@ -29,7 +30,7 @@ export default async function AdminClaimsPage() {
   const openCount = claims.filter((c) => c.status === "open" || c.status === "in_review").length;
 
   return (
-    <PortalShell user={user} nav={adminNav} title="admin.claims.title">
+    <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="admin.claims.title">
       <div className="mx-auto max-w-4xl space-y-6">
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
@@ -74,7 +75,7 @@ export default async function AdminClaimsPage() {
                         {c.resolution}
                       </p>
                     )}
-                    {!decided && (
+                    {isFullAdmin && !decided && (
                       <form
                         action={setClaimStatusAction}
                         className="mt-3 flex flex-wrap items-center gap-2"

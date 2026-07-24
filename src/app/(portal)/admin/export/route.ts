@@ -240,11 +240,8 @@ export async function GET(request: Request) {
   const admin = await requireRole("admin");
   const url = new URL(request.url);
   const type = url.searchParams.get("type") ?? "bookings";
-  // "support"-scope admins are locked out of money + personal-data exports.
-  if (
-    admin.adminScope === "support" &&
-    ["payments", "payouts", "finance", "userdata"].includes(type)
-  ) {
+  // Support agents get no bulk exports at all — data stays in the building.
+  if (admin.adminScope === "support") {
     return new Response("Forbidden", { status: 403 });
   }
   const data =
