@@ -958,6 +958,29 @@ export async function listBookingsForTraveller(travellerId: string): Promise<Boo
   return (data ?? []).map(bookingFromRow);
 }
 
+/**
+ * Resolve human references ("PG-XXXXX") to bookings in one query — used to
+ * turn notification texts into deep links.
+ */
+export async function listBookingsByReferences(refs: string[]): Promise<Booking[]> {
+  const unique = [...new Set(refs.filter(Boolean))].slice(0, 100);
+  if (unique.length === 0) return [];
+  if (!IS_LIVE) {
+    const set = new Set(unique);
+    return mockGetAllBookings().filter((b) => set.has(b.reference));
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { data } = await supabaseAdmin()
+      .from("bookings")
+      .select(BOOKING_COLS)
+      .in("reference", unique);
+    return (data ?? []).map(bookingFromRow);
+  } catch {
+    return [];
+  }
+}
+
 export async function listAllBookings(): Promise<Booking[]> {
   if (!IS_LIVE) return mockGetAllBookings();
   const { supabaseAdmin } = await import("@/lib/supabase/server");
