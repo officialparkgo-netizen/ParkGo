@@ -393,6 +393,115 @@ export async function createCohostUser(
   }
 }
 
+/** Everyone on the admin side (full admins + support agents). */
+export async function listAdminUsers(): Promise<User[]> {
+  return (await listAllUsers()).filter((u) => u.role === "admin" && !u.suspended);
+}
+
+/**
+ * Create (or re-link) a limited support agent: role admin with the "support"
+ * scope, so every money page bounces them but the ticket queue works. Mock
+ * mode uses a deterministic id; live invites the email via Supabase auth.
+ */
+export async function createSupportAgent(
+  email: string,
+  name: string
+): Promise<User | null> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) return null;
+  const cleanName = name.trim().slice(0, 60) || "Support agent";
+
+  if (!IS_LIVE) {
+    const { addMockUser, getUser } = await import("@/lib/data/store");
+    const id = `user_agent_${cleanEmail.split("@")[0].replace(/[^a-z0-9]/g, "")}`;
+    const existing = getUser(id);
+    if (existing) {
+      existing.role = "admin";
+      existing.adminScope = "support";
+      existing.suspended = false;
+      existing.email = cleanEmail;
+      return existing;
+    }
+    return addMockUser({
+      id,
+      role: "admin",
+      name: cleanName,
+      email: cleanEmail,
+      locale: "en",
+      adminScope: "support",
+      onboarded: true,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const admin = supabaseAdmin();
+    let authId: string | null = null;
+    try {
+      const { data } = await admin.auth.admin.inviteUserByEmail(cleanEmail);
+      authId = data?.user?.id ?? null;
+    } catch {
+      // fall through
+    }
+    if (!authId) {
+      const { data } = await admin.auth.admin.createUser({
+        email: cleanEmail,
+        email_confirm: true,
+      });
+      authId = data?.user?.id ?? null;
+    }
+    if (!authId) return null;
+    const { data: row, error } = await admin
+      .from("users")
+      .upsert(
+        {
+          id: authId,
+          role: "admin",
+          name: cleanName,
+          email: cleanEmail,
+          locale: "en",
+          admin_scope: "support",
+          onboarded: true,
+        },
+        { onConflict: "id" }
+      )
+      .select("*")
+      .single();
+    if (error || !row) return null;
+    return userFromRow(row as UserRow);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Revoke a support agent: back to a plain traveller account. Deliberately
+ * refuses to touch full admins — only "support"-scoped accounts demote.
+ */
+export async function revokeSupportAgent(userId: string): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u || u.role !== "admin" || u.adminScope !== "support") return false;
+    u.role = "traveller";
+    u.adminScope = undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ role: "traveller", admin_scope: null })
+      .eq("id", userId)
+      .eq("role", "admin")
+      .eq("admin_scope", "support");
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 /** Cut a co-host's link (their login stays but grants no host access). */
 export async function revokeCohostUser(userId: string): Promise<boolean> {
   if (!IS_LIVE) {

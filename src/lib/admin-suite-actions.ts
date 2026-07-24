@@ -310,6 +310,91 @@ export async function assignSupportTicketAction(formData: FormData) {
   revalidatePath("/admin/support");
 }
 
+/** Assign a ticket to any teammate (full admin or support agent). */
+export async function assignTicketToAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const id = String(formData.get("ticketId") || "");
+  const assigneeId = String(formData.get("assigneeId") || "");
+  if (!id || !assigneeId) return;
+
+  const { getUserProfile } = await import("@/lib/data/users");
+  const assignee = await getUserProfile(assigneeId);
+  if (!assignee || assignee.role !== "admin") return;
+
+  const { setSupportTicketAssigned } = await import("@/lib/data/support");
+  await setSupportTicketAssigned(id, assignee.name);
+  await recordAdminAction(admin, "support.assigned", "user", id, assignee.name);
+
+  // Tell the assignee — assignments must never rely on them refreshing.
+  if (assignee.id !== admin.id) {
+    const { supportRef } = await import("@/lib/support-thread");
+    const note = {
+      title: `Support ticket assigned · ${supportRef(id)}`,
+      body: `${admin.name} assigned you a support conversation — open the queue to reply.`,
+      kind: "system" as const,
+    };
+    const { IS_LIVE } = await import("@/lib/config");
+    if (!IS_LIVE) {
+      const { addNotification } = await import("@/lib/data/store");
+      addNotification({ userId: assignee.id, ...note });
+    } else {
+      try {
+        const { supabaseAdmin } = await import("@/lib/supabase/server");
+        await supabaseAdmin().from("notifications").insert({
+          user_id: assignee.id,
+          title: note.title,
+          body: note.body,
+          kind: note.kind,
+        });
+      } catch {
+        // best-effort
+      }
+    }
+    try {
+      const { isEmailConfigured, sendEmail, emailShell } = await import("@/lib/email");
+      if (isEmailConfigured() && assignee.email) {
+        await sendEmail(
+          assignee.email,
+          note.title,
+          emailShell(
+            `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">A ticket needs you</h2>
+             <p style="margin:0">${note.body}</p>`
+          )
+        );
+      }
+    } catch {
+      // best-effort
+    }
+  }
+  revalidatePath("/admin/support");
+}
+
+/** Invite a limited support agent (full admins only — never a full admin). */
+export async function inviteSupportAgentAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const email = String(formData.get("email") || "");
+  const name = String(formData.get("name") || "");
+  const { createSupportAgent } = await import("@/lib/data/users");
+  const agent = await createSupportAgent(email, name);
+  if (agent) {
+    await recordAdminAction(admin, "support.agent_invited", "user", agent.id, agent.email);
+  }
+  revalidatePath("/admin/support");
+  redirect(`/admin/support?team=${agent ? "invited" : "error"}`);
+}
+
+/** Revoke a support agent's access (their account becomes a traveller). */
+export async function removeSupportAgentAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const userId = String(formData.get("userId") || "");
+  if (!userId || userId === admin.id) redirect("/admin/support?team=error");
+  const { revokeSupportAgent } = await import("@/lib/data/users");
+  const ok = await revokeSupportAgent(userId);
+  if (ok) await recordAdminAction(admin, "support.agent_removed", "user", userId);
+  revalidatePath("/admin/support");
+  redirect(`/admin/support?team=${ok ? "removed" : "error"}`);
+}
+
 /** Approve every listing waiting for review in one click. */
 export async function bulkApproveListingsAction() {
   const admin = await requireRole("admin");
