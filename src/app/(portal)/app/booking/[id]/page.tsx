@@ -28,6 +28,7 @@ import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
 import { getBookingById } from "@/lib/data/bookings";
+import { listMessagesForBooking } from "@/lib/data/booking-messages";
 import { getPlatformSettings } from "@/lib/data/settings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
@@ -447,7 +448,7 @@ export default async function BookingPage({
                 <BookingThread
                   bookingId={booking.id}
                   viewer="traveller"
-                  backHref={`/app/booking/${booking.id}`}
+                  initial={await listMessagesForBooking(booking.id)}
                   labels={{
                     title: t("thread.titleHost"),
                     empty: t("thread.empty"),
@@ -455,6 +456,7 @@ export default async function BookingPage({
                     send: t("thread.send"),
                     you: t("thread.you"),
                     other: t("thread.host"),
+                    error: t("thread.error"),
                   }}
                 />
               </div>

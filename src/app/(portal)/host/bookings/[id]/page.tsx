@@ -26,6 +26,7 @@ import { cohostNav, hostNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getHostById, getHostForUser, getSpaceById } from "@/lib/data/hosts";
 import { getBookingById, listBookingsForHost } from "@/lib/data/bookings";
+import { listMessagesForBooking } from "@/lib/data/booking-messages";
 import { getUserProfile } from "@/lib/data/users";
 import { hostCheckInAction, hostCheckOutAction } from "@/lib/host-suite-actions";
 import {
@@ -317,7 +318,7 @@ export default async function HostBookingDetailPage({
         <BookingThread
           bookingId={booking.id}
           viewer="host"
-          backHref={`/host/bookings/${booking.id}`}
+          initial={await listMessagesForBooking(booking.id)}
           labels={{
             title: t("thread.title"),
             empty: t("thread.empty"),
@@ -325,6 +326,7 @@ export default async function HostBookingDetailPage({
             send: t("thread.send"),
             you: t("thread.you"),
             other: t("thread.traveller"),
+            error: t("thread.error"),
           }}
         />
 
