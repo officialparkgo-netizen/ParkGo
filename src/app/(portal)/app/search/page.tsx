@@ -27,6 +27,7 @@ export default async function SearchPage({
 }: {
   searchParams: Promise<{
     airport?: string;
+    q?: string;
     from?: string;
     to?: string;
     ev?: string;
@@ -42,7 +43,27 @@ export default async function SearchPage({
   const { t } = await getI18n();
   const sp = await searchParams;
   const airports = getAirports().map((a) => ({ slug: a.slug, name: a.name, code: a.code, kind: a.kind }));
-  const airportSlug = sp.airport || "heathrow";
+
+  // Free-text destination: "Gatwick", "LGW", an area, or a postcode. Only
+  // consulted when no explicit airport was picked.
+  const rawQ = (sp.q ?? "").trim();
+  let airportSlug = sp.airport || "";
+  let matchedSpaceIds: Set<string> | null = null;
+  let noMatch = false;
+  if (!airportSlug && rawQ) {
+    const { listAllSpaces } = await import("@/lib/data/hosts");
+    const { resolveSearchQuery } = await import("@/lib/geo-search");
+    const resolution = resolveSearchQuery(rawQ, airports, await listAllSpaces());
+    if (resolution.kind === "destination") {
+      airportSlug = resolution.slug;
+    } else if (resolution.kind === "spaces") {
+      airportSlug = resolution.slug;
+      matchedSpaceIds = new Set(resolution.spaceIds);
+    } else {
+      noMatch = true;
+    }
+  }
+  if (!airportSlug) airportSlug = "heathrow";
   const airport = getAirport(airportSlug);
 
   const maxPrice = Number(sp.maxprice) > 0 ? Number(sp.maxprice) : undefined;
@@ -58,11 +79,16 @@ export default async function SearchPage({
     vehicleSize: (sp.vehicle as "small" | "medium" | "large" | "van" | undefined) || undefined,
   });
 
+  // A postcode/area query narrows the airport's results to the exact matches.
+  const scoped = matchedSpaceIds
+    ? unsorted.filter((r) => matchedSpaceIds.has(r.space.id))
+    : unsorted;
+
   // Sorting: recommended keeps the data-layer order.
   const sort = ["price", "rating", "closest"].includes(sp.sort ?? "")
     ? (sp.sort as "price" | "rating" | "closest")
     : "recommended";
-  const results = [...unsorted];
+  const results = [...scoped];
   // Demand analytics (fire-and-forget; zero-result searches = supply gaps).
   const { logSearchEvent } = await import("@/lib/data/search-events");
   await logSearchEvent({
@@ -77,12 +103,16 @@ export default async function SearchPage({
   const sortHref = (key: string) => {
     const params = new URLSearchParams();
     for (const [k, v] of Object.entries(sp)) if (v && k !== "sort") params.set(k, v);
-    if (!params.get("airport")) params.set("airport", airportSlug);
+    // A free-text query re-resolves on every visit — only pin the airport
+    // when there is no query, or the postcode narrowing would be lost.
+    if (!params.get("airport") && !params.get("q")) params.set("airport", airportSlug);
     if (key !== "recommended") params.set("sort", key);
     return `/app/search?${params.toString()}`;
   };
   const clearFiltersHref = (() => {
-    const params = new URLSearchParams({ airport: airportSlug });
+    const params = new URLSearchParams(
+      rawQ && !sp.airport ? { q: rawQ } : { airport: airportSlug }
+    );
     if (sp.from) params.set("from", sp.from);
     if (sp.to) params.set("to", sp.to);
     return `/app/search?${params.toString()}`;
@@ -112,6 +142,7 @@ export default async function SearchPage({
           airports={airports}
           initial={{
             airport: airportSlug,
+            q: rawQ || undefined,
             from: sp.from,
             to: sp.to,
             vehicle: sp.vehicle,
@@ -123,12 +154,27 @@ export default async function SearchPage({
           }}
         />
 
+        {noMatch && (
+          <div
+            className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm font-semibold text-accent-700"
+            data-q-nomatch
+          >
+            <SearchX className="h-5 w-5 shrink-0" />
+            {t("search.noMatch").replace("{q}", rawQ)}
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-navy-900">
               {results.length} {t("app.search.spacesNear")} {airport?.name ?? t("app.search.yourAirport")}
             </h2>
             <div className="mt-1 flex flex-wrap gap-2">
+              {matchedSpaceIds && (
+                <Badge tone="brand" data-q-badge>
+                  {t("search.matchNote").replace("{q}", rawQ)}
+                </Badge>
+              )}
               {hourlySearch && <Badge tone="brand">{t("search.mode.hourly")}</Badge>}
               {sp.cctv === "1" && <Badge tone="go">{t("app.search.cctvCamera")}</Badge>}
               {sp.transfer === "1" && <Badge tone="brand">{t("app.search.plusTransfer")}</Badge>}

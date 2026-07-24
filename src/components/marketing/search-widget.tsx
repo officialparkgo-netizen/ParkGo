@@ -17,6 +17,8 @@ const hasTime = (v?: string) => !!v && v.includes("T");
 
 export interface SearchWidgetInitial {
   airport?: string;
+  /** Free-text destination query (name / code / area / postcode). */
+  q?: string;
   from?: string;
   to?: string;
   vehicle?: string;
@@ -41,7 +43,40 @@ export function SearchWidget({
   const router = useRouter();
   const t = useT();
   const initialHourly = hasTime(initial?.from);
-  const [airport, setAirport] = useState(initial?.airport ?? airports[0]?.slug ?? "heathrow");
+
+  // Free-text destination: shows "Name (CODE)" for known places but accepts
+  // anything — an unknown string is sent as ?q= and resolved server-side
+  // (area names and postcodes match against real listings).
+  const display = (a: (typeof airports)[number]) =>
+    !a.kind || a.kind === "airport" ? `${a.name} (${a.code})` : a.name;
+  const initialDest =
+    initial?.q ??
+    display(
+      airports.find((a) => a.slug === (initial?.airport ?? "heathrow")) ?? airports[0]
+    );
+  const [dest, setDest] = useState(initialDest ?? "");
+  const resolveDest = (text: string): string | null => {
+    const q = text.trim().toLowerCase();
+    if (!q) return null;
+    const inParens = q.match(/\(([a-z0-9]{2,4})\)\s*$/)?.[1];
+    for (const a of airports) {
+      if (
+        a.slug === q ||
+        a.code.toLowerCase() === q ||
+        (inParens && a.code.toLowerCase() === inParens) ||
+        a.name.toLowerCase() === q ||
+        display(a).toLowerCase() === q
+      ) {
+        return a.slug;
+      }
+    }
+    if (q.length >= 3) {
+      const byName = airports.find((a) => a.name.toLowerCase().includes(q));
+      if (byName) return byName.slug;
+    }
+    return null;
+  };
+  const airport = resolveDest(dest) ?? "";
   const [mode, setMode] = useState<"daily" | "hourly">(initialHourly ? "hourly" : "daily");
   const [from, setFrom] = useState(
     initialHourly ? initial!.from!.slice(0, 10) : (initial?.from ?? isoDay(2))
@@ -70,7 +105,7 @@ export function SearchWidget({
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams({
-      airport,
+      ...(airport ? { airport } : { q: dest.trim() }),
       from: mode === "hourly" ? `${from}T${fromTime}` : from,
       to: mode === "hourly" ? `${from}T${toTime}` : to,
       ...(vehicle ? { vehicle } : {}),
@@ -117,32 +152,28 @@ export function SearchWidget({
           <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-navy-500">
             <Plane className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {t("search.destination")}
           </span>
-          <select
-            value={airport}
+          <input
+            type="text"
+            list="parkgo-destinations"
+            required
+            value={dest}
             onChange={(e) => {
-              const slug = e.target.value;
-              setAirport(slug);
-              if (!airportDests.some((a) => a.slug === slug)) setNeedsTransfer(false);
+              setDest(e.target.value);
+              const slug = resolveDest(e.target.value);
+              if (!slug || !airportDests.some((a) => a.slug === slug)) setNeedsTransfer(false);
             }}
-            className="w-full cursor-pointer appearance-none bg-transparent text-sm font-semibold text-navy-900 focus:outline-none"
-          >
-            <optgroup label={t("search.group.airports")}>
-              {airportDests.map((a) => (
-                <option key={a.slug} value={a.slug}>
-                  {a.name} ({a.code})
-                </option>
-              ))}
-            </optgroup>
-            {placeDests.length > 0 && (
-              <optgroup label={t("search.group.places")}>
-                {placeDests.map((a) => (
-                  <option key={a.slug} value={a.slug}>
-                    {a.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-          </select>
+            onFocus={(e) => e.target.select()}
+            placeholder={t("search.destPh")}
+            className="w-full bg-transparent text-sm font-semibold text-navy-900 placeholder:font-normal placeholder:text-navy-300 focus:outline-none"
+          />
+          <datalist id="parkgo-destinations">
+            {airportDests.map((a) => (
+              <option key={a.slug} value={`${a.name} (${a.code})`} />
+            ))}
+            {placeDests.map((a) => (
+              <option key={a.slug} value={a.name} />
+            ))}
+          </datalist>
         </label>
 
         <span className="hidden w-px self-stretch bg-navy-100 lg:my-3.5 lg:block" aria-hidden />
