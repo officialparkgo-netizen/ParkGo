@@ -278,3 +278,15 @@ export async function anonymizeUserAdmin(userId: string): Promise<boolean> {
     .neq("role", "admin");
   return !error;
 }
+
+/** Live only: last sign-in time from Supabase Auth (null in mock mode). */
+export async function getAuthLastSignIn(userId: string): Promise<string | null> {
+  if (!IS_LIVE) return null;
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { data } = await supabaseAdmin().auth.admin.getUserById(userId);
+    return data.user?.last_sign_in_at ?? null;
+  } catch {
+    return null;
+  }
+}

@@ -94,3 +94,27 @@ export async function setSupportTicketAssigned(
     .eq("id", id);
   return !error;
 }
+
+/** Append an agent reply to the stored transcript (mock + live). */
+export async function appendAgentReply(id: string, text: string): Promise<boolean> {
+  const msg = { role: "agent" as const, text: text.slice(0, 2000) };
+  if (!IS_LIVE) {
+    const { appendSupportMessage } = await import("@/lib/data/store");
+    return !!appendSupportMessage(id, msg);
+  }
+  try {
+    const { data } = await supabaseAdmin()
+      .from("support_tickets")
+      .select("transcript")
+      .eq("id", id)
+      .maybeSingle();
+    const transcript = Array.isArray(data?.transcript) ? data.transcript : [];
+    const { error } = await supabaseAdmin()
+      .from("support_tickets")
+      .update({ transcript: [...transcript, msg] })
+      .eq("id", id);
+    return !error;
+  } catch {
+    return false;
+  }
+}

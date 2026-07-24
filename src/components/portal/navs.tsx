@@ -3,6 +3,7 @@ import {
   Banknote,
   CalendarCheck,
   CalendarClock,
+  ChartSpline,
   Headset,
   LayoutGrid,
   LifeBuoy,
@@ -39,6 +40,7 @@ export const hostNav: NavItem[] = [
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "nav.dashboard", icon: LayoutGrid },
   { href: "/admin/today", label: "admin.today.title", icon: CalendarClock },
+  { href: "/admin/analytics", label: "admin.analytics.title", icon: ChartSpline },
   { href: "/admin/verification", label: "nav.hostVerification", icon: BadgeCheck },
   { href: "/admin/operator", label: "nav.operator", icon: Radio },
   { href: "/admin/listings", label: "nav.listings", icon: Warehouse },

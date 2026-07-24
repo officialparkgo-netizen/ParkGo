@@ -9,7 +9,12 @@ import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { listSupportTickets } from "@/lib/data/support";
 import { resolveSupportTicketAction } from "@/lib/support-actions";
-import { assignSupportTicketAction } from "@/lib/admin-suite-actions";
+import {
+  assignSupportTicketAction,
+  replySupportTicketAction,
+} from "@/lib/admin-suite-actions";
+import { TemplatePicker } from "@/components/admin/template-picker";
+import { Send } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -20,9 +25,19 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 });
 
-export default async function AdminSupportPage() {
+export default async function AdminSupportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ replied?: string }>;
+}) {
   const user = await requireRole("admin");
   const { t } = await getI18n();
+  const { replied } = await searchParams;
+  const templates = [
+    { id: "looking", label: t("admin.macros.looking.label"), text: t("admin.macros.looking.body") },
+    { id: "refund", label: t("admin.macros.refund.label"), text: t("admin.macros.refund.body") },
+    { id: "docs", label: t("admin.macros.docs.label"), text: t("admin.macros.docs.body") },
+  ];
 
   const supportTickets = await listSupportTickets().catch(() => []);
   const ageOf = (iso: string) => {
@@ -38,6 +53,17 @@ export default async function AdminSupportPage() {
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
         </Link>
+
+        {replied === "1" && (
+          <div className="rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            {t("admin.macros.sent")}
+          </div>
+        )}
+        {replied === "preview" && (
+          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+            {t("admin.macros.preview")}
+          </div>
+        )}
 
         <section id="support">
           <div className="mb-3 flex items-center gap-2">
@@ -113,6 +139,29 @@ export default async function AdminSupportPage() {
                       .map((m) => m.text)
                       .join(" · ") || ticket.transcript[ticket.transcript.length - 1]?.text}
                   </p>
+                )}
+                {ticket.transcript.some((m) => m.role === "agent") && (
+                  <p className="mt-1 text-xs text-go-700">
+                    ↳ {ticket.transcript.filter((m) => m.role === "agent").slice(-1)[0]?.text}
+                  </p>
+                )}
+                {ticket.status === "open" && (
+                  <form
+                    action={replySupportTicketAction}
+                    className="mt-3 space-y-2 border-t border-navy-100 pt-3"
+                  >
+                    <input type="hidden" name="ticketId" value={ticket.id} />
+                    <TemplatePicker
+                      templates={templates}
+                      placeholder={t("admin.macros.pick")}
+                    />
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-navy-900 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-700"
+                    >
+                      <Send className="h-3.5 w-3.5" /> {t("admin.macros.send")}
+                    </button>
+                  </form>
                 )}
               </div>
             ))}

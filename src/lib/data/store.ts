@@ -737,6 +737,13 @@ export function addWaitlist(entry: Omit<WaitlistEntry, "id" | "createdAt">): Wai
 }
 export const getWaitlist = () => db.waitlist;
 
+/** Mark a waitlist signup invited. */
+export function markWaitlistInvited(id: string): WaitlistEntry | undefined {
+  const w = db.waitlist.find((x) => x.id === id);
+  if (w) w.invitedAt = new Date().toISOString();
+  return w;
+}
+
 // -----------------------------------------------------------------------------
 // Traveller ↔ driver messages (mock relay). The demo driver replies with a
 // short delay: replies are stamped ~2s in the future and only surface once
@@ -813,6 +820,16 @@ export function resolveSupportTicket(id: string): boolean {
 export function assignSupportTicket(id: string, adminName: string): SupportTicket | undefined {
   const t = supportTickets.find((x) => x.id === id);
   if (t) t.assignedTo = adminName;
+  return t;
+}
+
+/** Append an agent reply to a ticket transcript. */
+export function appendSupportMessage(
+  id: string,
+  msg: { role: "bot" | "user" | "agent"; text: string }
+): SupportTicket | undefined {
+  const t = supportTickets.find((x) => x.id === id);
+  if (t) t.transcript = [...t.transcript, msg];
   return t;
 }
 

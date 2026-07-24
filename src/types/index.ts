@@ -529,6 +529,8 @@ export interface WaitlistEntry {
   role: Role | "traveller";
   airport?: string;
   createdAt: ISODateString;
+  /** Set when an admin sent this signup an invite email. */
+  invitedAt?: ISODateString;
 }
 
 /** One message between a traveller and their transfer driver. */
@@ -542,7 +544,7 @@ export interface TransferMessage {
 
 /** One line of a support-chat conversation. */
 export interface SupportMessage {
-  role: "bot" | "user";
+  role: "bot" | "user" | "agent";
   text: string;
 }
 

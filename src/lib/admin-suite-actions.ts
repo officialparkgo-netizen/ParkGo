@@ -363,3 +363,130 @@ export async function setAdminScopeAction(formData: FormData) {
   if (ok) await recordAdminAction(admin, `admin.scope_${scope}`, "user", userId);
   revalidatePath(`/admin/users/${userId}`);
 }
+
+/** Goodwill partial refund without cancelling (support tool). */
+export async function adminPartialRefundAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const bookingId = String(formData.get("bookingId") || "");
+  const amount = Math.round(Number(formData.get("amount") || 0) * 100);
+  if (!bookingId || amount <= 0) redirect(`/app/booking/${bookingId}?refunded=error`);
+  const { adminPartialRefund } = await import("@/lib/data/bookings");
+  const result = await adminPartialRefund(bookingId, amount);
+  if (result.ok) {
+    await recordAdminAction(
+      admin,
+      "booking.partial_refund",
+      "booking",
+      bookingId,
+      `£${(amount / 100).toFixed(2)}`
+    );
+  }
+  revalidatePath(`/app/booking/${bookingId}`);
+  redirect(
+    `/app/booking/${bookingId}?refunded=${result.ok ? (amount / 100).toFixed(2) : "error"}`
+  );
+}
+
+/** Support tool: move a booking's dates (price unchanged). */
+export async function adminChangeBookingDatesAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const bookingId = String(formData.get("bookingId") || "");
+  const start = String(formData.get("newStart") || "");
+  const end = String(formData.get("newEnd") || "");
+  if (!bookingId || !start || !end) redirect(`/app/booking/${bookingId}?adminedit=error`);
+  const startAt = new Date(`${start}T12:00:00Z`).toISOString();
+  const endAt = new Date(`${end}T12:00:00Z`).toISOString();
+  const { adminUpdateBookingDates } = await import("@/lib/data/bookings");
+  const result = await adminUpdateBookingDates(bookingId, startAt, endAt);
+  if (result.ok) {
+    await recordAdminAction(
+      admin,
+      "booking.dates_changed",
+      "booking",
+      bookingId,
+      `${start} → ${end}`
+    );
+  }
+  revalidatePath(`/app/booking/${bookingId}`);
+  redirect(`/app/booking/${bookingId}?adminedit=${result.ok ? "done" : "error"}`);
+}
+
+/** Reply to a support ticket by email (with saved-reply templates). */
+export async function replySupportTicketAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const ticketId = String(formData.get("ticketId") || "");
+  const message = String(formData.get("message") || "").trim().slice(0, 2000);
+  if (!ticketId || !message) redirect("/admin/support?replied=error");
+  const { listSupportTickets, appendAgentReply } = await import("@/lib/data/support");
+  const ticket = (await listSupportTickets().catch(() => [])).find(
+    (tk) => tk.id === ticketId
+  );
+  if (!ticket) redirect("/admin/support?replied=error");
+  await appendAgentReply(ticketId, message);
+  let emailed = false;
+  if (isEmailConfigured()) {
+    try {
+      await sendEmail(
+        ticket.email,
+        `Re: your ParkGo support request (${ticket.topic})`,
+        emailShell(
+          `<p style="white-space:pre-line">${message.replace(/</g, "&lt;")}</p>
+           <p style="font-size:12px;color:#878D96">— ${admin.name}, ParkGo support</p>`
+        )
+      );
+      emailed = true;
+    } catch {
+      // reply is stored either way
+    }
+  }
+  await recordAdminAction(admin, "support.replied", "user", ticketId, message.slice(0, 120));
+  revalidatePath("/admin/support");
+  redirect(`/admin/support?replied=${emailed ? "1" : "preview"}`);
+}
+
+/** Invite a waitlist signup to create their account. */
+export async function inviteWaitlistAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const entryId = String(formData.get("entryId") || "");
+  const email = String(formData.get("email") || "");
+  if (!entryId || !email) redirect("/admin/users?invited=error");
+  let emailed = false;
+  if (isEmailConfigured()) {
+    try {
+      await sendEmail(
+        email,
+        "You're invited to ParkGo 🎉",
+        emailShell(
+          `<p>Good news — ParkGo is ready for you.</p>
+           <p>Airport parking with licensed transfer, EV charging and CCTV, in one booking.</p>
+           <p style="margin-top:14px"><a href="https://www.parkgo.ai/login" style="background:#F97316;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:700">Create your account</a></p>`
+        )
+      );
+      emailed = true;
+    } catch {
+      // fall through to preview
+    }
+  }
+  const { markWaitlistInvited } = await import("@/lib/data/waitlist");
+  await markWaitlistInvited(entryId);
+  await recordAdminAction(admin, "waitlist.invited", "user", entryId, email);
+  revalidatePath("/admin/users");
+  redirect(`/admin/users?invited=${emailed ? "1" : "preview"}`);
+}
+
+/** Run due host payouts as Stripe transfers. GATED: no-op until Stripe keys. */
+export async function runStripePayoutsAction() {
+  const admin = await requireFinanceAdmin();
+  const { isStripeConfigured, runStripePayoutsDue } = await import("@/lib/stripe");
+  if (!isStripeConfigured()) redirect("/admin/payments");
+  const result = await runStripePayoutsDue();
+  await recordAdminAction(
+    admin,
+    "payouts.stripe_run",
+    "payment",
+    "batch",
+    `${result.transferred} transferred, ${result.skipped} skipped`
+  );
+  revalidatePath("/admin/payments");
+  redirect(`/admin/payments?stripepayouts=${result.transferred}`);
+}

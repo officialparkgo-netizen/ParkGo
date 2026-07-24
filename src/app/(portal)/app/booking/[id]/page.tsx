@@ -30,7 +30,11 @@ import { getPlatformSettings } from "@/lib/data/settings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
 import { cancelBookingAction, extendBookingAction } from "@/lib/booking-actions";
-import { fileClaimAction } from "@/lib/admin-suite-actions";
+import {
+  adminChangeBookingDatesAction,
+  adminPartialRefundAction,
+  fileClaimAction,
+} from "@/lib/admin-suite-actions";
 import { daysBetween, formatDate, formatDateTime, formatMoney, formatMoneyShort, hoursBetween } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -50,6 +54,8 @@ export default async function BookingPage({
     extended?: string;
     extendError?: string;
     claim?: string;
+    adminedit?: string;
+    refunded?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
@@ -63,6 +69,8 @@ export default async function BookingPage({
     extended,
     extendError,
     claim,
+    adminedit,
+    refunded,
   } = await searchParams;
   const booking = await getBookingById(id);
   const canView = booking && (booking.travellerId === user.id || user.role === "admin");
@@ -150,6 +158,26 @@ export default async function BookingPage({
         {claim === "filed" && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
             <CheckCircle2 className="h-5 w-5" /> {t("app.booking.claim.filed")}
+          </div>
+        )}
+        {adminedit === "done" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("admin.tools.dateDone")}
+          </div>
+        )}
+        {adminedit === "error" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            <XCircle className="h-5 w-5" /> {t("admin.tools.dateError")}
+          </div>
+        )}
+        {refunded && refunded !== "error" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("admin.tools.refundDone")} £{refunded}
+          </div>
+        )}
+        {refunded === "error" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            <XCircle className="h-5 w-5" /> {t("admin.tools.refundError")}
           </div>
         )}
         {claim === "error" && (
@@ -390,6 +418,77 @@ export default async function BookingPage({
                     </form>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* Admin support tools — never shown while impersonating */}
+            {user.role === "admin" && !user.impersonatedBy && (
+              <div className="mt-5 rounded-xl border border-navy-200 bg-navy-50/60 p-4">
+                <h3 className="text-sm font-bold text-navy-900">
+                  {t("admin.tools.title")}
+                </h3>
+                {["requested", "paid", "active"].includes(booking.status) && (
+                  <form
+                    action={adminChangeBookingDatesAction}
+                    className="mt-3 flex flex-wrap items-end gap-2"
+                  >
+                    <input type="hidden" name="bookingId" value={booking.id} />
+                    <label className="text-xs font-semibold text-navy-600">
+                      {t("admin.tools.newStart")}
+                      <input
+                        type="date"
+                        name="newStart"
+                        required
+                        defaultValue={booking.startAt.slice(0, 10)}
+                        className="mt-1 block h-9 rounded-lg border border-navy-200 bg-white px-2 text-xs"
+                      />
+                    </label>
+                    <label className="text-xs font-semibold text-navy-600">
+                      {t("admin.tools.newEnd")}
+                      <input
+                        type="date"
+                        name="newEnd"
+                        required
+                        defaultValue={booking.endAt.slice(0, 10)}
+                        className="mt-1 block h-9 rounded-lg border border-navy-200 bg-white px-2 text-xs"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      className="inline-flex h-9 items-center gap-1 rounded-lg bg-navy-900 px-3 text-xs font-semibold text-white hover:bg-navy-700"
+                    >
+                      {t("admin.tools.changeDates")}
+                    </button>
+                  </form>
+                )}
+                {paid && (
+                  <form
+                    action={adminPartialRefundAction}
+                    className="mt-3 flex flex-wrap items-end gap-2"
+                  >
+                    <input type="hidden" name="bookingId" value={booking.id} />
+                    <label className="text-xs font-semibold text-navy-600">
+                      {t("admin.tools.refundAmount")}
+                      <input
+                        type="number"
+                        name="amount"
+                        step="0.01"
+                        min="0.01"
+                        max={(booking.price.total / 100).toFixed(2)}
+                        required
+                        placeholder="10.00"
+                        className="mt-1 block h-9 w-28 rounded-lg border border-navy-200 bg-white px-2 text-xs"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      className="inline-flex h-9 items-center gap-1 rounded-lg border border-red-200 bg-white px-3 text-xs font-semibold text-red-600 hover:bg-red-50"
+                    >
+                      {t("admin.tools.refundBtn")}
+                    </button>
+                  </form>
+                )}
+                <p className="mt-2 text-[11px] text-navy-400">{t("admin.tools.note")}</p>
               </div>
             )}
 

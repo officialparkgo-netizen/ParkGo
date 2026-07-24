@@ -502,6 +502,107 @@ export async function adminCancelBooking(bookingId: string): Promise<CancelResul
   return { ok: true, refund, feeApplied: false };
 }
 
+/**
+ * Admin goodwill refund: refund part of the total without cancelling.
+ * Live mode refunds the newest Stripe charge; the platform absorbs it
+ * (splits stay unchanged — track it via the admin action log).
+ */
+export async function adminPartialRefund(
+  bookingId: string,
+  amount: number
+): Promise<{ ok: boolean; error?: string }> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return { ok: false, error: "Booking not found." };
+  if (amount <= 0 || amount > booking.price.total) {
+    return { ok: false, error: "Amount out of range." };
+  }
+
+  if (!IS_LIVE) {
+    mockAddNotification({
+      userId: booking.travellerId,
+      title: "Refund issued",
+      body: `We refunded part of ${booking.reference} as a goodwill gesture.`,
+      kind: "booking",
+    });
+    return { ok: true };
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+  const { data: pays } = await admin
+    .from("payments")
+    .select("id, provider, amount, external_ref")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: false });
+  const stripePay = (pays ?? []).find((p) => p.provider === "stripe" && p.external_ref);
+  if (stripePay) {
+    try {
+      const { getStripe } = await import("@/lib/stripe");
+      await getStripe().refunds.create({
+        payment_intent: stripePay.external_ref,
+        amount: Math.min(amount, stripePay.amount),
+      });
+    } catch {
+      return { ok: false, error: "Stripe refund failed." };
+    }
+  }
+  await admin.from("notifications").insert({
+    user_id: booking.travellerId,
+    title: "Refund issued",
+    body: `We refunded part of ${booking.reference} as a goodwill gesture.`,
+    kind: "booking",
+  });
+  return { ok: true };
+}
+
+/**
+ * Admin support tool: move a booking's dates (price unchanged — pair with a
+ * partial refund or promo when the value changes materially).
+ */
+export async function adminUpdateBookingDates(
+  bookingId: string,
+  startAt: string,
+  endAt: string
+): Promise<{ ok: boolean; error?: string }> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return { ok: false, error: "Booking not found." };
+  if (!["requested", "paid", "active"].includes(booking.status)) {
+    return { ok: false, error: "This booking can no longer be changed." };
+  }
+  if (new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+    return { ok: false, error: "Pick-up must be after drop-off." };
+  }
+
+  if (!IS_LIVE) {
+    const b = mockGetBooking(bookingId);
+    if (!b) return { ok: false, error: "Booking not found." };
+    b.startAt = startAt;
+    b.endAt = endAt;
+    mockAddNotification({
+      userId: booking.travellerId,
+      title: "Booking dates updated",
+      body: `${booking.reference} now runs ${new Date(startAt).toDateString()} → ${new Date(endAt).toDateString()}.`,
+      kind: "booking",
+    });
+    return { ok: true };
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+  const { error } = await admin
+    .from("bookings")
+    .update({ start_at: startAt, end_at: endAt })
+    .eq("id", bookingId);
+  if (error) return { ok: false, error: "Update failed." };
+  await admin.from("notifications").insert({
+    user_id: booking.travellerId,
+    title: "Booking dates updated",
+    body: `${booking.reference} now runs ${new Date(startAt).toDateString()} → ${new Date(endAt).toDateString()}.`,
+    kind: "booking",
+  });
+  return { ok: true };
+}
+
 /** Admin: manually mark a pending host/driver payout as paid (bank transfer). */
 export async function markPayoutPaid(paymentId: string): Promise<boolean> {
   if (!IS_LIVE) return !!mockSetPaymentPayoutStatus(paymentId, "paid");

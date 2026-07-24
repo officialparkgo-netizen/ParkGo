@@ -171,3 +171,81 @@ export async function getConnectStatus(
     return { chargesEnabled: false, detailsSubmitted: false };
   }
 }
+
+/**
+ * Run all due host payouts as Stripe Connect transfers. GATED: does nothing
+ * unless Stripe is configured — shipped dark until live keys exist.
+ */
+export async function runStripePayoutsDue(): Promise<{
+  transferred: number;
+  skipped: number;
+}> {
+  if (!isStripeConfigured()) return { transferred: 0, skipped: 0 };
+  const { listAllBookings, listAllPayments, markPayoutPaid } = await import(
+    "@/lib/data/bookings"
+  );
+  const { listAllSpaces, listAllHosts } = await import("@/lib/data/hosts");
+  const [payments, bookings, spaces, hosts] = await Promise.all([
+    listAllPayments(),
+    listAllBookings(),
+    listAllSpaces(),
+    listAllHosts(),
+  ]);
+  const bookingMap = new Map(bookings.map((b) => [b.id, b]));
+  const spaceMap = new Map(spaces.map((sp) => [sp.id, sp]));
+  const hostMap = new Map(hosts.map((h) => [h.id, h]));
+  const stripe = getStripe();
+
+  let transferred = 0;
+  let skipped = 0;
+  for (const p of payments) {
+    const b = bookingMap.get(p.bookingId);
+    const refunded = p.payoutStatus === "refunded" || b?.status === "cancelled";
+    if (refunded || p.payoutStatus === "paid" || p.split.hostPayout <= 0) continue;
+    const host = b ? hostMap.get(spaceMap.get(b.spaceId)?.hostId ?? "") : undefined;
+    if (!host?.payoutAccountRef) {
+      skipped += 1;
+      continue;
+    }
+    try {
+      await stripe.transfers.create({
+        amount: p.split.hostPayout,
+        currency: p.currency.toLowerCase(),
+        destination: host.payoutAccountRef,
+        transfer_group: b?.reference ?? p.bookingId,
+      });
+      await markPayoutPaid(p.id);
+      transferred += 1;
+    } catch {
+      skipped += 1;
+    }
+  }
+  return { transferred, skipped };
+}
+
+export interface StripeDisputeSummary {
+  id: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  status: string;
+  created: string;
+}
+
+/** Open Stripe disputes/chargebacks. GATED: empty until Stripe is configured. */
+export async function listStripeDisputes(): Promise<StripeDisputeSummary[]> {
+  if (!isStripeConfigured()) return [];
+  try {
+    const res = await getStripe().disputes.list({ limit: 10 });
+    return res.data.map((d) => ({
+      id: d.id,
+      amount: d.amount,
+      currency: d.currency.toUpperCase(),
+      reason: d.reason ?? "unknown",
+      status: d.status ?? "unknown",
+      created: new Date(d.created * 1000).toISOString(),
+    }));
+  } catch {
+    return [];
+  }
+}

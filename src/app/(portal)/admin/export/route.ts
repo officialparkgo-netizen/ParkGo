@@ -109,6 +109,16 @@ async function buildRows(type: string): Promise<{ header: string[]; rows: (strin
       rows: entries.map((w) => [w.email, w.role, w.airport ?? "", friendly(w.createdAt)]),
     };
   }
+  if (type === "audit") {
+    const { listAdminActions } = await import("@/lib/data/admin-actions");
+    const actions = await listAdminActions(500);
+    return {
+      header: ["When", "Admin", "Action", "Target type", "Target", "Detail"],
+      rows: actions.map((a) => [
+        friendly(a.createdAt), a.adminName, a.action, a.targetType, a.targetId, a.detail ?? "",
+      ]),
+    };
+  }
   if (type === "payouts") {
     // Payout run: everything still owed, grouped per host — hand to the bank.
     const [payments, bookings, spaces, hosts, users] = await Promise.all([
@@ -155,7 +165,7 @@ async function buildRows(type: string): Promise<{ header: string[]; rows: (strin
       { gmv: number; platform: number; host: number; driver: number; refunded: number; count: number }
     >();
     for (const p of payments) {
-      const key = p.createdAt.slice(0, 7); // YYYY-MM
+      const key = `${p.createdAt.slice(0, 7)} ${p.currency}`; // YYYY-MM per currency
       const m = months.get(key) ?? {
         gmv: 0, platform: 0, host: 0, driver: 0, refunded: 0, count: 0,
       };
@@ -173,15 +183,18 @@ async function buildRows(type: string): Promise<{ header: string[]; rows: (strin
     }
     return {
       header: [
-        "Month", "Paid bookings", "GMV (£)", "Platform revenue (£)",
-        "Host payouts (£)", "Driver payouts (£)", "Refunded (£)",
+        "Month", "Currency", "Paid bookings", "GMV", "Platform revenue",
+        "Host payouts", "Driver payouts", "Refunded",
       ],
       rows: [...months.entries()]
         .sort((a, b) => b[0].localeCompare(a[0]))
-        .map(([month, m]) => [
-          month, m.count, pounds(m.gmv), pounds(m.platform),
-          pounds(m.host), pounds(m.driver), pounds(m.refunded),
-        ]),
+        .map(([key, m]) => {
+          const [month, currency] = key.split(" ");
+          return [
+            month, currency, m.count, pounds(m.gmv), pounds(m.platform),
+            pounds(m.host), pounds(m.driver), pounds(m.refunded),
+          ];
+        }),
     };
   }
   return null;

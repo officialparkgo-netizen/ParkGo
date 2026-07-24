@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ScrollText } from "lucide-react";
+import { Download, ScrollText } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
@@ -43,9 +44,17 @@ export default async function AdminAuditPage() {
 
         {/* Real admin actions — who did what */}
         <section id="admin-actions">
-          <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
-            <ScrollText className="h-5 w-5 text-navy-500" /> {t("admin.actions.title")}
-          </h3>
+          <div className="mb-3 flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <ScrollText className="h-5 w-5 text-navy-500" /> {t("admin.actions.title")}
+            </h3>
+            <a
+              href="/admin/export?type=audit"
+              className={buttonVariants({ variant: "outline", size: "sm", className: "ms-auto" })}
+            >
+              <Download className="h-4 w-4" /> {t("admin.exportCsv")}
+            </a>
+          </div>
           <Card className="divide-y divide-navy-100">
             {adminActions.length === 0 && (
               <div className="p-6 text-center text-sm text-navy-500">

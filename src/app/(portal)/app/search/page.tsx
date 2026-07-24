@@ -63,6 +63,13 @@ export default async function SearchPage({
     ? (sp.sort as "price" | "rating" | "closest")
     : "recommended";
   const results = [...unsorted];
+  // Demand analytics (fire-and-forget; zero-result searches = supply gaps).
+  const { logSearchEvent } = await import("@/lib/data/search-events");
+  await logSearchEvent({
+    airportSlug,
+    destName: airport?.name ?? airportSlug,
+    results: results.length,
+  });
   if (sort === "price") results.sort((a, b) => a.estimatedTotal - b.estimatedTotal);
   if (sort === "rating") results.sort((a, b) => b.space.rating - a.space.rating);
   if (sort === "closest") results.sort((a, b) => a.space.driveMinutes - b.space.driveMinutes);

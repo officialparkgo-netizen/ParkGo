@@ -17,6 +17,7 @@ type WaitlistRow = {
   role: string;
   airport: string | null;
   created_at: string;
+  invited_at?: string | null;
 };
 
 function fromRow(r: WaitlistRow): WaitlistEntry {
@@ -26,6 +27,7 @@ function fromRow(r: WaitlistRow): WaitlistEntry {
     role: r.role as WaitlistEntry["role"],
     airport: r.airport ?? undefined,
     createdAt: r.created_at,
+    invitedAt: r.invited_at ?? undefined,
   };
 }
 
@@ -37,7 +39,7 @@ export async function addWaitlistEntry(
   const { data, error } = await supabaseAdmin()
     .from("waitlist")
     .insert({ email: entry.email, role: entry.role, airport: entry.airport ?? null })
-    .select("id, email, role, airport, created_at")
+    .select("*")
     .single();
 
   if (error) throw new Error(`waitlist insert failed: ${error.message}`);
@@ -49,9 +51,26 @@ export async function listWaitlist(): Promise<WaitlistEntry[]> {
 
   const { data, error } = await supabaseAdmin()
     .from("waitlist")
-    .select("id, email, role, airport, created_at")
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(`waitlist read failed: ${error.message}`);
   return (data as WaitlistRow[]).map(fromRow);
+}
+
+/** Mark a signup as invited (best-effort in live before migration 0019). */
+export async function markWaitlistInvited(id: string): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { markWaitlistInvited: mockMark } = await import("@/lib/data/store");
+    return !!mockMark(id);
+  }
+  try {
+    const { error } = await supabaseAdmin()
+      .from("waitlist")
+      .update({ invited_at: new Date().toISOString() })
+      .eq("id", id);
+    return !error;
+  } catch {
+    return false;
+  }
 }

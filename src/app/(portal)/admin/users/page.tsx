@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeftRight, Download, Mail, UserCheck, UserX, Users } from "lucide-react";
+import { ArrowLeftRight, CheckCircle2, Download, Info, Mail, Send, UserCheck, UserX, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { requireRole } from "@/lib/auth";
 import { listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
 import { setUserRoleAction, setUserSuspendedAction } from "@/lib/user-actions";
+import { inviteWaitlistAction } from "@/lib/admin-suite-actions";
 import { formatDate } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -20,9 +21,14 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 });
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ invited?: string }>;
+}) {
   const user = await requireRole("admin");
   const { t } = await getI18n();
+  const { invited } = await searchParams;
 
   const allUsers = await listAllUsers();
   const recentUsers = allUsers
@@ -37,6 +43,17 @@ export default async function AdminUsersPage() {
         <Link href="/admin" className="text-sm font-semibold text-brand-600">
           ← {t("common.backToDash")}
         </Link>
+
+        {invited === "1" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("admin.waitlist.invitedBanner")}
+          </div>
+        )}
+        {invited === "preview" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+            <Info className="h-5 w-5" /> {t("admin.waitlist.invitePreview")}
+          </div>
+        )}
 
         <section id="users">
           <div className="mb-3 flex items-center gap-2">
@@ -135,11 +152,29 @@ export default async function AdminUsersPage() {
                   <div className="truncate font-semibold text-navy-900">{w.email}</div>
                   {w.airport && <div className="text-xs text-navy-400">{w.airport}</div>}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={w.role === "host" ? "brand" : "neutral"}>{w.role}</Badge>
                   <span className="text-xs text-navy-400">
                     {t("admin.waitlist.signedUp")} {formatDate(w.createdAt)}
                   </span>
+                  {w.invitedAt ? (
+                    <Badge tone="go">
+                      <CheckCircle2 className="h-3 w-3" /> {t("admin.waitlist.invited")}
+                    </Badge>
+                  ) : (
+                    user.adminScope !== "support" && (
+                      <form action={inviteWaitlistAction}>
+                        <input type="hidden" name="entryId" value={w.id} />
+                        <input type="hidden" name="email" value={w.email} />
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+                        >
+                          <Send className="h-3.5 w-3.5" /> {t("admin.waitlist.invite")}
+                        </button>
+                      </form>
+                    )
+                  )}
                 </div>
               </div>
             ))}

@@ -1,13 +1,14 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Banknote, CheckCircle2, Download, FileSpreadsheet } from "lucide-react";
+import { AlertTriangle, Banknote, CheckCircle2, Download, FileSpreadsheet, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
 import { requireFinanceAdmin } from "@/lib/auth";
-import { markPayoutPaidAction } from "@/lib/admin-suite-actions";
+import { markPayoutPaidAction, runStripePayoutsAction } from "@/lib/admin-suite-actions";
+import { isStripeConfigured, listStripeDisputes } from "@/lib/stripe";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { formatDate, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
@@ -19,9 +20,17 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 });
 
-export default async function AdminPaymentsPage() {
+export default async function AdminPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ stripepayouts?: string }>;
+}) {
   const user = await requireFinanceAdmin();
   const { t, locale } = await getI18n();
+  const { stripepayouts } = await searchParams;
+  // GATED: both stay invisible until Stripe keys exist (per launch plan).
+  const stripeOn = isStripeConfigured();
+  const disputes = stripeOn ? await listStripeDisputes() : [];
 
   const payments = await listAllPayments();
   const bookings = await listAllBookings();
@@ -75,10 +84,23 @@ export default async function AdminPaymentsPage() {
           ← {t("common.backToDash")}
         </Link>
 
+        {stripepayouts !== undefined && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {stripepayouts} {t("admin.stripe.ranBanner")}
+          </div>
+        )}
+
         <section id="payments">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-bold text-navy-900">{t("admin.section.payments")}</h3>
             <div className="ms-auto flex flex-wrap gap-2">
+              {stripeOn && (
+                <form action={runStripePayoutsAction}>
+                  <button type="submit" className={buttonVariants({ size: "sm" })}>
+                    <Zap className="h-4 w-4" /> {t("admin.stripe.runPayouts")}
+                  </button>
+                </form>
+              )}
               <a
                 href="/admin/export?type=payouts"
                 className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -180,6 +202,35 @@ export default async function AdminPaymentsPage() {
             </div>
           )}
         </section>
+
+        {/* Chargebacks/disputes — appears only once Stripe is connected */}
+        {stripeOn && (
+          <section id="disputes">
+            <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
+              <AlertTriangle className="h-5 w-5 text-navy-500" /> {t("admin.stripe.disputes")}
+            </h3>
+            <Card className="divide-y divide-navy-100">
+              {disputes.length === 0 && (
+                <div className="p-6 text-center text-sm text-navy-500">
+                  {t("admin.stripe.disputesEmpty")}
+                </div>
+              )}
+              {disputes.map((d) => (
+                <div key={d.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div>
+                    <div className="font-semibold text-navy-900">
+                      {formatMoney(d.amount, d.currency === "EUR" ? "EUR" : "GBP")}
+                    </div>
+                    <div className="text-xs text-navy-400">
+                      {d.reason} · {formatDate(d.created)}
+                    </div>
+                  </div>
+                  <StatusBadge status={d.status} />
+                </div>
+              ))}
+            </Card>
+          </section>
+        )}
       </div>
     </PortalShell>
   );

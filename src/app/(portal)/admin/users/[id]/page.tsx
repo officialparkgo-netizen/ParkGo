@@ -23,8 +23,8 @@ import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
-import { getUsersByIds } from "@/lib/data/users";
-import { listBookingsForTraveller } from "@/lib/data/bookings";
+import { getAuthLastSignIn, getUsersByIds } from "@/lib/data/users";
+import { listBookingsForTraveller, listBookingsForHost } from "@/lib/data/bookings";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { listSupportTickets } from "@/lib/data/support";
 import { listAdminActionsForTarget } from "@/lib/data/admin-actions";
@@ -68,6 +68,16 @@ export default async function AdminUserDetailPage({
     .reduce((s, b) => s + b.price.total, 0);
   const host = target.role === "host" ? await getHostForUser(target) : null;
   const hostSpaces = host ? await getSpacesForHost(host.id) : [];
+  const hostBookings = host ? await listBookingsForHost(host.id) : [];
+  const hostCancelRate =
+    hostBookings.length > 0
+      ? Math.round(
+          (hostBookings.filter((b) => b.status === "cancelled").length /
+            hostBookings.length) *
+            100
+        )
+      : 0;
+  const lastSignIn = await getAuthLastSignIn(target.id);
   const tickets = (await listSupportTickets().catch(() => [])).filter(
     (tk) => tk.email.toLowerCase() === target.email.toLowerCase()
   );
@@ -165,8 +175,29 @@ export default async function AdminUserDetailPage({
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1 font-semibold text-navy-600">
                   <Warehouse className="h-3.5 w-3.5" /> {hostSpaces.length} {t("nav.listings")}
                 </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1 font-semibold text-navy-600">
+                  <CalendarCheck className="h-3.5 w-3.5" /> {hostBookings.length}{" "}
+                  {t("admin.user.bookings")}
+                </span>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold ${
+                    hostCancelRate > 10
+                      ? "bg-red-100 text-red-700"
+                      : "bg-go-50 text-go-700"
+                  }`}
+                >
+                  {t("admin.score.cancelRate")} {hostCancelRate}%
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-500">
+                  {host.rating.toFixed(1)}★
+                </span>
                 <StatusBadge status={host.verificationStatus} />
               </>
+            )}
+            {lastSignIn && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1 font-semibold text-navy-600">
+                {t("admin.lastSignIn")} {formatDateTime(lastSignIn)}
+              </span>
             )}
           </div>
 
