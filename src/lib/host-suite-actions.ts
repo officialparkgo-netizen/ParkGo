@@ -2,8 +2,15 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import type { User } from "@/types";
 import { requireRole, requireUser } from "@/lib/auth";
-import { ensureHostForUser, getSpaceById, getSpacesForHost, setHostBank } from "@/lib/data/hosts";
+import {
+  ensureHostForUser,
+  getHostById,
+  getSpaceById,
+  getSpacesForHost,
+  setHostBank,
+} from "@/lib/data/hosts";
 import { getBookingById, hostSetBookingStatus } from "@/lib/data/bookings";
 import { addBookingMessage } from "@/lib/data/booking-messages";
 import { setReviewReply, listAllReviews } from "@/lib/data/reviews";
@@ -11,10 +18,20 @@ import { setEmailBookingAlerts } from "@/lib/data/users";
 import { addNotification } from "@/lib/data/store";
 import { IS_LIVE } from "@/lib/config";
 
+/** The host this user acts for — their own, or the one they co-host for. */
+async function actingHost(user: User) {
+  if (user.cohostHostId) {
+    const host = await getHostById(user.cohostHostId);
+    if (!host || host.cohostUserId !== user.id) redirect("/host");
+    return host;
+  }
+  return ensureHostForUser(user);
+}
+
 /** Host: car arrived → booking goes active. */
 export async function hostCheckInAction(formData: FormData) {
   const user = await requireRole("host");
-  const host = await ensureHostForUser(user);
+  const host = await actingHost(user);
   const bookingId = String(formData.get("bookingId") || "");
   const back = String(formData.get("back") || `/host/bookings/${bookingId}`);
   const result = await hostSetBookingStatus(bookingId, host.id, "active");
@@ -27,7 +44,7 @@ export async function hostCheckInAction(formData: FormData) {
 /** Host: car collected → booking completed. */
 export async function hostCheckOutAction(formData: FormData) {
   const user = await requireRole("host");
-  const host = await ensureHostForUser(user);
+  const host = await actingHost(user);
   const bookingId = String(formData.get("bookingId") || "");
   const back = String(formData.get("back") || `/host/bookings/${bookingId}`);
   const result = await hostSetBookingStatus(bookingId, host.id, "completed");
@@ -54,10 +71,12 @@ export async function sendBookingMessageAction(formData: FormData) {
   let isHost = false;
   let hostUserId: string | undefined;
   if (space) {
-    const { getHostById } = await import("@/lib/data/hosts");
     const host = await getHostById(space.hostId);
     hostUserId = host?.userId;
-    isHost = host?.userId === user.id;
+    // The owning host — or their linked co-host — writes as "host".
+    isHost =
+      host?.userId === user.id ||
+      (!!user.cohostHostId && user.cohostHostId === space.hostId && host?.cohostUserId === user.id);
   }
   if (!isTraveller && !isHost && user.role !== "admin") redirect(back);
 

@@ -25,6 +25,7 @@ type UserRow = {
   onboarded?: boolean | null;
   admin_scope?: string | null;
   email_booking_alerts?: boolean | null;
+  cohost_host_id?: string | null;
   created_at: string;
 };
 
@@ -43,6 +44,7 @@ export function userFromRow(r: UserRow): User {
     avatarUrl: r.avatar_url ?? undefined,
     adminScope: (r.admin_scope as User["adminScope"]) ?? undefined,
     emailBookingAlerts: r.email_booking_alerts ?? undefined,
+    cohostHostId: r.cohost_host_id ?? undefined,
     // Keep undefined (not false) when the column doesn't exist yet — the
     // onboarding gate only fires on a strict `false`.
     onboarded: r.onboarded ?? undefined,
@@ -307,6 +309,104 @@ export async function setEmailBookingAlerts(userId: string, on: boolean): Promis
     const { error } = await supabaseAdmin()
       .from("users")
       .update({ email_booking_alerts: on })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Create (or re-link) the limited co-host account for a host. Mock mode uses
+ * a deterministic id; live mode invites the email through Supabase auth so the
+ * helper can sign in with a magic link, then mirrors the row in `users`.
+ */
+export async function createCohostUser(
+  hostId: string,
+  email: string,
+  name: string
+): Promise<User | null> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) return null;
+
+  if (!IS_LIVE) {
+    const { addMockUser, getUser } = await import("@/lib/data/store");
+    const id = `user_cohost_${hostId}`;
+    const existing = getUser(id);
+    if (existing) {
+      existing.email = cleanEmail;
+      existing.cohostHostId = hostId;
+      return existing;
+    }
+    return addMockUser({
+      id,
+      role: "host",
+      name: name || "Co-host",
+      email: cleanEmail,
+      locale: "en",
+      cohostHostId: hostId,
+      onboarded: true,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const admin = supabaseAdmin();
+    // Prefer an invite (sends the magic link); fall back to a bare account
+    // when email sending isn't configured on the Supabase project.
+    let authId: string | null = null;
+    try {
+      const { data } = await admin.auth.admin.inviteUserByEmail(cleanEmail);
+      authId = data?.user?.id ?? null;
+    } catch {
+      // fall through
+    }
+    if (!authId) {
+      const { data } = await admin.auth.admin.createUser({
+        email: cleanEmail,
+        email_confirm: true,
+      });
+      authId = data?.user?.id ?? null;
+    }
+    if (!authId) return null;
+    const { data: row, error } = await admin
+      .from("users")
+      .upsert(
+        {
+          id: authId,
+          role: "host",
+          name: name || "Co-host",
+          email: cleanEmail,
+          locale: "en",
+          cohost_host_id: hostId,
+          onboarded: true,
+        },
+        { onConflict: "id" }
+      )
+      .select("*")
+      .single();
+    if (error || !row) return null;
+    return userFromRow(row as UserRow);
+  } catch {
+    return null;
+  }
+}
+
+/** Cut a co-host's link (their login stays but grants no host access). */
+export async function revokeCohostUser(userId: string): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return false;
+    u.cohostHostId = undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ cohost_host_id: null })
       .eq("id", userId);
     return !error;
   } catch {

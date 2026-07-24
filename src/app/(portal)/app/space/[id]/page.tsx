@@ -27,6 +27,7 @@ import { requireRole } from "@/lib/auth";
 const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 import { getAirport } from "@/lib/data/store";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
+import { logSpaceView } from "@/lib/data/space-views";
 import { listReviewsForSpace } from "@/lib/data/reviews";
 import { getUserProfile, getUsersByIds } from "@/lib/data/users";
 import { isHourlyStay, priceBundle } from "@/lib/pricing";
@@ -50,6 +51,7 @@ export default async function SpaceDetail({
     transfer?: string;
     soldout?: string;
     dates?: string;
+    blocked?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
@@ -58,6 +60,9 @@ export default async function SpaceDetail({
   const sp = await searchParams;
   const space = await getSpaceById(id);
   if (!space) notFound();
+
+  // Conversion denominator for the host's analytics — fire and forget.
+  void logSpaceView(space.id);
 
   const airport = getAirport(space.airportSlug);
   const host = await getHostById(space.hostId);
@@ -128,6 +133,16 @@ export default async function SpaceDetail({
         {sp.dates && (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
             {t("app.space.datesInvalid")}
+          </div>
+        )}
+        {sp.blocked && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            {t("app.space.blocked")}
+          </div>
+        )}
+        {space.requestToBook && (
+          <div className="rounded-2xl border border-navy-200 bg-navy-50 px-4 py-3 text-sm font-semibold text-navy-700" data-rtb-note>
+            {t("app.space.rtbNote")}
           </div>
         )}
 

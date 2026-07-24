@@ -1,18 +1,22 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { Lightbulb, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { PhotoManager } from "@/components/host/photo-manager";
 import { BlockedDatesPicker } from "@/components/host/blocked-dates-picker";
+import { CustomPricesEditor } from "@/components/portal/custom-prices-editor";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { hostNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
-import { getAirports } from "@/lib/data/store";
-import { getHostForUser, getSpaceById } from "@/lib/data/hosts";
+import { getAirport, getAirports } from "@/lib/data/store";
+import { getHostForUser, getSpaceById, listAllSpaces } from "@/lib/data/hosts";
+import { areaMedianPrice, computeListingQuality } from "@/lib/host-insights";
 import { updateSpaceAction } from "@/lib/host-actions";
+import { formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -24,6 +28,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function EditSpacePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireRole("host");
+  if (user.cohostHostId) redirect("/host/today");
   const { t, locale } = await getI18n();
   const localeTag =
     { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN" }[locale] ?? "en-GB";
@@ -36,6 +41,9 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
   if (!space || space.hostId !== host.id) notFound();
 
   const airports = getAirports();
+  const currency = getAirport(space.airportSlug)?.country === "IE" ? "EUR" : "GBP";
+  const median = areaMedianPrice(space, await listAllSpaces());
+  const quality = computeListingQuality(space, host);
 
   return (
     <PortalShell user={user} nav={hostNav} title="host.edit.pageTitle">
@@ -43,6 +51,20 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
         <Link href="/host" className="text-sm font-semibold text-brand-600">
           ← {t("host.new.back")}
         </Link>
+        {quality.tips.length > 0 && (
+          <Card className="mt-3 border-accent-200 bg-accent-50/60 p-5" data-quality-tips>
+            <p className="flex items-center gap-2 text-sm font-bold text-navy-900">
+              <Lightbulb className="h-4 w-4 text-accent-500" />
+              {t("host.quality.cardTitle")} · {quality.pct}%
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-navy-600">
+              {quality.tips.map((tip) => (
+                <li key={tip}>{t(tip)}</li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
         <Card className="mt-3 p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -112,6 +134,20 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
+            {median !== null && (
+              <div
+                className="flex items-start gap-2 rounded-xl bg-brand-50 px-3.5 py-3 text-sm text-navy-700"
+                data-smart-price
+              >
+                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                <p>
+                  {t("host.smartPrice.line")
+                    .replace("{median}", formatMoney(median, currency))
+                    .replace("{own}", formatMoney(space.pricePerDay, currency))}
+                </p>
+              </div>
+            )}
+
             <div>
               <Label htmlFor="pricePerHour">{t("host.new.pricePerHour")}</Label>
               <Input
@@ -138,6 +174,53 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
                 />
                 <p className="mt-1 text-xs text-navy-400">{t("host.edit.weekendPctHint")}</p>
               </div>
+
+            <div>
+              <Label>{t("host.edit.customPrices")}</Label>
+              <div className="mt-1 rounded-2xl border border-navy-100 p-4">
+                <CustomPricesEditor
+                  initial={space.customPrices ?? {}}
+                  currencySymbol={currency === "EUR" ? "€" : "£"}
+                  labels={{
+                    date: t("host.custom.date"),
+                    price: t("host.custom.price"),
+                    add: t("host.custom.add"),
+                    remove: t("host.custom.remove"),
+                    empty: t("host.custom.empty"),
+                  }}
+                />
+              </div>
+              <p className="mt-1 text-xs text-navy-400">{t("host.edit.customPricesHint")}</p>
+            </div>
+
+            <div>
+              <Label htmlFor="bayNames">{t("host.edit.bays")}</Label>
+              <Input
+                id="bayNames"
+                name="bayNames"
+                placeholder="A, B, C"
+                defaultValue={(space.bayNames ?? []).join(", ")}
+              />
+              <p className="mt-1 text-xs text-navy-400">{t("host.edit.baysHint")}</p>
+            </div>
+
+            <label className="flex items-start gap-2 rounded-2xl border border-navy-100 p-4 text-sm text-navy-700">
+              <input
+                type="checkbox"
+                name="requestToBook"
+                value="1"
+                defaultChecked={!!space.requestToBook}
+                className="mt-0.5 h-4 w-4 rounded border-navy-300 text-go-500 focus:ring-go-400"
+              />
+              <span>
+                <span className="block font-semibold text-navy-900">
+                  {t("host.edit.rtb")}
+                </span>
+                <span className="mt-0.5 block text-xs text-navy-500">
+                  {t("host.edit.rtbHint")}
+                </span>
+              </span>
+            </label>
 
             <div>
               <Label htmlFor="capacity">{t("host.new.capacity")}</Label>

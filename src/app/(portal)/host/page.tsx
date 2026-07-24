@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import {
   BadgeCheck,
@@ -35,6 +36,7 @@ import { trustBand } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
 import { getAirport, trustScoreFor } from "@/lib/data/store";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
+import { computeListingQuality } from "@/lib/host-insights";
 import { listBookingsForHost, listPaymentsForHost } from "@/lib/data/bookings";
 import { getUsersByIds } from "@/lib/data/users";
 import { listNotificationsForUser } from "@/lib/data/notifications";
@@ -59,6 +61,8 @@ export default async function HostDashboard({
   }>;
 }) {
   const user = await requireRole("host");
+  // Co-hosts only coordinate arrivals — their home is the Today board.
+  if (user.cohostHostId) redirect("/host/today");
   const { t, locale } = await getI18n();
   const { listed, updated, verify, cal, vacation, count } = await searchParams;
   const host = await getHostForUser(user);
@@ -416,6 +420,17 @@ export default async function HostDashboard({
                       <Badge tone={occupancyPct(s.id) >= 50 ? "go" : "neutral"}>
                         {occupancyPct(s.id)}% {t("host.occ.month")}
                       </Badge>
+                      {(() => {
+                        const q = computeListingQuality(s, host);
+                        return (
+                          <Badge tone={q.pct >= 75 ? "go" : q.pct >= 50 ? "accent" : "neutral"}>
+                            {t("host.quality.badge")} {q.pct}%
+                          </Badge>
+                        );
+                      })()}
+                      {s.requestToBook && (
+                        <Badge tone="navy">{t("host.rtb.badge")}</Badge>
+                      )}
                       {s.pricePerHour && (
                         <Badge tone="neutral">
                           {formatMoney(s.pricePerHour)}/{t("common.hour")}

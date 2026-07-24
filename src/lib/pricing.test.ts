@@ -220,3 +220,41 @@ describe("dailyParkingTotal (weekend uplift)", () => {
     expect(p.parking).toBe(dailyParkingTotal(spaced, "2026-07-31", "2026-08-03"));
   });
 });
+
+describe("dailyParkingTotal (custom date prices)", () => {
+  it("a custom date replaces that day's price outright", () => {
+    // Mon 3 → Thu 6 Aug: 1000 + 2500 + 1000.
+    expect(
+      dailyParkingTotal(
+        { pricePerDay: 1000, customPrices: { "2026-08-04": 2500 } },
+        "2026-08-03",
+        "2026-08-06"
+      )
+    ).toBe(4500);
+  });
+
+  it("custom price beats the weekend uplift on the same day", () => {
+    // Fri 31 Jul → Mon 3 Aug: Fri 1000, Sat custom 3000, Sun uplifted 1200.
+    expect(
+      dailyParkingTotal(
+        {
+          pricePerDay: 1000,
+          weekendUpliftPct: 20,
+          customPrices: { "2026-08-01": 3000 },
+        },
+        "2026-07-31",
+        "2026-08-03"
+      )
+    ).toBe(5200);
+  });
+
+  it("zero/negative overrides are ignored", () => {
+    expect(
+      dailyParkingTotal(
+        { pricePerDay: 1000, customPrices: { "2026-08-04": 0 } },
+        "2026-08-03",
+        "2026-08-06"
+      )
+    ).toBe(3000);
+  });
+});

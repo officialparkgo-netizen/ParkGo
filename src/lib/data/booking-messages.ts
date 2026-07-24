@@ -1,4 +1,4 @@
-import type { BookingMessage } from "@/types";
+import type { Booking, BookingMessage } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 
 // Traveller ↔ host thread on a booking (arrival coordination, gate codes…).
@@ -62,5 +62,45 @@ export async function addBookingMessage(input: {
     return fromRow(data);
   } catch {
     return null;
+  }
+}
+
+/**
+ * Post the host's saved welcome message as the first thread message once a
+ * booking is confirmed (instant-book, Stripe confirm, or request approval).
+ * Skips silently when the host hasn't set one; never throws.
+ */
+export async function sendAutoWelcome(booking: Booking): Promise<void> {
+  try {
+    const { getSpaceById, getHostById } = await import("@/lib/data/hosts");
+    const space = await getSpaceById(booking.spaceId);
+    const host = space ? await getHostById(space.hostId) : null;
+    const welcome = host?.autoWelcome?.trim();
+    if (!welcome) return;
+
+    // One per thread — a Stripe confirm page refresh must not repeat it.
+    const existing = await listMessagesForBooking(booking.id);
+    if (existing.some((m) => m.from === "host" && m.text === welcome)) return;
+
+    await addBookingMessage({ bookingId: booking.id, from: "host", text: welcome });
+    if (!IS_LIVE) {
+      const { addNotification } = await import("@/lib/data/store");
+      addNotification({
+        userId: booking.travellerId,
+        title: `Message from your host · ${booking.reference}`,
+        body: welcome.slice(0, 120),
+        kind: "booking",
+      });
+    } else {
+      const { supabaseAdmin } = await import("@/lib/supabase/server");
+      await supabaseAdmin().from("notifications").insert({
+        user_id: booking.travellerId,
+        title: `Message from your host · ${booking.reference}`,
+        body: welcome.slice(0, 120),
+        kind: "booking",
+      });
+    }
+  } catch {
+    // the booking must never fail because of the welcome message
   }
 }

@@ -32,11 +32,18 @@ export const travellerNav: NavItem[] = [
 export const hostNav: NavItem[] = [
   { href: "/host", label: "nav.dashboard", icon: LayoutGrid },
   { href: "/host/today", label: "host.today.title", icon: CalendarClock },
+  { href: "/host/analytics", label: "host.analytics.title", icon: ChartSpline },
   { href: "/host#listings", label: "nav.listings", icon: Warehouse },
   { href: "/host#bookings", label: "nav.bookings", icon: CalendarCheck },
   { href: "/host/payouts", label: "nav.earnings", icon: Banknote },
   { href: "/host/reviews", label: "host.reviews.title", icon: Star },
+  { href: "/host/settings", label: "host.settings.title", icon: Settings },
   { href: "/host/verify", label: "nav.verification", icon: BadgeCheck },
+];
+
+/** Co-hosts only coordinate arrivals — one page, nothing money-facing. */
+export const cohostNav: NavItem[] = [
+  { href: "/host/today", label: "host.today.title", icon: CalendarClock },
 ];
 
 export const adminNav: NavItem[] = [

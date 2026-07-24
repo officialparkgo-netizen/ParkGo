@@ -75,6 +75,9 @@ export default async function TravellerTripsPage() {
                   {b.reference}
                 </span>
                 <StatusBadge status={b.status} />
+                {b.approval === "pending" && b.status === "paid" && (
+                  <Badge tone="accent">{t("app.trips.awaiting")}</Badge>
+                )}
               </div>
               <div className="mt-1 flex items-center gap-1 text-sm text-navy-600">
                 <MapPin className="h-3.5 w-3.5" />

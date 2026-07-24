@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { CheckCircle2, MessageSquareReply, Star, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -27,6 +28,7 @@ export default async function HostReviewsPage({
   searchParams: Promise<{ replied?: string }>;
 }) {
   const user = await requireRole("host");
+  if (user.cohostHostId) redirect("/host/today");
   const { t } = await getI18n();
   const { replied } = await searchParams;
   const host = await getHostForUser(user);

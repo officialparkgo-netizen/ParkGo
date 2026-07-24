@@ -88,24 +88,32 @@ export function priceBundle(
 }
 
 /**
- * Daily parking total, day by day: Saturdays and Sundays get the host's
- * weekend uplift (percent) when one is set. Equals pricePerDay × days when
- * no uplift applies, so existing prices are untouched.
+ * Daily parking total, day by day. Per-date custom prices win outright;
+ * otherwise Saturdays and Sundays get the host's weekend uplift (percent).
+ * Equals pricePerDay × days when neither applies, so existing prices are
+ * untouched.
  */
 export function dailyParkingTotal(
-  space: Pick<Space, "pricePerDay" | "weekendUpliftPct">,
+  space: Pick<Space, "pricePerDay" | "weekendUpliftPct" | "customPrices">,
   startAt: string,
   endAt: string
 ): Pence {
   const days = daysBetween(startAt, endAt);
   const pct = space.weekendUpliftPct ?? 0;
-  if (pct <= 0) return space.pricePerDay * days;
+  const custom = space.customPrices ?? {};
+  if (pct <= 0 && Object.keys(custom).length === 0) return space.pricePerDay * days;
   const start = new Date(startAt);
   let total = 0;
   for (let i = 0; i < days; i++) {
-    const d = new Date(start.getTime() + i * 86_400_000).getUTCDay();
-    const weekend = d === 0 || d === 6;
-    total += weekend
+    const day = new Date(start.getTime() + i * 86_400_000);
+    const key = day.toISOString().slice(0, 10);
+    const override = custom[key];
+    if (typeof override === "number" && override > 0) {
+      total += Math.round(override);
+      continue;
+    }
+    const weekend = day.getUTCDay() === 0 || day.getUTCDay() === 6;
+    total += weekend && pct > 0
       ? Math.round(space.pricePerDay * (1 + Math.min(pct, 100) / 100))
       : space.pricePerDay;
   }

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   FileText,
   Clock,
+  Hourglass,
   KeyRound,
   MapPin,
   Navigation,
@@ -123,9 +124,27 @@ export default async function BookingPage({
   return (
     <PortalShell user={user} nav={travellerNav} title={`${t("app.booking.title")} ${booking.reference}`}>
       <div className="mx-auto max-w-4xl space-y-5 pb-24">
-        {isNew && (
+        {isNew && booking.approval !== "pending" && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
             <CheckCircle2 className="h-5 w-5" /> {t("app.booking.confirmed")}
+          </div>
+        )}
+        {booking.approval === "pending" && booking.status === "paid" && (
+          <div
+            className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700"
+            data-approval-pending
+          >
+            <Hourglass className="h-5 w-5" /> {t("app.booking.rtb.pending")}
+          </div>
+        )}
+        {booking.approval === "declined" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-navy-200 bg-navy-50 px-4 py-3 font-semibold text-navy-700">
+            <XCircle className="h-5 w-5" /> {t("app.booking.rtb.declined")}
+          </div>
+        )}
+        {booking.approval === "approved" && booking.status === "paid" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            <CheckCircle2 className="h-5 w-5" /> {t("app.booking.rtb.approved")}
           </div>
         )}
         {cancelled && (

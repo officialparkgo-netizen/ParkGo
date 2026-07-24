@@ -15,9 +15,28 @@ export async function GET(request: Request) {
     if (!okAuth) return new Response("Unauthorized", { status: 401 });
   }
 
+  // Daily housekeeping riding the same cron: expire stale booking requests
+  // (full refund) and nudge travellers arriving tomorrow.
+  let sweptRequests = 0;
+  let arrivalReminders = 0;
+  try {
+    const { sweepExpiredApprovals } = await import("@/lib/data/bookings");
+    sweptRequests = await sweepExpiredApprovals();
+  } catch {
+    // best-effort
+  }
+  try {
+    const { sendArrivalReminders } = await import("@/lib/booking-emails");
+    arrivalReminders = await sendArrivalReminders();
+  } catch {
+    // best-effort
+  }
+
   const summary = await composeAndSendDigest();
   return Response.json({
     ok: true,
+    sweptRequests,
+    arrivalReminders,
     emailed: summary.emailed,
     recipients: summary.sentTo.length,
     bookings24h: summary.bookings24h,

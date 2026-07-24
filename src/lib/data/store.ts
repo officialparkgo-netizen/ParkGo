@@ -93,6 +93,11 @@ export const getAirport = (slug: string) => db.airports.find((a) => a.slug === s
 export const getUser = (id: string) => db.users.find((u) => u.id === id);
 export const getUserByEmail = (email: string) =>
   db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+/** Mock-only: register a runtime-created account (e.g. a co-host). */
+export const addMockUser = (u: User) => {
+  db.users.push(u);
+  return u;
+};
 
 // -----------------------------------------------------------------------------
 // Hosts & spaces
@@ -353,6 +358,14 @@ export function createBooking(input: CreateBookingInput): Booking {
     status: "paid",
     price,
     qrToken,
+    // Request-to-book spaces hold the booking until the host accepts (24h,
+    // else it auto-declines with a full refund).
+    ...(space.requestToBook
+      ? {
+          approval: "pending" as const,
+          approvalDeadline: new Date(Date.now() + 86_400_000).toISOString(),
+        }
+      : {}),
     createdAt: new Date().toISOString(),
   };
 
@@ -388,12 +401,35 @@ export function createBooking(input: CreateBookingInput): Booking {
   db.notifications.unshift({
     id: `ntf_${id}`,
     userId: input.travellerId,
-    title: "Booking confirmed",
-    body: `${reference} · QR ready in your wallet.`,
+    title: booking.approval === "pending" ? "Request sent to host" : "Booking confirmed",
+    body:
+      booking.approval === "pending"
+        ? `${reference} · the host has 24h to accept (full refund otherwise).`
+        : `${reference} · QR ready in your wallet.`,
     kind: "booking",
     read: false,
     createdAt: booking.createdAt,
   });
+  // Tell the host too — approvals need their attention.
+  const hostUser = db.users.find(
+    (u) => u.id === db.hosts.find((h) => h.id === space.hostId)?.userId
+  );
+  if (hostUser) {
+    db.notifications.unshift({
+      id: `ntf_h_${id}`,
+      userId: hostUser.id,
+      title:
+        booking.approval === "pending"
+          ? `New booking request · ${reference}`
+          : `New booking · ${reference}`,
+      body: `“${space.title}” · ${new Date(input.startAt).toDateString()} → ${new Date(
+        input.endAt
+      ).toDateString()}`,
+      kind: "booking",
+      read: false,
+      createdAt: booking.createdAt,
+    });
+  }
   return booking;
 }
 

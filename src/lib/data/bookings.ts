@@ -23,8 +23,9 @@ import {
 export const CANCEL_FEE_BPS = 2000;
 export const CANCEL_FREE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-const BOOKING_COLS =
-  "id, reference, traveller_id, space_id, bundle, start_at, end_at, status, price, qr_token, transfer_id, created_at";
+// "*" keeps selects working across schema versions — columns added by later
+// migrations (approval, bay_index …) simply come back null on older DBs.
+const BOOKING_COLS = "*";
 const PAYMENT_COLS =
   "id, booking_id, provider, method, amount, currency, split, payout_status, created_at";
 
@@ -42,6 +43,9 @@ function bookingFromRow(r: any): Booking {
     price: r.price,
     qrToken: r.qr_token,
     transferId: r.transfer_id ?? undefined,
+    approval: r.approval ?? undefined,
+    approvalDeadline: r.approval_deadline ?? undefined,
+    bayIndex: r.bay_index ?? undefined,
     createdAt: r.created_at,
   };
 }
@@ -108,7 +112,14 @@ export async function createBookingLive(
       },
     };
   }
-  if (!IS_LIVE) return mockCreateBooking(input);
+  if (!IS_LIVE) {
+    const b = mockCreateBooking(input);
+    if (b.approval !== "pending") {
+      const { sendAutoWelcome } = await import("@/lib/data/booking-messages");
+      await sendAutoWelcome(b);
+    }
+    return b;
+  }
 
   const status = opts.status ?? "paid";
   const recordPayment = opts.recordPayment ?? true;
@@ -147,6 +158,14 @@ export async function createBookingLive(
       status,
       price,
       qr_token: qrToken,
+      // Only present when the host switched request-to-book on — which
+      // requires migration 0021, so the columns are guaranteed to exist.
+      ...(space.requestToBook
+        ? {
+            approval: "pending",
+            approval_deadline: new Date(Date.now() + 86_400_000).toISOString(),
+          }
+        : {}),
     })
     .select(BOOKING_COLS)
     .single();
@@ -165,15 +184,25 @@ export async function createBookingLive(
       split: price.split,
       payout_status: "pending",
     });
+    const pendingApproval = booking.approval === "pending";
     await admin.from("notifications").insert({
       user_id: input.travellerId,
-      title: "Booking confirmed",
-      body: `${reference} · QR ready in your wallet.`,
+      title: pendingApproval ? "Request sent to host" : "Booking confirmed",
+      body: pendingApproval
+        ? `${reference} · the host has 24h to accept (full refund otherwise).`
+        : `${reference} · QR ready in your wallet.`,
       kind: "booking",
     });
-    await notifyHostOfBooking(booking, "New booking");
+    await notifyHostOfBooking(
+      booking,
+      pendingApproval ? "New booking request" : "New booking"
+    );
     const { sendBookingConfirmedEmails } = await import("@/lib/booking-emails");
     await sendBookingConfirmedEmails(booking);
+    if (!pendingApproval) {
+      const { sendAutoWelcome } = await import("@/lib/data/booking-messages");
+      await sendAutoWelcome(booking);
+    }
   }
 
   return booking;
@@ -259,9 +288,17 @@ export async function markBookingPaid(
 
   const booking = await getBookingById(bookingId);
   if (booking) {
-    await notifyHostOfBooking(booking, "New booking");
+    const pendingApproval = booking.approval === "pending";
+    await notifyHostOfBooking(
+      booking,
+      pendingApproval ? "New booking request" : "New booking"
+    );
     const { sendBookingConfirmedEmails } = await import("@/lib/booking-emails");
     await sendBookingConfirmedEmails(booking);
+    if (!pendingApproval) {
+      const { sendAutoWelcome } = await import("@/lib/data/booking-messages");
+      await sendAutoWelcome(booking);
+    }
   }
 }
 
@@ -652,6 +689,212 @@ export async function hostSetBookingStatus(
     }
   }
   return { ok: true };
+}
+
+// -----------------------------------------------------------------------------
+// Request-to-book: host approval, decline (full refund) and the 24h sweep
+// -----------------------------------------------------------------------------
+
+async function notifyTraveller(travellerId: string, title: string, body: string): Promise<void> {
+  if (!IS_LIVE) {
+    mockAddNotification({ userId: travellerId, title, body, kind: "booking" });
+    return;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin()
+      .from("notifications")
+      .insert({ user_id: travellerId, title, body, kind: "booking" });
+  } catch {
+    // best-effort
+  }
+}
+
+/** Host accepts a pending request — the booking is confirmed as it stands. */
+export async function hostApproveBooking(
+  bookingId: string,
+  hostId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return { ok: false, error: "Booking not found." };
+  const space = await getSpaceById(booking.spaceId);
+  if (!space || space.hostId !== hostId) return { ok: false, error: "Not your booking." };
+  if (booking.approval !== "pending") return { ok: false, error: "Nothing to approve." };
+
+  if (!IS_LIVE) {
+    booking.approval = "approved";
+    booking.approvalDeadline = undefined;
+  } else {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("bookings")
+      .update({ approval: "approved", approval_deadline: null })
+      .eq("id", bookingId);
+    if (error) return { ok: false, error: "Update failed." };
+  }
+
+  await notifyTraveller(
+    booking.travellerId,
+    "Booking approved",
+    `${booking.reference}: the host accepted — your QR is ready in your wallet.`
+  );
+  try {
+    const { sendBookingApprovedEmail } = await import("@/lib/booking-emails");
+    await sendBookingApprovedEmail(booking);
+  } catch {
+    // email is best-effort
+  }
+  const { sendAutoWelcome } = await import("@/lib/data/booking-messages");
+  await sendAutoWelcome(booking);
+  return { ok: true };
+}
+
+/** Shared decline path: cancel + refund everything (host or 24h auto). */
+async function declineBookingCore(
+  booking: Booking,
+  auto: boolean
+): Promise<{ ok: boolean; error?: string }> {
+  const refund = booking.price.total;
+  const note = auto
+    ? {
+        title: "Request expired — full refund",
+        body: `${booking.reference}: the host didn't respond in 24h, so we've refunded you in full.`,
+      }
+    : {
+        title: "Request declined — full refund",
+        body: `${booking.reference}: the host can't take this booking. You've been refunded in full.`,
+      };
+
+  if (!IS_LIVE) {
+    booking.approval = "declined";
+    booking.approvalDeadline = undefined;
+    mockSetBookingStatus(booking.id, "cancelled");
+    await notifyTraveller(booking.travellerId, note.title, note.body);
+    return { ok: true };
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+
+  // Refund Stripe charges (mock/manual payments are marked refunded below).
+  const { data: pays } = await admin
+    .from("payments")
+    .select("id, provider, amount, external_ref")
+    .eq("booking_id", booking.id)
+    .order("created_at", { ascending: false });
+  let remaining = refund;
+  for (const pay of pays ?? []) {
+    if (remaining <= 0) break;
+    if (pay.provider === "stripe" && pay.external_ref) {
+      const amount = Math.min(remaining, pay.amount);
+      try {
+        const { getStripe } = await import("@/lib/stripe");
+        await getStripe().refunds.create({ payment_intent: pay.external_ref, amount });
+        remaining -= amount;
+      } catch {
+        return { ok: false, error: "Refund could not be processed." };
+      }
+    }
+  }
+
+  const { error } = await admin
+    .from("bookings")
+    .update({ status: "cancelled", approval: "declined", approval_deadline: null })
+    .eq("id", booking.id);
+  if (error) return { ok: false, error: "Update failed." };
+  await admin.from("payments").update({ payout_status: "refunded" }).eq("booking_id", booking.id);
+
+  await notifyTraveller(booking.travellerId, note.title, note.body);
+  try {
+    const { sendBookingCancelledEmails } = await import("@/lib/booking-emails");
+    await sendBookingCancelledEmails(booking, refund, false);
+  } catch {
+    // email is best-effort
+  }
+  return { ok: true };
+}
+
+/** Host turns a pending request down — traveller is refunded in full. */
+export async function hostDeclineBooking(
+  bookingId: string,
+  hostId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return { ok: false, error: "Booking not found." };
+  const space = await getSpaceById(booking.spaceId);
+  if (!space || space.hostId !== hostId) return { ok: false, error: "Not your booking." };
+  if (booking.approval !== "pending") return { ok: false, error: "Nothing to decline." };
+  return declineBookingCore(booking, false);
+}
+
+/**
+ * Auto-decline requests whose 24h window has lapsed. Called lazily from the
+ * host Today board and by the daily cron, so it must stay cheap + idempotent.
+ */
+export async function sweepExpiredApprovals(): Promise<number> {
+  const now = Date.now();
+  let swept = 0;
+
+  if (!IS_LIVE) {
+    const stale = mockGetAllBookings().filter(
+      (b) =>
+        b.approval === "pending" &&
+        b.status === "paid" &&
+        b.approvalDeadline &&
+        new Date(b.approvalDeadline).getTime() < now
+    );
+    for (const b of stale) {
+      const r = await declineBookingCore(b, true);
+      if (r.ok) swept++;
+    }
+    return swept;
+  }
+
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { data } = await supabaseAdmin()
+      .from("bookings")
+      .select(BOOKING_COLS)
+      .eq("approval", "pending")
+      .lt("approval_deadline", new Date(now).toISOString())
+      .limit(50);
+    for (const row of data ?? []) {
+      const r = await declineBookingCore(bookingFromRow(row), true);
+      if (r.ok) swept++;
+    }
+  } catch {
+    // pre-0021 schema — nothing to sweep
+  }
+  return swept;
+}
+
+/** Host assigns (or clears) which bay a booking parks in. */
+export async function setBookingBay(
+  bookingId: string,
+  hostId: string,
+  bayIndex: number | null
+): Promise<boolean> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return false;
+  const space = await getSpaceById(booking.spaceId);
+  if (!space || space.hostId !== hostId) return false;
+  const bays = space.bayNames ?? [];
+  if (bayIndex !== null && (bayIndex < 0 || bayIndex >= bays.length)) return false;
+
+  if (!IS_LIVE) {
+    booking.bayIndex = bayIndex ?? undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("bookings")
+      .update({ bay_index: bayIndex })
+      .eq("id", bookingId);
+    return !error;
+  } catch {
+    return false;
+  }
 }
 
 /** Admin: manually mark a pending host/driver payout as paid (bank transfer). */

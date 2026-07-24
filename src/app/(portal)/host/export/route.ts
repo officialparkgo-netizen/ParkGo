@@ -21,6 +21,8 @@ const pounds = (pence: number) => pence / 100;
 
 export async function GET(request: Request) {
   const user = await requireRole("host");
+  // Co-hosts have no earnings visibility.
+  if (user.cohostHostId) return new Response("Not available", { status: 403 });
   const host = await getHostForUser(user);
   if (!host) return new Response("No host profile", { status: 404 });
   // ?month=YYYY-MM turns the full history into a single-month statement.

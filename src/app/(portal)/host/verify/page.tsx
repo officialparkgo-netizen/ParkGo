@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BadgeCheck, Clock, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -25,6 +26,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default async function HostVerifyPage() {
   const user = await requireRole("host");
+  if (user.cohostHostId) redirect("/host/today");
   const { t } = await getI18n();
   const host = await ensureHostForUser(user);
 

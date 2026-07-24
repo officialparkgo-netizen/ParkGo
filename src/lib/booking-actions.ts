@@ -39,6 +39,12 @@ export async function createBookingAction(formData: FormData) {
   // hidden from search but still reachable by direct link.
   if (space.status !== "live") redirect(`/app/search?airport=${space.airportSlug}`);
 
+  // Hosts can refuse specific guests — bounce before any money moves.
+  const owningHost = await getHostById(space.hostId);
+  if (owningHost?.blockedGuests?.includes(user.id)) {
+    redirect(`/app/space/${spaceId}?blocked=1`);
+  }
+
   const transferOn = formData.get("transfer") === "1";
   const transferTime = String(formData.get("transferTime") || "");
   const bundle: BookingBundle = {

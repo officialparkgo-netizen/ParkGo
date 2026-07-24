@@ -16,6 +16,26 @@ import { submitHostVerification } from "@/lib/data/verifications";
 import { uploadKycDoc, uploadSpacePhoto } from "@/lib/storage";
 import { isStripeConfigured, createHostOnboardingLink } from "@/lib/stripe";
 
+/** Hidden JSON field kept by the custom-prices editor: {"YYYY-MM-DD": pence}. */
+function parseCustomPrices(formData: FormData): Record<string, number> {
+  const raw = formData.get("customPrices");
+  if (typeof raw !== "string" || !raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    const out: Record<string, number> = {};
+    for (const [k, v] of Object.entries(parsed as Record<string, unknown>).slice(0, 60)) {
+      const pence = Math.round(Number(v));
+      if (/^\d{4}-\d{2}-\d{2}$/.test(k) && Number.isFinite(pence) && pence > 0 && pence <= 500_000) {
+        out[k] = pence;
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 function parseSpaceForm(formData: FormData) {
   const evEnabled = formData.get("ev") === "1";
   const kw = Number(formData.get("evKw") || 7);
@@ -40,6 +60,13 @@ function parseSpaceForm(formData: FormData) {
       0,
       Math.min(100, Math.round(Number(formData.get("weekendUpliftPct") || 0)))
     ),
+    customPrices: parseCustomPrices(formData),
+    bayNames: String(formData.get("bayNames") || "")
+      .split(",")
+      .map((s) => s.trim().slice(0, 20))
+      .filter(Boolean)
+      .slice(0, 20),
+    requestToBook: formData.get("requestToBook") === "1",
     lengthM: Number(formData.get("lengthM") || 5),
     widthM: Number(formData.get("widthM") || 2.5),
   };

@@ -51,6 +51,11 @@ export interface User {
   /** Host preference: email me when a booking lands (default on). */
   emailBookingAlerts?: boolean;
   /**
+   * Co-host accounts: the host this helper belongs to. Grants only the Today
+   * board + check-in/out + messages; every money page redirects away.
+   */
+  cohostHostId?: UUID;
+  /**
    * First-run profile setup done. Strictly `false` gates non-admins to
    * /welcome; undefined (pre-migration rows) never gates.
    */
@@ -155,6 +160,13 @@ export interface Host {
   /** Manual payout details (pre-Stripe): UK sort code + account number. */
   bankSort?: string;
   bankAccount?: string;
+  /** Auto-sent as the first thread message when a booking is confirmed. */
+  autoWelcome?: string;
+  /** Traveller ids this host refuses bookings from. */
+  blockedGuests?: string[];
+  /** Limited helper account (check-ins only) linked to this host. */
+  cohostUserId?: string;
+  cohostEmail?: string;
   rating: number; // 0–5
   joinedAt: ISODateString;
 }
@@ -191,6 +203,12 @@ export interface Space {
   blockedDates?: string[];
   /** Weekend (Sat/Sun) price uplift in percent, applied per day. 0–100. */
   weekendUpliftPct?: number;
+  /** Per-date overrides ("YYYY-MM-DD" → pence/day) beating base + uplift. */
+  customPrices?: Record<string, Pence>;
+  /** Named bays for multi-car spaces ("A", "B" …); bookings get assigned one. */
+  bayNames?: string[];
+  /** Bookings need the host's approval (24h window, else auto-refund). */
+  requestToBook?: boolean;
   rating: number;
   reviewCount: number;
   status: SpaceStatus;
@@ -273,6 +291,12 @@ export interface Booking {
   price: PriceBreakdown;
   qrToken: string; // encodes access credential
   transferId?: UUID;
+  /** Request-to-book state; absent for instant-book spaces. */
+  approval?: "pending" | "approved" | "declined";
+  /** Auto-decline (full refund) when still pending past this moment. */
+  approvalDeadline?: ISODateString;
+  /** Index into the space's bayNames the host assigned this stay to. */
+  bayIndex?: number;
   createdAt: ISODateString;
 }
 

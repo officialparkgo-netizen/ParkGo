@@ -39,6 +39,10 @@ function hostFromRow(r: any): Host {
     payoutAccountRef: r.payout_account_ref ?? undefined,
     bankSort: r.bank_sort ?? undefined,
     bankAccount: r.bank_account ?? undefined,
+    autoWelcome: r.auto_welcome ?? undefined,
+    blockedGuests: r.blocked_guests ?? undefined,
+    cohostUserId: r.cohost_user_id ?? undefined,
+    cohostEmail: r.cohost_email ?? undefined,
     rating: Number(r.rating ?? 0),
     joinedAt: r.joined_at,
   };
@@ -69,6 +73,9 @@ function spaceFromRow(r: any): Space {
     pricePerHour: r.price_per_hour ?? undefined,
     blockedDates: r.blocked_dates ?? undefined,
     weekendUpliftPct: r.weekend_uplift_pct ?? undefined,
+    customPrices: r.custom_prices ?? undefined,
+    bayNames: r.bay_names ?? undefined,
+    requestToBook: r.request_to_book ?? undefined,
     rating: Number(r.rating ?? 0),
     reviewCount: r.review_count ?? 0,
     status: r.status,
@@ -417,6 +424,12 @@ export interface UpdateSpaceInput {
   blockedDates?: string[];
   /** Weekend (Sat/Sun) uplift percent; omit = unchanged, 0 clears it. */
   weekendUpliftPct?: number;
+  /** Per-date price overrides in pence; omit = unchanged, {} clears all. */
+  customPrices?: Record<string, number>;
+  /** Named bays for multi-car spaces; omit = unchanged, [] clears. */
+  bayNames?: string[];
+  /** Approval-first bookings; omit = unchanged. */
+  requestToBook?: boolean;
 }
 
 /**
@@ -447,6 +460,11 @@ export async function updateSpaceForHost(
     if (input.blockedDates !== undefined) s.blockedDates = input.blockedDates;
     if (input.weekendUpliftPct !== undefined)
       s.weekendUpliftPct = input.weekendUpliftPct || undefined;
+    if (input.customPrices !== undefined)
+      s.customPrices = Object.keys(input.customPrices).length ? input.customPrices : undefined;
+    if (input.bayNames !== undefined)
+      s.bayNames = input.bayNames.length ? input.bayNames : undefined;
+    if (input.requestToBook !== undefined) s.requestToBook = input.requestToBook || undefined;
     {
       const removeSet = new Set(input.removePhotos ?? []);
       let photos = s.photos.filter((p) => !removeSet.has(p));
@@ -498,21 +516,20 @@ export async function updateSpaceForHost(
       .select(SPACE_COLS)
       .single();
 
-  let { data, error } = await doUpdate(
-    input.blockedDates !== undefined || input.weekendUpliftPct !== undefined
-      ? {
-          ...baseUpdate,
-          ...(input.blockedDates !== undefined
-            ? { blocked_dates: input.blockedDates }
-            : {}),
-          ...(input.weekendUpliftPct !== undefined
-            ? { weekend_uplift_pct: input.weekendUpliftPct || null }
-            : {}),
-        }
-      : baseUpdate
-  );
-  // Pre-0014/0020 databases miss these columns — save the rest anyway.
-  if (error && (input.blockedDates !== undefined || input.weekendUpliftPct !== undefined)) {
+  // Columns added by later migrations (0014/0020/0021) — sent only when the
+  // form provided them, dropped wholesale if the database predates them.
+  const extras: Record<string, unknown> = {
+    ...(input.blockedDates !== undefined ? { blocked_dates: input.blockedDates } : {}),
+    ...(input.weekendUpliftPct !== undefined
+      ? { weekend_uplift_pct: input.weekendUpliftPct || null }
+      : {}),
+    ...(input.customPrices !== undefined ? { custom_prices: input.customPrices } : {}),
+    ...(input.bayNames !== undefined ? { bay_names: input.bayNames } : {}),
+    ...(input.requestToBook !== undefined ? { request_to_book: input.requestToBook } : {}),
+  };
+  const hasExtras = Object.keys(extras).length > 0;
+  let { data, error } = await doUpdate(hasExtras ? { ...baseUpdate, ...extras } : baseUpdate);
+  if (error && hasExtras) {
     ({ data, error } = await doUpdate(baseUpdate));
   }
   if (error || !data) return null;
@@ -552,6 +569,78 @@ export async function setHostBank(
     const { error } = await supabaseAdmin()
       .from("hosts")
       .update({ bank_sort: sort, bank_account: account })
+      .eq("id", hostId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Welcome message auto-posted into the thread when a booking is confirmed. */
+export async function setHostAutoWelcome(hostId: string, text: string): Promise<boolean> {
+  const welcome = text.trim().slice(0, 600) || null;
+  if (!IS_LIVE) {
+    const { getHost } = await import("@/lib/data/store");
+    const h = getHost(hostId);
+    if (!h) return false;
+    h.autoWelcome = welcome ?? undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("hosts")
+      .update({ auto_welcome: welcome })
+      .eq("id", hostId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Full replacement of the host's blocked-guest list (capped). */
+export async function setHostBlockedGuests(hostId: string, guestIds: string[]): Promise<boolean> {
+  const list = [...new Set(guestIds.filter(Boolean))].slice(0, 200);
+  if (!IS_LIVE) {
+    const { getHost } = await import("@/lib/data/store");
+    const h = getHost(hostId);
+    if (!h) return false;
+    h.blockedGuests = list.length ? list : undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("hosts")
+      .update({ blocked_guests: list })
+      .eq("id", hostId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Link (or clear) the host's limited co-host account. */
+export async function setHostCohost(
+  hostId: string,
+  cohost: { userId: string; email: string } | null
+): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getHost } = await import("@/lib/data/store");
+    const h = getHost(hostId);
+    if (!h) return false;
+    h.cohostUserId = cohost?.userId ?? undefined;
+    h.cohostEmail = cohost?.email ?? undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("hosts")
+      .update({
+        cohost_user_id: cohost?.userId ?? null,
+        cohost_email: cohost?.email ?? null,
+      })
       .eq("id", hostId);
     return !error;
   } catch {

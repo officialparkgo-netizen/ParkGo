@@ -32,6 +32,7 @@ export default async function HostPayoutsPage({
   searchParams: Promise<{ bank?: string }>;
 }) {
   const user = await requireRole("host");
+  if (user.cohostHostId) redirect("/host/today"); // co-hosts never see money
   const { t, locale } = await getI18n();
   const { bank } = await searchParams;
   const host = await getHostForUser(user);
@@ -303,6 +304,12 @@ export default async function HostPayoutsPage({
                     className="text-xs font-semibold text-brand-600 hover:underline"
                   >
                     {t("host.pay.statement")}
+                  </a>
+                  <a
+                    href={`/host/statement?month=${g.key}`}
+                    className="text-xs font-semibold text-brand-600 hover:underline"
+                  >
+                    {t("host.pay.pdf")}
                   </a>
                   <span className="text-sm font-bold text-navy-500">
                     {formatMoney(g.total)}

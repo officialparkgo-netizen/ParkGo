@@ -155,3 +155,129 @@ export async function sendBookingCancelledEmails(
     // best-effort only
   }
 }
+
+/** Traveller email when a host accepts their request-to-book. */
+export async function sendBookingApprovedEmail(booking: Booking): Promise<void> {
+  if (!isEmailConfigured()) return;
+  try {
+    const { traveller, spaceTitle } = await bookingParties(booking);
+    if (!traveller?.email) return;
+    await sendEmail(
+      traveller.email,
+      `Booking approved · ${booking.reference}`,
+      emailShell(
+        `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">You're booked in</h2>
+         <p style="margin:0">The host accepted your request — your space is confirmed.</p>
+         ${emailRows([
+           ["Reference", booking.reference],
+           ["Space", spaceTitle],
+           ["Drop-off", formatDateTime(booking.startAt)],
+           ["Pick-up", formatDateTime(booking.endAt)],
+         ])}
+         ${emailButton(`${SITE}/app/booking/${booking.id}`, "Open your booking")}`
+      )
+    );
+  } catch {
+    // best-effort only
+  }
+}
+
+/**
+ * "Your parking is tomorrow" nudge, sent by the daily cron for confirmed
+ * bookings starting in the next 24–48h. In-app notification always; email
+ * only when Resend is configured. Returns how many travellers were nudged.
+ */
+export async function sendArrivalReminders(): Promise<number> {
+  const { IS_LIVE } = await import("@/lib/config");
+  const from = Date.now() + 24 * 60 * 60 * 1000;
+  const to = Date.now() + 48 * 60 * 60 * 1000;
+  let bookings: Booking[] = [];
+
+  if (!IS_LIVE) {
+    const { getAllBookings } = await import("@/lib/data/store");
+    bookings = getAllBookings().filter((b) => {
+      const start = new Date(b.startAt).getTime();
+      return (
+        (b.status === "paid" || b.status === "active") &&
+        b.approval !== "pending" &&
+        start >= from &&
+        start < to
+      );
+    });
+  } else {
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/server");
+      const { data } = await supabaseAdmin()
+        .from("bookings")
+        .select("*")
+        .eq("status", "paid")
+        .gte("start_at", new Date(from).toISOString())
+        .lt("start_at", new Date(to).toISOString())
+        .limit(200);
+      bookings = (data ?? [])
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        .filter((r: any) => r.approval !== "pending")
+        .map((r: any) => ({
+          id: r.id,
+          reference: r.reference,
+          travellerId: r.traveller_id,
+          spaceId: r.space_id,
+          bundle: r.bundle,
+          startAt: r.start_at,
+          endAt: r.end_at,
+          status: r.status,
+          price: r.price,
+          qrToken: r.qr_token,
+          createdAt: r.created_at,
+        }));
+      /* eslint-enable @typescript-eslint/no-explicit-any */
+    } catch {
+      return 0;
+    }
+  }
+
+  let sent = 0;
+  for (const booking of bookings) {
+    try {
+      if (!IS_LIVE) {
+        const { addNotification } = await import("@/lib/data/store");
+        addNotification({
+          userId: booking.travellerId,
+          title: `Parking tomorrow · ${booking.reference}`,
+          body: `Drop-off ${formatDateTime(booking.startAt)} — directions and your QR are in the app.`,
+          kind: "booking",
+        });
+      } else {
+        const { supabaseAdmin } = await import("@/lib/supabase/server");
+        await supabaseAdmin().from("notifications").insert({
+          user_id: booking.travellerId,
+          title: `Parking tomorrow · ${booking.reference}`,
+          body: `Drop-off ${formatDateTime(booking.startAt)} — directions and your QR are in the app.`,
+          kind: "booking",
+        });
+        if (isEmailConfigured()) {
+          const { traveller, spaceTitle } = await bookingParties(booking);
+          if (traveller?.email) {
+            await sendEmail(
+              traveller.email,
+              `Your parking is tomorrow · ${booking.reference}`,
+              emailShell(
+                `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">See you tomorrow</h2>
+                 ${emailRows([
+                   ["Space", spaceTitle],
+                   ["Drop-off", formatDateTime(booking.startAt)],
+                   ["Pick-up", formatDateTime(booking.endAt)],
+                 ])}
+                 ${emailButton(`${SITE}/app/booking/${booking.id}`, "Directions & QR")}`
+              )
+            );
+          }
+        }
+      }
+      sent++;
+    } catch {
+      // keep going — one bad row must not stop the batch
+    }
+  }
+  return sent;
+}

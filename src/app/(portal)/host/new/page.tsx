@@ -17,6 +17,7 @@ export const metadata: Metadata = pageMetadata({ title: "List a space", path: "/
 
 export default async function NewSpacePage() {
   const user = await requireRole("host");
+  if (user.cohostHostId) redirect("/host/today");
   const { t } = await getI18n();
 
   // KYC-first: hosts must be verified before they can list.
