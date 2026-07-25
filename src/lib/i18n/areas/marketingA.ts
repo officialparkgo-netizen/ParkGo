@@ -120,6 +120,11 @@ export const marketingA: AreaDict = {
     "how.cta.airports": "Parking across the UK & Ireland — airports, cities & events.",
 
     // ----------------------------------------------------------------------- FAQ
+    "faq.search.placeholder": "Search help — try “CCTV” or “EV charging”",
+    "faq.search.clear": "Clear search",
+    "faq.search.count": "{n} answers",
+    "faq.search.none": "Nothing matched that",
+    "faq.search.noneHint": "Try a different word, or open the chat and ask us directly.",
     "faq.hero.badge": "Frequently asked questions",
     "faq.hero.title": "Everything you wanted to ask about ParkGo",
     "faq.hero.subtitle":
@@ -298,6 +303,11 @@ export const marketingA: AreaDict = {
     "how.cta.airports": "برطانیہ اور آئرلینڈ بھر میں پارکنگ — ہوائی اڈے، شہر اور ایونٹس۔",
 
     // ----------------------------------------------------------------------- FAQ
+    "faq.search.placeholder": "مدد تلاش کریں — مثلاً ”CCTV“ یا ”EV چارجنگ“",
+    "faq.search.clear": "تلاش صاف کریں",
+    "faq.search.count": "{n} جوابات",
+    "faq.search.none": "اس سے کچھ نہیں ملا",
+    "faq.search.noneHint": "کوئی اور لفظ آزمائیں، یا چیٹ کھول کر ہم سے براہِ راست پوچھیں۔",
     "faq.hero.badge": "اکثر پوچھے جانے والے سوالات",
     "faq.hero.title": "پارک گو کے بارے میں وہ سب کچھ جو آپ پوچھنا چاہتے تھے",
     "faq.hero.subtitle":
@@ -476,6 +486,11 @@ export const marketingA: AreaDict = {
     "how.cta.airports": "यूके और आयरलैंड भर में पार्किंग — एयरपोर्ट, शहर और इवेंट।",
 
     // ----------------------------------------------------------------------- FAQ
+    "faq.search.placeholder": "मदद खोजें — जैसे “CCTV” या “EV चार्जिंग”",
+    "faq.search.clear": "खोज साफ़ करें",
+    "faq.search.count": "{n} उत्तर",
+    "faq.search.none": "इससे कुछ नहीं मिला",
+    "faq.search.noneHint": "कोई दूसरा शब्द आज़माएँ, या चैट खोलकर हमसे सीधे पूछें।",
     "faq.hero.badge": "अक्सर पूछे जाने वाले प्रश्न",
     "faq.hero.title": "ParkGo के बारे में वह सब कुछ जो आप पूछना चाहते थे",
     "faq.hero.subtitle":
@@ -654,6 +669,11 @@ export const marketingA: AreaDict = {
     "how.cta.airports": "Parken in Großbritannien & Irland — Flughäfen, Städte & Events.",
 
     // ----------------------------------------------------------------------- FAQ
+    "faq.search.placeholder": "Hilfe durchsuchen — z. B. „CCTV“ oder „E-Laden“",
+    "faq.search.clear": "Suche zurücksetzen",
+    "faq.search.count": "{n} Antworten",
+    "faq.search.none": "Dazu haben wir nichts gefunden",
+    "faq.search.noneHint": "Versuchen Sie ein anderes Wort — oder fragen Sie uns direkt im Chat.",
     "faq.hero.badge": "Häufig gestellte Fragen",
     "faq.hero.title": "Alles, was Sie über ParkGo wissen wollten",
     "faq.hero.subtitle":
@@ -832,6 +852,11 @@ export const marketingA: AreaDict = {
     "how.cta.airports": "覆盖英国和爱尔兰 — 机场、城市与活动场馆。",
 
     // ----------------------------------------------------------------------- FAQ
+    "faq.search.placeholder": "搜索帮助 — 例如“CCTV”或“充电”",
+    "faq.search.clear": "清除搜索",
+    "faq.search.count": "{n} 条答案",
+    "faq.search.none": "没有找到相关内容",
+    "faq.search.noneHint": "换个关键词试试，或者直接打开对话问我们。",
     "faq.hero.badge": "常见问题",
     "faq.hero.title": "关于 ParkGo 您想问的一切",
     "faq.hero.subtitle":

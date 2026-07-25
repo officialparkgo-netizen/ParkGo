@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { StaffShell } from "@/components/auth/staff-shell";
 import { TeamLoginForm } from "@/components/auth/team-login-form";
@@ -18,10 +18,10 @@ export const metadata: Metadata = pageMetadata({
 export default async function TeamLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ set?: string }>;
+  searchParams: Promise<{ set?: string; timeout?: string }>;
 }) {
   const { t } = await getI18n();
-  const { set } = await searchParams;
+  const { set, timeout } = await searchParams;
 
   return (
     <StaffShell
@@ -35,6 +35,14 @@ export default async function TeamLoginPage({
           data-password-set
         >
           <CheckCircle2 className="h-5 w-5 shrink-0" /> {t("team.login.passwordSet")}
+        </div>
+      )}
+      {timeout === "1" && (
+        <div
+          className="mb-4 flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm font-semibold text-accent-700"
+          data-idle-timeout
+        >
+          <Clock className="h-5 w-5 shrink-0" /> {t("team.login.timedOut")}
         </div>
       )}
       <Card className="p-6">

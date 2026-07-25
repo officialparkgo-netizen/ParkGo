@@ -103,17 +103,21 @@ const SUPPORT_DOC_TYPES = [
 ];
 const MAX_SUPPORT_BYTES = 5 * 1024 * 1024;
 
+/** How long a signed attachment link stays usable. */
+const SUPPORT_URL_TTL_SECONDS = 60 * 60;
+
 /**
  * Upload a support-chat attachment (photo of a blocked gate, a receipt, a
- * ticket PDF). Public bucket: the agent has to open it from the admin console
- * and the visitor from a browser that may not be signed in, so a signed URL
- * would expire mid-conversation. Paths are random UUIDs, so they aren't
- * guessable. Mock mode inlines a data URL, keeping the demo self-contained.
+ * ticket PDF). The bucket is PRIVATE: a chat can contain a boarding pass or a
+ * driving licence, so the stored `path` is the durable reference and readers
+ * mint a short-lived signed URL each time. A link that leaks out of the thread
+ * stops working within the hour. Mock mode inlines a data URL instead, keeping
+ * the demo self-contained.
  */
 export async function uploadSupportFile(
   file: File,
   ticketKey: string
-): Promise<{ url: string; name: string; kind: "image" | "file" } | null> {
+): Promise<{ url: string; name: string; kind: "image" | "file"; path?: string } | null> {
   if (!file || file.size === 0) return null;
   const isImage = file.type.startsWith("image/");
   if (!isImage && !SUPPORT_DOC_TYPES.includes(file.type)) return null;
@@ -127,14 +131,51 @@ export async function uploadSupportFile(
     return { url: `data:${file.type};base64,${buf.toString("base64")}`, name, kind };
   }
 
-  await ensureBucket("support-files", true);
+  await ensureBucket("support-files", false);
   const { supabaseAdmin } = await import("@/lib/supabase/server");
   const storage = supabaseAdmin().storage.from("support-files");
   const path = `${ticketKey}/${crypto.randomUUID()}.${extFor(file)}`;
   const buf = Buffer.from(await file.arrayBuffer());
   const { error } = await storage.upload(path, buf, { contentType: file.type, upsert: false });
   if (error) return null;
-  return { url: storage.getPublicUrl(path).data.publicUrl, name, kind };
+  const { data } = await storage.createSignedUrl(path, SUPPORT_URL_TTL_SECONDS);
+  return { url: data?.signedUrl ?? "", name, kind, path };
+}
+
+/**
+ * Refresh the signed link for a stored attachment. Returns null when the file
+ * can't be signed, so callers render the message without a dead link rather
+ * than a broken image.
+ */
+export async function signSupportFile(path: string): Promise<string | null> {
+  if (!IS_LIVE || !path) return null;
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { data } = await supabaseAdmin()
+      .storage.from("support-files")
+      .createSignedUrl(path, SUPPORT_URL_TTL_SECONDS);
+    return data?.signedUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Re-sign every attachment in a transcript before it goes out to a browser.
+ * Stored URLs expire, the paths don't — so the path is what we sign from.
+ * No-op in mock mode, where attachments are inline data URLs.
+ */
+export async function signTranscript<T extends { attachment?: { url: string; path?: string } }>(
+  transcript: T[]
+): Promise<T[]> {
+  if (!IS_LIVE) return transcript;
+  return Promise.all(
+    transcript.map(async (m) => {
+      if (!m.attachment?.path) return m;
+      const url = await signSupportFile(m.attachment.path);
+      return url ? { ...m, attachment: { ...m.attachment, url } } : m;
+    })
+  );
 }
 
 /** Upload a private KYC document; returns the storage path (not a URL). */

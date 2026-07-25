@@ -26,6 +26,7 @@ type UserRow = {
   admin_scope?: string | null;
   email_booking_alerts?: boolean | null;
   cohost_host_id?: string | null;
+  support_available?: boolean | null;
   invite_nonce?: string | null;
   created_at: string;
 };
@@ -46,6 +47,7 @@ export function userFromRow(r: UserRow): User {
     adminScope: (r.admin_scope as User["adminScope"]) ?? undefined,
     emailBookingAlerts: r.email_booking_alerts ?? undefined,
     cohostHostId: r.cohost_host_id ?? undefined,
+    supportAvailable: r.support_available ?? undefined,
     inviteNonce: r.invite_nonce ?? undefined,
     // Keep undefined (not false) when the column doesn't exist yet — the
     // onboarding gate only fires on a strict `false`.
@@ -294,6 +296,30 @@ export async function getAuthLastSignIn(userId: string): Promise<string | null> 
     return data.user?.last_sign_in_at ?? null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Agent duty status. Auto-assignment only picks agents who are on duty, so
+ * this is the switch that stops a ticket landing with someone on holiday.
+ */
+export async function setSupportAvailable(userId: string, on: boolean): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return false;
+    u.supportAvailable = on;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ support_available: on })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
   }
 }
 

@@ -2,12 +2,17 @@ import { NextRequest } from "next/server";
 import type { SupportMessage, SupportTicket } from "@/types";
 import { getCurrentUser } from "@/lib/auth";
 import {
+  addTicketNote,
   appendSupportThreadMessage,
   getSupportTicketById,
   markTicketRead,
   setTicketCsat,
+  setTicketSnooze,
+  setTicketTags,
   setTicketTyping,
 } from "@/lib/data/support";
+import { cleanTags } from "@/lib/support-queue";
+import { signTranscript } from "@/lib/storage";
 import { parseSupportToken, supportRef, SUPPORT_COOKIE } from "@/lib/support-thread";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +41,7 @@ async function resolveAccess(request: NextRequest) {
  * — nobody needs telling they are typing — and only while the stamp is fresh.
  * "Seen" is the other side's read receipt.
  */
-function view(ticket: SupportTicket, as: "user" | "agent") {
+async function view(ticket: SupportTicket, as: "user" | "agent") {
   const other = as === "user" ? "agent" : "user";
   const typingFresh =
     ticket.typingBy === other &&
@@ -49,10 +54,19 @@ function view(ticket: SupportTicket, as: "user" | "agent") {
     priority: ticket.priority ?? "normal",
     assignedTo: ticket.assignedTo ?? null,
     name: ticket.name,
-    transcript: ticket.transcript,
+    // Attachment links are short-lived, so they are minted per read.
+    transcript: await signTranscript(ticket.transcript),
     typing: typingFresh,
     seenAt: (as === "user" ? ticket.agentReadAt : ticket.userReadAt) ?? null,
     csat: ticket.csat ?? null,
+    // Internal notes and tags exist only for the team.
+    ...(as === "agent"
+      ? {
+          notes: ticket.notes ?? [],
+          tags: ticket.tags ?? [],
+          snoozeUntil: ticket.snoozeUntil ?? null,
+        }
+      : {}),
   };
 }
 
@@ -80,7 +94,7 @@ export async function GET(request: NextRequest) {
   if (hasUnread(ticket, access.role)) {
     await markTicketRead(access.ticketId, access.role).catch(() => {});
   }
-  return Response.json({ ticket: view(ticket, access.role) });
+  return Response.json({ ticket: await view(ticket, access.role) });
 }
 
 /** Notify the visitor by email that the team has replied (best-effort). */
@@ -130,6 +144,9 @@ export async function POST(request: NextRequest) {
       read?: unknown;
       csat?: unknown;
       csatComment?: unknown;
+      note?: unknown;
+      tags?: unknown;
+      snoozeUntil?: unknown;
     } = {};
     try {
       body = (await request.json()) as typeof body;
@@ -155,7 +172,30 @@ export async function POST(request: NextRequest) {
         typeof body.csatComment === "string" ? body.csatComment : undefined
       );
       const ticket = await getSupportTicketById(access.ticketId);
-      return Response.json({ ticket: ticket && view(ticket, access.role) });
+      return Response.json({ ticket: ticket && (await view(ticket, access.role)) });
+    }
+
+    // Notes, tags and snooze are team-side controls, never visitor input.
+    if (access.role === "agent") {
+      if (typeof body.note === "string" && body.note.trim()) {
+        await addTicketNote(access.ticketId, access.user?.name ?? "Team", body.note);
+        const ticket = await getSupportTicketById(access.ticketId);
+        return Response.json({ ticket: ticket && (await view(ticket, "agent")) });
+      }
+      if (Array.isArray(body.tags)) {
+        await setTicketTags(access.ticketId, cleanTags(body.tags.map(String)));
+        const ticket = await getSupportTicketById(access.ticketId);
+        return Response.json({ ticket: ticket && (await view(ticket, "agent")) });
+      }
+      if (body.snoozeUntil !== undefined) {
+        const until =
+          typeof body.snoozeUntil === "string" && !Number.isNaN(Date.parse(body.snoozeUntil))
+            ? body.snoozeUntil
+            : null;
+        await setTicketSnooze(access.ticketId, until);
+        const ticket = await getSupportTicketById(access.ticketId);
+        return Response.json({ ticket: ticket && (await view(ticket, "agent")) });
+      }
     }
 
     text = typeof body.text === "string" ? body.text : "";
@@ -184,5 +224,5 @@ export async function POST(request: NextRequest) {
   }
 
   const ticket = await getSupportTicketById(access.ticketId);
-  return Response.json({ ticket: ticket && view(ticket, access.role) });
+  return Response.json({ ticket: ticket && (await view(ticket, access.role)) });
 }

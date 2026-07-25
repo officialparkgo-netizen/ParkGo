@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, Paperclip, Send } from "lucide-react";
-import type { SupportMessage } from "@/types";
+import { Bell, Paperclip, Send, StickyNote, Tag } from "lucide-react";
+import type { SupportMessage, SupportNote } from "@/types";
+import { SUGGESTED_TAGS } from "@/lib/support-queue";
 
 interface Template {
   id: string;
@@ -14,6 +15,8 @@ interface Payload {
   transcript: SupportMessage[];
   typing?: boolean;
   seenAt?: string | null;
+  notes?: SupportNote[];
+  tags?: string[];
 }
 
 /**
@@ -24,11 +27,15 @@ interface Payload {
 export function SupportLiveThread({
   ticketId,
   initial,
+  initialNotes = [],
+  initialTags = [],
   templates,
   labels,
 }: {
   ticketId: string;
   initial: SupportMessage[];
+  initialNotes?: SupportNote[];
+  initialTags?: string[];
   templates: Template[];
   labels: {
     pick: string;
@@ -42,6 +49,12 @@ export function SupportLiveThread({
     notify: string;
     notifyOn: string;
     newReply: string;
+    notes: string;
+    notePlaceholder: string;
+    addNote: string;
+    noteHint: string;
+    tags: string;
+    addTag: string;
   };
 }) {
   const [messages, setMessages] = useState<SupportMessage[]>(initial);
@@ -51,6 +64,10 @@ export function SupportLiveThread({
   const [seenAt, setSeenAt] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState(false);
   const [notify, setNotify] = useState(false);
+  const [notes, setNotes] = useState<SupportNote[]>(initialNotes);
+  const [tags, setTags] = useState<string[]>(initialTags);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [tagDraft, setTagDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typedAt = useRef(0);
@@ -70,6 +87,8 @@ export function SupportLiveThread({
       const tk = data.ticket;
       setTyping(!!tk.typing);
       setSeenAt(tk.seenAt ?? null);
+      if (tk.notes) setNotes(tk.notes);
+      if (tk.tags) setTags(tk.tags);
       if (tk.transcript.length === seenCount.current) return;
       // A message arriving from the visitor while the agent is elsewhere is
       // exactly the case a desktop alert exists for.
@@ -121,6 +140,39 @@ export function SupportLiveThread({
         ? "granted"
         : await Notification.requestPermission().catch(() => "denied");
     setNotify(granted === "granted");
+  };
+
+  /** Notes and tags share the thread endpoint but never reach the visitor. */
+  const post = async (body: Record<string, unknown>) => {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) apply(await res.json());
+    } catch {
+      // the poll re-syncs
+    }
+  };
+
+  const addNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const note = noteDraft.trim();
+    if (!note) return;
+    setNoteDraft("");
+    await post({ note });
+  };
+
+  const toggleTag = (tag: string) =>
+    post({ tags: tags.includes(tag) ? tags.filter((x) => x !== tag) : [...tags, tag] });
+
+  const addTag = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const tag = tagDraft.trim();
+    if (!tag) return;
+    setTagDraft("");
+    await post({ tags: [...tags, tag] });
   };
 
   const send = async (e: React.FormEvent) => {
@@ -221,6 +273,82 @@ export function SupportLiveThread({
       {uploadError && (
         <p className="mt-1 text-[11px] font-semibold text-red-600">{labels.attachError}</p>
       )}
+
+      {/* Tags — one click for the common ones, free text for the rest. */}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5" data-ticket-tags>
+        <Tag className="h-3.5 w-3.5 text-navy-400" aria-hidden />
+        <span className="sr-only">{labels.tags}</span>
+        {SUGGESTED_TAGS.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => toggleTag(tag)}
+            aria-pressed={tags.includes(tag)}
+            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              tags.includes(tag)
+                ? "bg-navy-900 text-white"
+                : "border border-navy-200 bg-white text-navy-500 hover:bg-navy-50"
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+        {tags
+          .filter((tag) => !SUGGESTED_TAGS.includes(tag as (typeof SUGGESTED_TAGS)[number]))
+          .map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => toggleTag(tag)}
+              aria-pressed
+              className="rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-semibold text-white"
+            >
+              {tag} ×
+            </button>
+          ))}
+        <input
+          value={tagDraft}
+          onChange={(e) => setTagDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addTag(e);
+          }}
+          placeholder={labels.addTag}
+          aria-label={labels.addTag}
+          className="w-24 rounded-full border border-dashed border-navy-200 px-2 py-0.5 text-[11px] text-navy-700 focus:border-brand-400 focus:outline-none"
+        />
+      </div>
+
+      {/* Internal notes — for the next agent, never for the visitor. */}
+      <details className="mt-2 rounded-lg bg-accent-50/60 px-2.5 py-2" data-ticket-notes>
+        <summary className="cursor-pointer text-[11px] font-bold text-accent-700">
+          <StickyNote className="me-1 inline h-3.5 w-3.5" aria-hidden />
+          {labels.notes} ({notes.length})
+        </summary>
+        <ul className="mt-1.5 space-y-1">
+          {notes.map((n, i) => (
+            <li key={i} className="text-[11px] leading-snug text-navy-700">
+              <span className="font-semibold">{n.by}:</span> {n.text}
+            </li>
+          ))}
+        </ul>
+        <form onSubmit={addNote} className="mt-1.5 flex gap-1.5">
+          <input
+            value={noteDraft}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            maxLength={2000}
+            placeholder={labels.notePlaceholder}
+            className="min-w-0 flex-1 rounded-lg border border-navy-200 bg-white px-2 py-1.5 text-[11px] text-navy-700 focus:border-brand-400 focus:outline-none"
+          />
+          <button
+            type="submit"
+            disabled={!noteDraft.trim()}
+            className="shrink-0 rounded-lg bg-accent-500 px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
+          >
+            {labels.addNote}
+          </button>
+        </form>
+        <p className="mt-1 text-[10px] text-navy-400">{labels.noteHint}</p>
+      </details>
 
       <form onSubmit={send} className="mt-2 space-y-2">
         <div className="flex gap-2">

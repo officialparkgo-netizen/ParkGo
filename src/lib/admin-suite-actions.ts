@@ -277,6 +277,9 @@ export async function savePlatformSettingsAction(formData: FormData) {
     supportCloseHour: num("supportCloseHour"),
     supportReplyMinutes: num("supportReplyMinutes"),
     supportWhatsapp: String(formData.get("supportWhatsapp") || ""),
+    supportSlaMinutes: num("supportSlaMinutes"),
+    supportMaxPerHour: num("supportMaxPerHour"),
+    supportAutoAssign: formData.get("supportAutoAssign") === "on",
     // Macros arrive as parallel label/text rows; blank rows are dropped by clean().
     supportMacros: formData.getAll("macroLabel").map((label, i) => ({
       id: `m${i + 1}`,
@@ -388,6 +391,29 @@ export async function setTicketPriorityAction(formData: FormData) {
   const { setTicketPriority } = await import("@/lib/data/support");
   await setTicketPriority(id, priority);
   await recordAdminAction(admin, "support.priority", "user", id, priority);
+  revalidatePath("/admin/support");
+}
+
+/** Agent duty switch: on duty means auto-assignment may pick you. */
+export async function setSupportAvailableAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const on = formData.get("state") === "on";
+  const { setSupportAvailable } = await import("@/lib/data/users");
+  await setSupportAvailable(admin.id, on);
+  revalidatePath("/admin/support");
+}
+
+/** Park a ticket until later — or wake it now with an empty hours value. */
+export async function snoozeTicketAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const id = String(formData.get("ticketId") || "");
+  const hours = Number(formData.get("hours"));
+  if (!id) return;
+  const { setTicketSnooze } = await import("@/lib/data/support");
+  const { snoozeUntil } = await import("@/lib/support-sla");
+  const until = Number.isFinite(hours) && hours > 0 ? snoozeUntil(hours) : null;
+  await setTicketSnooze(id, until);
+  await recordAdminAction(admin, "support.snoozed", "user", id, until ?? "woken");
   revalidatePath("/admin/support");
 }
 

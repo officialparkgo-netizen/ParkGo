@@ -5,8 +5,14 @@ import {
   BarChart3,
   Clock,
   Headset,
+  History,
+  Languages,
+  Moon,
+  Phone,
+  Search,
   ThumbsDown,
   ThumbsUp,
+  Timer,
   UserCheck,
   UserPlus,
 } from "lucide-react";
@@ -23,13 +29,22 @@ import {
   inviteSupportAgentAction,
   removeSupportAgentAction,
   resendTeamInviteAction,
+  setSupportAvailableAction,
   setTicketPriorityAction,
+  snoozeTicketAction,
 } from "@/lib/admin-suite-actions";
 import { CopyLinkButton } from "@/components/common/copy-link-button";
 import { inviteLinkFor } from "@/lib/team-invite-mail";
 import { listAdminUsers } from "@/lib/data/users";
 import { SupportLiveThread } from "@/components/admin/support-live-thread";
+import { PushToggle } from "@/components/admin/push-toggle";
 import { supportStats } from "@/lib/support-stats";
+import { isSnoozed, slaState, SNOOZE_CHOICES } from "@/lib/support-sla";
+import { searchTickets } from "@/lib/support-queue";
+import { sweepSlaBreaches } from "@/lib/support-escalate";
+import { LOCALE_LABELS } from "@/lib/support-lang";
+import { signTranscript } from "@/lib/storage";
+import { listTicketsForVisitor } from "@/lib/data/support";
 import { getPlatformSettings } from "@/lib/data/settings";
 import { listBookingsForTraveller } from "@/lib/data/bookings";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
@@ -45,11 +60,11 @@ export const metadata: Metadata = pageMetadata({
 export default async function AdminSupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ replied?: string; team?: string; show?: string }>;
+  searchParams: Promise<{ replied?: string; team?: string; show?: string; q?: string }>;
 }) {
   const user = await requireRole("admin");
   const { t } = await getI18n();
-  const { replied, team, show } = await searchParams;
+  const { replied, team, show, q } = await searchParams;
   const teamMembers = await listAdminUsers().catch(() => []);
   const isFullAdmin = user.adminScope !== "support";
   // Canned replies come from settings once an admin has written their own;
@@ -73,15 +88,50 @@ export default async function AdminSupportPage({
     notify: t("admin.sup.notify"),
     notifyOn: t("admin.sup.notifyOn"),
     newReply: t("admin.sup.newReply"),
+    notes: t("admin.sup.notes"),
+    notePlaceholder: t("admin.sup.notePlaceholder"),
+    addNote: t("admin.sup.addNote"),
+    noteHint: t("admin.sup.noteHint"),
+    tags: t("admin.sup.tags"),
+    addTag: t("admin.sup.addTag"),
   };
 
   const allTickets = await listSupportTickets().catch(() => []);
   const stats = supportStats(allTickets);
-  const filter = show === "open" || show === "urgent" ? show : "all";
-  const supportTickets = allTickets
-    .filter((x) => (filter === "open" ? x.status === "open" : true))
+  const slaMinutes = settings?.supportSlaMinutes ?? 20;
+  // Loading the queue is the one moment we know someone is watching, so it is
+  // also when a missed reply target gets reported. Stamped, so it fires once.
+  const breached = await sweepSlaBreaches(allTickets, slaMinutes).catch(() => []);
+  const breachedIds = new Set(breached.map((x) => x.id));
+
+  const query = (q ?? "").trim();
+  const filter = show === "open" || show === "urgent" || show === "snoozed" ? show : "all";
+  const supportTickets = searchTickets(allTickets, query)
+    .filter((x) => (filter === "open" ? x.status === "open" && !isSnoozed(x) : true))
     .filter((x) => (filter === "urgent" ? x.priority === "urgent" : true))
+    .filter((x) => (filter === "snoozed" ? isSnoozed(x) : true))
     .slice(0, 20);
+
+  // Attachment links expire, so the ones rendered here are freshly signed.
+  const signed = new Map(
+    await Promise.all(
+      supportTickets.map(
+        async (tk) => [tk.id, await signTranscript(tk.transcript)] as const
+      )
+    )
+  );
+  const transcriptOf = (id: string, fallback: (typeof supportTickets)[number]["transcript"]) =>
+    signed.get(id) ?? fallback;
+
+  // Every earlier chat from the same person — the "have we met before?" check
+  // an agent would otherwise have to do by hand.
+  const historyByTicket = new Map<string, number>();
+  await Promise.all(
+    supportTickets.map(async (tk) => {
+      const past = await listTicketsForVisitor(tk.email, tk.userId).catch(() => []);
+      historyByTicket.set(tk.id, past.filter((x) => x.id !== tk.id).length);
+    })
+  );
 
   // Booking context for the visible tickets that belong to a real account —
   // an agent should never have to ask "what did you book?".
@@ -98,7 +148,13 @@ export default async function AdminSupportPage({
     const h = Math.floor((Date.now() - +new Date(iso)) / 3_600_000);
     return h < 1 ? "<1h" : h < 48 ? `${h}h` : `${Math.floor(h / 24)}d`;
   };
-  const filterHref = (v: string) => (v === "all" ? "/admin/support" : `/admin/support?show=${v}`);
+  const filterHref = (v: string) => {
+    const params = new URLSearchParams();
+    if (v !== "all") params.set("show", v);
+    if (query) params.set("q", query);
+    const qs = params.toString();
+    return qs ? `/admin/support?${qs}` : "/admin/support";
+  };
   const isOverdue = (tk: (typeof supportTickets)[number]) =>
     tk.status === "open" && Date.now() - +new Date(tk.createdAt) > 24 * 3_600_000;
 
@@ -218,6 +274,74 @@ export default async function AdminSupportPage({
           </div>
           <p className="mb-3 text-sm text-navy-500">{t("admin.support.sub")}</p>
 
+          {/* On duty? Auto-assignment only ever picks someone who says yes. */}
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <form action={setSupportAvailableAction} data-duty-form>
+              <input
+                type="hidden"
+                name="state"
+                value={user.supportAvailable ? "off" : "on"}
+              />
+              <button
+                type="submit"
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
+                  user.supportAvailable
+                    ? "bg-go-500 text-white hover:bg-go-600"
+                    : "border border-navy-200 bg-white text-navy-500 hover:bg-navy-50"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    user.supportAvailable ? "bg-white" : "bg-navy-300"
+                  }`}
+                  aria-hidden
+                />
+                {user.supportAvailable ? t("admin.sup.onDuty") : t("admin.sup.offDuty")}
+              </button>
+            </form>
+
+            <PushToggle
+              labels={{
+                off: t("admin.sup.pushOff"),
+                on: t("admin.sup.pushOn"),
+                blocked: t("admin.sup.pushBlocked"),
+                unsupported: t("admin.sup.pushOff"),
+              }}
+            />
+
+            {/* Search — a GET form, so results survive a refresh and a share. */}
+            <form method="get" className="flex items-center gap-1.5" data-queue-search>
+              {filter !== "all" && <input type="hidden" name="show" value={filter} />}
+              <label htmlFor="sup-q" className="sr-only">
+                {t("admin.sup.search")}
+              </label>
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute inset-y-0 start-2 my-auto h-3.5 w-3.5 text-navy-400"
+                  aria-hidden
+                />
+                <input
+                  id="sup-q"
+                  name="q"
+                  defaultValue={query}
+                  placeholder={t("admin.sup.search")}
+                  className="h-8 w-48 rounded-full border border-navy-200 bg-white ps-7 pe-3 text-xs text-navy-700 focus:border-brand-400 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                {t("admin.sup.searchGo")}
+              </button>
+              {query && (
+                <Link href={filterHref(filter).split("&q=")[0]} className="text-xs font-semibold text-navy-500">
+                  {t("admin.sup.clear")}
+                </Link>
+              )}
+            </form>
+          </div>
+
           {/* Filter — plain links so the queue stays server-rendered. */}
           <div className="mb-3 flex flex-wrap items-center gap-2" data-queue-filter>
             <span className="text-xs font-semibold text-navy-400">{t("admin.sup.filter")}</span>
@@ -225,6 +349,7 @@ export default async function AdminSupportPage({
               { id: "all", label: t("admin.sup.filterAll") },
               { id: "open", label: t("admin.sup.filterOpen") },
               { id: "urgent", label: t("admin.sup.filterUrgent") },
+              { id: "snoozed", label: t("admin.sup.filterSnoozed") },
             ].map((opt) => (
               <Link
                 key={opt.id}
@@ -264,6 +389,36 @@ export default async function AdminSupportPage({
                     {ticket.priority === "urgent" && (
                       <Badge tone="danger" data-urgent>
                         <AlertTriangle className="h-3 w-3" /> {t("admin.sup.urgent")}
+                      </Badge>
+                    )}
+                    {(() => {
+                      const sla = slaState(ticket, slaMinutes);
+                      if (!sla.breached && !breachedIds.has(ticket.id)) return null;
+                      return (
+                        <Badge tone="danger" data-sla-breach>
+                          <Timer className="h-3 w-3" /> {t("admin.sup.slaMissed")}
+                        </Badge>
+                      );
+                    })()}
+                    {isSnoozed(ticket) && ticket.snoozeUntil && (
+                      <Badge tone="neutral" data-snoozed>
+                        <Moon className="h-3 w-3" /> {formatDateTime(ticket.snoozeUntil)}
+                      </Badge>
+                    )}
+                    {ticket.phone && (
+                      <Badge tone="accent" data-callback>
+                        <Phone className="h-3 w-3" /> {ticket.phone}
+                      </Badge>
+                    )}
+                    {ticket.locale && ticket.locale !== "en" && (
+                      <Badge tone="brand" data-locale>
+                        <Languages className="h-3 w-3" /> {LOCALE_LABELS[ticket.locale]}
+                      </Badge>
+                    )}
+                    {(historyByTicket.get(ticket.id) ?? 0) > 0 && (
+                      <Badge tone="navy" data-history>
+                        <History className="h-3 w-3" /> {historyByTicket.get(ticket.id)}{" "}
+                        {t("admin.sup.pastChats")}
                       </Badge>
                     )}
                     {isOverdue(ticket) && (
@@ -332,6 +487,33 @@ export default async function AdminSupportPage({
                       </form>
                     )}
                     {ticket.status === "open" && (
+                      <form action={snoozeTicketAction} className="flex items-center gap-1.5">
+                        <input type="hidden" name="ticketId" value={ticket.id} />
+                        <label htmlFor={`snz-${ticket.id}`} className="sr-only">
+                          {t("admin.sup.snooze")}
+                        </label>
+                        <select
+                          id={`snz-${ticket.id}`}
+                          name="hours"
+                          defaultValue={isSnoozed(ticket) ? "0" : "4"}
+                          className="rounded-lg border border-navy-200 bg-white px-2 py-1.5 text-xs font-semibold text-navy-700 focus:border-brand-400 focus:outline-none"
+                        >
+                          {isSnoozed(ticket) && <option value="0">{t("admin.sup.wake")}</option>}
+                          {SNOOZE_CHOICES.map((h) => (
+                            <option key={h} value={h}>
+                              {h < 24 ? `${h}h` : `${h / 24}d`}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="submit"
+                          className={buttonVariants({ variant: "outline", size: "sm" })}
+                        >
+                          <Moon className="h-3.5 w-3.5" /> {t("admin.sup.snooze")}
+                        </button>
+                      </form>
+                    )}
+                    {ticket.status === "open" && (
                       <form action={resolveSupportTicketAction}>
                         <input type="hidden" name="ticketId" value={ticket.id} />
                         <button
@@ -365,7 +547,7 @@ export default async function AdminSupportPage({
                       {t("admin.sup.viewChat")} ({ticket.transcript.length})
                     </summary>
                     <div className="mt-2 max-h-72 space-y-1.5 overflow-y-auto">
-                      {ticket.transcript.map((m, i) => (
+                      {transcriptOf(ticket.id, ticket.transcript).map((m, i) => (
                         <div
                           key={i}
                           className={`flex ${m.role === "agent" ? "justify-end" : "justify-start"}`}
@@ -418,7 +600,9 @@ export default async function AdminSupportPage({
                 {ticket.status === "open" && (
                   <SupportLiveThread
                     ticketId={ticket.id}
-                    initial={ticket.transcript}
+                    initial={transcriptOf(ticket.id, ticket.transcript)}
+                    initialNotes={ticket.notes ?? []}
+                    initialTags={ticket.tags ?? []}
                     templates={templates}
                     labels={{
                       ...threadLabels,

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ChevronDown, HelpCircle, MessageCircle, Sparkles } from "lucide-react";
-import { Section, Container, Eyebrow } from "@/components/ui/section";
+import { ArrowRight, HelpCircle, MessageCircle, Sparkles } from "lucide-react";
+import { Section, Container } from "@/components/ui/section";
+import { FaqSearch } from "@/components/marketing/faq-search";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata, SITE } from "@/lib/seo";
@@ -160,29 +161,18 @@ export default async function FaqPage() {
         </Container>
       </section>
 
-      {/* --------------------------------------------------------- FAQ groups */}
+      {/* ------------------------------------------- Searchable help centre */}
       <Section>
-        <div className="mx-auto max-w-3xl space-y-12">
-          {groups.map((group) => (
-            <div key={group.category}>
-              <Eyebrow>{group.category}</Eyebrow>
-              <div className="mt-4 space-y-3">
-                {group.items.map((item) => (
-                  <details
-                    key={item.q}
-                    className="group rounded-2xl border border-navy-100 bg-white shadow-card transition-colors open:border-brand-200"
-                  >
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 text-left [&::-webkit-details-marker]:hidden">
-                      <span className="font-bold text-navy-900">{item.q}</span>
-                      <ChevronDown className="h-5 w-5 shrink-0 text-navy-400 transition-transform group-open:rotate-180" />
-                    </summary>
-                    <p className="px-5 pb-5 text-navy-600">{item.a}</p>
-                  </details>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <FaqSearch
+          groups={groups}
+          labels={{
+            placeholder: t("faq.search.placeholder"),
+            clear: t("faq.search.clear"),
+            count: t("faq.search.count"),
+            none: t("faq.search.none"),
+            noneHint: t("faq.search.noneHint"),
+          }}
+        />
       </Section>
 
       {/* ------------------------------------------------------------- CTA band */}

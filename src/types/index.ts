@@ -56,6 +56,11 @@ export interface User {
    */
   cohostHostId?: UUID;
   /**
+   * Support agents: on duty or not. Auto-assignment only ever picks someone
+   * who has put themselves on duty, so a day off never swallows a ticket.
+   */
+  supportAvailable?: boolean;
+  /**
    * Pending staff invite: signs the set-password link and is cleared the
    * moment the password is set, making that link single-use.
    */
@@ -466,6 +471,12 @@ export interface PlatformSettings {
   supportWhatsapp?: string;
   /** Editable canned replies for agents. */
   supportMacros?: { id: string; label: string; text: string }[];
+  /** Minutes an urgent ticket may sit unanswered before admins are alerted. */
+  supportSlaMinutes: number;
+  /** Cap on new tickets per email per hour — a spam brake, not a policy. */
+  supportMaxPerHour: number;
+  /** Hand new tickets to the least-loaded agent who is on duty. */
+  supportAutoAssign: boolean;
   /** Overrides ADMIN_ALERT_EMAIL for admin notification emails. */
   adminAlertEmail?: string;
   /** Slack-compatible webhook for instant ops alerts. */
@@ -609,8 +620,19 @@ export interface SupportMessage {
   text: string;
   /** ISO timestamp — absent on messages written before attachments landed. */
   at?: ISODateString;
-  /** Image or document shared in the chat. */
-  attachment?: { url: string; name: string; kind: "image" | "file" };
+  /**
+   * Image or document shared in the chat. Live mode stores the private
+   * storage `path` and signs a short-lived `url` at read time; mock mode has
+   * only an inline data `url`.
+   */
+  attachment?: { url: string; name: string; kind: "image" | "file"; path?: string };
+}
+
+/** An agent-only note on a ticket — never sent to the visitor. */
+export interface SupportNote {
+  at: ISODateString;
+  by: string;
+  text: string;
 }
 
 /** A chat escalated to a human agent. */
@@ -639,4 +661,17 @@ export interface SupportTicket {
   /** Post-resolution rating: 1 = happy, -1 = unhappy. */
   csat?: 1 | -1;
   csatComment?: string;
+  /** Agent-only notes for handover — never leave the admin console. */
+  notes?: SupportNote[];
+  /** Free-form labels agents add for triage and search. */
+  tags?: string[];
+  /** Parked until this moment: drops out of the live queue, then returns. */
+  snoozeUntil?: ISODateString;
+  /** Set when a breached SLA has already alerted the admins (dedupe). */
+  escalatedAt?: ISODateString;
+  /** Callback request: the number to ring and when. */
+  phone?: string;
+  callbackAt?: ISODateString;
+  /** Language the visitor is writing in, so agents can reply in kind. */
+  locale?: Locale;
 }

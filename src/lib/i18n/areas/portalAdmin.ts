@@ -254,6 +254,14 @@ export const portalAdmin: AreaDict = {
     "admin.settings.macros": "Canned replies",
     "admin.settings.macrosSub":
       "Agents pick these from a dropdown in the live chat. Empty rows are ignored.",
+    "admin.settings.sla": "Reply target for urgent (min)",
+    "admin.settings.slaHint":
+      "Miss it and the admins are alerted. Ordinary chats get three times this.",
+    "admin.settings.maxPerHour": "New chats per person, per hour",
+    "admin.settings.maxPerHourHint": "A spam brake. Existing chats are never blocked.",
+    "admin.settings.autoAssign": "Assign new chats automatically",
+    "admin.settings.autoAssignHint":
+      "Goes to whoever is on duty with the lightest queue. Turn off to triage by hand.",
     "admin.settings.macroLabel": "Label",
     "admin.settings.macroText": "Reply text",
     "admin.pay.onHold": "On hold until",
@@ -575,6 +583,8 @@ export const portalAdmin: AreaDict = {
     "team.login.title": "Team sign in",
     "team.login.sub": "For ParkGo admins and support agents.",
     "team.login.submit": "Sign in",
+    "team.login.timedOut":
+      "Signed out after 30 minutes of inactivity — a staff console left open is a risk. Please sign in again.",
     "team.login.note": "Staff accounts only. Travellers and hosts sign in from the main login page.",
     "team.login.forgot": "Forgot your password?",
     "team.login.passwordSet": "Password set — sign in to continue.",
@@ -889,6 +899,14 @@ export const portalAdmin: AreaDict = {
     "admin.settings.macros": "تیار شدہ جوابات",
     "admin.settings.macrosSub":
       "ایجنٹس لائیو چیٹ میں انہیں ڈراپ ڈاؤن سے چنتے ہیں۔ خالی قطاریں نظرانداز ہو جاتی ہیں۔",
+    "admin.settings.sla": "فوری کے لیے جوابی ہدف (منٹ)",
+    "admin.settings.slaHint":
+      "ہدف چُھوٹا تو ایڈمنز کو اطلاع جاتی ہے۔ عام چیٹس کو اس کا تین گنا وقت ملتا ہے۔",
+    "admin.settings.maxPerHour": "فی شخص، فی گھنٹہ نئی چیٹس",
+    "admin.settings.maxPerHourHint": "سپیم بریک۔ موجودہ چیٹس کبھی نہیں رُکتیں۔",
+    "admin.settings.autoAssign": "نئی چیٹس خودکار تفویض کریں",
+    "admin.settings.autoAssignHint":
+      "ڈیوٹی پر موجود سب سے کم مصروف ساتھی کو جاتی ہیں۔ ہاتھ سے تقسیم کے لیے بند کر دیں۔",
     "admin.settings.macroLabel": "عنوان",
     "admin.settings.macroText": "جواب کا متن",
     "admin.pay.onHold": "ہولڈ پر، تک",
@@ -1210,6 +1228,8 @@ export const portalAdmin: AreaDict = {
     "team.login.title": "ٹیم سائن اِن",
     "team.login.sub": "ParkGo ایڈمنز اور سپورٹ ایجنٹس کے لیے۔",
     "team.login.submit": "سائن اِن",
+    "team.login.timedOut":
+      "30 منٹ کی غیر فعالیت کے بعد سائن آؤٹ کر دیا گیا — کھلا ہوا اسٹاف کنسول خطرہ ہے۔ دوبارہ سائن اِن کریں۔",
     "team.login.note": "صرف اسٹاف اکاؤنٹس۔ مسافر اور میزبان مرکزی لاگ اِن صفحے سے آئیں۔",
     "team.login.forgot": "پاس ورڈ بھول گئے؟",
     "team.login.passwordSet": "پاس ورڈ سیٹ ہو گیا — جاری رکھنے کے لیے سائن اِن کریں۔",
@@ -1524,6 +1544,14 @@ export const portalAdmin: AreaDict = {
     "admin.settings.macros": "तैयार जवाब",
     "admin.settings.macrosSub":
       "एजेंट लाइव चैट में इन्हें ड्रॉपडाउन से चुनते हैं। खाली पंक्तियाँ अनदेखी होती हैं।",
+    "admin.settings.sla": "अत्यावश्यक के लिए जवाब लक्ष्य (मिनट)",
+    "admin.settings.slaHint":
+      "लक्ष्य चूकने पर एडमिन को सूचना जाती है। सामान्य चैट को इसका तीन गुना समय मिलता है।",
+    "admin.settings.maxPerHour": "प्रति व्यक्ति, प्रति घंटा नई चैट",
+    "admin.settings.maxPerHourHint": "स्पैम ब्रेक। मौजूदा चैट कभी नहीं रुकतीं।",
+    "admin.settings.autoAssign": "नई चैट स्वतः असाइन करें",
+    "admin.settings.autoAssignHint":
+      "ड्यूटी पर सबसे कम व्यस्त साथी को जाती हैं। हाथ से बाँटने के लिए बंद कर दें।",
     "admin.settings.macroLabel": "लेबल",
     "admin.settings.macroText": "जवाब का पाठ",
     "admin.pay.onHold": "होल्ड पर, तक",
@@ -1845,6 +1873,8 @@ export const portalAdmin: AreaDict = {
     "team.login.title": "टीम साइन इन",
     "team.login.sub": "ParkGo एडमिन और सपोर्ट एजेंट के लिए।",
     "team.login.submit": "साइन इन",
+    "team.login.timedOut":
+      "30 मिनट की निष्क्रियता के बाद साइन आउट कर दिया गया — खुला स्टाफ़ कंसोल जोखिम है। दोबारा साइन इन करें।",
     "team.login.note": "केवल स्टाफ़ खाते। यात्री और मेज़बान मुख्य लॉगिन पेज से आएँ।",
     "team.login.forgot": "पासवर्ड भूल गए?",
     "team.login.passwordSet": "पासवर्ड सेट हो गया — जारी रखने के लिए साइन इन करें।",
@@ -2160,6 +2190,14 @@ export const portalAdmin: AreaDict = {
     "admin.settings.macros": "Textbausteine",
     "admin.settings.macrosSub":
       "Agenten wählen sie im Live-Chat aus einer Liste. Leere Zeilen werden ignoriert.",
+    "admin.settings.sla": "Antwortziel für dringend (Min.)",
+    "admin.settings.slaHint":
+      "Wird es verfehlt, werden die Admins benachrichtigt. Normale Chats bekommen das Dreifache.",
+    "admin.settings.maxPerHour": "Neue Chats pro Person und Stunde",
+    "admin.settings.maxPerHourHint": "Eine Spam-Bremse. Laufende Chats sind nie betroffen.",
+    "admin.settings.autoAssign": "Neue Chats automatisch zuweisen",
+    "admin.settings.autoAssignHint":
+      "Geht an das diensthabende Teammitglied mit der kürzesten Warteschlange. Zum Selbstverteilen ausschalten.",
     "admin.settings.macroLabel": "Bezeichnung",
     "admin.settings.macroText": "Antworttext",
     "admin.pay.onHold": "Gesperrt bis",
@@ -2481,6 +2519,8 @@ export const portalAdmin: AreaDict = {
     "team.login.title": "Team-Anmeldung",
     "team.login.sub": "Für ParkGo-Admins und Support-Agenten.",
     "team.login.submit": "Anmelden",
+    "team.login.timedOut":
+      "Nach 30 Minuten ohne Aktivität abgemeldet — eine offen stehende Mitarbeiterkonsole ist ein Risiko. Bitte erneut anmelden.",
     "team.login.note": "Nur Mitarbeiterkonten. Reisende und Gastgeber melden sich auf der Hauptseite an.",
     "team.login.forgot": "Passwort vergessen?",
     "team.login.passwordSet": "Passwort gesetzt — zum Fortfahren anmelden.",
@@ -2792,6 +2832,12 @@ export const portalAdmin: AreaDict = {
     "admin.settings.whatsappHint": "作为第二渠道显示在聊天窗口中。留空则隐藏按钮。",
     "admin.settings.macros": "常用回复",
     "admin.settings.macrosSub": "客服在实时聊天中从下拉列表选用。空行将被忽略。",
+    "admin.settings.sla": "紧急工单回复时限（分钟）",
+    "admin.settings.slaHint": "超时将提醒管理员。普通对话的时限为此值的三倍。",
+    "admin.settings.maxPerHour": "每人每小时新建对话上限",
+    "admin.settings.maxPerHourHint": "防刷限制。已有对话不受影响。",
+    "admin.settings.autoAssign": "自动分配新对话",
+    "admin.settings.autoAssignHint": "分给值班中队列最短的成员。关闭则改为人工分派。",
     "admin.settings.macroLabel": "标签",
     "admin.settings.macroText": "回复内容",
     "admin.pay.onHold": "冻结至",
@@ -3113,6 +3159,7 @@ export const portalAdmin: AreaDict = {
     "team.login.title": "团队登录",
     "team.login.sub": "供 ParkGo 管理员与客服专员使用。",
     "team.login.submit": "登录",
+    "team.login.timedOut": "闲置 30 分钟后已自动退出 — 敞开的员工后台存在风险。请重新登录。",
     "team.login.note": "仅限员工账号。旅客和房东请从主登录页登录。",
     "team.login.forgot": "忘记密码？",
     "team.login.passwordSet": "密码已设置——请登录以继续。",

@@ -17,6 +17,10 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   supportOpenHour: 8,
   supportCloseHour: 20,
   supportReplyMinutes: 10,
+  // An urgent chat left 20 minutes without a reply pulls in the admins.
+  supportSlaMinutes: 20,
+  supportMaxPerHour: 6,
+  supportAutoAssign: true,
   announcementOn: false,
 };
 
@@ -42,6 +46,12 @@ function clean(patch: Partial<PlatformSettings>): Partial<PlatformSettings> {
     out.supportCloseHour = Math.min(23, int(patch.supportCloseHour));
   if (patch.supportReplyMinutes !== undefined)
     out.supportReplyMinutes = Math.min(1440, Math.max(1, int(patch.supportReplyMinutes)));
+  if (patch.supportSlaMinutes !== undefined)
+    out.supportSlaMinutes = Math.min(1440, Math.max(1, int(patch.supportSlaMinutes)));
+  if (patch.supportMaxPerHour !== undefined)
+    out.supportMaxPerHour = Math.min(100, Math.max(1, int(patch.supportMaxPerHour)));
+  if (patch.supportAutoAssign !== undefined)
+    out.supportAutoAssign = !!patch.supportAutoAssign;
   if (patch.supportWhatsapp !== undefined) {
     const digits = String(patch.supportWhatsapp).replace(/[^\d+]/g, "").slice(0, 20);
     out.supportWhatsapp = /^\+?\d{7,}$/.test(digits) ? digits : undefined;

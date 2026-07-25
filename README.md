@@ -114,9 +114,11 @@ and a live branch (Supabase) returning identical shapes.
 | Data | `src/lib/data/*` | In-memory seed | **Supabase Postgres** (schema + RLS in `supabase/migrations`) |
 | Auth | `src/lib/auth.ts` | Cookie session + demo logins | **Supabase Auth** (password + magic link), role-aware redirects |
 | Payments | `src/lib/stripe.ts`, `services/payments.ts` | Simulated charge + split | **Stripe Checkout + Connect** (host payouts to connected accounts, webhook confirm) |
-| Storage | `src/lib/storage.ts` | Token placeholders | **Supabase Storage** — public `space-photos`, private `kyc-docs` |
+| Storage | `src/lib/storage.ts` | Token placeholders | **Supabase Storage** — public `space-photos`, private `kyc-docs` and `support-files` (signed URLs, 1h) |
 | Maps | `components/portal/mapbox-map.tsx` / `live-map.tsx` | Schematic animated map | **Mapbox GL** price-pin + route maps (`NEXT_PUBLIC_MAPBOX_TOKEN`) |
 | Email | `src/lib/email.ts` | Console log | **Resend** (`RESEND_API_KEY`, `EMAIL_FROM`) |
+| Inbound email | `api/support/inbound` | Off | Mail provider webhook → support thread (`SUPPORT_INBOUND_SECRET`) |
+| Web push | `src/lib/push.ts` | Off | Staff push alerts (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) |
 | Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
 | Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
 | Transfer operator | `services/transfer-operator.ts` | Derived from bookings | Licensed operator REST API |
@@ -158,6 +160,7 @@ or paste each file into the **Supabase SQL editor**:
 | `0021_host_suite2.sql` | Seasonal pricing, bays, request-to-book, guest blocklist, co-hosts, listing views |
 | `0022_team_invites.sql` | Staff invite nonce (set-password links) |
 | `0023_support_suite.sql` | Support tickets: account link, priority, presence, read receipts, first-response timing, CSAT, `support-files` bucket |
+| `0024_support_suite2.sql` | Support notes, tags, snooze, SLA escalation, callbacks, visitor language, agent duty flag, `push_subscriptions`; `support-files` becomes private |
 
 RLS keeps each role to its own rows; the exact address and camera stream are
 released only to the paying traveller. KYC files live in the **private**
@@ -201,7 +204,7 @@ src/
     booking-actions.ts host-actions.ts user-actions.ts chat-actions.ts
     support-actions.ts support-intents.ts        (server actions & support brain)
   types/index.ts          Domain model (single source of truth)
-supabase/migrations/      Postgres schema + RLS (0001–0023)
+supabase/migrations/      Postgres schema + RLS (0001–0024)
 capacitor.config.ts       iOS/Android wrapper config
 ```
 
@@ -209,7 +212,7 @@ capacitor.config.ts       iOS/Android wrapper config
 
 ## Go-live checklist
 
-1. **Supabase**: create the project, run migrations **0001 → 0023**, run
+1. **Supabase**: create the project, run migrations **0001 → 0024**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
 2. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
    `NEXT_PUBLIC_SITE_URL`, Supabase URL + anon + service-role keys.
@@ -218,7 +221,14 @@ capacitor.config.ts       iOS/Android wrapper config
 4. **Email**: `RESEND_API_KEY` + `EMAIL_FROM`; mailboxes (info@, support@) in
    Microsoft 365.
 5. **Maps**: `NEXT_PUBLIC_MAPS_PROVIDER=mapbox` + `NEXT_PUBLIC_MAPBOX_TOKEN`.
-6. Optional: Sentry DSN, commission overrides
+6. **Inbound support email** (optional): set `SUPPORT_INBOUND_SECRET`, then
+   point the mail provider's inbound webhook at `/api/support/inbound` with
+   that value in an `X-ParkGo-Secret` header. Without the secret the endpoint
+   stays closed and returns 404.
+7. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
+   set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`
+   (a `mailto:` address). The button stays hidden until these exist.
+8. Optional: Sentry DSN, commission overrides
    (`PARKGO_COMMISSION_PARKING_BPS` / `_TRANSFER_BPS`).
 
 See `.env.example` for the full annotated list.

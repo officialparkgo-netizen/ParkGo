@@ -1,6 +1,7 @@
-import type { SupportMessage, SupportTicket } from "@/types";
+import type { SupportMessage, SupportNote, SupportTicket } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { sortQueue } from "@/lib/support-queue";
 import {
   addSupportTicket as addSupportTicketMock,
   getSupportTickets as getSupportTicketsMock,
@@ -32,7 +33,16 @@ type TicketRow = {
   agent_read_at?: string | null;
   csat?: number | null;
   csat_comment?: string | null;
+  notes?: SupportNote[] | null;
+  tags?: string[] | null;
+  snooze_until?: string | null;
+  escalated_at?: string | null;
+  phone?: string | null;
+  callback_at?: string | null;
+  locale?: string | null;
 };
+
+const LOCALES = ["en", "ur", "hi", "de", "zh"] as const;
 
 function fromRow(r: TicketRow): SupportTicket {
   return {
@@ -53,6 +63,15 @@ function fromRow(r: TicketRow): SupportTicket {
     agentReadAt: r.agent_read_at ?? undefined,
     csat: r.csat === 1 ? 1 : r.csat === -1 ? -1 : undefined,
     csatComment: r.csat_comment ?? undefined,
+    notes: Array.isArray(r.notes) ? r.notes : [],
+    tags: Array.isArray(r.tags) ? r.tags : [],
+    snoozeUntil: r.snooze_until ?? undefined,
+    escalatedAt: r.escalated_at ?? undefined,
+    phone: r.phone ?? undefined,
+    callbackAt: r.callback_at ?? undefined,
+    locale: (LOCALES as readonly string[]).includes(r.locale ?? "")
+      ? (r.locale as SupportTicket["locale"])
+      : undefined,
   };
 }
 
@@ -72,21 +91,17 @@ export async function createSupportTicket(
       transcript: entry.transcript,
       ...(entry.userId ? { user_id: entry.userId } : {}),
       ...(entry.priority ? { priority: entry.priority } : {}),
+      ...(entry.locale ? { locale: entry.locale } : {}),
+      ...(entry.phone ? { phone: entry.phone } : {}),
+      ...(entry.callbackAt ? { callback_at: entry.callbackAt } : {}),
+      ...(entry.assignedTo ? { assigned_to: entry.assignedTo } : {}),
+      ...(entry.tags?.length ? { tags: entry.tags } : {}),
     })
     .select(COLS)
     .single();
 
   if (error) throw new Error(`support ticket insert failed: ${error.message}`);
   return fromRow(data as TicketRow);
-}
-
-/** Open before resolved, urgent before normal, newest first. */
-function sortQueue(list: SupportTicket[]): SupportTicket[] {
-  const rank = (t: SupportTicket) =>
-    (t.status === "open" ? 0 : 2) + (t.priority === "urgent" ? 0 : 1);
-  return [...list].sort(
-    (a, b) => rank(a) - rank(b) || b.createdAt.localeCompare(a.createdAt)
-  );
 }
 
 export async function listSupportTickets(): Promise<SupportTicket[]> {
@@ -263,6 +278,141 @@ export async function setTicketCsat(
     .update({ csat: score, csat_comment: csatComment ?? null })
     .eq("id", id);
   return !error;
+}
+
+/**
+ * Agent-only note. Kept on the ticket rather than in the transcript so it can
+ * never be handed to the visitor by an endpoint that forgets to filter.
+ */
+export async function addTicketNote(
+  id: string,
+  by: string,
+  text: string
+): Promise<boolean> {
+  const note: SupportNote = {
+    at: new Date().toISOString(),
+    by: by.slice(0, 120),
+    text: text.trim().slice(0, 2000),
+  };
+  if (!note.text) return false;
+  if (!IS_LIVE) {
+    const { patchSupportTicket, getSupportTickets } = await import("@/lib/data/store");
+    const existing = getSupportTickets().find((x) => x.id === id)?.notes ?? [];
+    return !!patchSupportTicket(id, { notes: [...existing, note] });
+  }
+  try {
+    const { data } = await supabaseAdmin()
+      .from("support_tickets")
+      .select("notes")
+      .eq("id", id)
+      .maybeSingle();
+    if (!data) return false;
+    const notes = Array.isArray(data.notes) ? data.notes : [];
+    const { error } = await supabaseAdmin()
+      .from("support_tickets")
+      .update({ notes: [...notes, note] })
+      .eq("id", id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Replace the ticket's tags (already normalised by the caller). */
+export async function setTicketTags(id: string, tags: string[]): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { patchSupportTicket } = await import("@/lib/data/store");
+    return !!patchSupportTicket(id, { tags });
+  }
+  const { error } = await supabaseAdmin()
+    .from("support_tickets")
+    .update({ tags })
+    .eq("id", id);
+  return !error;
+}
+
+/** Park a ticket until later, or wake it now by passing null. */
+export async function setTicketSnooze(
+  id: string,
+  until: string | null
+): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { patchSupportTicket } = await import("@/lib/data/store");
+    return !!patchSupportTicket(id, { snoozeUntil: until ?? undefined });
+  }
+  const { error } = await supabaseAdmin()
+    .from("support_tickets")
+    .update({ snooze_until: until })
+    .eq("id", id);
+  return !error;
+}
+
+/** Stamp that a breached SLA has already been reported, so it fires once. */
+export async function markTicketEscalated(id: string): Promise<boolean> {
+  const at = new Date().toISOString();
+  if (!IS_LIVE) {
+    const { patchSupportTicket } = await import("@/lib/data/store");
+    return !!patchSupportTicket(id, { escalatedAt: at });
+  }
+  const { error } = await supabaseAdmin()
+    .from("support_tickets")
+    .update({ escalated_at: at })
+    .eq("id", id);
+  return !error;
+}
+
+/**
+ * How many chats this sender opened in the last hour — the spam brake reads
+ * this before creating another. Failure counts as zero: a broken limiter must
+ * never block a real customer from asking for help.
+ */
+export async function countRecentTicketsByEmail(email: string): Promise<number> {
+  const since = new Date(Date.now() - 3_600_000).toISOString();
+  const needle = email.trim().toLowerCase();
+  if (!needle) return 0;
+  if (!IS_LIVE) {
+    const { getSupportTickets } = await import("@/lib/data/store");
+    return getSupportTickets().filter(
+      (x) => x.email.toLowerCase() === needle && x.createdAt >= since
+    ).length;
+  }
+  try {
+    const { count } = await supabaseAdmin()
+      .from("support_tickets")
+      .select("id", { count: "exact", head: true })
+      .ilike("email", needle)
+      .gte("created_at", since);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Every past chat from this person — context an agent should not have to ask for. */
+export async function listTicketsForVisitor(
+  email: string,
+  userId?: string
+): Promise<SupportTicket[]> {
+  const needle = email.trim().toLowerCase();
+  if (!IS_LIVE) {
+    const { getSupportTickets } = await import("@/lib/data/store");
+    return getSupportTickets().filter(
+      (x) => (userId && x.userId === userId) || x.email.toLowerCase() === needle
+    );
+  }
+  try {
+    const filters = [`email.ilike.${needle.replace(/[,()]/g, "")}`];
+    if (userId) filters.push(`user_id.eq.${userId}`);
+    const { data } = await supabaseAdmin()
+      .from("support_tickets")
+      .select(COLS)
+      .or(filters.join(","))
+      .order("created_at", { ascending: false })
+      .limit(20);
+    return (data ?? []).map((r) => fromRow(r as TicketRow));
+  } catch {
+    return [];
+  }
 }
 
 /** Agents can bump a ticket up (or back down) the queue by hand. */

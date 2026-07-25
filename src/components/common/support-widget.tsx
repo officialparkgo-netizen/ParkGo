@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Headset, Paperclip, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Headset, Paperclip, PhoneCall, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import type { SupportMessage } from "@/types";
 import { SUPPORT_TOPICS, matchSupportIntent } from "@/lib/support-intents";
 import { answerBookingIntent, detectBookingIntent } from "@/lib/support-bot";
@@ -9,7 +10,7 @@ import { formatWait } from "@/lib/support-hours";
 import { submitSupportTicket } from "@/lib/support-actions";
 import { useT } from "@/lib/i18n/client";
 
-type Stage = "topics" | "feedback" | "escalate" | "sending" | "live";
+type Stage = "topics" | "feedback" | "escalate" | "callback" | "sending" | "live";
 
 interface ThreadState {
   ref: string;
@@ -43,8 +44,14 @@ interface TicketPayload {
  * with escalation to a human agent (stored ticket + email to the team)
  * whenever it can't resolve the question. Mounted globally.
  */
+/** Pages where hesitation usually means a question, not a change of heart. */
+const PROACTIVE_PATHS = [/^\/app\/book\//, /^\/checkout/];
+const PROACTIVE_DELAY_MS = 60_000;
+const PROACTIVE_FLAG = "parkgo_support_nudged";
+
 export function SupportWidget() {
   const t = useT();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [stage, setStage] = useState<Stage>("topics");
@@ -58,7 +65,11 @@ export function SupportWidget() {
   const [uploadError, setUploadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [rated, setRated] = useState(false);
+  const [csatComment, setCsatComment] = useState("");
+  const [phone, setPhone] = useState("");
+  const [rateLimited, setRateLimited] = useState(false);
   const [seen, setSeen] = useState(false);
+  const [proactive, setProactive] = useState(false);
   /** Deep link offered under an account-aware answer ("Open booking"). */
   const [botLink, setBotLink] = useState<{ href: string; label: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -257,7 +268,9 @@ export function SupportWidget() {
       await fetch("/api/support/thread", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ csat: score }),
+        // A thumbs-down on its own says something went wrong but not what,
+        // so the comment rides along with the score.
+        body: JSON.stringify({ csat: score, csatComment: csatComment.trim() || undefined }),
       });
     } catch {
       // the rating is a nicety; never block the visitor on it
@@ -276,14 +289,21 @@ export function SupportWidget() {
     setStage("escalate");
   }
 
-  async function startTicket(withName: string, withEmail: string) {
+  async function startTicket(withName: string, withEmail: string, withPhone?: string) {
     setStage("sending");
+    setRateLimited(false);
     const result = await submitSupportTicket({
       name: withName,
       email: withEmail,
-      topic: lastTopic,
+      topic: withPhone ? "callback" : lastTopic,
       transcript: messages,
+      ...(withPhone ? { phone: withPhone } : {}),
     });
+    if (result.rateLimited) {
+      setRateLimited(true);
+      setStage("escalate");
+      return;
+    }
     if (result.ok && result.ref) {
       setSentRef(result.ref);
       setThread({
@@ -315,16 +335,56 @@ export function SupportWidget() {
     await startTicket(name, email);
   }
 
+  /**
+   * Someone stranded at a barrier does not want to type. Take a number and a
+   * one-line reason; the ticket lands tagged "callback" with the phone on it.
+   */
+  async function onRequestCallback(e: React.FormEvent) {
+    e.preventDefault();
+    const digits = phone.replace(/[^\d+]/g, "");
+    if (digits.length < 7) return;
+    const who = ctx?.me?.email || email;
+    if (!who.includes("@")) return;
+    await startTicket(ctx?.me?.name || name, who, digits);
+  }
+
   // A signed-in customer should never be asked who they are — open the live
   // thread the moment the assistant gives up. Guarded so a re-render mid-await
   // can't file the same ticket twice.
   const autoFiled = useRef(false);
   useEffect(() => {
     if (stage !== "escalate" || sentRef || !ctx?.me || autoFiled.current) return;
+    if (rateLimited) return;
     autoFiled.current = true;
     void startTicket(ctx.me.name, ctx.me.email);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage, sentRef, ctx?.me]);
+  }, [stage, sentRef, ctx?.me, rateLimited]);
+
+  /**
+   * Sitting on the checkout for a minute usually means something is unclear.
+   * Offer help once per session — a nudge that keeps reappearing is an advert,
+   * not support, so the flag persists even after the panel is closed.
+   */
+  useEffect(() => {
+    if (!pathname || open) return;
+    if (!PROACTIVE_PATHS.some((re) => re.test(pathname))) return;
+    try {
+      if (sessionStorage.getItem(PROACTIVE_FLAG)) return;
+    } catch {
+      return; // no session storage (private mode) — don't risk nagging
+    }
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem(PROACTIVE_FLAG, "1");
+      } catch {
+        /* best-effort */
+      }
+      setSeen(true);
+      setOpen(true);
+      setProactive(true);
+    }, PROACTIVE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [pathname, open]);
 
   const desk = ctx?.desk;
   const waMessage = thread?.ref ? `ParkGo ${thread.ref}` : "ParkGo";
@@ -417,6 +477,15 @@ export function SupportWidget() {
 
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto bg-navy-50/50 p-3">
+            {proactive && stage !== "live" && (
+              <p
+                className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-800"
+                data-proactive
+              >
+                {t("support.proactive")}
+              </p>
+            )}
+
             {desk && !desk.open && stage !== "live" && (
               <p className="rounded-xl border border-navy-100 bg-white px-3 py-2 text-[11px] text-navy-500">
                 {t("support.desk.closedNote")}
@@ -499,22 +568,33 @@ export function SupportWidget() {
                   {rated || thread.csat ? t("support.csat.thanks") : t("support.csat.ask")}
                 </p>
                 {!rated && !thread.csat && (
-                  <div className="flex justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => rate(1)}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-go-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
-                    >
-                      <ThumbsUp className="h-3.5 w-3.5" aria-hidden /> {t("support.csat.good")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => rate(-1)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-navy-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-navy-700 hover:bg-navy-50"
-                    >
-                      <ThumbsDown className="h-3.5 w-3.5" aria-hidden /> {t("support.csat.bad")}
-                    </button>
-                  </div>
+                  <>
+                    <input
+                      type="text"
+                      value={csatComment}
+                      onChange={(e) => setCsatComment(e.target.value)}
+                      maxLength={500}
+                      placeholder={t("support.csat.commentPh")}
+                      aria-label={t("support.csat.commentPh")}
+                      className="h-9 w-full rounded-xl border border-navy-200 px-3 text-xs focus:border-brand-400 focus:outline-none"
+                    />
+                    <div className="flex justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => rate(1)}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-go-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                      >
+                        <ThumbsUp className="h-3.5 w-3.5" aria-hidden /> {t("support.csat.good")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => rate(-1)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-navy-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-navy-700 hover:bg-navy-50"
+                      >
+                        <ThumbsDown className="h-3.5 w-3.5" aria-hidden /> {t("support.csat.bad")}
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -553,7 +633,7 @@ export function SupportWidget() {
               </div>
             )}
 
-            {(stage === "escalate" || stage === "sending") && !sentRef && !ctx?.me && (
+            {(stage === "escalate" || (stage === "sending" && !phone)) && !sentRef && !ctx?.me && (
               <form onSubmit={onSubmitTicket} className="space-y-2 rounded-2xl border border-navy-100 bg-white p-3">
                 <input
                   type="text"
@@ -576,6 +656,61 @@ export function SupportWidget() {
                   className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 text-sm font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-60"
                 >
                   {stage === "sending" ? t("support.sending") : t("support.submit")}
+                </button>
+              </form>
+            )}
+
+            {rateLimited && (
+              <p
+                className="rounded-xl border border-accent-200 bg-accent-50 px-3 py-2 text-[11px] font-semibold text-accent-700"
+                data-rate-limited
+              >
+                {t("support.tooMany")}
+              </p>
+            )}
+
+            {/* Stranded at a barrier? Leave a number instead of typing. */}
+            {(stage === "escalate" || stage === "feedback") && !sentRef && (
+              <button
+                type="button"
+                onClick={() => setStage("callback")}
+                data-callback-open
+                className="inline-flex items-center gap-1.5 rounded-full border border-navy-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-navy-700 hover:bg-navy-50"
+              >
+                <PhoneCall className="h-3.5 w-3.5" aria-hidden /> {t("support.callback.ask")}
+              </button>
+            )}
+
+            {stage === "callback" && !sentRef && (
+              <form
+                onSubmit={onRequestCallback}
+                data-callback-form
+                className="space-y-2 rounded-2xl border border-navy-100 bg-white p-3"
+              >
+                <p className="text-xs text-navy-600">{t("support.callback.intro")}</p>
+                {!ctx?.me && (
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t("support.email")}
+                    className="h-10 w-full rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  />
+                )}
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={t("support.callback.phone")}
+                  className="h-10 w-full rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-navy-900 text-sm font-semibold text-white hover:bg-navy-700"
+                >
+                  <PhoneCall className="h-4 w-4" aria-hidden /> {t("support.callback.submit")}
                 </button>
               </form>
             )}

@@ -212,6 +212,42 @@ export default async function AdminSettingsPage({
               </div>
             </div>
             <p className="mt-2 text-xs text-navy-400">{t("admin.settings.deskHint")}</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="st-sla">{t("admin.settings.sla")}</Label>
+                <Input
+                  id="st-sla"
+                  name="supportSlaMinutes"
+                  type="number"
+                  min="1"
+                  max="1440"
+                  defaultValue={s.supportSlaMinutes}
+                />
+                <p className="mt-1 text-xs text-navy-400">{t("admin.settings.slaHint")}</p>
+              </div>
+              <div>
+                <Label htmlFor="st-cap">{t("admin.settings.maxPerHour")}</Label>
+                <Input
+                  id="st-cap"
+                  name="supportMaxPerHour"
+                  type="number"
+                  min="1"
+                  max="100"
+                  defaultValue={s.supportMaxPerHour}
+                />
+                <p className="mt-1 text-xs text-navy-400">{t("admin.settings.maxPerHourHint")}</p>
+              </div>
+            </div>
+            <label className="mt-4 flex items-center gap-2 text-sm font-semibold text-navy-700">
+              <input
+                type="checkbox"
+                name="supportAutoAssign"
+                defaultChecked={s.supportAutoAssign}
+                className="h-4 w-4 rounded border-navy-300 text-brand-600 focus:ring-brand-400"
+              />
+              {t("admin.settings.autoAssign")}
+            </label>
+            <p className="mt-1 text-xs text-navy-400">{t("admin.settings.autoAssignHint")}</p>
             <div className="mt-4">
               <Label htmlFor="st-wa">{t("admin.settings.whatsapp")}</Label>
               <Input
