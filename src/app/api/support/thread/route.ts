@@ -1,12 +1,19 @@
 import { NextRequest } from "next/server";
+import type { SupportMessage, SupportTicket } from "@/types";
 import { getCurrentUser } from "@/lib/auth";
 import {
   appendSupportThreadMessage,
   getSupportTicketById,
+  markTicketRead,
+  setTicketCsat,
+  setTicketTyping,
 } from "@/lib/data/support";
 import { parseSupportToken, supportRef, SUPPORT_COOKIE } from "@/lib/support-thread";
 
 export const dynamic = "force-dynamic";
+
+/** A "typing…" stamp older than this is treated as a closed tab, not a typist. */
+const TYPING_TTL_MS = 8000;
 
 /**
  * Live support chat. Admins pass ?id= and write as "agent"; visitors are
@@ -24,21 +31,78 @@ async function resolveAccess(request: NextRequest) {
   return ticketId ? { ticketId, role: "user" as const, user: null } : null;
 }
 
+/**
+ * The thread as one side sees it. "Typing" only ever reports the *other* side
+ * — nobody needs telling they are typing — and only while the stamp is fresh.
+ * "Seen" is the other side's read receipt.
+ */
+function view(ticket: SupportTicket, as: "user" | "agent") {
+  const other = as === "user" ? "agent" : "user";
+  const typingFresh =
+    ticket.typingBy === other &&
+    !!ticket.typingAt &&
+    Date.now() - +new Date(ticket.typingAt) < TYPING_TTL_MS;
+  return {
+    id: ticket.id,
+    ref: supportRef(ticket.id),
+    status: ticket.status,
+    priority: ticket.priority ?? "normal",
+    assignedTo: ticket.assignedTo ?? null,
+    name: ticket.name,
+    transcript: ticket.transcript,
+    typing: typingFresh,
+    seenAt: (as === "user" ? ticket.agentReadAt : ticket.userReadAt) ?? null,
+    csat: ticket.csat ?? null,
+  };
+}
+
+/**
+ * Polling *is* reading — but only write a receipt when there is something new
+ * to read, otherwise every open thread would hammer the database once per
+ * poll tick just to restate what it already said.
+ */
+function hasUnread(ticket: SupportTicket, as: "user" | "agent"): boolean {
+  const other = as === "user" ? "agent" : "user";
+  const last = ticket.transcript[ticket.transcript.length - 1];
+  // Nothing to acknowledge unless the other side spoke last.
+  if (!last || last.role !== other) return false;
+  const readAt = as === "user" ? ticket.userReadAt : ticket.agentReadAt;
+  if (!readAt) return true;
+  // Pre-attachment messages carry no timestamp; one receipt is enough for them.
+  return !!last.at && +new Date(last.at) > +new Date(readAt);
+}
+
 export async function GET(request: NextRequest) {
   const access = await resolveAccess(request);
   if (!access) return Response.json({ error: "not found" }, { status: 404 });
   const ticket = await getSupportTicketById(access.ticketId);
   if (!ticket) return Response.json({ error: "not found" }, { status: 404 });
-  return Response.json({
-    ticket: {
-      id: ticket.id,
-      ref: supportRef(ticket.id),
-      status: ticket.status,
-      assignedTo: ticket.assignedTo ?? null,
-      name: ticket.name,
-      transcript: ticket.transcript,
-    },
-  });
+  if (hasUnread(ticket, access.role)) {
+    await markTicketRead(access.ticketId, access.role).catch(() => {});
+  }
+  return Response.json({ ticket: view(ticket, access.role) });
+}
+
+/** Notify the visitor by email that the team has replied (best-effort). */
+async function notifyVisitor(ticketId: string, text: string) {
+  try {
+    const ticket = await getSupportTicketById(ticketId);
+    const { isEmailConfigured, sendEmail, emailShell } = await import("@/lib/email");
+    if (!ticket?.email || !isEmailConfigured()) return;
+    await sendEmail(
+      ticket.email,
+      `ParkGo support · ${supportRef(ticket.id)}`,
+      emailShell(
+        `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">New reply from our team</h2>
+         <p style="margin:0;white-space:pre-line">${text
+           .replace(/&/g, "&amp;")
+           .replace(/</g, "&lt;")}</p>
+         <p style="margin:12px 0 0;font-size:12px;color:#878F96">Open the chat bubble on parkgo.ai to reply.</p>`
+      )
+    ).catch(() => {});
+  } catch {
+    // best-effort only
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -46,53 +110,79 @@ export async function POST(request: NextRequest) {
   if (!access) return Response.json({ error: "not found" }, { status: 404 });
 
   let text = "";
-  try {
-    const body = (await request.json()) as { text?: unknown };
-    text = typeof body.text === "string" ? body.text : "";
-  } catch {
-    // fall through to the empty guard
-  }
-  if (!text.trim()) return Response.json({ error: "empty" }, { status: 400 });
+  let attachment: SupportMessage["attachment"];
 
-  const ok = await appendSupportThreadMessage(access.ticketId, access.role, text);
+  if (request.headers.get("content-type")?.includes("multipart/form-data")) {
+    const form = await request.formData().catch(() => null);
+    if (!form) return Response.json({ error: "empty" }, { status: 400 });
+    text = String(form.get("text") || "");
+    const file = form.get("file");
+    if (file instanceof File) {
+      const { uploadSupportFile } = await import("@/lib/storage");
+      attachment = (await uploadSupportFile(file, access.ticketId)) ?? undefined;
+      // A rejected file (wrong type, too big) must not post as a bare message.
+      if (!attachment) return Response.json({ error: "file" }, { status: 400 });
+    }
+  } else {
+    let body: {
+      text?: unknown;
+      typing?: unknown;
+      read?: unknown;
+      csat?: unknown;
+      csatComment?: unknown;
+    } = {};
+    try {
+      body = (await request.json()) as typeof body;
+    } catch {
+      // fall through to the empty guard
+    }
+
+    // Presence and receipts are pings, not messages — answer and stop.
+    if (body.typing === true) {
+      await setTicketTyping(access.ticketId, access.role);
+      return Response.json({ ok: true });
+    }
+    if (body.read === true) {
+      await markTicketRead(access.ticketId, access.role);
+      return Response.json({ ok: true });
+    }
+    if (body.csat === 1 || body.csat === -1) {
+      // Only the visitor rates the service; agents can't grade themselves.
+      if (access.role !== "user") return Response.json({ error: "forbidden" }, { status: 403 });
+      await setTicketCsat(
+        access.ticketId,
+        body.csat,
+        typeof body.csatComment === "string" ? body.csatComment : undefined
+      );
+      const ticket = await getSupportTicketById(access.ticketId);
+      return Response.json({ ticket: ticket && view(ticket, access.role) });
+    }
+
+    text = typeof body.text === "string" ? body.text : "";
+  }
+
+  if (!text.trim() && !attachment) return Response.json({ error: "empty" }, { status: 400 });
+
+  const ok = await appendSupportThreadMessage(
+    access.ticketId,
+    access.role,
+    text,
+    attachment
+  );
   if (!ok) return Response.json({ error: "failed" }, { status: 500 });
 
   if (access.role === "agent") {
-    // Log it and nudge the visitor by email, best-effort.
     try {
       const { recordAdminAction } = await import("@/lib/data/admin-actions");
       if (access.user) {
         await recordAdminAction(access.user, "support.replied", "user", access.ticketId);
       }
-      const ticket = await getSupportTicketById(access.ticketId);
-      const { isEmailConfigured, sendEmail, emailShell } = await import("@/lib/email");
-      if (ticket?.email && isEmailConfigured()) {
-        await sendEmail(
-          ticket.email,
-          `ParkGo support · ${supportRef(ticket.id)}`,
-          emailShell(
-            `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">New reply from our team</h2>
-             <p style="margin:0;white-space:pre-line">${text
-               .replace(/&/g, "&amp;")
-               .replace(/</g, "&lt;")}</p>
-             <p style="margin:12px 0 0;font-size:12px;color:#878F96">Open the chat bubble on parkgo.ai to reply.</p>`
-          )
-        ).catch(() => {});
-      }
     } catch {
       // best-effort extras only
     }
+    await notifyVisitor(access.ticketId, text || "📎 Attachment");
   }
 
   const ticket = await getSupportTicketById(access.ticketId);
-  return Response.json({
-    ticket: ticket && {
-      id: ticket.id,
-      ref: supportRef(ticket.id),
-      status: ticket.status,
-      assignedTo: ticket.assignedTo ?? null,
-      name: ticket.name,
-      transcript: ticket.transcript,
-    },
-  });
+  return Response.json({ ticket: ticket && view(ticket, access.role) });
 }

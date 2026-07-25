@@ -30,6 +30,7 @@ import type {
   Verification,
   VerificationStatus,
   WaitlistEntry,
+  SupportMessage,
   SupportTicket,
   TransferMessage,
 } from "@/types";
@@ -878,10 +879,20 @@ export function assignSupportTicket(id: string, adminName: string): SupportTicke
 /** Append an agent reply to a ticket transcript. */
 export function appendSupportMessage(
   id: string,
-  msg: { role: "bot" | "user" | "agent"; text: string }
+  msg: SupportMessage
 ): SupportTicket | undefined {
   const t = supportTickets.find((x) => x.id === id);
   if (t) t.transcript = [...t.transcript, msg];
+  return t;
+}
+
+/** Patch loose ticket fields (presence, receipts, rating, priority). */
+export function patchSupportTicket(
+  id: string,
+  patch: Partial<SupportTicket>
+): SupportTicket | undefined {
+  const t = supportTickets.find((x) => x.id === id);
+  if (t) Object.assign(t, patch);
   return t;
 }
 

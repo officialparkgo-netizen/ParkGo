@@ -13,6 +13,10 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   // Money sits with ParkGo for a short protection window after pick-up —
   // damage claims are checked before the host payout unlocks.
   payoutHoldDays: 3,
+  // Support desk: 08:00–20:00 London, typical first reply in 10 minutes.
+  supportOpenHour: 8,
+  supportCloseHour: 20,
+  supportReplyMinutes: 10,
   announcementOn: false,
 };
 
@@ -32,6 +36,27 @@ function clean(patch: Partial<PlatformSettings>): Partial<PlatformSettings> {
     out.cancelFeeBps = Math.min(10_000, int(patch.cancelFeeBps));
   if (patch.payoutHoldDays !== undefined)
     out.payoutHoldDays = Math.min(14, int(patch.payoutHoldDays));
+  if (patch.supportOpenHour !== undefined)
+    out.supportOpenHour = Math.min(23, int(patch.supportOpenHour));
+  if (patch.supportCloseHour !== undefined)
+    out.supportCloseHour = Math.min(23, int(patch.supportCloseHour));
+  if (patch.supportReplyMinutes !== undefined)
+    out.supportReplyMinutes = Math.min(1440, Math.max(1, int(patch.supportReplyMinutes)));
+  if (patch.supportWhatsapp !== undefined) {
+    const digits = String(patch.supportWhatsapp).replace(/[^\d+]/g, "").slice(0, 20);
+    out.supportWhatsapp = /^\+?\d{7,}$/.test(digits) ? digits : undefined;
+  }
+  if (patch.supportMacros !== undefined) {
+    out.supportMacros = (Array.isArray(patch.supportMacros) ? patch.supportMacros : [])
+      .filter((m) => m && typeof m.label === "string" && typeof m.text === "string")
+      .slice(0, 20)
+      .map((m, i) => ({
+        id: String(m.id || `m${i + 1}`).slice(0, 20),
+        label: String(m.label).trim().slice(0, 60),
+        text: String(m.text).trim().slice(0, 1000),
+      }))
+      .filter((m) => m.label && m.text);
+  }
   if (patch.adminAlertEmail !== undefined)
     out.adminAlertEmail = String(patch.adminAlertEmail).trim().slice(0, 200) || undefined;
   if (patch.opsWebhookUrl !== undefined) {

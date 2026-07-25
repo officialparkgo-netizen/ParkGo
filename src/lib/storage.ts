@@ -94,6 +94,49 @@ export async function uploadAvatar(file: File, userId: string): Promise<string |
   return storage.getPublicUrl(path).data.publicUrl;
 }
 
+/** Attachment types a visitor may share in the support chat. */
+const SUPPORT_DOC_TYPES = [
+  "application/pdf",
+  "text/plain",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const MAX_SUPPORT_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Upload a support-chat attachment (photo of a blocked gate, a receipt, a
+ * ticket PDF). Public bucket: the agent has to open it from the admin console
+ * and the visitor from a browser that may not be signed in, so a signed URL
+ * would expire mid-conversation. Paths are random UUIDs, so they aren't
+ * guessable. Mock mode inlines a data URL, keeping the demo self-contained.
+ */
+export async function uploadSupportFile(
+  file: File,
+  ticketKey: string
+): Promise<{ url: string; name: string; kind: "image" | "file" } | null> {
+  if (!file || file.size === 0) return null;
+  const isImage = file.type.startsWith("image/");
+  if (!isImage && !SUPPORT_DOC_TYPES.includes(file.type)) return null;
+  if (file.size > MAX_SUPPORT_BYTES) return null;
+
+  const name = (file.name || "attachment").slice(0, 120);
+  const kind = isImage ? "image" : "file";
+
+  if (!IS_LIVE) {
+    const buf = Buffer.from(await file.arrayBuffer());
+    return { url: `data:${file.type};base64,${buf.toString("base64")}`, name, kind };
+  }
+
+  await ensureBucket("support-files", true);
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const storage = supabaseAdmin().storage.from("support-files");
+  const path = `${ticketKey}/${crypto.randomUUID()}.${extFor(file)}`;
+  const buf = Buffer.from(await file.arrayBuffer());
+  const { error } = await storage.upload(path, buf, { contentType: file.type, upsert: false });
+  if (error) return null;
+  return { url: storage.getPublicUrl(path).data.publicUrl, name, kind };
+}
+
 /** Upload a private KYC document; returns the storage path (not a URL). */
 export async function uploadKycDoc(file: File, hostId: string): Promise<string | null> {
   if (!IS_LIVE) return `mock/${file.name}`;

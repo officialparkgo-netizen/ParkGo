@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import type { SupportMessage } from "@/types";
-import { requireRole } from "@/lib/auth";
+import { getCurrentUser, requireRole } from "@/lib/auth";
 import { createSupportTicket, setSupportTicketResolved } from "@/lib/data/support";
+import { detectPriority } from "@/lib/support-hours";
 import { isEmailConfigured, sendEmail, emailShell } from "@/lib/email";
 import {
   makeSupportToken,
@@ -31,12 +32,17 @@ export interface SupportSubmitResult {
 /** Escalate a chat to a human agent: store the ticket + email the team. */
 export async function submitSupportTicket(input: {
   name?: string;
-  email: string;
+  email?: string;
   topic?: string;
   transcript: SupportMessage[];
 }): Promise<SupportSubmitResult> {
-  const email = String(input.email || "").trim();
+  // A signed-in customer never has to retype who they are, and the ticket is
+  // tied to their account so the agent can see the booking behind the question.
+  // Their session — not the posted form — is the source of truth for identity.
+  const me = await getCurrentUser().catch(() => null);
+  const email = String((me?.email || input.email) ?? "").trim();
   if (!email.includes("@")) return { ok: false };
+  const name = String((me?.name || input.name) ?? "").trim().slice(0, 120);
 
   const transcript = (Array.isArray(input.transcript) ? input.transcript : [])
     .slice(-30)
@@ -45,14 +51,24 @@ export async function submitSupportTicket(input: {
       text: String(m.text || "").slice(0, 2000),
     }));
 
+  // "My car is stuck behind the gate" jumps the queue ahead of "how do I get
+  // a VAT receipt" — read from what the visitor actually typed.
+  const priority = detectPriority(
+    transcript.filter((m) => m.role === "user").map((m) => m.text).join(" ")
+  );
+
   try {
     const { sendOpsAlert } = await import("@/lib/ops-alerts");
-    await sendOpsAlert(`🎧 New support ticket from ${String(input.name || email)}`);
+    await sendOpsAlert(
+      `${priority === "urgent" ? "🚨 URGENT" : "🎧 New"} support ticket from ${name || email}`
+    );
     const ticket = await createSupportTicket({
-      name: String(input.name || "").trim().slice(0, 120),
+      name,
       email: email.slice(0, 200),
       topic: String(input.topic || "other").slice(0, 40),
       transcript,
+      userId: me?.id,
+      priority,
     });
 
     // Forward to the team inbox — best-effort, the ticket is already stored.

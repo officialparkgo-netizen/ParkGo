@@ -273,6 +273,16 @@ export async function savePlatformSettingsAction(formData: FormData) {
     cancelWindowHours: num("cancelWindowHours"),
     cancelFeeBps: Math.round(num("cancelFeePct") * 100),
     payoutHoldDays: num("payoutHoldDays"),
+    supportOpenHour: num("supportOpenHour"),
+    supportCloseHour: num("supportCloseHour"),
+    supportReplyMinutes: num("supportReplyMinutes"),
+    supportWhatsapp: String(formData.get("supportWhatsapp") || ""),
+    // Macros arrive as parallel label/text rows; blank rows are dropped by clean().
+    supportMacros: formData.getAll("macroLabel").map((label, i) => ({
+      id: `m${i + 1}`,
+      label: String(label),
+      text: String(formData.getAll("macroText")[i] ?? ""),
+    })),
     adminAlertEmail: String(formData.get("adminAlertEmail") || ""),
     opsWebhookUrl: String(formData.get("opsWebhookUrl") || ""),
     announcement: String(formData.get("announcement") || ""),
@@ -366,6 +376,18 @@ export async function assignTicketToAction(formData: FormData) {
       // best-effort
     }
   }
+  revalidatePath("/admin/support");
+}
+
+/** Bump a ticket to the top of the queue (or back down) by hand. */
+export async function setTicketPriorityAction(formData: FormData) {
+  const admin = await requireRole("admin");
+  const id = String(formData.get("ticketId") || "");
+  const priority = formData.get("priority") === "urgent" ? "urgent" : "normal";
+  if (!id) return;
+  const { setTicketPriority } = await import("@/lib/data/support");
+  await setTicketPriority(id, priority);
+  await recordAdminAction(admin, "support.priority", "user", id, priority);
   revalidatePath("/admin/support");
 }
 

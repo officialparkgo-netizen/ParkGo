@@ -1,6 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Clock, Headset, UserCheck, UserPlus } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  Clock,
+  Headset,
+  ThumbsDown,
+  ThumbsUp,
+  UserCheck,
+  UserPlus,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -14,12 +23,16 @@ import {
   inviteSupportAgentAction,
   removeSupportAgentAction,
   resendTeamInviteAction,
+  setTicketPriorityAction,
 } from "@/lib/admin-suite-actions";
 import { CopyLinkButton } from "@/components/common/copy-link-button";
 import { inviteLinkFor } from "@/lib/team-invite-mail";
 import { listAdminUsers } from "@/lib/data/users";
 import { SupportLiveThread } from "@/components/admin/support-live-thread";
-import { formatDateTime } from "@/lib/utils";
+import { supportStats } from "@/lib/support-stats";
+import { getPlatformSettings } from "@/lib/data/settings";
+import { listBookingsForTraveller } from "@/lib/data/bookings";
+import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -32,24 +45,60 @@ export const metadata: Metadata = pageMetadata({
 export default async function AdminSupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ replied?: string; team?: string }>;
+  searchParams: Promise<{ replied?: string; team?: string; show?: string }>;
 }) {
   const user = await requireRole("admin");
   const { t } = await getI18n();
-  const { replied, team } = await searchParams;
+  const { replied, team, show } = await searchParams;
   const teamMembers = await listAdminUsers().catch(() => []);
   const isFullAdmin = user.adminScope !== "support";
-  const templates = [
-    { id: "looking", label: t("admin.macros.looking.label"), text: t("admin.macros.looking.body") },
-    { id: "refund", label: t("admin.macros.refund.label"), text: t("admin.macros.refund.body") },
-    { id: "docs", label: t("admin.macros.docs.label"), text: t("admin.macros.docs.body") },
-  ];
+  // Canned replies come from settings once an admin has written their own;
+  // until then the three translated built-ins keep the dropdown useful.
+  const settings = await getPlatformSettings().catch(() => null);
+  const templates = settings?.supportMacros?.length
+    ? settings.supportMacros
+    : [
+        { id: "looking", label: t("admin.macros.looking.label"), text: t("admin.macros.looking.body") },
+        { id: "refund", label: t("admin.macros.refund.label"), text: t("admin.macros.refund.body") },
+        { id: "docs", label: t("admin.macros.docs.label"), text: t("admin.macros.docs.body") },
+      ];
+  const threadLabels = {
+    pick: t("admin.macros.pick"),
+    send: t("admin.macros.send"),
+    team: t("admin.sup.you"),
+    typing: t("admin.sup.typing"),
+    seen: t("admin.sup.seen"),
+    attach: t("support.attach"),
+    attachError: t("support.attachError"),
+    notify: t("admin.sup.notify"),
+    notifyOn: t("admin.sup.notifyOn"),
+    newReply: t("admin.sup.newReply"),
+  };
 
-  const supportTickets = await listSupportTickets().catch(() => []);
+  const allTickets = await listSupportTickets().catch(() => []);
+  const stats = supportStats(allTickets);
+  const filter = show === "open" || show === "urgent" ? show : "all";
+  const supportTickets = allTickets
+    .filter((x) => (filter === "open" ? x.status === "open" : true))
+    .filter((x) => (filter === "urgent" ? x.priority === "urgent" : true))
+    .slice(0, 20);
+
+  // Booking context for the visible tickets that belong to a real account —
+  // an agent should never have to ask "what did you book?".
+  const bookingsByUser = new Map<string, Awaited<ReturnType<typeof listBookingsForTraveller>>>();
+  await Promise.all(
+    [...new Set(supportTickets.map((x) => x.userId).filter((x): x is string => !!x))].map(
+      async (id) => {
+        const list = await listBookingsForTraveller(id).catch(() => []);
+        bookingsByUser.set(id, list.slice(0, 3));
+      }
+    )
+  );
   const ageOf = (iso: string) => {
     const h = Math.floor((Date.now() - +new Date(iso)) / 3_600_000);
     return h < 1 ? "<1h" : h < 48 ? `${h}h` : `${Math.floor(h / 24)}d`;
   };
+  const filterHref = (v: string) => (v === "all" ? "/admin/support" : `/admin/support?show=${v}`);
   const isOverdue = (tk: (typeof supportTickets)[number]) =>
     tk.status === "open" && Date.now() - +new Date(tk.createdAt) > 24 * 3_600_000;
 
@@ -101,21 +150,101 @@ export default async function AdminSupportPage({
           </div>
         )}
 
+        {/* How the desk is doing — read straight off the queue below. */}
+        <section id="stats">
+          <h3 className="mb-1 flex items-center gap-2 text-lg font-bold text-navy-900">
+            <BarChart3 className="h-5 w-5 text-navy-500" /> {t("admin.sup.stats")}
+          </h3>
+          <p className="mb-3 text-sm text-navy-500">{t("admin.sup.statsSub")}</p>
+          <Card className="p-4" data-support-stats>
+            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+              {[
+                { k: t("admin.sup.statVolume"), v: String(stats.total) },
+                { k: t("admin.sup.statOpen"), v: String(stats.open) },
+                {
+                  k: t("admin.sup.statFirstReply"),
+                  v:
+                    stats.avgFirstReplyMinutes === null
+                      ? "—"
+                      : `${stats.avgFirstReplyMinutes}m`,
+                },
+                {
+                  k: t("admin.sup.statCsat"),
+                  v: stats.csatPct === null ? "—" : `${stats.csatPct}%`,
+                },
+                {
+                  k: t("admin.sup.statTopic"),
+                  v: stats.topTopic ? stats.topTopic.topic : "—",
+                },
+              ].map((cell) => (
+                <div key={cell.k}>
+                  <dt className="text-xs font-semibold text-navy-400">{cell.k}</dt>
+                  <dd className="text-xl font-bold text-navy-900">{cell.v}</dd>
+                </div>
+              ))}
+            </dl>
+            {stats.perAgent.length > 0 && (
+              <div className="mt-4 border-t border-navy-100 pt-3">
+                <p className="mb-2 text-xs font-semibold text-navy-400">
+                  {t("admin.sup.perAgent")}
+                </p>
+                <ul className="flex flex-wrap gap-2">
+                  {stats.perAgent.map((a) => (
+                    <li key={a.name}>
+                      <Badge tone="navy">
+                        {a.name} · {a.resolved}/{a.total}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
+        </section>
+
         <section id="support">
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
               <Headset className="h-5 w-5 text-navy-500" /> {t("admin.support.title")}
             </h3>
-            <Badge tone={supportTickets.some((x) => x.status === "open") ? "accent" : "neutral"}>
-              {supportTickets.filter((x) => x.status === "open").length} {t("admin.support.openBadge")}
+            <Badge tone={stats.open > 0 ? "accent" : "neutral"}>
+              {stats.open} {t("admin.support.openBadge")}
             </Badge>
+            {stats.urgent > 0 && (
+              <Badge tone="danger">
+                <AlertTriangle className="h-3 w-3" /> {stats.urgent} {t("admin.sup.urgent")}
+              </Badge>
+            )}
           </div>
           <p className="mb-3 text-sm text-navy-500">{t("admin.support.sub")}</p>
+
+          {/* Filter — plain links so the queue stays server-rendered. */}
+          <div className="mb-3 flex flex-wrap items-center gap-2" data-queue-filter>
+            <span className="text-xs font-semibold text-navy-400">{t("admin.sup.filter")}</span>
+            {[
+              { id: "all", label: t("admin.sup.filterAll") },
+              { id: "open", label: t("admin.sup.filterOpen") },
+              { id: "urgent", label: t("admin.sup.filterUrgent") },
+            ].map((opt) => (
+              <Link
+                key={opt.id}
+                href={filterHref(opt.id)}
+                aria-current={filter === opt.id ? "page" : undefined}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  filter === opt.id
+                    ? "bg-navy-900 text-white"
+                    : "border border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
+                }`}
+              >
+                {opt.label}
+              </Link>
+            ))}
+          </div>
           <Card className="divide-y divide-navy-100">
             {supportTickets.length === 0 && (
               <div className="p-6 text-center text-navy-500">{t("admin.support.empty")}</div>
             )}
-            {supportTickets.slice(0, 20).map((ticket) => (
+            {supportTickets.map((ticket) => (
               <div key={ticket.id} className="p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -124,15 +253,31 @@ export default async function AdminSupportPage({
                       <span className="ms-2 text-xs font-normal text-navy-400">{ticket.email}</span>
                     </div>
                     <div className="text-xs text-navy-400">
-                      {ticket.topic} · {formatDateTime(ticket.createdAt)}
+                      {ticket.topic} · {formatDateTime(ticket.createdAt)} ·{" "}
+                      {ticket.userId ? t("admin.sup.account") : t("admin.sup.guest")}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-navy-400">
                       <Clock className="h-3 w-3" /> {ageOf(ticket.createdAt)}
                     </span>
+                    {ticket.priority === "urgent" && (
+                      <Badge tone="danger" data-urgent>
+                        <AlertTriangle className="h-3 w-3" /> {t("admin.sup.urgent")}
+                      </Badge>
+                    )}
                     {isOverdue(ticket) && (
                       <Badge tone="danger">{t("admin.sla.overdue")}</Badge>
+                    )}
+                    {ticket.csat && (
+                      <Badge tone={ticket.csat === 1 ? "go" : "danger"} data-csat-badge>
+                        {ticket.csat === 1 ? (
+                          <ThumbsUp className="h-3 w-3" />
+                        ) : (
+                          <ThumbsDown className="h-3 w-3" />
+                        )}
+                        {t("admin.sup.rated")}
+                      </Badge>
                     )}
                     {ticket.assignedTo && (
                       <Badge tone="navy">
@@ -165,6 +310,24 @@ export default async function AdminSupportPage({
                           className={buttonVariants({ variant: "outline", size: "sm" })}
                         >
                           <UserCheck className="h-3.5 w-3.5" /> {t("admin.team.assign")}
+                        </button>
+                      </form>
+                    )}
+                    {ticket.status === "open" && (
+                      <form action={setTicketPriorityAction}>
+                        <input type="hidden" name="ticketId" value={ticket.id} />
+                        <input
+                          type="hidden"
+                          name="priority"
+                          value={ticket.priority === "urgent" ? "normal" : "urgent"}
+                        />
+                        <button
+                          type="submit"
+                          className={buttonVariants({ variant: "outline", size: "sm" })}
+                        >
+                          {ticket.priority === "urgent"
+                            ? t("admin.sup.markNormal")
+                            : t("admin.sup.markUrgent")}
                         </button>
                       </form>
                     )}
@@ -231,16 +394,35 @@ export default async function AdminSupportPage({
                     </div>
                   </details>
                 )}
+                {/* Who they are and what they booked — no tab-hopping. */}
+                {ticket.userId && (
+                  <div className="mt-2 rounded-xl bg-navy-50 px-3 py-2" data-booking-context>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-navy-400">
+                      {t("admin.sup.recentBookings")}
+                    </p>
+                    {(bookingsByUser.get(ticket.userId) ?? []).length === 0 ? (
+                      <p className="text-xs text-navy-500">{t("admin.sup.noBookings")}</p>
+                    ) : (
+                      <ul className="mt-1 space-y-0.5">
+                        {(bookingsByUser.get(ticket.userId) ?? []).map((b) => (
+                          <li key={b.id} className="text-xs text-navy-700">
+                            <span className="font-semibold text-navy-900">{b.reference}</span> ·{" "}
+                            {formatDate(b.startAt)} – {formatDate(b.endAt)} · {b.status} ·{" "}
+                            {formatMoney(b.price.total, b.price.currency)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
                 {ticket.status === "open" && (
                   <SupportLiveThread
                     ticketId={ticket.id}
                     initial={ticket.transcript}
                     templates={templates}
                     labels={{
-                      pick: t("admin.macros.pick"),
-                      send: t("admin.macros.send"),
+                      ...threadLabels,
                       visitor: ticket.name || t("admin.support.visitor"),
-                      team: t("admin.sup.you"),
                     }}
                   />
                 )}

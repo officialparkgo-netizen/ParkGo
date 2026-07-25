@@ -457,6 +457,15 @@ export interface PlatformSettings {
   cancelFeeBps: number;
   /** Days after pick-up before a host payout can be released (protection window). */
   payoutHoldDays: number;
+  /** Support desk opening hours (0–23, London time). Equal values = 24/7. */
+  supportOpenHour: number;
+  supportCloseHour: number;
+  /** Typical first-reply time shown in the chat widget, minutes. */
+  supportReplyMinutes: number;
+  /** WhatsApp number (international format) offered as a fallback channel. */
+  supportWhatsapp?: string;
+  /** Editable canned replies for agents. */
+  supportMacros?: { id: string; label: string; text: string }[];
   /** Overrides ADMIN_ALERT_EMAIL for admin notification emails. */
   adminAlertEmail?: string;
   /** Slack-compatible webhook for instant ops alerts. */
@@ -598,6 +607,10 @@ export interface TransferMessage {
 export interface SupportMessage {
   role: "bot" | "user" | "agent";
   text: string;
+  /** ISO timestamp — absent on messages written before attachments landed. */
+  at?: ISODateString;
+  /** Image or document shared in the chat. */
+  attachment?: { url: string; name: string; kind: "image" | "file" };
 }
 
 /** A chat escalated to a human agent. */
@@ -611,4 +624,19 @@ export interface SupportTicket {
   createdAt: ISODateString;
   /** Admin who picked the ticket up (display name). */
   assignedTo?: string;
+  /** Signed-in account behind the chat (lets agents see their bookings). */
+  userId?: UUID;
+  /** Urgent tickets sort to the top of the queue. */
+  priority?: "normal" | "urgent";
+  /** When the team first replied — powers the response-time stat. */
+  firstResponseAt?: ISODateString;
+  /** Live-chat presence: who typed last and when. */
+  typingBy?: "user" | "agent";
+  typingAt?: ISODateString;
+  /** Read receipts per side. */
+  userReadAt?: ISODateString;
+  agentReadAt?: ISODateString;
+  /** Post-resolution rating: 1 = happy, -1 = unhappy. */
+  csat?: 1 | -1;
+  csatComment?: string;
 }

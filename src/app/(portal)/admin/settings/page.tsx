@@ -4,6 +4,7 @@ import {
   Banknote,
   Bell,
   CheckCircle2,
+  Headset,
   Info,
   Mail,
   Megaphone,
@@ -42,6 +43,16 @@ export default async function AdminSettingsPage({
   const { saved, digest } = await searchParams;
   const s = await getPlatformSettings();
   const emailOk = isEmailConfigured();
+  // Saved macros first, then blank slots — always at least one empty row to
+  // add the next one without a JS-driven "add row" button.
+  const savedMacros = s.supportMacros ?? [];
+  const macroRows = [
+    ...savedMacros,
+    ...Array.from({ length: Math.max(1, 5 - savedMacros.length) }, () => ({
+      label: "",
+      text: "",
+    })),
+  ].slice(0, 6);
 
   return (
     <PortalShell user={user} nav={adminNav} title="admin.settings.title">
@@ -155,6 +166,89 @@ export default async function AdminSettingsPage({
                 <p className="mt-1 text-xs text-navy-400">
                   {t("admin.settings.payoutHoldHint")}
                 </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Support desk */}
+          <Card className="p-6" data-support-settings>
+            <h3 className="mb-1 flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Headset className="h-5 w-5 text-navy-500" /> {t("admin.settings.desk")}
+            </h3>
+            <p className="mb-4 text-sm text-navy-500">{t("admin.settings.deskSub")}</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <Label htmlFor="st-open">{t("admin.settings.deskOpen")}</Label>
+                <Input
+                  id="st-open"
+                  name="supportOpenHour"
+                  type="number"
+                  min="0"
+                  max="23"
+                  defaultValue={s.supportOpenHour}
+                />
+              </div>
+              <div>
+                <Label htmlFor="st-close">{t("admin.settings.deskClose")}</Label>
+                <Input
+                  id="st-close"
+                  name="supportCloseHour"
+                  type="number"
+                  min="0"
+                  max="23"
+                  defaultValue={s.supportCloseHour}
+                />
+              </div>
+              <div>
+                <Label htmlFor="st-reply">{t("admin.settings.deskReply")}</Label>
+                <Input
+                  id="st-reply"
+                  name="supportReplyMinutes"
+                  type="number"
+                  min="1"
+                  max="1440"
+                  defaultValue={s.supportReplyMinutes}
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-navy-400">{t("admin.settings.deskHint")}</p>
+            <div className="mt-4">
+              <Label htmlFor="st-wa">{t("admin.settings.whatsapp")}</Label>
+              <Input
+                id="st-wa"
+                name="supportWhatsapp"
+                type="tel"
+                placeholder="+447700900123"
+                defaultValue={s.supportWhatsapp ?? ""}
+              />
+              <p className="mt-1 text-xs text-navy-400">{t("admin.settings.whatsappHint")}</p>
+            </div>
+
+            {/* Canned replies — five slots, blank ones are simply not saved. */}
+            <div className="mt-5 border-t border-navy-100 pt-4">
+              <h4 className="mb-1 text-sm font-bold text-navy-900">
+                {t("admin.settings.macros")}
+              </h4>
+              <p className="mb-3 text-xs text-navy-400">{t("admin.settings.macrosSub")}</p>
+              <div className="space-y-2">
+                {macroRows.map((m, i) => (
+                  <div key={i} className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+                    <Input
+                      name="macroLabel"
+                      maxLength={60}
+                      placeholder={t("admin.settings.macroLabel")}
+                      defaultValue={m.label}
+                      aria-label={`${t("admin.settings.macroLabel")} ${i + 1}`}
+                    />
+                    <Input
+                      name="macroText"
+                      maxLength={1000}
+                      placeholder={t("admin.settings.macroText")}
+                      defaultValue={m.text}
+                      aria-label={`${t("admin.settings.macroText")} ${i + 1}`}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </Card>
