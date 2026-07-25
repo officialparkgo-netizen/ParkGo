@@ -47,7 +47,7 @@ export default async function Admin2faPage({
       <Logo />
       <Card className="mt-6 w-full max-w-md p-7">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
             <ShieldCheck className="h-5 w-5" aria-hidden />
           </span>
           <div>

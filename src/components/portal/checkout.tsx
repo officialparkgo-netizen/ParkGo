@@ -406,7 +406,7 @@ function Line({
         onChange={(e) => onChange?.(e.target.checked)}
         className="h-5 w-5 rounded border-navy-300 text-brand-500 focus:ring-brand-400"
       />
-      <Icon className="h-5 w-5 text-brand-600" />
+      <Icon className="h-5 w-5 text-brand-700" />
       <span className="flex-1">
         <span className="block text-sm font-bold text-navy-900">{title}</span>
         <span className="block text-xs text-navy-500">{subtitle}</span>

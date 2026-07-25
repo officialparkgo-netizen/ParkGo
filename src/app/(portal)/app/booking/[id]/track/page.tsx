@@ -234,7 +234,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
               </Card>
             ) : booking.bundle.transfer ? (
               <Card className="flex items-start gap-3 p-4 text-sm text-navy-600">
-                <Car className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                <Car className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" />
                 {t("app.track.transferPending")}
               </Card>
             ) : (
@@ -250,7 +250,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
           <div className="space-y-4">
             <div>
               <h3 className="mb-2 flex items-center gap-2 font-bold text-navy-900">
-                <CameraIcon className="h-4 w-4 text-brand-600" /> {t("app.track.liveCamera")}
+                <CameraIcon className="h-4 w-4 text-brand-700" /> {t("app.track.liveCamera")}
               </h3>
               {space.liveCamera ? (
                 <CameraView

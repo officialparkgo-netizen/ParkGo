@@ -126,7 +126,7 @@ export function AuthForm({ next }: { next?: string }) {
             type="submit"
             disabled={resetPending || !email}
             title={!email ? "Enter your email above first" : undefined}
-            className="text-sm font-semibold text-brand-600 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-sm font-semibold text-brand-700 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {resetPending ? "Sending…" : "Forgot password?"}
           </button>

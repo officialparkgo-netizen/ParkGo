@@ -46,7 +46,7 @@ export default async function PassPage({
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-4">
       <header className="flex items-center justify-between">
         <span className="text-lg font-extrabold tracking-tight text-navy-900">
-          Park<span className="text-brand-600">Go</span>
+          Park<span className="text-brand-700">Go</span>
         </span>
         <OfflinePass
           labels={{
@@ -112,7 +112,7 @@ export default async function PassPage({
       {via === "owner" ? (
         <Link
           href={`/app/booking/${booking.id}`}
-          className="text-center text-sm font-semibold text-brand-600"
+          className="text-center text-sm font-semibold text-brand-700"
         >
           {t("pass.fullBooking")} →
         </Link>

@@ -57,7 +57,7 @@ export default async function TeamLoginPage({
         <p className="mt-4 text-center text-xs text-navy-400">{t("team.login.note")}</p>
         {IS_LIVE && (
           <p className="mt-2 text-center text-xs">
-            <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+            <Link href="/login" className="font-semibold text-brand-700 hover:text-brand-700">
               {t("team.login.forgot")}
             </Link>
           </p>

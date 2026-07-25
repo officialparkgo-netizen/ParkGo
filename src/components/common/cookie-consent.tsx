@@ -49,14 +49,14 @@ export function CookieConsent() {
       className="fixed bottom-4 start-4 z-50 max-w-md rounded-2xl border border-navy-200 bg-white p-5 shadow-card-lg max-sm:inset-x-4 max-sm:bottom-4 max-sm:max-w-none"
     >
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
           <Cookie className="h-5 w-5" aria-hidden />
         </span>
         <div>
           <p className="text-sm font-bold text-navy-900">{t("cookie.title")}</p>
           <p className="mt-1 text-sm leading-relaxed text-navy-600">
             {t("cookie.body")}{" "}
-            <Link href="/privacy" className="font-semibold text-brand-600 underline hover:text-brand-700">
+            <Link href="/privacy" className="font-semibold text-brand-700 underline hover:text-brand-700">
               {t("cookie.more")}
             </Link>
           </p>

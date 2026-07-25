@@ -73,7 +73,7 @@ export default async function HostDashboard({
     return (
       <PortalShell user={user} nav={hostNav} title="host.pageTitle">
         <div className="mx-auto max-w-xl py-12 text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
             <Warehouse className="h-8 w-8" />
           </div>
           <h2 className="text-2xl font-extrabold text-navy-900">{t("host.onboard.title")}</h2>
@@ -313,7 +313,7 @@ export default async function HostDashboard({
                 <CalendarCheck className="h-5 w-5" />
               </span>
               <div>
-                <div className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                <div className="text-xs font-semibold uppercase tracking-wide text-brand-700">
                   {t("host.nextArrival")}
                 </div>
                 <div className="font-bold text-navy-900">

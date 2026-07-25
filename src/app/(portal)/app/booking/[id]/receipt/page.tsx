@@ -53,7 +53,7 @@ export default async function BookingReceiptPage({
       <div className="mb-6 flex items-center justify-between gap-3 print:hidden">
         <Link
           href={`/app/booking/${booking.id}`}
-          className="text-sm font-semibold text-brand-600"
+          className="text-sm font-semibold text-brand-700"
         >
           ← {t("app.booking.title")} {booking.reference}
         </Link>

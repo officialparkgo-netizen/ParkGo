@@ -37,7 +37,7 @@ export default async function WelcomePage({
       <Logo />
       <Card className="mt-6 w-full max-w-lg p-7">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
             <Sparkles className="h-5 w-5" aria-hidden />
           </span>
           <div>
@@ -82,7 +82,7 @@ export default async function WelcomePage({
           {user.role === "traveller" && (
             <div className="rounded-2xl border border-navy-100 p-4">
               <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
-                <Car className="h-4 w-4 text-brand-600" /> {t("account.vehicle.title")}
+                <Car className="h-4 w-4 text-brand-700" /> {t("account.vehicle.title")}
               </h3>
               <p className="mb-3 mt-0.5 text-xs text-navy-500">{t("account.vehicle.sub")}</p>
               <div className="grid gap-3 sm:grid-cols-2">

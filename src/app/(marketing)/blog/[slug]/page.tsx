@@ -85,7 +85,7 @@ export default async function BlogPostPage({
           <div className="mx-auto max-w-2xl">
             <Link
               href="/blog"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-500 hover:text-brand-600"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-500 hover:text-brand-700"
             >
               <ArrowLeft className="h-4 w-4" /> {t("blog.backToBlog")}
             </Link>

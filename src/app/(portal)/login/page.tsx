@@ -73,7 +73,7 @@ export default async function LoginPage({
           </span>
           <Link
             href="/"
-            className="ms-auto inline-flex items-center gap-1.5 text-sm font-semibold text-navy-600 hover:text-navy-900"
+            className="-me-2 ms-auto inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-navy-600 transition-colors hover:bg-navy-50 hover:text-navy-900"
           >
             <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" /> {t("nav.backToSite")}
           </Link>
@@ -122,7 +122,7 @@ export default async function LoginPage({
                     return (
                       <Card key={demo.role} className="p-5 transition-shadow hover:shadow-card-lg">
                         <div className="flex items-start gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                             <Icon className="h-5 w-5" />
                           </div>
                           <div className="flex-1">
@@ -153,7 +153,7 @@ export default async function LoginPage({
             <p className="mt-8 text-center text-sm text-navy-400">
               <Link
                 href="/team/login"
-                className="font-semibold text-navy-500 underline-offset-2 hover:text-navy-800 hover:underline"
+                className="-mx-2 inline-block rounded-lg px-2 py-1.5 font-semibold text-navy-500 underline-offset-2 transition-colors hover:text-navy-800 hover:underline"
               >
                 {t("login.staffLink")}
               </Link>

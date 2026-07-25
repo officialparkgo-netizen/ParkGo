@@ -29,7 +29,7 @@ export default async function NewSpacePage() {
   return (
     <PortalShell user={user} nav={hostNav} title="host.new.pageTitle">
       <div className="mx-auto max-w-2xl">
-        <Link href="/host" className="text-sm font-semibold text-brand-600">
+        <Link href="/host" className="text-sm font-semibold text-brand-700">
           ← {t("host.new.back")}
         </Link>
         <Card className="mt-3 p-6">

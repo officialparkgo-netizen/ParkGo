@@ -95,13 +95,13 @@ export default async function AdminTodayPage() {
   return (
     <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="admin.today.title">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link href="/admin" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="flex items-center gap-2 text-xl font-extrabold text-navy-900">
-            <CalendarClock className="h-5 w-5 text-brand-600" /> {t("admin.today.title")}
+            <CalendarClock className="h-5 w-5 text-brand-700" /> {t("admin.today.title")}
           </h2>
           <span className="text-sm text-navy-500">
             {new Date().toLocaleDateString("en-GB", {
@@ -165,7 +165,7 @@ export default async function AdminTodayPage() {
         <section id="departures">
           <div className="mb-3 flex items-center gap-2">
             <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-              <LogOut className="h-5 w-5 text-brand-600" /> {t("admin.today.departures")}
+              <LogOut className="h-5 w-5 text-brand-700" /> {t("admin.today.departures")}
             </h3>
             <Badge tone={departures.length > 0 ? "brand" : "neutral"}>
               {departures.length}

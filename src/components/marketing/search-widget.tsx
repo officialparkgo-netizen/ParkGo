@@ -447,7 +447,7 @@ function Chip({
           : "border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
       }`}
     >
-      <Icon className={`h-4 w-4 ${active ? "text-brand-600" : "text-navy-400"}`} aria-hidden />
+      <Icon className={`h-4 w-4 ${active ? "text-brand-700" : "text-navy-400"}`} aria-hidden />
       {children}
     </button>
   );

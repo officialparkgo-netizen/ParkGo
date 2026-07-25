@@ -129,7 +129,7 @@ export default async function SpaceDetail({
     <PortalShell user={user} nav={travellerNav} title={space.title}>
       <div className="mx-auto max-w-5xl space-y-6 pb-24 lg:pb-0">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/app/search" className="text-sm font-semibold text-brand-600">
+          <Link href="/app/search" className="text-sm font-semibold text-brand-700">
             ← {t("common.backToResults")}
           </Link>
           <SaveSpaceButton
@@ -277,7 +277,7 @@ export default async function SpaceDetail({
 
             <Card className="p-5">
               <h3 className="flex items-center gap-2 font-bold text-navy-900">
-                <Ruler className="h-4 w-4 text-brand-600" /> {t("app.space.accessRules")}
+                <Ruler className="h-4 w-4 text-brand-700" /> {t("app.space.accessRules")}
               </h3>
               <p className="mt-2 text-sm text-navy-600">{space.accessRules}</p>
               <p className="mt-3 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-500">
@@ -463,7 +463,7 @@ function Feature({
 }) {
   return (
     <div className="rounded-xl border border-navy-100 bg-white p-3 text-center">
-      <Icon className="mx-auto h-5 w-5 text-brand-600" />
+      <Icon className="mx-auto h-5 w-5 text-brand-700" />
       <div className="mt-1 text-sm font-bold text-navy-900">{label}</div>
       <div className="text-xs text-navy-400">{sub}</div>
     </div>

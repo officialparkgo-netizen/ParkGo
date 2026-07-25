@@ -145,7 +145,7 @@ export default async function NotificationsPage() {
                   className="group flex items-start gap-3 p-4 transition-colors hover:bg-navy-50/60"
                 >
                   {row}
-                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-navy-300 transition-colors group-hover:text-brand-600 rtl:-scale-x-100" />
+                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-navy-300 transition-colors group-hover:text-brand-700 rtl:-scale-x-100" />
                 </Link>
               ) : (
                 <div key={n.id} className="flex items-start gap-3 p-4">

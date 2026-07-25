@@ -192,7 +192,7 @@ export default async function AccountPage({
         {/* Editable profile details */}
         <Card className="p-5">
           <h2 className="flex items-center gap-2 font-bold text-navy-900">
-            <UserRound className="h-4 w-4 text-brand-600" /> {t("account.profile.title")}
+            <UserRound className="h-4 w-4 text-brand-700" /> {t("account.profile.title")}
           </h2>
           <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.profile.sub")}</p>
           <form action={updateOwnProfileAction} className="space-y-4">
@@ -404,7 +404,7 @@ export default async function AccountPage({
           <Card className="p-5">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="flex items-center gap-2 font-bold text-navy-900">
-                <Warehouse className="h-4 w-4 text-brand-600" /> {t("host.section.yourProfile")}
+                <Warehouse className="h-4 w-4 text-brand-700" /> {t("host.section.yourProfile")}
               </h2>
               <Badge tone="go">
                 <CheckCircle2 className="h-3.5 w-3.5" /> {t("host.profileShownToGuests")}
@@ -453,7 +453,7 @@ export default async function AccountPage({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="flex items-center gap-2 font-bold text-navy-900">
-                  <ShieldCheck className="h-4 w-4 text-brand-600" /> {t("account.twofa.title")}
+                  <ShieldCheck className="h-4 w-4 text-brand-700" /> {t("account.twofa.title")}
                 </h2>
                 <p className="mt-1 max-w-md text-sm text-navy-500">{t("account.twofa.sub")}</p>
               </div>
@@ -488,7 +488,7 @@ export default async function AccountPage({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="flex items-center gap-2 font-bold text-navy-900">
-                  <BellRing className="h-4 w-4 text-brand-600" /> {t("account.alerts.title")}
+                  <BellRing className="h-4 w-4 text-brand-700" /> {t("account.alerts.title")}
                 </h2>
                 <p className="mt-1 max-w-md text-sm text-navy-500">{t("account.alerts.sub")}</p>
               </div>
@@ -519,7 +519,7 @@ export default async function AccountPage({
         {/* Change password */}
         <Card className="p-5">
           <h2 className="flex items-center gap-2 font-bold text-navy-900">
-            <LockKeyhole className="h-4 w-4 text-brand-600" /> {t("account.password.title")}
+            <LockKeyhole className="h-4 w-4 text-brand-700" /> {t("account.password.title")}
           </h2>
           <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.password.sub")}</p>
           <PasswordForm />
@@ -528,7 +528,7 @@ export default async function AccountPage({
         {/* Privacy & data (UK GDPR) */}
         <Card className="p-5">
           <h2 className="flex items-center gap-2 font-bold text-navy-900">
-            <ShieldCheck className="h-4 w-4 text-brand-600" /> {t("account.privacy.title")}
+            <ShieldCheck className="h-4 w-4 text-brand-700" /> {t("account.privacy.title")}
           </h2>
           <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.privacy.sub")}</p>
           <div className="flex flex-wrap gap-2">

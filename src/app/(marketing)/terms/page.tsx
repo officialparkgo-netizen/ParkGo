@@ -25,7 +25,7 @@ export default async function TermsPage() {
           <div className="mx-auto max-w-3xl">
             <Eyebrow>{t("footer.legal")}</Eyebrow>
             <h1 className="flex items-center gap-3 text-4xl font-extrabold tracking-tight text-navy-900">
-              <ScrollText className="h-9 w-9 text-brand-600" /> {t("terms.hero.title")}
+              <ScrollText className="h-9 w-9 text-brand-700" /> {t("terms.hero.title")}
             </h1>
             <p className="mt-4 text-lg text-navy-600">
               {t("terms.hero.intro")}
@@ -110,7 +110,7 @@ export default async function TermsPage() {
           <Section title={t("terms.disputes.title")}>
             <p>
               {t("terms.disputes.pre")}{" "}
-              <Link href="/contact" className="font-semibold text-brand-600">
+              <Link href="/contact" className="font-semibold text-brand-700">
                 {t("terms.disputes.link")}
               </Link>{" "}
               {t("terms.disputes.post")}

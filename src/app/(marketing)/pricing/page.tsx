@@ -149,7 +149,7 @@ export default async function PricingPage() {
           {/* Example bundle receipt */}
           <Card className="p-7">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-brand-600" />
+              <CreditCard className="h-5 w-5 text-brand-700" />
               <span className="text-sm font-bold uppercase tracking-wide text-navy-500">
                 {t("pricing.receipt.label")}
               </span>
@@ -207,7 +207,7 @@ export default async function PricingPage() {
                     ? "bg-go-50 text-go-600"
                     : e.tone === "accent"
                       ? "bg-accent-50 text-accent-500"
-                      : "bg-brand-50 text-brand-600"
+                      : "bg-brand-50 text-brand-700"
                 }`}
               >
                 <e.icon className="h-5 w-5" />
@@ -252,7 +252,7 @@ export default async function PricingPage() {
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           <Card className="p-7">
             <div className="flex items-center gap-3">
-              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                 <Building2 className="h-5 w-5" />
               </div>
               <h3 className="text-xl font-bold text-navy-900">{t("pricing.corporate.title")}</h3>
@@ -327,7 +327,7 @@ export default async function PricingPage() {
               <div
                 className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${
                   f.tone === "brand"
-                    ? "bg-brand-50 text-brand-600"
+                    ? "bg-brand-50 text-brand-700"
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"

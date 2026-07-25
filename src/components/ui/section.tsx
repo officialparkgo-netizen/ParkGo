@@ -23,7 +23,7 @@ export function Eyebrow({ className, ...props }: React.HTMLAttributes<HTMLParagr
   return (
     <p
       className={cn(
-        "mb-3 text-sm font-bold uppercase tracking-wide text-brand-600",
+        "mb-3 text-sm font-bold uppercase tracking-wide text-brand-700",
         className
       )}
       {...props}

@@ -36,7 +36,7 @@ export default async function AdminBroadcastPage({
   return (
     <PortalShell user={user} nav={adminNav} title="admin.broadcast.title">
       <div className="mx-auto max-w-2xl space-y-6">
-        <Link href="/admin" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 

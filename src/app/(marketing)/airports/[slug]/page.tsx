@@ -152,7 +152,7 @@ export default async function AirportPage({
           <nav aria-label="Breadcrumb" className="mb-6 text-sm text-navy-400">
             <ol className="flex flex-wrap items-center gap-1.5">
               <li>
-                <Link href="/" className="hover:text-brand-600">
+                <Link href="/" className="hover:text-brand-700">
                   {t("airport.home")}
                 </Link>
               </li>
@@ -404,7 +404,7 @@ export default async function AirportPage({
               <div
                 className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${
                   f.tone === "brand"
-                    ? "bg-brand-50 text-brand-600"
+                    ? "bg-brand-50 text-brand-700"
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"

@@ -158,14 +158,14 @@ export default async function HostTodayPage() {
     <PortalShell user={user} nav={nav} title="host.today.title">
       <div className="mx-auto max-w-3xl space-y-6">
         {!user.cohostHostId && (
-          <Link href="/host" className="text-sm font-semibold text-brand-600">
+          <Link href="/host" className="text-sm font-semibold text-brand-700">
             ← {t("common.backToDash")}
           </Link>
         )}
 
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="flex items-center gap-2 text-xl font-extrabold text-navy-900">
-            <CalendarClock className="h-5 w-5 text-brand-600" /> {t("host.today.title")}
+            <CalendarClock className="h-5 w-5 text-brand-700" /> {t("host.today.title")}
           </h2>
           <span className="text-sm text-navy-500">
             {new Date().toLocaleDateString("en-GB", {
@@ -266,7 +266,7 @@ export default async function HostTodayPage() {
         <section id="departures">
           <div className="mb-3 flex items-center gap-2">
             <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-              <LogOut className="h-5 w-5 text-brand-600" /> {t("host.today.departures")}
+              <LogOut className="h-5 w-5 text-brand-700" /> {t("host.today.departures")}
             </h3>
             <Badge tone={departures.length > 0 ? "brand" : "neutral"}>
               {departures.length}
@@ -290,7 +290,7 @@ export default async function HostTodayPage() {
           <section id="bays">
             <div className="mb-3 flex items-center gap-2">
               <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-                <ParkingSquare className="h-5 w-5 text-brand-600" /> {t("host.bays.title")}
+                <ParkingSquare className="h-5 w-5 text-brand-700" /> {t("host.bays.title")}
               </h3>
             </div>
             <div className="space-y-3">

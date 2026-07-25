@@ -93,7 +93,7 @@ export default async function AdminUserDetailPage({
   return (
     <PortalShell user={admin} nav={admin.adminScope === "support" ? supportAgentNav : adminNav} title="nav.users">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link href="/admin/users" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin/users" className="text-sm font-semibold text-brand-700">
           ← {t("nav.users")}
         </Link>
 

@@ -51,7 +51,7 @@ export function HandoverPanel({
   return (
     <div className="rounded-2xl border border-navy-100 bg-white p-5 shadow-card">
       <div className="flex items-center gap-2 font-bold text-navy-900">
-        <BadgeCheck className="h-5 w-5 text-brand-600" /> {t("app.handover.verifiedHandover")}
+        <BadgeCheck className="h-5 w-5 text-brand-700" /> {t("app.handover.verifiedHandover")}
       </div>
       <p className="mt-1 text-sm text-navy-500">
         {t("app.handover.enterCode")}

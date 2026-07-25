@@ -57,7 +57,7 @@ export default async function AdminVerificationPage() {
   return (
     <PortalShell user={user} nav={adminNav} title="admin.section.verificationQueue">
       <div className="mx-auto max-w-4xl space-y-8">
-        <Link href="/admin" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 

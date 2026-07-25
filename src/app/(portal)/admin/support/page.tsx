@@ -161,7 +161,7 @@ export default async function AdminSupportPage({
   return (
     <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="admin.support.title">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link href="/admin" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
@@ -543,7 +543,7 @@ export default async function AdminSupportPage({
                     open ones already show everything in the live thread. */}
                 {ticket.status === "resolved" && ticket.transcript.length > 0 && (
                   <details className="mt-3 border-t border-navy-100 pt-3" data-chat-archive>
-                    <summary className="cursor-pointer text-xs font-semibold text-brand-600 hover:text-brand-700">
+                    <summary className="cursor-pointer text-xs font-semibold text-brand-700 hover:text-brand-700">
                       {t("admin.sup.viewChat")} ({ticket.transcript.length})
                     </summary>
                     <div className="mt-2 max-h-72 space-y-1.5 overflow-y-auto">
@@ -658,7 +658,7 @@ export default async function AdminSupportPage({
                         <input type="hidden" name="userId" value={m.id} />
                         <button
                           type="submit"
-                          className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                          className="text-xs font-semibold text-brand-700 hover:text-brand-700"
                         >
                           {t("admin.team.resend")}
                         </button>

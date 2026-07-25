@@ -94,13 +94,13 @@ export default async function HostAnalyticsPage() {
   return (
     <PortalShell user={user} nav={hostNav} title="host.analytics.title">
       <div className="mx-auto max-w-4xl space-y-5">
-        <Link href="/host" className="text-sm font-semibold text-brand-600">
+        <Link href="/host" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
         <div className="flex items-center gap-2">
           <h2 className="flex items-center gap-2 text-xl font-extrabold text-navy-900">
-            <ChartSpline className="h-5 w-5 text-brand-600" /> {t("host.analytics.title")}
+            <ChartSpline className="h-5 w-5 text-brand-700" /> {t("host.analytics.title")}
           </h2>
         </div>
         <p className="text-sm text-navy-500">{t("host.analytics.sub")}</p>

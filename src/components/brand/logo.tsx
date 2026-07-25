@@ -65,8 +65,11 @@ export function Logo({
     </span>
   );
   if (href === null) return content;
+  // inline-flex, not the default inline: an inline anchor collapses to the
+  // line box, so the tappable area was 19px tall even though the mark renders
+  // at 36px. The logo looked bigger than it was clickable.
   return (
-    <Link href={href} aria-label="ParkGo home">
+    <Link href={href} aria-label="ParkGo home" className="inline-flex">
       {content}
     </Link>
   );

@@ -163,7 +163,7 @@ export default async function AboutPage() {
               <div
                 className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${
                   f.tone === "brand"
-                    ? "bg-brand-50 text-brand-600"
+                    ? "bg-brand-50 text-brand-700"
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
@@ -203,13 +203,13 @@ export default async function AboutPage() {
                 {initials(m.name)}
               </div>
               <h3 className="mt-4 text-lg font-bold text-navy-900">{m.name}</h3>
-              <p className="text-sm text-brand-600">{m.role}</p>
+              <p className="text-sm text-brand-700">{m.role}</p>
             </Card>
           ))}
         </div>
         <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-sm text-navy-500">
           <Users className="h-4 w-4" /> {t("about.team.growing")}{" "}
-          <Link href="/contact" className="font-semibold text-brand-600 hover:text-brand-700">
+          <Link href="/contact" className="font-semibold text-brand-700 hover:text-brand-700">
             {t("about.team.contactPage")}
           </Link>
           .

@@ -171,7 +171,7 @@ export default async function HostsPage({
               <div
                 className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${
                   f.tone === "brand"
-                    ? "bg-brand-50 text-brand-600"
+                    ? "bg-brand-50 text-brand-700"
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
@@ -230,7 +230,7 @@ export default async function HostsPage({
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-white">
                     {i + 1}
                   </span>
-                  <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                  <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                     <s.icon className="h-5 w-5" />
                   </div>
                 </div>
@@ -320,7 +320,7 @@ export default async function HostsPage({
             <div className="mx-auto mt-7 max-w-lg">
               <WaitlistForm role="host" dark refValue={ref} />
             </div>
-            <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-200">
+            <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-100">
               <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
               {t("hosts.waitlist.nospam")}
             </p>

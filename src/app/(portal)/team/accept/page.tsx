@@ -45,7 +45,7 @@ export default async function TeamAcceptPage({
           <p className="mt-1 text-sm text-navy-500">{t("team.accept.askAdmin")}</p>
           <Link
             href="/team/login"
-            className="mt-4 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700"
+            className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:text-brand-700"
           >
             {t("team.login.title")} →
           </Link>

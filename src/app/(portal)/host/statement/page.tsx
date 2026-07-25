@@ -71,7 +71,7 @@ export default async function HostStatementPage({
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 print:max-w-none print:p-0">
       <div className="mb-6 flex items-center justify-between gap-3 print:hidden">
-        <Link href="/host/payouts" className="text-sm font-semibold text-brand-600">
+        <Link href="/host/payouts" className="text-sm font-semibold text-brand-700">
           ← {t("host.statement.back")}
         </Link>
         <PrintButton label={t("host.statement.print")} />

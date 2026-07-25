@@ -124,7 +124,7 @@ export default async function HostPayoutsPage({
   return (
     <PortalShell user={user} nav={hostNav} title="host.section.payouts">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link href="/host" className="text-sm font-semibold text-brand-600">
+        <Link href="/host" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
@@ -306,13 +306,13 @@ export default async function HostPayoutsPage({
                 <span className="flex items-baseline gap-3">
                   <a
                     href={`/host/export?month=${g.key}`}
-                    className="text-xs font-semibold text-brand-600 hover:underline"
+                    className="text-xs font-semibold text-brand-700 hover:underline"
                   >
                     {t("host.pay.statement")}
                   </a>
                   <a
                     href={`/host/statement?month=${g.key}`}
-                    className="text-xs font-semibold text-brand-600 hover:underline"
+                    className="text-xs font-semibold text-brand-700 hover:underline"
                   >
                     {t("host.pay.pdf")}
                   </a>

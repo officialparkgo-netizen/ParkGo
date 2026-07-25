@@ -52,7 +52,7 @@ export function DriverChat({ bookingId }: { bookingId: string }) {
   return (
     <div className="rounded-2xl border border-navy-100 bg-white shadow-card">
       <div className="flex items-center gap-2 border-b border-navy-100 px-4 py-3">
-        <MessageCircle className="h-4 w-4 text-brand-600" aria-hidden />
+        <MessageCircle className="h-4 w-4 text-brand-700" aria-hidden />
         <span className="text-sm font-bold text-navy-900">{t("app.chat.title")}</span>
       </div>
 

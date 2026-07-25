@@ -202,7 +202,7 @@ export default async function FaqPage() {
                 {t("faq.cta.how")}
               </Link>
             </div>
-            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-200">
+            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-100">
               <Sparkles className="h-3.5 w-3.5 text-accent-300" />
               {SITE.tagline}
             </p>

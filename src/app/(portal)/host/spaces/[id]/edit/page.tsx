@@ -48,7 +48,7 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
   return (
     <PortalShell user={user} nav={hostNav} title="host.edit.pageTitle">
       <div className="mx-auto max-w-2xl">
-        <Link href="/host" className="text-sm font-semibold text-brand-600">
+        <Link href="/host" className="text-sm font-semibold text-brand-700">
           ← {t("host.new.back")}
         </Link>
         {quality.tips.length > 0 && (
@@ -139,7 +139,7 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
                 className="flex items-start gap-2 rounded-xl bg-brand-50 px-3.5 py-3 text-sm text-navy-700"
                 data-smart-price
               >
-                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" />
                 <p>
                   {t("host.smartPrice.line")
                     .replace("{median}", formatMoney(median, currency))

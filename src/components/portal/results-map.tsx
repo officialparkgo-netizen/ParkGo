@@ -56,7 +56,7 @@ export function ResultsMap({
         </span>
       </div>
       <div className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-xs font-semibold text-navy-700">
-        <MapPin className="h-3.5 w-3.5 text-brand-600" /> {spaces.length} spaces near{" "}
+        <MapPin className="h-3.5 w-3.5 text-brand-700" /> {spaces.length} spaces near{" "}
         {airport.name}
       </div>
     </div>

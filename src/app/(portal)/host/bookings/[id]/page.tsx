@@ -94,7 +94,7 @@ export default async function HostBookingDetailPage({
       title={`${t("host.bkd.title")} ${booking.reference}`}
     >
       <div className="mx-auto max-w-3xl space-y-5">
-        <Link href="/host/today" className="text-sm font-semibold text-brand-600">
+        <Link href="/host/today" className="text-sm font-semibold text-brand-700">
           ← {t("host.today.title")}
         </Link>
 
@@ -200,7 +200,7 @@ export default async function HostBookingDetailPage({
                 {t("host.bkd.pickUp")}
               </dt>
               <dd className="mt-0.5 flex items-center gap-1.5 font-semibold text-navy-900">
-                <LogOut className="h-4 w-4 text-brand-600" /> {formatDateTime(booking.endAt)}
+                <LogOut className="h-4 w-4 text-brand-700" /> {formatDateTime(booking.endAt)}
               </dd>
             </div>
             <div className="sm:col-span-2">
@@ -288,7 +288,7 @@ export default async function HostBookingDetailPage({
         {(space.bayNames ?? []).length > 0 && (
           <Card className="p-6" data-bay-card>
             <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
-              <ParkingSquare className="h-4 w-4 text-brand-600" /> {t("host.bays.assign")}
+              <ParkingSquare className="h-4 w-4 text-brand-700" /> {t("host.bays.assign")}
             </h3>
             <form action={assignBayAction} className="mt-3 flex flex-wrap items-center gap-2">
               <input type="hidden" name="bookingId" value={booking.id} />

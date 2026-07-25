@@ -151,7 +151,7 @@ export default async function HowItWorksPage() {
                   <div
                     className={`hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl sm:inline-flex ${
                       s.tone === "brand"
-                        ? "bg-brand-50 text-brand-600"
+                        ? "bg-brand-50 text-brand-700"
                         : s.tone === "go"
                           ? "bg-go-50 text-go-600"
                           : "bg-accent-50 text-accent-500"
@@ -233,7 +233,7 @@ export default async function HowItWorksPage() {
                   <div
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                       f.tone === "brand"
-                        ? "bg-brand-50 text-brand-600"
+                        ? "bg-brand-50 text-brand-700"
                         : f.tone === "go"
                           ? "bg-go-50 text-go-600"
                           : f.tone === "accent"
@@ -254,7 +254,7 @@ export default async function HowItWorksPage() {
 
           <Card className="p-7">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-brand-600" />
+              <CreditCard className="h-5 w-5 text-brand-700" />
               <span className="text-sm font-bold uppercase tracking-wide text-navy-500">
                 {t("how.example.label")}
               </span>
@@ -380,7 +380,7 @@ export default async function HowItWorksPage() {
                 {t("how.cta.travellers")}
               </Link>
             </div>
-            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-200">
+            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-100">
               <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
               {t("how.cta.airports")}
             </p>

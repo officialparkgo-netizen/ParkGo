@@ -57,7 +57,7 @@ export default async function AdminSettingsPage({
   return (
     <PortalShell user={user} nav={adminNav} title="admin.settings.title">
       <div className="mx-auto max-w-2xl space-y-6">
-        <Link href="/admin" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
@@ -243,7 +243,7 @@ export default async function AdminSettingsPage({
                 type="checkbox"
                 name="supportAutoAssign"
                 defaultChecked={s.supportAutoAssign}
-                className="h-4 w-4 rounded border-navy-300 text-brand-600 focus:ring-brand-400"
+                className="h-4 w-4 rounded border-navy-300 text-brand-700 focus:ring-brand-400"
               />
               {t("admin.settings.autoAssign")}
             </label>
@@ -338,7 +338,7 @@ export default async function AdminSettingsPage({
                 type="checkbox"
                 name="announcementOn"
                 defaultChecked={s.announcementOn}
-                className="h-4 w-4 rounded border-navy-300 text-brand-600 focus:ring-brand-400"
+                className="h-4 w-4 rounded border-navy-300 text-brand-700 focus:ring-brand-400"
               />
               {t("admin.settings.announceOn")}
             </label>

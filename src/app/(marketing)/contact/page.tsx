@@ -109,7 +109,7 @@ export default async function ContactPage() {
                   <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
                       c.tone === "brand"
-                        ? "bg-brand-50 text-brand-600"
+                        ? "bg-brand-50 text-brand-700"
                         : c.tone === "go"
                           ? "bg-go-50 text-go-600"
                           : "bg-accent-50 text-accent-500"
@@ -122,7 +122,7 @@ export default async function ContactPage() {
                     <p className="text-sm text-navy-600">{c.body}</p>
                     <a
                       href={c.action.href}
-                      className="mt-1 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700"
+                      className="-mx-2 mt-0.5 inline-block rounded-lg px-2 py-1.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
                     >
                       {c.action.label}
                     </a>
@@ -135,7 +135,7 @@ export default async function ContactPage() {
               <Users className="h-6 w-6 shrink-0 text-navy-700" />
               <p className="text-sm text-navy-600">
                 {t("contact.teams.text")}{" "}
-                <Link href="/pricing" className="font-semibold text-brand-600 hover:text-brand-700">
+                <Link href="/pricing" className="font-semibold text-brand-700 hover:text-brand-700">
                   {t("contact.teams.link")}
                 </Link>{" "}
                 {t("contact.teams.suffix")}
@@ -168,7 +168,7 @@ export default async function ContactPage() {
           {quickLinks.map((l) => (
             <Link key={l.href} href={l.href} className="group">
               <Card className="h-full p-6 transition-shadow group-hover:shadow-card-lg">
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                   <l.icon className="h-5 w-5" />
                 </div>
                 <h3 className="flex items-center gap-1 text-base font-bold text-navy-900">
@@ -209,7 +209,7 @@ export default async function ContactPage() {
                 {t("contact.cta.how")}
               </Link>
             </div>
-            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-200">
+            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-100">
               <Sparkles className="h-3.5 w-3.5 text-accent-300" />
               {t("contact.cta.note")}
             </p>

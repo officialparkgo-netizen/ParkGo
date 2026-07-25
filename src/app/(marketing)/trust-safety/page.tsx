@@ -139,7 +139,7 @@ export default async function TrustSafetyPage() {
               <div
                 className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${
                   f.tone === "brand"
-                    ? "bg-brand-50 text-brand-600"
+                    ? "bg-brand-50 text-brand-700"
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
@@ -230,7 +230,7 @@ export default async function TrustSafetyPage() {
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {dataPractices.map((f) => (
             <Card key={f.title} className="p-6">
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="text-base font-bold text-navy-900">{f.title}</h3>
@@ -302,7 +302,7 @@ export default async function TrustSafetyPage() {
                 {t("trust.cta.faq")}
               </Link>
             </div>
-            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-200">
+            <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-100">
               <Sparkles className="h-3.5 w-3.5 text-accent-300" />
               {t("trust.cta.note")}
             </p>

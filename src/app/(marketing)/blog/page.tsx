@@ -69,11 +69,11 @@ export default async function BlogIndexPage() {
                     <Clock className="h-4 w-4" /> {featured.readMins} {t("blog.minRead")}
                   </span>
                 </p>
-                <h2 className="mt-3 text-2xl font-bold tracking-tight text-navy-900 group-hover:text-brand-600 sm:text-3xl">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-navy-900 group-hover:text-brand-700 sm:text-3xl">
                   {t("blog.post." + featured.slug + ".title")}
                 </h2>
                 <p className="mt-3 text-navy-600">{t("blog.post." + featured.slug + ".excerpt")}</p>
-                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-brand-600">
+                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-brand-700">
                   {t("blog.readArticle")} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
@@ -107,11 +107,11 @@ export default async function BlogIndexPage() {
                       <Clock className="h-3.5 w-3.5" /> {post.readMins} {t("blog.min")}
                     </span>
                   </p>
-                  <h3 className="mt-2 text-lg font-bold leading-snug text-navy-900 group-hover:text-brand-600">
+                  <h3 className="mt-2 text-lg font-bold leading-snug text-navy-900 group-hover:text-brand-700">
                     {t("blog.post." + post.slug + ".title")}
                   </h3>
                   <p className="mt-2 flex-1 text-sm text-navy-600">{t("blog.post." + post.slug + ".excerpt")}</p>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600">
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700">
                     {t("blog.readMore")} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </div>

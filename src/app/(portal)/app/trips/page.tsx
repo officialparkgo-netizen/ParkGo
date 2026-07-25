@@ -171,7 +171,7 @@ export default async function TravellerTripsPage() {
   return (
     <PortalShell user={user} nav={travellerNav} title="app.dash.yourTrips">
       <div className="mx-auto max-w-5xl space-y-6">
-        <Link href="/app" className="text-sm font-semibold text-brand-600">
+        <Link href="/app" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
@@ -179,7 +179,7 @@ export default async function TravellerTripsPage() {
           <h3 className="mb-3 text-lg font-bold text-navy-900">{t("app.dash.yourTrips")}</h3>
           {bookings.length === 0 ? (
             <Card className="p-10 text-center">
-              <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
                 <MapPin className="h-7 w-7" />
               </span>
               <p className="font-bold text-navy-900">{t("app.dash.emptyTitle")}</p>

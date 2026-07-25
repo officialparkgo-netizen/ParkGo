@@ -92,7 +92,7 @@ export default async function HomePage() {
 
             <a
               href="#waitlist"
-              className="link-underline mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
+              className="link-underline mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-700"
             >
               {t("home.hero.waitlistLink")}{" "}
               <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
@@ -128,13 +128,15 @@ export default async function HomePage() {
 
       {/* ----------------------------------------------------------- Airports */}
       <div className="border-y border-navy-100 bg-white">
-        <Container className="flex flex-wrap items-center gap-x-6 gap-y-2 py-5">
+        <Container className="flex flex-wrap items-center gap-x-4 gap-y-1 py-4">
           <span className="text-sm font-semibold text-navy-400">{t("home.airports.near")}</span>
           {airports.map((a) => (
             <Link
               key={a.slug}
               href={`/airports/${a.slug}`}
-              className="text-sm font-semibold text-navy-700 hover:text-brand-600"
+              // A 20px-tall row of links is a thumb-miss on a phone; the
+              // padding brings each one to a comfortable target.
+              className="-mx-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-50 hover:text-brand-700"
             >
               {a.name}
             </Link>
@@ -163,7 +165,7 @@ export default async function HomePage() {
                 className="card-hover group rounded-2xl border border-navy-100 bg-white p-5 shadow-card"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                     <KindIcon className="h-5 w-5" aria-hidden />
                   </span>
                   {d.count > 0 && (
@@ -172,7 +174,7 @@ export default async function HomePage() {
                     </Badge>
                   )}
                 </div>
-                <h3 className="mt-3 font-bold text-navy-900 transition-colors group-hover:text-brand-600">
+                <h3 className="mt-3 font-bold text-navy-900 transition-colors group-hover:text-brand-700">
                   {d.name}
                 </h3>
                 <p className="mt-0.5 text-sm text-navy-500">
@@ -203,7 +205,7 @@ export default async function HomePage() {
           items={[
             {
               icon: <MapPin className="h-5 w-5" />,
-              iconClass: "bg-brand-50 text-brand-600",
+              iconClass: "bg-brand-50 text-brand-700",
               title: t("value.bundle.title"),
               body: t("value.bundle.body"),
             },
@@ -331,7 +333,7 @@ export default async function HomePage() {
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {[
             { icon: CalendarCheck, cls: "bg-go-50 text-go-600", title: t("home.guarantee.cancel.title"), body: t("home.guarantee.cancel.body") },
-            { icon: Lock, cls: "bg-brand-50 text-brand-600", title: t("home.guarantee.secure.title"), body: t("home.guarantee.secure.body") },
+            { icon: Lock, cls: "bg-brand-50 text-brand-700", title: t("home.guarantee.secure.title"), body: t("home.guarantee.secure.body") },
             { icon: LifeBuoy, cls: "bg-accent-50 text-accent-500", title: t("home.guarantee.support.title"), body: t("home.guarantee.support.body") },
           ].map((g) => (
             <Card key={g.title} className="card-hover p-6">

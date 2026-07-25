@@ -74,7 +74,7 @@ export default async function HostSettingsPage({
   return (
     <PortalShell user={user} nav={hostNav} title="host.settings.title">
       <div className="mx-auto max-w-3xl space-y-5">
-        <Link href="/host" className="text-sm font-semibold text-brand-600">
+        <Link href="/host" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
@@ -97,7 +97,7 @@ export default async function HostSettingsPage({
         {/* Auto welcome message */}
         <Card className="p-6">
           <h2 className="flex items-center gap-2 text-lg font-extrabold text-navy-900">
-            <MessageSquareHeart className="h-5 w-5 text-brand-600" />
+            <MessageSquareHeart className="h-5 w-5 text-brand-700" />
             {t("host.settings.welcomeTitle")}
           </h2>
           <p className="mt-1 text-sm text-navy-500">{t("host.settings.welcomeSub")}</p>
@@ -116,7 +116,7 @@ export default async function HostSettingsPage({
         {/* Calendar feed */}
         <Card className="p-6">
           <h2 className="flex items-center gap-2 text-lg font-extrabold text-navy-900">
-            <CalendarPlus className="h-5 w-5 text-brand-600" />
+            <CalendarPlus className="h-5 w-5 text-brand-700" />
             {t("host.settings.icalTitle")}
           </h2>
           <p className="mt-1 text-sm text-navy-500">{t("host.settings.icalSub")}</p>
@@ -136,7 +136,7 @@ export default async function HostSettingsPage({
         {/* Co-host */}
         <Card className="p-6">
           <h2 className="flex items-center gap-2 text-lg font-extrabold text-navy-900">
-            <UserPlus className="h-5 w-5 text-brand-600" />
+            <UserPlus className="h-5 w-5 text-brand-700" />
             {t("host.settings.cohostTitle")}
           </h2>
           <p className="mt-1 text-sm text-navy-500">{t("host.settings.cohostSub")}</p>
@@ -160,7 +160,7 @@ export default async function HostSettingsPage({
                   <form action={resendCohostInviteAction}>
                     <button
                       type="submit"
-                      className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                      className="text-xs font-semibold text-brand-700 hover:text-brand-700"
                     >
                       {t("admin.team.resend")}
                     </button>
@@ -200,7 +200,7 @@ export default async function HostSettingsPage({
         {/* Blocked guests */}
         <Card className="p-6">
           <h2 className="flex items-center gap-2 text-lg font-extrabold text-navy-900">
-            <ShieldOff className="h-5 w-5 text-brand-600" />
+            <ShieldOff className="h-5 w-5 text-brand-700" />
             {t("host.settings.blockTitle")}
             <Badge tone="neutral">{blocked.length}</Badge>
           </h2>
@@ -221,7 +221,7 @@ export default async function HostSettingsPage({
                     <input type="hidden" name="guestId" value={id} />
                     <button
                       type="submit"
-                      className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                      className="text-xs font-semibold text-brand-700 hover:text-brand-700"
                     >
                       {t("host.settings.unblock")}
                     </button>

@@ -115,7 +115,7 @@ export default async function TravellerDashboard() {
                 rounded="rounded-xl"
               />
               <div>
-                <div className="text-xs font-bold uppercase tracking-wide text-brand-600">
+                <div className="text-xs font-bold uppercase tracking-wide text-brand-700">
                   {t("app.dash.nextTrip")}
                 </div>
                 <div className="mt-0.5 font-bold text-navy-900">
@@ -164,7 +164,7 @@ export default async function TravellerDashboard() {
         <section id="trips" className="scroll-mt-20">
           {bookings.length === 0 ? (
             <Card className="p-10 text-center">
-              <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
                 <MapPin className="h-7 w-7" />
               </span>
               <p className="font-bold text-navy-900">{t("app.dash.emptyTitle")}</p>
@@ -177,7 +177,7 @@ export default async function TravellerDashboard() {
             <Link href="/app/trips" className="group block">
               <Card className="flex items-center justify-between gap-3 p-5 transition-colors group-hover:border-brand-300">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                     <Ticket className="h-5 w-5" />
                   </span>
                   <div>

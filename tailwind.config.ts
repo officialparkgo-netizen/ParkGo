@@ -7,6 +7,10 @@ import type { Config } from "tailwindcss";
  *
  * Tokens are semantic so the whole app + website inherit the theme from here:
  *   navy   → ink/charcoal→black neutral scale (text, dark surfaces, borders)
+ *
+ * Contrast: every grey used for text clears WCAG AA (4.5:1) on both white and
+ * navy-50, the two surfaces they appear on. navy-400 is the lightest text tone
+ * and sits right at that floor — do not lighten it.
  *   brand  → orange (primary accent)
  *   accent → orange (highlights)
  *   go     → orange (primary CTAs & positive/"live" states — no green in the brand)
@@ -33,7 +37,7 @@ const ink = {
   100: "#ECEDEF",
   200: "#D6D8DC",
   300: "#B2B6BD",
-  400: "#878D96",
+  400: "#6B7078",
   500: "#5B616B",
   600: "#3D424A",
   700: "#2A2E34",

@@ -40,7 +40,7 @@ export default async function AdminOperatorPage() {
   return (
     <PortalShell user={user} nav={adminNav} title="admin.section.operator">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link href="/admin" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
@@ -48,7 +48,7 @@ export default async function AdminOperatorPage() {
           <Card className="p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                   <Radio className="h-5 w-5" />
                 </span>
                 <div>

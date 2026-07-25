@@ -354,7 +354,7 @@ export default async function BookingPage({
                     {hostUser?.phone && (
                       <a
                         href={`tel:${hostUser.phone}`}
-                        className="inline-flex items-center gap-1 font-semibold text-brand-600"
+                        className="inline-flex items-center gap-1 font-semibold text-brand-700"
                       >
                         <Phone className="h-3.5 w-3.5" /> {hostUser.phone}
                       </a>
@@ -405,7 +405,7 @@ export default async function BookingPage({
             {extendable && (
               <div className="mt-5 rounded-xl border border-brand-100 bg-brand-50/40 p-4">
                 <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
-                  <CalendarPlus className="h-4 w-4 text-brand-600" />{" "}
+                  <CalendarPlus className="h-4 w-4 text-brand-700" />{" "}
                   {t("app.booking.extend.title")}
                 </h3>
                 <p className="mt-1 text-xs text-navy-500">

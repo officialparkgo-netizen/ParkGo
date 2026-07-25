@@ -40,7 +40,7 @@ export default async function HostReviewsPage({
   return (
     <PortalShell user={user} nav={hostNav} title="host.reviews.title">
       <div className="mx-auto max-w-3xl space-y-5">
-        <Link href="/host" className="text-sm font-semibold text-brand-600">
+        <Link href="/host" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 

@@ -57,7 +57,7 @@ export default async function BookPage({
 
   const body = (
       <div className="mx-auto max-w-5xl space-y-5">
-        <Link href={`/app/space/${space.id}`} className="text-sm font-semibold text-brand-600">
+        <Link href={`/app/space/${space.id}`} className="text-sm font-semibold text-brand-700">
           ← {t("app.space.backToSpace")}
         </Link>
 
@@ -91,7 +91,7 @@ export default async function BookPage({
       <main className="min-h-dvh bg-navy-50/40 px-4 py-8">
         <div className="mx-auto mb-6 max-w-5xl">
           <Link href="/" className="text-xl font-extrabold tracking-tight text-navy-900">
-            Park<span className="text-brand-600">Go</span>
+            Park<span className="text-brand-700">Go</span>
           </Link>
         </div>
         {body}

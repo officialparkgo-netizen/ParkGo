@@ -51,7 +51,7 @@ export default async function AdminBookingsPage({
   return (
     <PortalShell user={user} nav={user.adminScope === "support" ? supportAgentNav : adminNav} title="nav.bookings">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link href="/admin" className="text-sm font-semibold text-brand-600">
+        <Link href="/admin" className="text-sm font-semibold text-brand-700">
           ← {t("common.backToDash")}
         </Link>
 
