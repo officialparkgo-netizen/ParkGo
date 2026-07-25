@@ -76,6 +76,28 @@ export function verifyInviteToken(
   return { ok: true, userId };
 }
 
+/**
+ * Who an invite link may belong to. Anything else (a traveller, a plain host,
+ * a suspended account) can never be the target of a set-password link.
+ */
+export function inviteeKind(
+  user: Pick<
+    { role: string; suspended?: boolean; cohostHostId?: string },
+    "role" | "suspended" | "cohostHostId"
+  > | null
+): "staff" | "cohost" | null {
+  if (!user || user.suspended) return null;
+  if (user.role === "admin") return "staff";
+  if (user.role === "host" && user.cohostHostId) return "cohost";
+  return null;
+}
+
+/** Where each kind of teammate belongs once signed in. */
+export function inviteeHome(kind: "staff" | "cohost", adminScope?: string): string {
+  if (kind === "cohost") return "/host/today";
+  return adminScope === "support" ? "/admin/support" : "/admin";
+}
+
 /** Minimum length we accept for a staff password. */
 export const MIN_PASSWORD_LENGTH = 8;
 

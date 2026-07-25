@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { StaffShell } from "@/components/auth/staff-shell";
 import { TeamPasswordForm } from "@/components/auth/team-password-form";
 import { getUserProfile } from "@/lib/data/users";
-import { peekInviteUserId, verifyInviteToken } from "@/lib/team-invite";
+import { inviteeKind, peekInviteUserId, verifyInviteToken } from "@/lib/team-invite";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -27,7 +27,7 @@ export default async function TeamAcceptPage({
   const claimedId = peekInviteUserId(token);
   const target = claimedId ? await getUserProfile(claimedId) : null;
   const check = verifyInviteToken(token, target?.inviteNonce);
-  const valid = !!target && check.ok && target.role === "admin" && !target.suspended;
+  const valid = !!target && check.ok && !!inviteeKind(target);
 
   if (!valid) {
     const reason = !check.ok ? check.reason : "invalid";

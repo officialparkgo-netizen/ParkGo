@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { IS_LIVE } from "@/lib/config";
-import { SESSION_COOKIE, rolePath } from "@/lib/auth";
+import { SESSION_COOKIE } from "@/lib/auth";
 import {
   findUserByEmail,
   getUserProfile,
@@ -11,7 +11,12 @@ import {
   setStaffPassword,
   verifyMockPassword,
 } from "@/lib/data/users";
-import { passwordProblem, verifyInviteToken } from "@/lib/team-invite";
+import {
+  inviteeHome,
+  inviteeKind,
+  passwordProblem,
+  verifyInviteToken,
+} from "@/lib/team-invite";
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -22,11 +27,6 @@ const COOKIE_OPTS = {
 
 export interface TeamAuthState {
   error?: string;
-}
-
-/** Where a staff account belongs after signing in. */
-function staffHome(scope: string | undefined): string {
-  return scope === "support" ? "/admin/support" : rolePath("admin");
 }
 
 /**
@@ -50,9 +50,8 @@ export async function setTeamPasswordAction(
   const claimedId = peekInviteUserId(token);
   const target = claimedId ? await getUserProfile(claimedId) : null;
   const check = verifyInviteToken(token, target?.inviteNonce);
-  if (!target || !check.ok || target.role !== "admin" || target.suspended) {
-    return { error: "link" };
-  }
+  const kind = inviteeKind(target);
+  if (!target || !check.ok || !kind) return { error: "link" };
 
   await setInviteNonce(target.id, null); // burn the link before anything else
   const saved = await setStaffPassword(target.id, password);
@@ -71,7 +70,7 @@ export async function setTeamPasswordAction(
   } else {
     (await cookies()).set(SESSION_COOKIE, target.id, COOKIE_OPTS);
   }
-  redirect(staffHome(target.adminScope));
+  redirect(inviteeHome(kind, target.adminScope));
 }
 
 /** Staff sign-in with email + password (admins and support agents). */
@@ -94,15 +93,17 @@ export async function teamSignInAction(
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data?.user) return generic;
     const signedIn = await getUserProfile(data.user.id);
-    if (!signedIn || signedIn.role !== "admin" || signedIn.suspended) {
+    const liveKind = inviteeKind(signedIn);
+    if (!signedIn || !liveKind) {
       await supabase.auth.signOut({ scope: "local" });
       return generic;
     }
-    redirect(staffHome(signedIn.adminScope));
+    redirect(inviteeHome(liveKind, signedIn.adminScope));
   }
 
-  if (!profile || profile.role !== "admin" || profile.suspended) return generic;
+  const kind = inviteeKind(profile);
+  if (!profile || !kind) return generic;
   if (!(await verifyMockPassword(profile.id, password))) return generic;
   (await cookies()).set(SESSION_COOKIE, profile.id, COOKIE_OPTS);
-  redirect(staffHome(profile.adminScope));
+  redirect(inviteeHome(kind, profile.adminScope));
 }

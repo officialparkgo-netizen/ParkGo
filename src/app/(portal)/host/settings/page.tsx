@@ -23,9 +23,11 @@ import { icalToken } from "@/lib/ical";
 import {
   inviteCohostAction,
   removeCohostAction,
+  resendCohostInviteAction,
   saveAutoWelcomeAction,
   unblockGuestAction,
 } from "@/lib/host-suite2-actions";
+import { inviteLinkFor } from "@/lib/team-invite-mail";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -49,6 +51,11 @@ export default async function HostSettingsPage({
   const { welcome, cohost, guest } = await searchParams;
   const host = await ensureHostForUser(user);
   const blocked = host.blockedGuests ?? [];
+  const { getUserProfile } = await import("@/lib/data/users");
+  const cohostUser = host.cohostUserId ? await getUserProfile(host.cohostUserId) : null;
+  const cohostPending = cohostUser?.inviteNonce
+    ? inviteLinkFor(cohostUser.id, cohostUser.inviteNonce)
+    : null;
   const blockedUsers = await getUsersByIds(blocked);
   const icalUrl = `${SITE}/api/host/ical?host=${host.id}&token=${icalToken(host.id)}`;
 
@@ -74,6 +81,15 @@ export default async function HostSettingsPage({
         {welcome === "saved" && banner(t("host.settings.welcomeSaved"), true)}
         {welcome === "error" && banner(t("host.settings.error"), false)}
         {cohost === "invited" && banner(t("host.settings.cohostInvited"), true)}
+        {cohost === "resent" && banner(t("host.settings.cohostResent"), true)}
+        {cohost === "invited-nomail" && (
+          <div
+            className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700"
+            data-cohost-nomail
+          >
+            <CheckCircle2 className="h-5 w-5" /> {t("host.settings.cohostNoMail")}
+          </div>
+        )}
         {cohost === "removed" && banner(t("host.settings.cohostRemoved"), true)}
         {cohost === "error" && banner(t("host.settings.cohostError"), false)}
         {guest === "unblocked" && banner(t("host.settings.guestUnblocked"), true)}
@@ -129,6 +145,28 @@ export default async function HostSettingsPage({
               <Badge tone="go" data-cohost-state>
                 {host.cohostEmail ?? t("host.settings.cohostActive")}
               </Badge>
+              {cohostPending && (
+                <>
+                  <Badge tone="accent" data-cohost-pending>
+                    {t("admin.team.pending")}
+                  </Badge>
+                  <span data-cohost-invite-link={cohostPending}>
+                    <CopyLinkButton
+                      value={cohostPending}
+                      label={t("admin.team.copyInvite")}
+                      copiedLabel={t("host.settings.icalCopied")}
+                    />
+                  </span>
+                  <form action={resendCohostInviteAction}>
+                    <button
+                      type="submit"
+                      className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                    >
+                      {t("admin.team.resend")}
+                    </button>
+                  </form>
+                </>
+              )}
               <form action={removeCohostAction}>
                 <Button type="submit" variant="outline">
                   {t("host.settings.cohostRemove")}

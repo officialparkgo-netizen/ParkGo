@@ -127,10 +127,32 @@ export async function inviteCohostAction(formData: FormData) {
   const name = String(formData.get("name") || "").trim().slice(0, 60);
   const { createCohostUser } = await import("@/lib/data/users");
   const cohost = await createCohostUser(host.id, email, name);
+  // Null also means "that email already belongs to someone" — a host must
+  // never be able to aim a set-password link at an existing ParkGo account.
   if (!cohost) redirect("/host/settings?cohost=error");
   await setHostCohost(host.id, { userId: cohost.id, email: cohost.email });
+
+  const { sendTeamInvite } = await import("@/lib/team-invite-mail");
+  const { emailed } = await sendTeamInvite(cohost, user.name, "cohost");
   revalidatePath("/host/settings");
-  redirect("/host/settings?cohost=invited");
+  redirect(`/host/settings?cohost=${emailed ? "invited" : "invited-nomail"}`);
+}
+
+/** Host: re-send the co-host invite (rotates the link, killing the old one). */
+export async function resendCohostInviteAction() {
+  const user = await requireRole("host");
+  if (user.cohostHostId) redirect("/host/today");
+  const host = await ensureHostForUser(user);
+  const { getUserProfile } = await import("@/lib/data/users");
+  const cohost = host.cohostUserId ? await getUserProfile(host.cohostUserId) : null;
+  // Only ever this host's own co-host.
+  if (!cohost || cohost.cohostHostId !== host.id) {
+    redirect("/host/settings?cohost=error");
+  }
+  const { sendTeamInvite } = await import("@/lib/team-invite-mail");
+  const { emailed } = await sendTeamInvite(cohost, user.name, "cohost");
+  revalidatePath("/host/settings");
+  redirect(`/host/settings?cohost=${emailed ? "resent" : "invited-nomail"}`);
 }
 
 /** Host: revoke the co-host's access entirely. */
@@ -139,8 +161,9 @@ export async function removeCohostAction() {
   if (user.cohostHostId) redirect("/host/today");
   const host = await ensureHostForUser(user);
   if (host.cohostUserId) {
-    const { revokeCohostUser } = await import("@/lib/data/users");
+    const { revokeCohostUser, setInviteNonce } = await import("@/lib/data/users");
     await revokeCohostUser(host.cohostUserId);
+    await setInviteNonce(host.cohostUserId, null); // kill any pending link
   }
   await setHostCohost(host.id, null);
   revalidatePath("/host/settings");

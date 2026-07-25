@@ -332,8 +332,11 @@ export async function createCohostUser(
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) return null;
 
   if (!IS_LIVE) {
-    const { addMockUser, getUser } = await import("@/lib/data/store");
+    const { addMockUser, getUser, getUserByEmail } = await import("@/lib/data/store");
     const id = `user_cohost_${hostId}`;
+    // Same rule as live: never point a co-host invite at somebody else.
+    const byEmail = getUserByEmail(cleanEmail);
+    if (byEmail && byEmail.id !== id) return null;
     const existing = getUser(id);
     if (existing) {
       existing.email = cleanEmail;
@@ -355,15 +358,15 @@ export async function createCohostUser(
   try {
     const { supabaseAdmin } = await import("@/lib/supabase/server");
     const admin = supabaseAdmin();
-    // Prefer an invite (sends the magic link); fall back to a bare account
-    // when email sending isn't configured on the Supabase project.
-    let authId: string | null = null;
-    try {
-      const { data } = await admin.auth.admin.inviteUserByEmail(cleanEmail);
-      authId = data?.user?.id ?? null;
-    } catch {
-      // fall through
-    }
+
+    // A host is far less privileged than an admin, so a co-host invite may
+    // only ever create a BRAND-NEW account. Reusing an existing one would let
+    // a host mint a set-password link for somebody else's ParkGo account —
+    // unless it's already their own co-host, which is just a re-invite.
+    const existing = await findUserByEmail(cleanEmail);
+    if (existing && existing.cohostHostId !== hostId) return null;
+
+    let authId = existing?.id ?? null;
     if (!authId) {
       const { data } = await admin.auth.admin.createUser({
         email: cleanEmail,
@@ -372,6 +375,7 @@ export async function createCohostUser(
       authId = data?.user?.id ?? null;
     }
     if (!authId) return null;
+
     const { data: row, error } = await admin
       .from("users")
       .upsert(
