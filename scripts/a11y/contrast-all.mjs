@@ -167,6 +167,37 @@ const CHECK = () => {
   return out;
 };
 
+/**
+ * Next hydrates and may replace the router state right after networkidle, which
+ * destroys the execution context mid-evaluate. Retry once on that specific
+ * failure rather than letting a race decide whether the audit passes.
+ */
+async function readPage(p, fn) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await p.evaluate(fn);
+    } catch (err) {
+      if (!/Execution context was destroyed|Target closed/.test(String(err))) throw err;
+      await p.waitForLoadState("domcontentloaded").catch(() => {});
+      await p.waitForTimeout(300);
+    }
+  }
+  return p.evaluate(fn);
+}
+
+/**
+ * Fail loudly when BASE is not serving. Without this a dead server reads as a
+ * clean run — every page yields no text, so nothing can fall below AA and the
+ * audit "passes" while having checked nothing at all.
+ */
+async function assertReachable(base) {
+  const res = await fetch(base, { redirect: "manual" }).catch((e) => {
+    throw new Error(`${base} is not reachable (${e.message}). Start a build first: npm run build && npm start`);
+  });
+  if (res.status >= 500) throw new Error(`${base} returned ${res.status} — is the build healthy?`);
+}
+await assertReachable(BASE);
+
 const browser = await chromium.launch(EXEC ? { executablePath: EXEC } : {});
 let bad = 0;
 let total = 0;
@@ -180,7 +211,15 @@ for (const [user, path] of ROUTES) {
   await p.goto(BASE + path, { waitUntil: "networkidle", timeout: 45000 }).catch(() => null);
   await p.waitForSelector("main, body", { timeout: 10000 }).catch(() => null);
 
-  const fails = await p.evaluate(CHECK);
+  const seen = await readPage(p, () => document.body?.innerText?.trim().length ?? 0);
+  if (seen < 50) {
+    console.log(`### ${path} — SKIPPED, page rendered no text (did it 404?)`);
+    bad += 1;
+    total += 1;
+    await ctx.close();
+    continue;
+  }
+  const fails = await readPage(p, CHECK);
   total += fails.length;
   if (fails.length) {
     bad += 1;

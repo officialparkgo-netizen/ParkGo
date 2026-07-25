@@ -34,9 +34,16 @@ Open `/login` and pick a **demo account** (no password in mock mode):
 
 | Role | What you can do |
 | --- | --- |
-| **Traveller** | Search daily or hourly, filter (price / covered / CCTV / EV), map with price pins → build the bundle (parking + transfer one-way/return with pickup time + EV) → pay → QR access code → extend or cancel → travel-day page (status stepper, live driver map, chat with driver) → review |
+| **Traveller** | Search daily or hourly, filter (price / covered / CCTV / EV / step-free), map with price pins → build the bundle (parking + transfer one-way/return with pickup time + EV) → pay (or check out as a guest, no account) → QR access code → extend, amend dates or cancel → travel-day page (status stepper, live driver map, chat with driver) → review. Plus saved spaces, trips + rebook, calendar export, offline pass, referrals |
 | **Host / Landlord** | List spaces (photos, hourly rate, capacity), pause/reactivate a listing (holiday mode), bookings calendar, earnings chart, payout history + Excel export, KYC verification, guest-facing profile |
-| **Admin / Compliance** | Triage strip, marketplace-wide search, status + date-range filters, money KPIs, host verification queue (open KYC documents, approve/reject, Excel export), listing moderation, user management (suspend / role change), payments, support tickets, transfer-operator monitoring, audit log, 5 Excel exports |
+| **Admin / Compliance** | Triage strip, marketplace-wide search, status + date-range filters, money KPIs, host verification queue (open KYC documents, approve/reject, Excel export), listing moderation, user management (suspend / role change), payments, support console, transfer-operator monitoring, audit log, 5 Excel exports |
+
+A fourth seeded account, **`user_admin2`** (Ops Support), carries
+`adminScope: "support"` — an admin who can work the support console but cannot
+see money pages, exports or platform settings. There is no demo button for it;
+set the `parkgo_session` cookie to `user_admin2` to try the scope guard. In
+live mode these are real staff created through **`/team/login`** and the invite
+flow rather than seeded.
 
 ### Scripts
 
@@ -45,9 +52,16 @@ npm run dev          # dev server
 npm run build        # production build
 npm start            # run the production build
 npm run typecheck    # tsc --noEmit
-npm test             # vitest (pricing split, hourly pricing, trust, booking lifecycle, handover, storage paths)
+npm test             # vitest — 216 tests across 22 files
 npm run lint         # next lint
 ```
+
+The suite covers the money paths (commission split, hourly pricing, payout
+hold), the guards (admin scopes, staff sessions, auth redirects, 2FA core),
+the support brain (intents, bot, queue, business hours, SLA stats, inbound
+parsing, Svix signatures), and the guest suite (saved spaces, vehicles,
+referral credit). See **[Quality gates](#quality-gates)** for the two browser
+audits that run against a real build.
 
 ---
 
@@ -55,15 +69,38 @@ npm run lint         # next lint
 
 **Traveller**
 - Search by destination (airports **and** city centres, stations, stadiums) with
-  daily **or hourly** stays; sort and filter by price, covered, CCTV, EV.
+  daily **or hourly** stays; sort and filter by price, covered, CCTV, EV and
+  **step-free access**.
 - Space pages with host profile, reviews, price breakdown; checkout with
   transfer options (one-way/return, pickup time — airports only), EV add-on,
   card/wallet via **Stripe** (mock gateway without keys).
+- **Guest checkout** — book without signing up first. The account is created
+  from the checkout details mid-payment and the traveller lands signed in. An
+  email that already has an account is refused rather than adopted, so checkout
+  can never be used to walk into someone else's bookings.
 - Booking page with QR access code, directions, extend-stay (price difference
   charged), cancellation (free >24h, late fee within 24h, refund shown).
+- **Amend dates** after booking — shift or shorten a stay when the new dates
+  cost the same or less; the difference comes back as account credit and the
+  host payout is rewritten to match the days actually used. Availability is
+  re-checked ignoring the booking being amended.
 - Travel-day page: 4-step status stepper, live map (driver route only when a
   transfer is booked), live camera & EV status, verified handover code,
   **chat with the transfer driver**, review after the trip.
+- **Trips**: upcoming and past in one place, one-tap **rebook** of a past trip
+  with the dates prefilled.
+- **Take the booking off the network** three ways — add it to a calendar
+  (`.ics` with two alarms), open an **offline pass** (`/pass/[id]`, a service
+  worker keeps the QR readable with no signal), or **share it with a second
+  driver** by signed link, which shows the pass without granting any access to
+  the account.
+- **Account**: saved spaces, several vehicles per account, business/VAT details
+  for company bookings, accessibility preferences, saved card for next time.
+- **Referrals**: a personal code, credit for the referrer once the invited
+  traveller completes a first booking, applied automatically at checkout while
+  leaving enough to satisfy Stripe's minimum charge.
+- **Price & availability alerts** — watch a space or a destination and get
+  notified when a price drops or a space frees up.
 
 **Host**
 - Listings with photo upload/removal (Supabase Storage in live mode, orphaned
@@ -74,6 +111,14 @@ npm run lint         # next lint
   6-month earnings chart, **bookings calendar** (cars on site per day,
   month navigation), payout history with **Excel export**, Stripe Connect
   payout onboarding, KYC submission (ID + proof of address).
+- **Today** view for arrivals and departures, per-booking detail with guest
+  messaging, **analytics** (views → bookings, occupancy), review replies, a
+  downloadable **statement**, and an **iCal feed** (`/api/host/ical`) so the
+  bookings show up in whatever calendar the host already uses.
+- Pricing controls beyond the base rate: weekend and seasonal rates, bays,
+  **request-to-book**, a guest blocklist, blocked dates and co-hosts.
+- Payouts are held for a configurable window after pick-up (`payoutHoldDays`)
+  so a dispute can still be resolved against the money.
 
 **Admin**
 - Stat row (GMV, platform revenue, payouts due, avg booking value, cancellation
@@ -85,21 +130,49 @@ npm run lint         # next lint
   submitted legal name & address, and **clickable KYC documents** served from
   the private bucket by an admin-only viewer route.
 - Listing moderation (approve/reject/pause), **user management** (suspend /
-  restore, traveller↔host role switch — admins protected), support-ticket
-  queue, transfer-operator API monitoring, audit feed.
+  restore, traveller↔host role switch — admins protected), transfer-operator
+  API monitoring, claims, promos, broadcasts, platform settings, audit feed.
 - **Excel exports** (styled workbooks + CSV fallback): bookings, users,
   waitlist, payments, verifications.
+- **Two admin tiers.** Support agents hold `role: "admin"` so they can work
+  tickets, but `requireFinanceAdmin()` keeps them out of payments, payouts,
+  exports and settings — the pages redirect, and the controls are not rendered
+  in the first place. Staff are invited by email, set their own password, and
+  sign in at `/team/login`; a signed nonce makes the invite single-use.
+
+**Support console**
+- **Live two-way chat** with the visitor widget: typing indicators, read
+  receipts, attachments (private bucket, signed URLs), canned macros, notes,
+  tags, snooze and priority.
+- **Round-robin assignment** across on-duty agents, **SLA reply targets** with
+  escalation when one is about to breach, business hours with an out-of-hours
+  auto-reply, and callback requests.
+- **CSAT** with an optional comment, plus an analytics page (volume, first
+  response, resolution, satisfaction).
+- **Inbound email** folds a customer's reply back into the same thread, and
+  **web push** reaches the on-call agent with the tab closed.
+- The bot answers in the visitor's language across all five locales before
+  handing off.
 
 **Platform**
-- **Instant support chat** on every page: guided assistant answers common
-  questions; unresolved chats escalate to a support ticket + email to the
-  support inbox, visible in the admin queue.
+- **Instant support chat** on every page: the assistant answers common
+  questions, and anything it can't resolve escalates to a ticket, an email to
+  the support inbox and a live agent — same thread throughout.
 - **Notifications**: in-app feed per user with a bell + unread badge that
   clears on the `/notifications` page.
 - **i18n ×5** (English, Urdu, Hindi, German, Chinese) with RTL for Urdu;
   locale-aware dates and month names.
-- SEO: server-rendered, sitemap/robots, per-destination landing pages with
-  JSON-LD, blog.
+- **Accessibility**: WCAG 2.1 AA on all 35 pages, text and icons, verified in a
+  real browser rather than asserted — see [Quality gates](#quality-gates). The
+  measured palette rules live in `tailwind.config.ts`; the short version is
+  that orange backgrounds carry near-black text (white can never clear 4.5:1 on
+  `#F26A1B`), orange text is `-700`, orange icons are `-600`, and on the dark
+  CTA gradient it inverts to `-100` and `-200`.
+- **SEO**: server-rendered, sitemap/robots, canonicals everywhere,
+  per-destination landing pages with JSON-LD (`Airport` + `BreadcrumbList` +
+  `FAQPage`), `Organization` and `WebSite` on the homepage, and a 1200×630
+  share card on every page so links posted to WhatsApp, LinkedIn or Slack
+  render as a card instead of a bare URL.
 
 ---
 
@@ -175,39 +248,108 @@ lazily by the app.
 
 ```
 src/
+  middleware.ts           Supabase session refresh + staff idle timeout.
+                          NOTE: must live at src/middleware.ts, not the repo
+                          root — with an src/app project a root-level
+                          middleware.ts is silently never compiled.
   app/
     (marketing)/          Home, how-it-works, travellers, hosts, pricing,
                           trust-safety, about, faq, contact, blog,
                           airports/[slug] (all destination kinds), privacy, terms
     (portal)/
       login/              Demo logins (mock) / Supabase Auth (live)
-      app/                Traveller: dashboard, search, space/[id], book/[spaceId],
-                          booking/[id] (+ /track: stepper, map, camera, chat)
-      host/               Dashboard (calendar, earnings, payouts), new, verify,
-                          spaces/[id]/edit, export (payout .xlsx)
-      admin/              Dashboard (search, filters, KPIs, queues),
-                          export (5 report types), kyc (private doc viewer)
-      account/            Profile & preferences
+      team/               Staff: login, accept (invite → set password)
+      app/                Traveller: dashboard, search, saved, trips,
+                          space/[id], book/[spaceId],
+                          booking/[id] (+ /track, /receipt)
+      host/               Dashboard (calendar, earnings, payouts), today, new,
+                          verify, analytics, reviews, settings, statement,
+                          bookings/[id], spaces/[id]/edit, export (payout .xlsx)
+      admin/              Dashboard (search, filters, KPIs, queues), support,
+                          users, listings, payments, verification, analytics,
+                          claims, promos, reviews, broadcast, operator, today,
+                          audit, settings, export, kyc (private doc viewer)
+      account/            Profile, vehicles, business details, referrals
       notifications/      Notification feed (marks read on open)
+      verify-2fa/         Admin second factor
+    pass/[id]             Offline booking pass (signed link, works with no signal)
+    api/                  stripe/*, support/* (thread, inbound, push, context),
+                          booking/[id]/ics, host/ical, geo/suggest, health,
+                          admin/digest + admin/sla (cron endpoints)
   components/
     ui/ brand/ common/    Primitives, logo, Photo, LanguageSwitcher, SupportWidget
     marketing/            Header, Footer, SearchWidget (daily/hourly, destinations)
-    portal/               Shell, Checkout, LiveMap/MapboxMap, EarningsChart,
-                          HostCalendar, DriverChat, HandoverPanel, ReviewForm, QR
-    host/                 PhotoManager (upload + remove)
+    portal/               Shell, Checkout, LiveMap/MapboxMap/ResultsMap,
+                          EarningsChart, HostCalendar, DriverChat, OfflinePass,
+                          SaveSpaceButton, HandoverPanel, ReviewForm, QR
+    admin/                SupportLiveThread, TemplatePicker, PushToggle
+    host/                 PhotoManager (upload + remove), BlockedDatesPicker
   lib/
     data/                 store.ts (mock seed/API) + per-entity modules with
                           mock/live branches (bookings, hosts, users, reviews,
-                          verifications, notifications, messages, support, waitlist)
+                          verifications, notifications, messages, support,
+                          saved, settings, waitlist)
     i18n/                 areas/* dictionaries (en/ur/hi/de/zh), registry, RTL
     services/             payments, maps, camera, ai, notifications, transfer-operator
     stripe.ts storage.ts email.ts export-sheet.ts pricing.ts trust.ts auth.ts
-    booking-actions.ts host-actions.ts user-actions.ts chat-actions.ts
-    support-actions.ts support-intents.ts        (server actions & support brain)
+    payouts.ts referrals.ts referral-payout.ts space-alerts.ts alert-sweep.ts
+    guest-checkout.ts booking-share.ts booking-calendar.ts booking-access.ts
+    support-{sla,assign,queue,lang,escalate,inbound,hours,stats,bot}.ts
+    staff-session.ts team-invite.ts svix.ts push.ts ical.ts impersonation.ts
+    *-actions.ts          Server actions (booking, host, user, chat, support,
+                          guest, team, admin)
   types/index.ts          Domain model (single source of truth)
+public/
+  sw-pass.js              Caches the offline pass (network-first, /pass/* only)
+  sw-push.js              Staff web-push receiver
+  og.png                  1200×630 share card
+scripts/
+  a11y/contrast-all.mjs   WCAG AA audit, 35 routes, text + icons
+  seo/audit.mjs           Titles, descriptions, canonicals, og:image, JSON-LD
+  og/og-card.html         Source of public/og.png — screenshot it to rebuild
 supabase/migrations/      Postgres schema + RLS (0001–0025)
 capacitor.config.ts       iOS/Android wrapper config
 ```
+
+---
+
+## Quality gates
+
+Beyond `npm test`, two audits run against a **real production build in a real
+browser**, because both check things that only exist once the page is composed
+— a colour is only wrong against the background it actually lands on, and a
+meta tag is only right once the framework has finished resolving it.
+
+```bash
+npm i -D playwright && npx playwright install chromium   # one time
+
+npm run build && npm start &                # audits need a running build
+BASE=http://localhost:3000 npm run audit:a11y
+BASE=http://localhost:3000 npm run audit:seo
+```
+
+Both exit non-zero when they find something, so they drop straight into CI, and
+both refuse to run at all if `BASE` isn't serving — a dead server would
+otherwise read as a clean sweep, since a page that renders nothing has nothing
+that can fail.
+
+**`audit:a11y`** walks 35 routes — marketing signed out, portal behind each
+role's session cookie — and applies both WCAG floors: 4.5:1 for text (3:1 once
+it is 24px, or 18.66px bold) and 3:1 for icons as graphical objects. Two
+details matter or it quietly lies to you. A gradient band reports
+`background-color: transparent`, so a naive ancestor climb sails past it to the
+white body and scores white-on-white at 1:1 — it pulls the stops out of the
+gradient and judges against the worst one instead. And a full-bleed background
+texture is decoration, not a graphical object, so those are skipped by
+geometry. Currently **0 findings**.
+
+**`audit:seo`** checks title and description length against what Google
+actually renders, plus canonical, `og:image`, JSON-LD validity, `h1` count and
+missing `alt`s, across all 13 public pages. Currently **0 findings**.
+
+To rebuild the share card, edit `scripts/og/og-card.html` and screenshot it at
+1200×630 — it is rendered in a browser rather than drawn by hand so it inherits
+the site's own type and palette.
 
 ---
 
@@ -215,18 +357,27 @@ capacitor.config.ts       iOS/Android wrapper config
 
 1. **Supabase**: create the project, run migrations **0001 → 0025**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
-   Two Vercel crons back this: `/api/admin/digest` daily (KPI digest, expired
+2. **Crons** (`vercel.json`): `/api/admin/digest` daily (KPI digest, expired
    booking requests, arrival reminders, space watches) and `/api/admin/sla`
-   every 15 minutes (support reply targets). Both need `CRON_SECRET` in live
-   mode.
-2. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
-   `NEXT_PUBLIC_SITE_URL`, Supabase URL + anon + service-role keys.
-3. **Stripe**: live secret/publishable keys + webhook secret
-   (`/api/stripe/webhook`), Connect enabled for host payouts.
-4. **Email**: `RESEND_API_KEY` + `EMAIL_FROM`; mailboxes (info@, support@) in
+   every 15 minutes (support reply targets). Add an env var named exactly
+   **`CRON_SECRET`** — Vercel then sends it as `Authorization: Bearer …`
+   automatically, and the routes reject anything else.
+   > ⚠️ **The 15-minute schedule needs a Pro plan.** Vercel Hobby allows daily
+   > crons only, and a sub-daily entry fails the deployment outright rather
+   > than degrading. On Hobby, either drop the `/api/admin/sla` entry from
+   > `vercel.json` or move it to an external scheduler that calls the route.
+3. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
+   Supabase URL + anon + service-role keys, and
+   **`NEXT_PUBLIC_SITE_URL=https://www.parkgo.ai`** — canonicals, the sitemap
+   and every `og:image` are built from it, so if it is left on localhost the
+   share cards point at a dead host and no preview renders anywhere.
+4. **Stripe**: live secret/publishable keys + webhook secret
+   (`/api/stripe/webhook`), Connect enabled for host payouts. Saved cards,
+   automatic payouts and the disputes view stay hidden until these exist.
+5. **Email**: `RESEND_API_KEY` + `EMAIL_FROM`; mailboxes (info@, support@) in
    Microsoft 365.
-5. **Maps**: `NEXT_PUBLIC_MAPS_PROVIDER=mapbox` + `NEXT_PUBLIC_MAPBOX_TOKEN`.
-6. **Inbound support email** (optional) — lets customers reply to a support
+6. **Maps**: `NEXT_PUBLIC_MAPS_PROVIDER=mapbox` + `NEXT_PUBLIC_MAPBOX_TOKEN`.
+7. **Inbound support email** (optional) — lets customers reply to a support
    email and have it land back in the chat:
    - In Resend, **Domains → Receiving**: add the MX record it gives you, on a
      subdomain such as `support.parkgo.ai` (priority 10, and it must be the
@@ -240,11 +391,19 @@ capacitor.config.ts       iOS/Android wrapper config
      so the body is fetched from the receiving API.
    - Any non-Resend provider can instead POST `{from, subject, text}` with
      `SUPPORT_INBOUND_SECRET` in an `X-ParkGo-Secret` header.
-7. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
+8. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
    set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`
    (a `mailto:` address). The button stays hidden until these exist.
-8. Optional: Sentry DSN, commission overrides
-   (`PARKGO_COMMISSION_PARKING_BPS` / `_TRANSFER_BPS`).
+9. **Support team**: invite agents from the admin console. They get an email
+   with a single-use link, set their own password and sign in at
+   `/team/login`. Give them the `support` scope unless they genuinely need the
+   money pages.
+10. Optional: Sentry DSN, commission overrides
+    (`PARKGO_COMMISSION_PARKING_BPS` / `_TRANSFER_BPS`).
+
+Then run the two audits against the deployed URL —
+`BASE=https://www.parkgo.ai npm run audit:seo` will tell you immediately if
+step 3 was missed, because every canonical will still say `localhost`.
 
 See `.env.example` for the full annotated list.
 
@@ -283,7 +442,9 @@ generally allowed rather than in-app purchase — confirm with legal.
 ## Tech stack
 
 **Next.js 15** (App Router) · **React 19** · **TypeScript** (strict) ·
-**Tailwind CSS** (brand system: orange `#F26A1B` + ink `#15171A`) ·
+**Tailwind CSS** (brand system: orange `#F26A1B` + ink `#15171A`, with the
+measured AA contrast rules documented in `tailwind.config.ts`) ·
 **Supabase** (Postgres, Auth, Storage, RLS) · **Stripe Connect** ·
-**Mapbox GL** · **Resend** · **ExcelJS** (styled exports) · **Vitest** ·
-**lucide-react** · **qrcode** · **zod** · **Capacitor**.
+**Mapbox GL** · **Resend** (+ Svix-verified inbound) · **web-push** (VAPID) ·
+**ExcelJS** (styled exports) · **Vitest** · **Playwright** (audits, dev-only) ·
+**Sentry** · **lucide-react** · **qrcode** · **zod** · **Capacitor**.
