@@ -37,6 +37,7 @@ export default async function SearchPage({
     transfer?: string;
     cctv?: string;
     covered?: string;
+    accessible?: string;
     maxprice?: string;
     vehicle?: string;
     sort?: string;
@@ -99,6 +100,7 @@ export default async function SearchPage({
     needsTransfer: sp.transfer === "1",
     needsCctv: sp.cctv === "1",
     needsCovered: sp.covered === "1",
+    needsAccessible: sp.accessible === "1",
     maxPricePerDay: maxPrice,
     vehicleSize: (sp.vehicle as "small" | "medium" | "large" | "van" | undefined) || undefined,
   });
@@ -113,6 +115,9 @@ export default async function SearchPage({
     ? (sp.sort as "price" | "rating" | "closest")
     : "recommended";
   const results = [...scoped];
+  // Which of these the traveller has already kept, so the heart renders filled.
+  const { listSavedSpaceIds } = await import("@/lib/data/saved");
+  const savedIds = new Set(await listSavedSpaceIds(user.id).catch(() => []));
   // Demand analytics (fire-and-forget; zero-result searches = supply gaps).
   const { logSearchEvent } = await import("@/lib/data/search-events");
   await logSearchEvent({
@@ -183,6 +188,7 @@ export default async function SearchPage({
             transfer: sp.transfer === "1",
             cctv: sp.cctv === "1",
             covered: sp.covered === "1",
+            accessible: sp.accessible === "1",
             maxPrice,
           }}
         />
@@ -218,6 +224,7 @@ export default async function SearchPage({
               {sp.transfer === "1" && <Badge tone="brand">{t("app.search.plusTransfer")}</Badge>}
               {sp.ev === "1" && <Badge tone="brand">{t("search.evCharging")}</Badge>}
               {sp.covered === "1" && <Badge tone="navy">{t("search.covered")}</Badge>}
+              {sp.accessible === "1" && <Badge tone="navy">{t("search.accessible")}</Badge>}
               {maxPrice && (
                 <Badge tone="neutral">≤ £{Math.round(maxPrice / 100)}/{t("common.day")}</Badge>
               )}
@@ -299,7 +306,14 @@ export default async function SearchPage({
                 </Link>
               </Card>
             ) : (
-              results.map((r) => <SpaceCard key={r.space.id} result={r} href={spaceHref(r.space.id)} />)
+              results.map((r) => (
+                <SpaceCard
+                  key={r.space.id}
+                  result={r}
+                  href={spaceHref(r.space.id)}
+                  saved={savedIds.has(r.space.id)}
+                />
+              ))
             )}
           </div>
 

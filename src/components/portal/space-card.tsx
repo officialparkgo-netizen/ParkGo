@@ -1,22 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { BadgeCheck, Camera, Car, Clock, MapPin, ShieldCheck, Umbrella, Zap } from "lucide-react";
+import {
+  Accessibility,
+  BadgeCheck,
+  Camera,
+  Car,
+  Clock,
+  MapPin,
+  ShieldCheck,
+  Umbrella,
+  Zap,
+} from "lucide-react";
 import type { SearchResult } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Stars } from "@/components/common/stars";
 import { Photo } from "@/components/common/photo";
 import { buttonVariants } from "@/components/ui/button";
+import { SaveSpaceButton } from "@/components/portal/save-space-button";
 import { formatMoneyShort } from "@/lib/utils";
 import { useT } from "@/lib/i18n/client";
 
-export function SpaceCard({ result, href }: { result: SearchResult; href?: string }) {
+export function SpaceCard({
+  result,
+  href,
+  saved,
+}: {
+  result: SearchResult;
+  href?: string;
+  /** Omitted for signed-out browsing, where there is nowhere to save to. */
+  saved?: boolean;
+}) {
   const t = useT();
   const { space, airport, estimatedTotal } = result;
   const spaceHref = href ?? `/app/space/${space.id}`;
   const currency = airport.country === "IE" ? "EUR" : "GBP";
   return (
-    <div className="card-hover flex flex-col overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-card sm:flex-row">
+    <div className="card-hover relative flex flex-col overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-card sm:flex-row">
       <Link href={spaceHref} className="relative block sm:w-56">
         <Photo token={space.photos[0] ?? "drive-1"} rounded="rounded-none" className="h-44 w-full sm:h-full" />
         <div className="absolute left-2 top-2 flex flex-wrap gap-1">
@@ -35,8 +55,23 @@ export function SpaceCard({ result, href }: { result: SearchResult; href?: strin
               <Zap className="h-3 w-3" /> {t("app.ev")}
             </Badge>
           )}
+          {space.accessible && (
+            <Badge tone="navy" className="bg-white/90">
+              <Accessibility className="h-3 w-3" /> {t("search.accessible")}
+            </Badge>
+          )}
         </div>
       </Link>
+
+      {saved !== undefined && (
+        <div className="absolute end-2 top-2 z-10">
+          <SaveSpaceButton
+            spaceId={space.id}
+            saved={saved}
+            labels={{ save: t("app.saved.save"), saved: t("app.saved.saved") }}
+          />
+        </div>
+      )}
 
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">

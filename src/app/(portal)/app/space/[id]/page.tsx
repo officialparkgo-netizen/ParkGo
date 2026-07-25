@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   BadgeCheck,
+  BellRing,
   Camera,
   Car,
   CarTaxiFront,
@@ -23,6 +24,9 @@ import { travellerNav } from "@/components/portal/navs";
 import { LiveMap } from "@/components/portal/live-map";
 import { MapboxMap } from "@/components/portal/mapbox-map";
 import { requireRole } from "@/lib/auth";
+import { isSpaceSaved } from "@/lib/data/saved";
+import { SaveSpaceButton } from "@/components/portal/save-space-button";
+import { createAlertAction } from "@/lib/guest-actions";
 
 const MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 import { getAirport } from "@/lib/data/store";
@@ -52,6 +56,7 @@ export default async function SpaceDetail({
     soldout?: string;
     dates?: string;
     blocked?: string;
+    watch?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
@@ -118,16 +123,46 @@ export default async function SpaceDetail({
       ...(sp.transfer ? { transfer: sp.transfer } : {}),
     }).toString();
 
+  const saved = await isSpaceSaved(user.id, space.id).catch(() => false);
+
   return (
     <PortalShell user={user} nav={travellerNav} title={space.title}>
       <div className="mx-auto max-w-5xl space-y-6 pb-24 lg:pb-0">
-        <Link href="/app/search" className="text-sm font-semibold text-brand-600">
-          ← {t("common.backToResults")}
-        </Link>
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/app/search" className="text-sm font-semibold text-brand-600">
+            ← {t("common.backToResults")}
+          </Link>
+          <SaveSpaceButton
+            spaceId={space.id}
+            saved={saved}
+            labels={{ save: t("app.saved.save"), saved: t("app.saved.saved") }}
+          />
+        </div>
+
+        {sp.watch === "on" && (
+          <div className="rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            {t("app.saved.watchOn")}
+          </div>
+        )}
 
         {sp.soldout && (
-          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
-            {t("app.space.soldout")}
+          <div
+            className="space-y-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-accent-500"
+            data-soldout-watch
+          >
+            <p className="font-semibold">{t("app.space.soldout")}</p>
+            <form action={createAlertAction} className="flex flex-wrap items-center gap-2">
+              <input type="hidden" name="spaceId" value={space.id} />
+              {sp.from && <input type="hidden" name="from" value={sp.from} />}
+              {sp.to && <input type="hidden" name="to" value={sp.to} />}
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-full bg-navy-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-navy-700"
+              >
+                <BellRing className="h-3.5 w-3.5" /> {t("app.space.watchThis")}
+              </button>
+              <span className="text-xs">{t("app.space.watchHint")}</span>
+            </form>
           </div>
         )}
         {sp.dates && (

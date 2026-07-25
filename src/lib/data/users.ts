@@ -18,6 +18,13 @@ type UserRow = {
   phone: string | null;
   locale: string;
   vehicle: unknown;
+  vehicles?: unknown;
+  business?: unknown;
+  stripe_customer_id?: string | null;
+  referral_code?: string | null;
+  referred_by?: string | null;
+  credit_pence?: number | null;
+  guest_created?: boolean | null;
   corporate_account_id: string | null;
   suspended?: boolean | null;
   twofa_enabled?: boolean | null;
@@ -48,6 +55,18 @@ export function userFromRow(r: UserRow): User {
     emailBookingAlerts: r.email_booking_alerts ?? undefined,
     cohostHostId: r.cohost_host_id ?? undefined,
     supportAvailable: r.support_available ?? undefined,
+    // Accounts predating the multi-car migration have only the single column.
+    vehicles: Array.isArray(r.vehicles) && r.vehicles.length
+      ? (r.vehicles as User["vehicles"])
+      : r.vehicle
+        ? [r.vehicle as NonNullable<User["vehicle"]>]
+        : undefined,
+    business: (r.business as User["business"]) ?? undefined,
+    stripeCustomerId: r.stripe_customer_id ?? undefined,
+    referralCode: r.referral_code ?? undefined,
+    referredBy: r.referred_by ?? undefined,
+    creditPence: r.credit_pence ?? 0,
+    guestCreated: r.guest_created ?? undefined,
     inviteNonce: r.invite_nonce ?? undefined,
     // Keep undefined (not false) when the column doesn't exist yet — the
     // onboarding gate only fires on a strict `false`.
@@ -144,7 +163,18 @@ export async function updateOwnProfile(
     name: input.name,
     phone: input.phone ?? null,
   };
-  if (input.vehicle !== undefined) payload.vehicle = input.vehicle;
+  if (input.vehicle !== undefined) {
+    payload.vehicle = input.vehicle;
+    // Onboarding captures one car; make it the first of the list too, so the
+    // account page and checkout never disagree about the default vehicle.
+    const { data: current } = await supabaseAdmin()
+      .from("users")
+      .select("vehicles")
+      .eq("id", userId)
+      .maybeSingle();
+    const rest = Array.isArray(current?.vehicles) ? current.vehicles.slice(1) : [];
+    payload.vehicles = input.vehicle ? [input.vehicle, ...rest] : rest;
+  }
   const withAvatar =
     input.avatarUrl !== undefined ? { ...payload, avatar_url: input.avatarUrl } : payload;
 
@@ -296,6 +326,171 @@ export async function getAuthLastSignIn(userId: string): Promise<string | null> 
     return data.user?.last_sign_in_at ?? null;
   } catch {
     return null;
+  }
+}
+
+/** Save the traveller's car list (first entry is the default at checkout). */
+export async function setUserVehicles(
+  userId: string,
+  vehicles: NonNullable<User["vehicles"]>
+): Promise<boolean> {
+  const list = vehicles.slice(0, 5);
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return false;
+    u.vehicles = list;
+    // Keep the legacy single field in step so nothing downstream regresses.
+    u.vehicle = list[0];
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ vehicles: list, vehicle: list[0] ?? null })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Company details for anyone expensing the trip; null clears them. */
+export async function setUserBusiness(
+  userId: string,
+  business: User["business"] | null
+): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return false;
+    u.business = business ?? undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ business })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Remember the Stripe customer so a returning traveller sees their card. */
+export async function setStripeCustomerId(userId: string, customerId: string): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return false;
+    u.stripeCustomerId = customerId;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ stripe_customer_id: customerId })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Give this account its permanent referral code (idempotent). */
+export async function ensureReferralCode(user: User): Promise<string> {
+  if (user.referralCode) return user.referralCode;
+  const { referralCodeFor } = await import("@/lib/referrals");
+  const code = referralCodeFor(user.id);
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(user.id);
+    if (u) u.referralCode = code;
+    return code;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin().from("users").update({ referral_code: code }).eq("id", user.id);
+  } catch {
+    // The code is derived from the id, so it is the same next time regardless.
+  }
+  return code;
+}
+
+export async function findUserByReferralCode(code: string): Promise<User | null> {
+  const clean = code.toUpperCase();
+  if (!clean) return null;
+  if (!IS_LIVE) {
+    const { getAllUsers } = await import("@/lib/data/store");
+    const { referralCodeFor } = await import("@/lib/referrals");
+    return (
+      getAllUsers().find((u) => (u.referralCode ?? referralCodeFor(u.id)) === clean) ?? null
+    );
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { data } = await supabaseAdmin()
+      .from("users")
+      .select(PROFILE_COLS)
+      .eq("referral_code", clean)
+      .maybeSingle();
+    return data ? userFromRow(data as UserRow) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Move credit by a delta (positive to award, negative to spend). Clamped at
+ * zero so a race between two checkouts can never leave a negative balance.
+ */
+export async function adjustCredit(userId: string, deltaPence: number): Promise<number> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return 0;
+    u.creditPence = Math.max(0, (u.creditPence ?? 0) + deltaPence);
+    return u.creditPence;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const admin = supabaseAdmin();
+    const { data } = await admin
+      .from("users")
+      .select("credit_pence")
+      .eq("id", userId)
+      .maybeSingle();
+    const next = Math.max(0, ((data?.credit_pence as number) ?? 0) + deltaPence);
+    await admin.from("users").update({ credit_pence: next }).eq("id", userId);
+    return next;
+  } catch {
+    return 0;
+  }
+}
+
+/** Record who referred this traveller. Only ever set once. */
+export async function setReferredBy(userId: string, referrerId: string): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u || u.referredBy) return false;
+    u.referredBy = referrerId;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ referred_by: referrerId })
+      .eq("id", userId)
+      .is("referred_by", null);
+    return !error;
+  } catch {
+    return false;
   }
 }
 

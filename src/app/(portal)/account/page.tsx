@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import {
+  BellRing,
+  Building2,
   CalendarCheck,
   Car,
   CheckCircle2,
   FileDown,
   LockKeyhole,
-  BellRing,
   ShieldCheck,
   Trash2,
   UserRound,
@@ -26,6 +27,7 @@ import {
   setOwnTwofaAction,
   updateOwnProfileAction,
 } from "@/lib/user-actions";
+import { saveBusinessAction, saveVehiclesAction } from "@/lib/guest-actions";
 import { updateHostProfileAction } from "@/lib/host-actions";
 import { setBookingAlertsAction } from "@/lib/host-suite-actions";
 import { listBookingsForTraveller, listPaymentsForHost } from "@/lib/data/bookings";
@@ -50,11 +52,26 @@ export default async function AccountPage({
     profile?: string;
     privacy?: string;
     hostbio?: string;
+    saved?: string;
   }>;
 }) {
   const user = await requireUser();
   const { t } = await getI18n();
-  const { reset, twofa, profile, privacy, hostbio, alerts } = await searchParams;
+  const { reset, twofa, profile, privacy, hostbio, alerts, saved } = await searchParams;
+  // Always show one blank slot so another car can be added without a JS row
+  // button; the action drops any row left without a registration.
+  const owned = user.vehicles?.length ? user.vehicles : user.vehicle ? [user.vehicle] : [];
+  const vehicleRows = [
+    ...owned,
+    ...Array.from({ length: Math.max(1, 3 - owned.length) }, () => ({
+      reg: "",
+      make: "",
+      model: "",
+      colour: "",
+      size: "medium" as const,
+      ev: false,
+    })),
+  ].slice(0, 5);
 
   const nav =
     user.role === "admin" ? adminNav : user.role === "host" ? hostNav : travellerNav;
@@ -82,8 +99,11 @@ export default async function AccountPage({
             <LockKeyhole className="h-5 w-5" /> {t("account.resetBanner")}
           </div>
         )}
-        {profile === "saved" && (
-          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700">
+        {(profile === "saved" || saved) && (
+          <div
+            className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700"
+            data-saved-banner
+          >
             <CheckCircle2 className="h-5 w-5 shrink-0" /> {t("account.profile.saved")}
           </div>
         )}
@@ -180,59 +200,124 @@ export default async function AccountPage({
               </div>
             </div>
 
-            {user.role === "traveller" && (
-              <div className="rounded-2xl border border-navy-100 p-4">
-                <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
-                  <Car className="h-4 w-4 text-brand-600" /> {t("account.vehicle.title")}
-                </h3>
-                <p className="mb-3 mt-0.5 text-xs text-navy-500">{t("account.vehicle.sub")}</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="vehicleReg">{t("account.vehicle.reg")}</Label>
-                    <Input
-                      id="vehicleReg"
-                      name="vehicleReg"
-                      defaultValue={user.vehicle?.reg ?? ""}
-                      placeholder="AB12 CDE"
-                      className="uppercase"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicleMake">{t("account.vehicle.make")}</Label>
-                    <Input
-                      id="vehicleMake"
-                      name="vehicleMake"
-                      defaultValue={user.vehicle?.make ?? ""}
-                      placeholder="Toyota"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicleModel">{t("account.vehicle.model")}</Label>
-                    <Input
-                      id="vehicleModel"
-                      name="vehicleModel"
-                      defaultValue={user.vehicle?.model ?? ""}
-                      placeholder="Corolla"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vehicleColour">{t("account.vehicle.colour")}</Label>
-                    <Input
-                      id="vehicleColour"
-                      name="vehicleColour"
-                      defaultValue={user.vehicle?.colour ?? ""}
-                      placeholder="Silver"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
             <button type="submit" className={buttonVariants({ size: "sm" })}>
               {t("account.profile.save")}
             </button>
           </form>
         </Card>
+
+        {/* Every car on the account — the first is the default at checkout. */}
+        {user.role === "traveller" && (
+          <Card className="p-5" data-vehicles-card>
+            <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Car className="h-5 w-5 text-navy-500" /> {t("account.vehicle.title")}
+            </h2>
+            <p className="mb-4 mt-0.5 text-sm text-navy-500">{t("account.vehicle.listSub")}</p>
+            <form action={saveVehiclesAction} className="space-y-4">
+              {vehicleRows.map((v, i) => (
+                <fieldset key={i} className="rounded-2xl border border-navy-100 p-4">
+                  <legend className="px-1 text-xs font-bold text-navy-500">
+                    {i === 0 ? t("account.vehicle.primary") : `${t("account.vehicle.car")} ${i + 1}`}
+                  </legend>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor={`reg-${i}`}>{t("account.vehicle.reg")}</Label>
+                      <Input
+                        id={`reg-${i}`}
+                        name="vehicleReg"
+                        defaultValue={v.reg}
+                        placeholder="AB12 CDE"
+                        className="uppercase"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`make-${i}`}>{t("account.vehicle.make")}</Label>
+                      <Input id={`make-${i}`} name="vehicleMake" defaultValue={v.make} placeholder="Toyota" />
+                    </div>
+                    <div>
+                      <Label htmlFor={`model-${i}`}>{t("account.vehicle.model")}</Label>
+                      <Input id={`model-${i}`} name="vehicleModel" defaultValue={v.model} placeholder="Corolla" />
+                    </div>
+                    <div>
+                      <Label htmlFor={`colour-${i}`}>{t("account.vehicle.colour")}</Label>
+                      <Input id={`colour-${i}`} name="vehicleColour" defaultValue={v.colour} placeholder="Silver" />
+                    </div>
+                    <div>
+                      <Label htmlFor={`size-${i}`}>{t("account.vehicle.size")}</Label>
+                      <select
+                        id={`size-${i}`}
+                        name="vehicleSize"
+                        defaultValue={v.size}
+                        className="h-11 w-full rounded-xl border border-navy-200 bg-white px-3 text-sm text-navy-900 focus:border-brand-400 focus:outline-none"
+                      >
+                        {(["small", "medium", "large", "van"] as const).map((size) => (
+                          <option key={size} value={size}>
+                            {t(`vehicle.size.${size}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor={`ev-${i}`}>{t("account.vehicle.ev")}</Label>
+                      <select
+                        id={`ev-${i}`}
+                        name="vehicleEv"
+                        defaultValue={v.ev ? "1" : "0"}
+                        className="h-11 w-full rounded-xl border border-navy-200 bg-white px-3 text-sm text-navy-900 focus:border-brand-400 focus:outline-none"
+                      >
+                        <option value="0">{t("common.no")}</option>
+                        <option value="1">{t("common.yes")}</option>
+                      </select>
+                    </div>
+                  </div>
+                </fieldset>
+              ))}
+              <p className="text-xs text-navy-400">{t("account.vehicle.blankHint")}</p>
+              <button type="submit" className={buttonVariants({ size: "sm" })}>
+                {t("account.profile.save")}
+              </button>
+            </form>
+          </Card>
+        )}
+
+        {/* Expensing a trip: these details land on the VAT receipt. */}
+        {user.role === "traveller" && (
+          <Card className="p-5" data-business-card>
+            <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Building2 className="h-5 w-5 text-navy-500" /> {t("account.business.title")}
+            </h2>
+            <p className="mb-4 mt-0.5 text-sm text-navy-500">{t("account.business.sub")}</p>
+            <form action={saveBusinessAction} className="space-y-3">
+              <div>
+                <Label htmlFor="company">{t("account.business.company")}</Label>
+                <Input id="company" name="company" defaultValue={user.business?.company ?? ""} />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="vatNumber">{t("account.business.vat")}</Label>
+                  <Input
+                    id="vatNumber"
+                    name="vatNumber"
+                    defaultValue={user.business?.vatNumber ?? ""}
+                    placeholder="GB123456789"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="costCentre">{t("account.business.costCentre")}</Label>
+                  <Input
+                    id="costCentre"
+                    name="costCentre"
+                    defaultValue={user.business?.costCentre ?? ""}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-navy-400">{t("account.business.clearHint")}</p>
+              <button type="submit" className={buttonVariants({ size: "sm" })}>
+                {t("account.profile.save")}
+              </button>
+            </form>
+          </Card>
+        )}
 
         {/* Host guest-facing profile (moved from the host dashboard) */}
         {host && (

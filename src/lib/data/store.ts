@@ -200,7 +200,13 @@ export function updateUserProfile(
   if (!user) return undefined;
   user.name = input.name;
   user.phone = input.phone || undefined;
-  if (input.vehicle !== undefined) user.vehicle = input.vehicle ?? undefined;
+  if (input.vehicle !== undefined) {
+    user.vehicle = input.vehicle ?? undefined;
+    // Onboarding captures one car; keep the multi-car list in step so the
+    // account page and checkout see the same thing.
+    if (!user.vehicles?.length) user.vehicles = input.vehicle ? [input.vehicle] : [];
+    else if (input.vehicle) user.vehicles = [input.vehicle, ...user.vehicles.slice(1)];
+  }
   if (input.avatarUrl !== undefined) user.avatarUrl = input.avatarUrl;
   return user;
 }
@@ -280,6 +286,7 @@ export function searchSpaces(query: SearchQuery): SearchResult[] {
     .filter((s) => (query.needsEv ? !!s.evCharger : true))
     .filter((s) => (query.needsCctv ? s.cctv || s.liveCamera : true))
     .filter((s) => (query.needsCovered ? !!s.covered : true))
+    .filter((s) => (query.needsAccessible ? !!s.accessible : true))
     .filter((s) => (query.maxPricePerDay ? s.pricePerDay <= query.maxPricePerDay : true))
     .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true))
     .map((space) => {

@@ -3,7 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Plane, Search, Zap, CarTaxiFront, Camera, Car, Umbrella, Banknote, MapPin,
+  Accessibility,
+  Banknote,
+  Camera,
+  Car,
+  CarTaxiFront,
+  MapPin,
+  Plane,
+  Search,
+  Umbrella,
+  Zap,
 } from "lucide-react";
 import type { Airport } from "@/types";
 import { useT } from "@/lib/i18n/client";
@@ -35,6 +44,7 @@ export interface SearchWidgetInitial {
   transfer?: boolean;
   cctv?: boolean;
   covered?: boolean;
+  accessible?: boolean;
   /** Max daily rate in pence (e.g. 1000 = £10/day). */
   maxPrice?: number;
 }
@@ -144,6 +154,7 @@ export function SearchWidget({
   const [needsTransfer, setNeedsTransfer] = useState(initial?.transfer ?? false);
   const [needsCctv, setNeedsCctv] = useState(initial?.cctv ?? false);
   const [needsCovered, setNeedsCovered] = useState(initial?.covered ?? false);
+  const [needsAccessible, setNeedsAccessible] = useState(initial?.accessible ?? false);
   const [maxPrice, setMaxPrice] = useState(initial?.maxPrice ? String(initial.maxPrice) : "");
 
   // Terminal transfer only exists at airports.
@@ -185,6 +196,7 @@ export function SearchWidget({
       ...(needsTransfer ? { transfer: "1" } : {}),
       ...(needsCctv ? { cctv: "1" } : {}),
       ...(needsCovered ? { covered: "1" } : {}),
+      ...(needsAccessible ? { accessible: "1" } : {}),
       ...(maxPrice ? { maxprice: maxPrice } : {}),
     });
     router.push(`/app/search?${params.toString()}`);
@@ -400,6 +412,13 @@ export function SearchWidget({
           </Chip>
           <Chip active={needsCovered} onClick={() => setNeedsCovered((v) => !v)} icon={Umbrella}>
             {t("search.covered")}
+          </Chip>
+          <Chip
+            active={needsAccessible}
+            onClick={() => setNeedsAccessible((v) => !v)}
+            icon={Accessibility}
+          >
+            {t("search.accessible")}
           </Chip>
         </div>
       )}

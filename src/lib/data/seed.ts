@@ -145,6 +145,7 @@ export const spaces: Space[] = [
     dimensions: { lengthM: 5.5, widthM: 2.6 }, maxVehicleSize: "large",
     evCharger: { connector: "Type 2", kw: 7, pricePerKwh: 38 }, cctv: true, liveCamera: true,
     accessRules: "Park on the marked bay. Keys not required — keep your fob.",
+    accessible: true,
     photos: ["drive-1", "drive-2", "ev-1"], pricePerDay: 1200, pricePerHour: 300, rating: 4.9, reviewCount: 128, status: "live", createdAt: iso(-380 * DAY),
   },
   {
@@ -163,7 +164,7 @@ export const spaces: Space[] = [
     dimensions: { lengthM: 5.0, widthM: 2.4 }, maxVehicleSize: "medium",
     evCharger: { connector: "Type 2", kw: 7, pricePerKwh: 35 }, cctv: true, liveCamera: false,
     accessRules: "Covered bay under carport. Leave keys in lockbox (code on arrival).",
-    covered: true,
+    covered: true, accessible: true,
     photos: ["carport-1"], pricePerDay: 850, pricePerHour: 200, rating: 4.6, reviewCount: 54, status: "live", createdAt: iso(-180 * DAY),
   },
   {

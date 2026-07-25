@@ -67,6 +67,7 @@ function spaceFromRow(r: any): Space {
     cctv: r.cctv,
     liveCamera: r.live_camera,
     covered: r.covered ?? false,
+    accessible: r.accessible ?? false,
     accessRules: r.access_rules,
     photos: r.photos ?? [],
     pricePerDay: r.price_per_day,
@@ -226,6 +227,7 @@ export async function searchLiveSpaces(query: SearchQuery): Promise<SearchResult
     .filter((s) => (query.needsEv ? !!s.evCharger : true))
     .filter((s) => (query.needsCctv ? s.cctv || s.liveCamera : true))
     .filter((s) => (query.needsCovered ? !!s.covered : true))
+    .filter((s) => (query.needsAccessible ? !!s.accessible : true))
     .filter((s) => (query.maxPricePerDay ? s.pricePerDay <= query.maxPricePerDay : true))
     .filter((s) => (query.vehicleSize ? fitsVehicle(s, query.vehicleSize) : true));
 

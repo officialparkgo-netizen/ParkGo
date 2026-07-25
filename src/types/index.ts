@@ -29,8 +29,27 @@ export interface User {
   phone?: string;
   locale: Locale;
   avatarColor?: string;
-  /** Traveller-only: minimal vehicle detail captured at signup. */
+  /**
+   * Traveller-only: the vehicle captured at signup. Kept as the primary car;
+   * `vehicles` is the full list for households with more than one.
+   */
   vehicle?: VehicleProfile;
+  /** Every car on the account — the first is the default at checkout. */
+  vehicles?: VehicleProfile[];
+  /** Company details for anyone expensing the trip; printed on the receipt. */
+  business?: BusinessProfile;
+  /** Stripe customer, so a returning traveller is offered their saved card. */
+  stripeCustomerId?: string;
+  /** Share code others can book with; both sides earn credit. */
+  referralCode?: string;
+  referredBy?: UUID;
+  /** Referral credit held against the account, pence. */
+  creditPence?: number;
+  /**
+   * Account created for someone mid-checkout rather than by them signing up.
+   * They booked as a guest and still have to claim it with the emailed link.
+   */
+  guestCreated?: boolean;
   corporateAccountId?: UUID;
   /** Admin-set: suspended accounts are bounced at the sign-in guard. */
   suspended?: boolean;
@@ -83,6 +102,14 @@ export interface VehicleProfile {
 }
 
 export type VehicleSize = "small" | "medium" | "large" | "van";
+
+/** Company details for expensing a trip — shown on the VAT receipt. */
+export interface BusinessProfile {
+  company: string;
+  vatNumber?: string;
+  /** Free-text cost centre / PO reference the finance team asked for. */
+  costCentre?: string;
+}
 
 // -----------------------------------------------------------------------------
 // Verification & compliance
@@ -204,6 +231,8 @@ export interface Space {
   liveCamera: boolean;
   /** Roofed/enclosed space (garage, carport, barn). */
   covered?: boolean;
+  /** Step-free approach and a bay wide enough to get a wheelchair out. */
+  accessible?: boolean;
   accessRules: string;
   photos: string[];
   pricePerDay: Pence;
@@ -570,6 +599,7 @@ export interface SearchQuery {
   needsTransfer?: boolean;
   needsCctv?: boolean;
   needsCovered?: boolean;
+  needsAccessible?: boolean;
   /** Only show spaces at or below this daily rate (pence). */
   maxPricePerDay?: Pence;
 }
@@ -612,6 +642,23 @@ export interface TransferMessage {
   from: "traveller" | "driver";
   text: string;
   at: ISODateString;
+}
+
+/**
+ * A watch on a space or an airport: tell me when it frees up on my dates, or
+ * when something drops below what I'm willing to pay. Cleared once it fires.
+ */
+export interface SpaceAlert {
+  id: UUID;
+  userId: UUID;
+  /** Either a specific space, or a whole airport. */
+  spaceId?: UUID;
+  airportSlug?: string;
+  startAt?: ISODateString;
+  endAt?: ISODateString;
+  maxPricePence?: Pence;
+  notifiedAt?: ISODateString;
+  createdAt: ISODateString;
 }
 
 /** One line of a support-chat conversation. */
