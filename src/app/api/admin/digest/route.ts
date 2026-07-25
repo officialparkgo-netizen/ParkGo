@@ -19,6 +19,8 @@ export async function GET(request: Request) {
   // (full refund) and nudge travellers arriving tomorrow.
   let sweptRequests = 0;
   let arrivalReminders = 0;
+  let alertsFired = 0;
+  let slaBreaches = 0;
   try {
     const { sweepExpiredApprovals } = await import("@/lib/data/bookings");
     sweptRequests = await sweepExpiredApprovals();
@@ -32,11 +34,36 @@ export async function GET(request: Request) {
     // best-effort
   }
 
+  // Watches on spaces that have freed up or dropped in price.
+  try {
+    const { sweepSpaceAlerts } = await import("@/lib/alert-sweep");
+    alertsFired = await sweepSpaceAlerts();
+  } catch {
+    // best-effort
+  }
+  // Support chats that blew past their reply target. The queue page also
+  // sweeps on load, but that only helps if somebody is looking — this covers
+  // the overnight case, which is exactly when a missed urgent chat hurts.
+  try {
+    const { listSupportTickets } = await import("@/lib/data/support");
+    const { getPlatformSettings } = await import("@/lib/data/settings");
+    const { sweepSlaBreaches } = await import("@/lib/support-escalate");
+    const [tickets, settings] = await Promise.all([
+      listSupportTickets(),
+      getPlatformSettings(),
+    ]);
+    slaBreaches = (await sweepSlaBreaches(tickets, settings.supportSlaMinutes)).length;
+  } catch {
+    // best-effort
+  }
+
   const summary = await composeAndSendDigest();
   return Response.json({
     ok: true,
     sweptRequests,
     arrivalReminders,
+    alertsFired,
+    slaBreaches,
     emailed: summary.emailed,
     recipients: summary.sentTo.length,
     bookings24h: summary.bookings24h,

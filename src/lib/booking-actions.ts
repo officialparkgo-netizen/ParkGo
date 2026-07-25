@@ -30,6 +30,21 @@ import {
 } from "@/lib/stripe";
 
 /** Checkout: create a booking + take (mock) payment, then go to confirmation. */
+/**
+ * Deduct exactly what the pricing actually allowed. `applyPromoToPrice` clamps
+ * a discount to the platform's share, so the credit spent can be less than the
+ * credit offered — charging the full offer would quietly burn the difference.
+ */
+async function settleCredit(
+  userId: string,
+  promo: { id: string } | undefined,
+  discount: number | undefined
+) {
+  if (promo?.id !== "credit" || !discount || discount <= 0) return;
+  const { adjustCredit } = await import("@/lib/data/users");
+  await adjustCredit(userId, -discount);
+}
+
 export async function createBookingAction(formData: FormData) {
   const user = await requireUser();
   const spaceId = String(formData.get("spaceId") || "");
@@ -95,6 +110,25 @@ export async function createBookingAction(formData: FormData) {
     promo = { id: found.id, code: found.code, kind: found.kind, value: found.value };
   }
 
+  /**
+   * Referral credit. Spent as a fixed discount the platform absorbs, exactly
+   * like a promo — the host's payout is untouched either way. Only applied
+   * when no promo code was used, because a booking carries one discount line.
+   */
+  if (!promo && (user.creditPence ?? 0) > 0) {
+    const { creditToApply } = await import("@/lib/referrals");
+    const { getPlatformSettings } = await import("@/lib/data/settings");
+    const cfg = await getPlatformSettings();
+    const currency = getAirport(space.airportSlug)?.country === "IE" ? "EUR" : "GBP";
+    const preview = priceBundle(space, bundle, startAt, endAt, currency, {
+      serviceFee: cfg.serviceFee,
+      parkingCommissionBps: cfg.parkingCommissionBps,
+      transferCommissionBps: cfg.transferCommissionBps,
+    });
+    const spend = creditToApply(user.creditPence ?? 0, preview.total);
+    if (spend > 0) promo = { id: "credit", code: "CREDIT", kind: "fixed", value: spend };
+  }
+
   // Stripe path: create a pending booking, then redirect to Stripe Checkout.
   // The /api/stripe/confirm route marks it paid on return.
   if (isStripeConfigured()) {
@@ -102,10 +136,11 @@ export async function createBookingAction(formData: FormData) {
       { travellerId: user.id, spaceId, bundle, startAt, endAt, method, promo },
       { status: "requested", recordPayment: false }
     );
-    if (promo) {
+    if (promo && promo.id !== "credit") {
       const { incrementPromoUse } = await import("@/lib/data/promos");
       await incrementPromoUse(promo.id);
     }
+    await settleCredit(user.id, promo, pending.price.discount);
     // Split to the host's connected account when they've onboarded payouts.
     const host = await getHostById(space.hostId);
     const url = await createBookingCheckoutSession(pending, space, host?.payoutAccountRef);
@@ -122,10 +157,11 @@ export async function createBookingAction(formData: FormData) {
     method,
     promo,
   });
-  if (promo) {
+  if (promo && promo.id !== "credit") {
     const { incrementPromoUse } = await import("@/lib/data/promos");
     await incrementPromoUse(promo.id);
   }
+  await settleCredit(user.id, promo, booking.price.discount);
   await getPaymentGateway().charge({
     bookingRef: booking.reference,
     amount: booking.price.total,

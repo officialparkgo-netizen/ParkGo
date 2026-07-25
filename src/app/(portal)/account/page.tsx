@@ -6,6 +6,7 @@ import {
   Car,
   CheckCircle2,
   FileDown,
+  Gift,
   LockKeyhole,
   ShieldCheck,
   Trash2,
@@ -27,14 +28,21 @@ import {
   setOwnTwofaAction,
   updateOwnProfileAction,
 } from "@/lib/user-actions";
-import { saveBusinessAction, saveVehiclesAction } from "@/lib/guest-actions";
+import {
+  claimReferralAction,
+  saveBusinessAction,
+  saveVehiclesAction,
+} from "@/lib/guest-actions";
+import { REFERRAL_FRIEND_CREDIT, REFERRAL_REFERRER_CREDIT, referralCodeFor } from "@/lib/referrals";
+import { ensureReferralCode } from "@/lib/data/users";
+import { CopyLinkButton } from "@/components/common/copy-link-button";
 import { updateHostProfileAction } from "@/lib/host-actions";
 import { setBookingAlertsAction } from "@/lib/host-suite-actions";
 import { listBookingsForTraveller, listPaymentsForHost } from "@/lib/data/bookings";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { getI18n } from "@/lib/i18n";
 import { formatDate, formatMoney } from "@/lib/utils";
-import { pageMetadata } from "@/lib/seo";
+import { pageMetadata, SITE } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Account",
@@ -53,11 +61,18 @@ export default async function AccountPage({
     privacy?: string;
     hostbio?: string;
     saved?: string;
+    referral?: string;
   }>;
 }) {
   const user = await requireUser();
   const { t } = await getI18n();
-  const { reset, twofa, profile, privacy, hostbio, alerts, saved } = await searchParams;
+  const { reset, twofa, profile, privacy, hostbio, alerts, saved, referral } = await searchParams;
+  // Derived from the user id, so it is the same code every time even before
+  // the column has been written.
+  const referralCode =
+    user.role === "traveller"
+      ? await ensureReferralCode(user).catch(() => referralCodeFor(user.id))
+      : "";
   // Always show one blank slot so another car can be added without a JS row
   // button; the action drops any row left without a registration.
   const owned = user.vehicles?.length ? user.vehicles : user.vehicle ? [user.vehicle] : [];
@@ -97,6 +112,16 @@ export default async function AccountPage({
         {reset && (
           <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
             <LockKeyhole className="h-5 w-5" /> {t("account.resetBanner")}
+          </div>
+        )}
+        {referral === "claimed" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700" data-referral-claimed>
+            <CheckCircle2 className="h-5 w-5 shrink-0" /> {t("account.referral.claimed")}
+          </div>
+        )}
+        {referral === "invalid" && (
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" data-referral-invalid>
+            {t("account.referral.invalid")}
           </div>
         )}
         {(profile === "saved" || saved) && (
@@ -277,6 +302,61 @@ export default async function AccountPage({
                 {t("account.profile.save")}
               </button>
             </form>
+          </Card>
+        )}
+
+        {/* Referrals: a code to share and whatever credit it has earned. */}
+        {user.role === "traveller" && (
+          <Card className="p-5" data-referral-card>
+            <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <Gift className="h-5 w-5 text-navy-500" /> {t("account.referral.title")}
+            </h2>
+            <p className="mb-4 mt-0.5 text-sm text-navy-500">
+              {t("account.referral.sub")
+                .replace("{friend}", formatMoney(REFERRAL_FRIEND_CREDIT))
+                .replace("{you}", formatMoney(REFERRAL_REFERRER_CREDIT))}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-navy-50 px-4 py-3">
+              <div>
+                <p className="text-xs font-semibold text-navy-400">{t("account.referral.code")}</p>
+                <p className="font-mono text-xl font-bold tracking-widest text-navy-900" data-referral-code>
+                  {referralCode}
+                </p>
+              </div>
+              <span className="ms-auto">
+                <CopyLinkButton
+                  value={`${SITE.url}/login?ref=${referralCode}`}
+                  label={t("account.referral.copy")}
+                  copiedLabel={t("host.settings.icalCopied")}
+                />
+              </span>
+            </div>
+
+            <p className="mt-3 text-sm text-navy-600">
+              {t("account.referral.balance")}{" "}
+              <strong className="text-navy-900" data-credit-balance>
+                {formatMoney(user.creditPence ?? 0)}
+              </strong>
+            </p>
+            <p className="mt-1 text-xs text-navy-400">{t("account.referral.spendHint")}</p>
+
+            {!user.referredBy && (
+              <form action={claimReferralAction} className="mt-4 flex flex-wrap items-end gap-2">
+                <div className="min-w-40 flex-1">
+                  <Label htmlFor="ref-code">{t("account.referral.haveCode")}</Label>
+                  <Input id="ref-code" name="code" placeholder="PGAB23CD" className="uppercase" />
+                </div>
+                <button type="submit" className={buttonVariants({ size: "sm" })}>
+                  {t("account.referral.claim")}
+                </button>
+              </form>
+            )}
+            {user.referredBy && (
+              <p className="mt-3 text-xs font-semibold text-go-700" data-referral-used>
+                {t("account.referral.alreadyUsed")}
+              </p>
+            )}
           </Card>
         )}
 

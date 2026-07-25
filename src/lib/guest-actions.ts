@@ -100,6 +100,36 @@ export async function createAlertAction(formData: FormData) {
   redirect(`/app/saved?watch=${alert ? "on" : "error"}`);
 }
 
+/**
+ * Redeem a friend's code.
+ *
+ * The friend's credit lands immediately — it is the reason they typed the
+ * code. The referrer's is deliberately withheld until that first stay is paid
+ * for, so a ring of throwaway signups mints nothing.
+ */
+export async function claimReferralAction(formData: FormData) {
+  const user = await requireUser();
+  const raw = String(formData.get("code") || "");
+  const { normaliseReferralCode, canClaimReferral, REFERRAL_FRIEND_CREDIT } = await import(
+    "@/lib/referrals"
+  );
+  const code = normaliseReferralCode(raw);
+  if (!code) redirect("/account?referral=invalid");
+
+  const { adjustCredit, findUserByReferralCode, setReferredBy } = await import(
+    "@/lib/data/users"
+  );
+  const referrer = await findUserByReferralCode(code);
+  if (!canClaimReferral(code, referrer, user)) redirect("/account?referral=invalid");
+
+  const linked = await setReferredBy(user.id, referrer!.id);
+  if (!linked) redirect("/account?referral=invalid");
+  await adjustCredit(user.id, REFERRAL_FRIEND_CREDIT);
+
+  revalidatePath("/account");
+  redirect("/account?referral=claimed");
+}
+
 export async function deleteAlertAction(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("alertId") || "");

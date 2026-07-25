@@ -215,6 +215,10 @@ capacitor.config.ts       iOS/Android wrapper config
 
 1. **Supabase**: create the project, run migrations **0001 → 0025**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
+   Two Vercel crons back this: `/api/admin/digest` daily (KPI digest, expired
+   booking requests, arrival reminders, space watches) and `/api/admin/sla`
+   every 15 minutes (support reply targets). Both need `CRON_SECRET` in live
+   mode.
 2. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
    `NEXT_PUBLIC_SITE_URL`, Supabase URL + anon + service-role keys.
 3. **Stripe**: live secret/publishable keys + webhook secret

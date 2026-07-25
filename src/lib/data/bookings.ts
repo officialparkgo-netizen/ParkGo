@@ -199,6 +199,9 @@ export async function createBookingLive(
     );
     const { sendBookingConfirmedEmails } = await import("@/lib/booking-emails");
     await sendBookingConfirmedEmails(booking);
+    // A referrer earns only when their friend actually books.
+    const { awardReferrerIfFirstBooking } = await import("@/lib/referral-payout");
+    await awardReferrerIfFirstBooking(booking);
     if (!pendingApproval) {
       const { sendAutoWelcome } = await import("@/lib/data/booking-messages");
       await sendAutoWelcome(booking);
@@ -295,6 +298,9 @@ export async function markBookingPaid(
     );
     const { sendBookingConfirmedEmails } = await import("@/lib/booking-emails");
     await sendBookingConfirmedEmails(booking);
+    // A referrer earns only when their friend actually books.
+    const { awardReferrerIfFirstBooking } = await import("@/lib/referral-payout");
+    await awardReferrerIfFirstBooking(booking);
     if (!pendingApproval) {
       const { sendAutoWelcome } = await import("@/lib/data/booking-messages");
       await sendAutoWelcome(booking);
