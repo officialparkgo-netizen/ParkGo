@@ -28,7 +28,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "Trust & safety",
   description:
-    "How ParkGo keeps everyone safe: two-sided verification, ID-checked hosts, licensed and insured drivers, CCTV and live camera, verified handovers, two-sided trust scoring, and GDPR/ICO-aligned data protection.",
+    "How ParkGo keeps everyone safe: ID-checked hosts, licensed and insured drivers, CCTV and live camera, and verified handovers.",
   path: "/trust-safety",
 });
 

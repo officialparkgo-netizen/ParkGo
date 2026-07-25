@@ -7,7 +7,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "Privacy Policy",
   description:
-    "How ParkGo collects, uses and protects your personal data under UK GDPR and the Data Protection Act 2018 — including KYC handling, lawful bases, retention and your rights.",
+    "How ParkGo collects, uses and protects your personal data under UK GDPR — lawful bases, KYC handling, retention periods and your rights.",
   path: "/privacy",
 });
 

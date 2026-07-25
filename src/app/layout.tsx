@@ -28,6 +28,26 @@ export const metadata: Metadata = {
     "Dublin airport parking",
   ],
   authors: [{ name: SITE.name }],
+  // Defaults for anything that doesn't call pageMetadata() — without these a
+  // shared link renders as a bare blue URL on WhatsApp, LinkedIn and Slack.
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+    url: SITE.url,
+    siteName: SITE.name,
+    type: "website",
+    locale: "en_GB",
+    images: [
+      { url: SITE.ogImage, width: 1200, height: 630, alt: `${SITE.name} — ${SITE.tagline}` },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+    images: [SITE.ogImage],
+  },
   // Favicon is provided by the App Router convention file src/app/icon.svg.
 };
 

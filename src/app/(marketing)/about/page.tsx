@@ -26,7 +26,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "About & team",
   description:
-    "ParkGo is on a mission to make airport access seamless across the UK & Ireland — bundling parking, licensed transfers, EV charging and live security into one trusted booking. Meet the team building it.",
+    "Making airport access seamless across the UK & Ireland — parking, licensed transfers, EV charging and live security in one trusted booking.",
   path: "/about",
 });
 

@@ -7,7 +7,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "Terms of Service",
   description:
-    "The terms governing your use of the ParkGo marketplace — our role, bookings and payments, cancellations, host obligations, the independent transfer operator, prohibited use, liability and governing law.",
+    "The terms governing your use of the ParkGo marketplace: our role, bookings and payments, cancellations, host obligations and liability.",
   path: "/terms",
 });
 

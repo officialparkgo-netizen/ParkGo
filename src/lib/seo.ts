@@ -3,10 +3,15 @@ import type { Metadata } from "next";
 export const SITE = {
   name: "ParkGo",
   tagline: "Park Smart. Travel Easy.",
+  // Kept under 160 characters: Google truncates the snippet around there, and
+  // a description that gets cut mid-sentence reads worse than a shorter one
+  // that finishes its thought.
   description:
-    "ParkGo bundles a verified private parking space, a licensed transfer, EV charging and live security into one booking and one payment — starting at UK & Ireland airports, with cities, stations and events next.",
+    "Verified airport parking, a licensed transfer and EV charging in one booking and one payment. Live across UK & Ireland airports.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   twitter: "@parkgo",
+  /** 1200×630 share card. Rebuild from scripts/og/og-card.html. */
+  ogImage: "/og.png",
 };
 
 /**
@@ -40,6 +45,9 @@ export function pageMetadata({
   const fullTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
   const desc = description || SITE.description;
   const url = new URL(path, SITE.url).toString();
+  // Absolute, because several scrapers (WhatsApp among them) will not resolve
+  // a relative og:image against the page URL.
+  const image = new URL(SITE.ogImage, SITE.url).toString();
   return {
     title: fullTitle,
     description: desc,
@@ -52,11 +60,13 @@ export function pageMetadata({
       siteName: SITE.name,
       type: "website",
       locale: "en_GB",
+      images: [{ url: image, width: 1200, height: 630, alt: `${SITE.name} — ${SITE.tagline}` }],
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description: desc,
+      images: [image],
     },
   };
 }

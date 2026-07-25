@@ -35,6 +35,7 @@ import { getAirports } from "@/lib/data/store";
 import { listAllSpaces } from "@/lib/data/hosts";
 import { formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
+import { COMPANY, SITE } from "@/lib/seo";
 
 const KIND_ICONS = {
   airport: Plane,
@@ -63,8 +64,63 @@ export default async function HomePage() {
     .sort((x, y) => y.count - x.count)
     .slice(0, 8);
 
+  // --- Structured data ------------------------------------------------------
+  // Organization is what Google reads for the knowledge panel — the logo, the
+  // legal name, how to reach support. WebSite with a SearchAction is what lets
+  // a sitelinks search box appear under the result.
+  const organisationLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE.name,
+    legalName: COMPANY.legalName,
+    url: SITE.url,
+    logo: new URL("/icon.svg", SITE.url).toString(),
+    image: new URL(SITE.ogImage, SITE.url).toString(),
+    description: SITE.description,
+    slogan: SITE.tagline,
+    email: COMPANY.supportEmail,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "128 City Road",
+      addressLocality: "London",
+      postalCode: "EC1V 2NX",
+      addressCountry: "GB",
+    },
+    areaServed: [
+      { "@type": "Country", name: "United Kingdom" },
+      { "@type": "Country", name: "Ireland" },
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: COMPANY.supportEmail,
+      availableLanguage: ["en", "ur", "hi", "de", "zh"],
+    },
+  };
+
+  const websiteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE.name,
+    url: SITE.url,
+    inLanguage: "en-GB",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: new URL("/app/search?airport={search_term_string}", SITE.url).toString(),
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([organisationLd, websiteLd]) }}
+      />
+
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />

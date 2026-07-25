@@ -31,7 +31,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "For travellers",
   description:
-    "Book verified airport parking, a licensed transfer and EV charging in one go. Track your driver and your car live, pay one transparent price, and travel with total peace of mind.",
+    "Book verified airport parking, a licensed transfer and EV charging in one go. Track your driver and your car live, for one clear price.",
   path: "/travellers",
 });
 

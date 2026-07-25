@@ -49,9 +49,11 @@ export async function generateMetadata({
   const currency = airport.country === "IE" ? "EUR" : "GBP";
   const min = minPrice(results);
   const priceHint = min != null ? ` from ${formatMoneyShort(min, currency)}/day` : "";
+  // pageMetadata already appends " · ParkGo", so no brand suffix here — with
+  // one the title ran to 80 characters and Google cut it off mid-phrase.
   return pageMetadata({
-    title: `${airport.name} Airport Parking — Park, Transfer & EV | ParkGo`,
-    description: `Book verified ${airport.name} (${airport.code}) airport parking${priceHint} with a licensed terminal transfer, EV charging and live security — one booking, one transparent price. ${SITE.tagline}`,
+    title: `${airport.name} Airport Parking`,
+    description: `Book verified ${airport.name} (${airport.code}) parking${priceHint} with a licensed terminal transfer, EV charging and live security — one price.`,
     path: `/airports/${slug}`,
   });
 }

@@ -29,7 +29,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "How it works",
   description:
-    "From search to verified handover — see how ParkGo bundles airport parking, a licensed transfer, EV charging and live security into one booking, one price and one app.",
+    "From search to verified handover: how ParkGo bundles airport parking, a licensed transfer, EV charging and live security into one price.",
   path: "/how-it-works",
 });
 

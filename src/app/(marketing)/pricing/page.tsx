@@ -29,7 +29,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "Pricing",
   description:
-    "Transparent pricing from ParkGo: one bundled price for parking, a licensed transfer and EV charging, with a small flat service fee. Clear commission for hosts, plus corporate accounts and referrals.",
+    "One bundled price for parking, a licensed transfer and EV charging, plus a small flat service fee. Clear commission rates for hosts.",
   path: "/pricing",
 });
 

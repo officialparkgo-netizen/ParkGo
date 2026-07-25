@@ -34,7 +34,7 @@ import { getI18n } from "@/lib/i18n";
 export const metadata = pageMetadata({
   title: "For hosts",
   description:
-    "Turn an empty driveway, yard or parking space near an airport into income. Get verified, list in minutes and keep the large majority of every booking — with secure payouts and built-in trust.",
+    "Turn a driveway or yard near an airport into income. Get verified, list in minutes and keep the large majority of every booking.",
   path: "/hosts",
 });
 

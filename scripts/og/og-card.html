@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    background: linear-gradient(118deg, #D4560F 0%, #A9430C 26%, #4A1F08 58%, #15171A 88%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 76px;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,.13) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+  .glow {
+    position: absolute; width: 620px; height: 620px; border-radius: 50%;
+    background: rgba(245,132,58,.42); filter: blur(130px);
+    right: -190px; top: -260px;
+  }
+  .glow2 {
+    position: absolute; width: 520px; height: 520px; border-radius: 50%;
+    background: rgba(21,23,26,.55); filter: blur(140px);
+    left: -180px; bottom: -240px;
+  }
+  .inner { position: relative; }
+  .brand { display: flex; align-items: center; gap: 16px; margin-bottom: 40px; }
+  .brand span { font-size: 42px; font-weight: 800; letter-spacing: -.02em; }
+  .brand .go { color: #F5843A; }
+  h1 {
+    font-size: 76px; line-height: 1.04; font-weight: 800;
+    letter-spacing: -.035em; max-width: 21ch;
+  }
+  h1 em { font-style: normal; color: #F9C3A0; }
+  p.sub {
+    margin-top: 26px; font-size: 30px; font-weight: 500;
+    color: #FCE1CF; max-width: 30ch; line-height: 1.32;
+  }
+  .chips { display: flex; gap: 12px; margin-top: 44px; }
+  .chip {
+    border: 1px solid rgba(255,255,255,.30);
+    background: rgba(255,255,255,.10);
+    border-radius: 999px; padding: 11px 22px;
+    font-size: 23px; font-weight: 700; color: #fff;
+  }
+  .url {
+    position: absolute; right: 76px; bottom: 54px;
+    font-size: 26px; font-weight: 700; color: #F9C3A0;
+    letter-spacing: .01em;
+  }
+</style>
+<div class="grid"></div>
+<div class="glow"></div>
+<div class="glow2"></div>
+<div class="inner">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" width="58" height="58" aria-hidden="true">
+      <path d="M20 3.5 L33.5 8.2 V18.6 C33.5 27.5 27.6 33.6 20 36.6 C12.4 33.6 6.5 27.5 6.5 18.6 V8.2 Z" fill="#FFFFFF"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" fill="#F26A1B"
+        d="M13.6 10.6h6.8c3.6 0 6.1 2.2 6.1 5.6s-2.5 5.7-6.1 5.7H17.5V29.4h-3.9V10.6Zm3.9 7.9h2.6c1.5 0 2.5-.8 2.5-2.3s-1-2.2-2.5-2.2H17.5v4.5Z"/>
+      <path d="M19.2 13.9l-2.7 3.9h1.7l-1.1 2.7 3.2-4.1h-1.7z" fill="#15171A"/>
+    </svg>
+    <span>Park<span class="go">Go</span></span>
+  </div>
+  <h1>Parking, transfer, EV &amp; security — <em>one booking.</em></h1>
+  <p class="sub">Verified spaces at UK &amp; Ireland airports. One price, one checkout.</p>
+  <div class="chips">
+    <div class="chip">Verified hosts</div>
+    <div class="chip">Licensed drivers</div>
+    <div class="chip">Live CCTV</div>
+  </div>
+</div>
+<div class="url">parkgo.ai</div>
