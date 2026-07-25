@@ -176,6 +176,43 @@ export default async function AdminSupportPage({
                     ↳ {ticket.transcript.filter((m) => m.role === "agent").slice(-1)[0]?.text}
                   </p>
                 )}
+                {/* Resolved tickets keep their full conversation readable —
+                    open ones already show everything in the live thread. */}
+                {ticket.status === "resolved" && ticket.transcript.length > 0 && (
+                  <details className="mt-3 border-t border-navy-100 pt-3" data-chat-archive>
+                    <summary className="cursor-pointer text-xs font-semibold text-brand-600 hover:text-brand-700">
+                      {t("admin.sup.viewChat")} ({ticket.transcript.length})
+                    </summary>
+                    <div className="mt-2 max-h-72 space-y-1.5 overflow-y-auto">
+                      {ticket.transcript.map((m, i) => (
+                        <div
+                          key={i}
+                          className={`flex ${m.role === "agent" ? "justify-end" : "justify-start"}`}
+                        >
+                          <div
+                            className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-1.5 text-xs leading-relaxed ${
+                              m.role === "agent"
+                                ? "rounded-ee-sm bg-brand-500 text-white"
+                                : m.role === "bot"
+                                  ? "rounded-es-sm bg-navy-50 italic text-navy-400"
+                                  : "rounded-es-sm bg-navy-100 text-navy-800"
+                            }`}
+                          >
+                            <span className="me-1 font-bold">
+                              {m.role === "agent"
+                                ? t("admin.sup.you")
+                                : m.role === "bot"
+                                  ? "bot"
+                                  : ticket.name || t("admin.support.visitor")}
+                              :
+                            </span>
+                            {m.text}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
                 {ticket.status === "open" && (
                   <SupportLiveThread
                     ticketId={ticket.id}
