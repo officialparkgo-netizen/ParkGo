@@ -4,8 +4,8 @@ import type { Metadata } from "next";
 import {
   CalendarPlus,
   CheckCircle2,
-  FileText,
   Clock,
+  FileText,
   Hourglass,
   KeyRound,
   MapPin,
@@ -13,6 +13,7 @@ import {
   Phone,
   Radio,
   ShieldAlert,
+  Smartphone,
   Star,
   UserRound,
   XCircle,
@@ -23,6 +24,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { QrCode } from "@/components/portal/qr";
+import { CopyLinkButton } from "@/components/common/copy-link-button";
+import { makeShareToken, shareExpiryFor } from "@/lib/booking-share";
+import { SITE } from "@/lib/seo";
 import { BookingThread } from "@/components/portal/booking-thread";
 import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
@@ -82,6 +86,12 @@ export default async function BookingPage({
   const space = await getSpaceById(booking.spaceId);
   if (!space) notFound();
   const airport = getAirport(space.airportSlug);
+  // Signed, expires a day after pick-up: enough for a delayed flight, not a
+  // link that keeps opening a gate months later.
+  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || SITE.url}/pass/${booking.id}?t=${makeShareToken(
+    booking.id,
+    shareExpiryFor(booking.endAt)
+  )}`;
   const host = await getHostById(space.hostId);
   const hostUser = host ? await getUserProfile(host.userId) : null;
   const currency = booking.price.currency;
@@ -223,6 +233,36 @@ export default async function BookingPage({
               <p className="mt-3 text-xs text-navy-400">
                 {t("app.booking.showQr")}
               </p>
+
+              {booking.status !== "cancelled" && (
+                <div className="mt-4 w-full space-y-2 border-t border-navy-100 pt-4">
+                  <Link
+                    href={`/pass/${booking.id}`}
+                    className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}
+                    data-open-pass
+                  >
+                    <Smartphone className="h-4 w-4" /> {t("app.booking.openPass")}
+                  </Link>
+                  <a
+                    href={`/api/booking/${booking.id}/ics`}
+                    className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}
+                    data-add-calendar
+                  >
+                    <CalendarPlus className="h-4 w-4" /> {t("app.booking.addCalendar")}
+                  </a>
+                  {/* Hand the barrier code to whoever is actually driving. */}
+                  <span data-share-pass={shareUrl}>
+                    <CopyLinkButton
+                      value={shareUrl}
+                      label={t("app.booking.sharePass")}
+                      copiedLabel={t("host.settings.icalCopied")}
+                    />
+                  </span>
+                  <p className="text-[11px] leading-snug text-navy-400">
+                    {t("app.booking.sharePassHint")}
+                  </p>
+                </div>
+              )}
             </Card>
 
             {booking.status !== "cancelled" && (
