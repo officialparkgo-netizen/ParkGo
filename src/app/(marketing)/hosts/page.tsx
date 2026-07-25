@@ -104,9 +104,10 @@ export default async function HostsPage({
           <div className="mx-auto w-full max-w-md">
             <div className="hidden sm:block relative w-full aspect-square min-h-[300px]">
               <Image
-                src="/images/hosts.png"
+                src="/images/hosts.webp"
                 alt="ParkGo Host"
                 fill
+                sizes="(min-width: 640px) 448px, 100vw"
                 className="object-cover rounded-2xl shadow-2xl"
                 priority
               />

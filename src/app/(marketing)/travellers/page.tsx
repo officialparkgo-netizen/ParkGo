@@ -99,9 +99,10 @@ export default async function TravellersPage() {
           </div>
           <div className="relative mt-2 block h-60 w-full sm:h-72 lg:mt-0 lg:h-full lg:min-h-[400px]">
             <Image
-              src="/images/travellers.png"
+              src="/images/travellers.webp"
               alt="ParkGo Travellers"
               fill
+              sizes="(min-width: 1280px) 588px, (min-width: 1024px) 46vw, 100vw"
               className="object-cover rounded-2xl shadow-2xl"
               priority
             />

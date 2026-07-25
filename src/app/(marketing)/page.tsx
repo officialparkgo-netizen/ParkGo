@@ -116,9 +116,10 @@ export default async function HomePage() {
 
           <div className="relative mt-2 block h-60 w-full sm:h-72 lg:mt-0 lg:h-full lg:min-h-[400px]">
             <Image
-              src="/images/hero.png"
+              src="/images/hero.webp"
               alt="ParkGo Airport Parking"
               fill
+              sizes="(min-width: 1280px) 470px, (min-width: 1024px) 38vw, 100vw"
               className="object-cover rounded-2xl shadow-2xl"
               priority
             />
