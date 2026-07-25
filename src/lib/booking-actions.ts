@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { BookingBundle, PaymentMethod } from "@/types";
-import { requireFinanceAdmin, requireRole, requireUser } from "@/lib/auth";
+import { getCurrentUser, requireFinanceAdmin, requireRole, requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { confirmHandover, getAirport, getBooking } from "@/lib/data/store";
 import {
@@ -46,8 +46,35 @@ async function settleCredit(
 }
 
 export async function createBookingAction(formData: FormData) {
-  const user = await requireUser();
   const spaceId = String(formData.get("spaceId") || "");
+
+  /**
+   * Guest checkout: no account needed to get this far. If nobody is signed in
+   * we make the account from the details the form already collects, and carry
+   * straight on to payment. An email that already belongs to somebody stops
+   * here and goes to sign-in — adopting it would be an account takeover.
+   */
+  let user = await getCurrentUser();
+  if (!user) {
+    const { createGuestAccount } = await import("@/lib/guest-checkout");
+    const result = await createGuestAccount({
+      name: String(formData.get("guestName") || ""),
+      email: String(formData.get("guestEmail") || ""),
+      phone: String(formData.get("guestPhone") || ""),
+    });
+    if (!result.ok) {
+      const back = new URLSearchParams({
+        from: String(formData.get("startAt") || "").slice(0, 10),
+        to: String(formData.get("endAt") || "").slice(0, 10),
+        guest: result.reason,
+      });
+      redirect(`/app/book/${spaceId}?${back.toString()}`);
+    }
+    user = result.user;
+    const { sendGuestWelcome } = await import("@/lib/guest-checkout");
+    await sendGuestWelcome(user);
+  }
+
   const space = await getSpaceById(spaceId);
   if (!space) throw new Error("Unknown space");
   // Only live listings are bookable — paused/pending/rejected spaces are

@@ -112,7 +112,7 @@ and a live branch (Supabase) returning identical shapes.
 | Concern | Where | Mock | Live |
 | --- | --- | --- | --- |
 | Data | `src/lib/data/*` | In-memory seed | **Supabase Postgres** (schema + RLS in `supabase/migrations`) |
-| Auth | `src/lib/auth.ts` | Cookie session + demo logins | **Supabase Auth** (password + magic link), role-aware redirects |
+| Auth | `src/lib/auth.ts` | Cookie session + demo logins | **Supabase Auth** (password + magic link), role-aware redirects. Guest checkout creates the account mid-payment and signs them in. |
 | Payments | `src/lib/stripe.ts`, `services/payments.ts` | Simulated charge + split | **Stripe Checkout + Connect** (host payouts to connected accounts, webhook confirm) |
 | Storage | `src/lib/storage.ts` | Token placeholders | **Supabase Storage** — public `space-photos`, private `kyc-docs` and `support-files` (signed URLs, 1h) |
 | Maps | `components/portal/mapbox-map.tsx` / `live-map.tsx` | Schematic animated map | **Mapbox GL** price-pin + route maps (`NEXT_PUBLIC_MAPBOX_TOKEN`) |

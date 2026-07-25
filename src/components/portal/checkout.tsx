@@ -24,6 +24,7 @@ export function Checkout({
   allowTransfer = true,
   promoInvalid = false,
   priceCfg,
+  guest = null,
 }: {
   space: Space;
   startDate: string; // YYYY-MM-DD
@@ -37,6 +38,11 @@ export function Checkout({
   promoInvalid?: boolean;
   /** Fee overrides from /admin/settings so the preview matches the charge. */
   priceCfg?: PriceConfig;
+  /**
+   * Set when nobody is signed in. Checkout then collects the details the
+   * account is built from, rather than sending the visitor away to register.
+   */
+  guest?: { error: string | null } | null;
 }) {
   const t = useT();
   // "2026-07-21T09:00"-style props mean an hourly (same-day) stay.
@@ -263,6 +269,54 @@ export function Checkout({
           </dl>
 
           <form id="checkout-form" action={createBookingAction} className="mt-4">
+            {/* Guest checkout: no account needed, we make one from these. */}
+            {guest && (
+              <fieldset className="mb-4 space-y-2 rounded-xl border border-navy-200 bg-navy-50/60 p-3" data-guest-fields>
+                <legend className="px-1 text-xs font-bold text-navy-600">
+                  {t("app.checkout.guest.title")}
+                </legend>
+                {guest.error === "exists" && (
+                  <p className="rounded-lg bg-accent-50 px-2.5 py-2 text-xs font-semibold text-accent-700" data-guest-exists>
+                    {t("app.checkout.guest.exists")}{" "}
+                    <a href="/login" className="underline">
+                      {t("nav.signin")}
+                    </a>
+                  </p>
+                )}
+                {(guest.error === "invalid" || guest.error === "failed") && (
+                  <p className="rounded-lg bg-red-50 px-2.5 py-2 text-xs font-semibold text-red-700" data-guest-error>
+                    {t("app.checkout.guest.error")}
+                  </p>
+                )}
+                <input
+                  name="guestName"
+                  required
+                  minLength={2}
+                  placeholder={t("app.checkout.guest.name")}
+                  aria-label={t("app.checkout.guest.name")}
+                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                />
+                <input
+                  name="guestEmail"
+                  type="email"
+                  required
+                  placeholder={t("app.checkout.guest.email")}
+                  aria-label={t("app.checkout.guest.email")}
+                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                />
+                <input
+                  name="guestPhone"
+                  type="tel"
+                  placeholder={t("app.checkout.guest.phone")}
+                  aria-label={t("app.checkout.guest.phone")}
+                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                />
+                <p className="text-[11px] leading-snug text-navy-400">
+                  {t("app.checkout.guest.note")}
+                </p>
+              </fieldset>
+            )}
+
             {/* Promo code (validated server-side; discount comes off the platform fee) */}
             <div className="mb-3">
               <label htmlFor="promo" className="mb-1 block text-xs font-bold text-navy-600">

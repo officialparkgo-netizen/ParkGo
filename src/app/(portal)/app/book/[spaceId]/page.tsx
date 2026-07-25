@@ -6,7 +6,7 @@ import { PortalShell } from "@/components/portal/shell";
 import { travellerNav } from "@/components/portal/navs";
 import { Checkout } from "@/components/portal/checkout";
 import { Photo } from "@/components/common/photo";
-import { requireRole } from "@/lib/auth";
+import { getCurrentUser, rolePath } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
 import { getSpaceById } from "@/lib/data/hosts";
 import { getPlatformSettings } from "@/lib/data/settings";
@@ -26,9 +26,19 @@ export default async function BookPage({
   searchParams,
 }: {
   params: Promise<{ spaceId: string }>;
-  searchParams: Promise<{ from?: string; to?: string; ev?: string; transfer?: string; promo?: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+    ev?: string;
+    transfer?: string;
+    promo?: string;
+    guest?: string;
+  }>;
 }) {
-  const user = await requireRole("traveller");
+  // Signed out is fine here: the account is made from the checkout details.
+  // Hosts and admins still get bounced to their own side of the app.
+  const user = await getCurrentUser();
+  if (user && user.role !== "traveller") redirect(rolePath(user.role));
   const { t } = await getI18n();
   const { spaceId } = await params;
   const sp = await searchParams;
@@ -45,8 +55,7 @@ export default async function BookPage({
     transferCommissionBps: cfg.transferCommissionBps,
   };
 
-  return (
-    <PortalShell user={user} nav={travellerNav} title="app.checkout.title">
+  const body = (
       <div className="mx-auto max-w-5xl space-y-5">
         <Link href={`/app/space/${space.id}`} className="text-sm font-semibold text-brand-600">
           ← {t("app.space.backToSpace")}
@@ -72,8 +81,27 @@ export default async function BookPage({
           allowTransfer={!airport?.kind || airport.kind === "airport"}
           promoInvalid={sp.promo === "invalid"}
           priceCfg={priceCfg}
+          guest={user ? null : { error: sp.guest ?? null }}
         />
       </div>
+  );
+
+  if (!user) {
+    return (
+      <main className="min-h-dvh bg-navy-50/40 px-4 py-8">
+        <div className="mx-auto mb-6 max-w-5xl">
+          <Link href="/" className="text-xl font-extrabold tracking-tight text-navy-900">
+            Park<span className="text-brand-600">Go</span>
+          </Link>
+        </div>
+        {body}
+      </main>
+    );
+  }
+
+  return (
+    <PortalShell user={user} nav={travellerNav} title="app.checkout.title">
+      {body}
     </PortalShell>
   );
 }

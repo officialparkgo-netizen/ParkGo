@@ -216,6 +216,15 @@ export const portalTraveller: AreaDict = {
     "app.checkout.licensedTransferRow": "Licensed transfer",
     "app.checkout.evCharging": "EV charging",
     "app.checkout.serviceFee": "Service fee",
+    "app.checkout.guest.title": "Your details",
+    "app.checkout.guest.name": "Full name",
+    "app.checkout.guest.email": "Email",
+    "app.checkout.guest.phone": "Mobile (optional)",
+    "app.checkout.guest.note":
+      "No sign-up needed. We'll set up an account with this email so you can find your entry pass and message your host.",
+    "app.checkout.guest.exists":
+      "That email already has a ParkGo account. Please sign in to finish this booking.",
+    "app.checkout.guest.error": "Please check your name and email address.",
     "app.checkout.pay": "Pay",
     "app.checkout.releaseNote": "Exact address & host contact released after payment",
 
@@ -454,6 +463,15 @@ export const portalTraveller: AreaDict = {
     "app.checkout.licensedTransferRow": "لائسنس یافتہ ٹرانسفر",
     "app.checkout.evCharging": "ای وی چارجنگ",
     "app.checkout.serviceFee": "سروس فیس",
+    "app.checkout.guest.title": "آپ کی تفصیلات",
+    "app.checkout.guest.name": "پورا نام",
+    "app.checkout.guest.email": "ای میل",
+    "app.checkout.guest.phone": "موبائل (اختیاری)",
+    "app.checkout.guest.note":
+      "سائن اپ کی ضرورت نہیں۔ ہم اسی ای میل سے اکاؤنٹ بنا دیں گے تاکہ آپ اپنا انٹری پاس دیکھ سکیں اور میزبان سے بات کر سکیں۔",
+    "app.checkout.guest.exists":
+      "اس ای میل کا ParkGo اکاؤنٹ پہلے سے موجود ہے۔ بکنگ مکمل کرنے کے لیے سائن اِن کریں۔",
+    "app.checkout.guest.error": "براہ کرم اپنا نام اور ای میل دوبارہ دیکھ لیں۔",
     "app.checkout.pay": "ادا کریں",
     "app.checkout.releaseNote": "درست پتہ اور میزبان کا رابطہ ادائیگی کے بعد جاری",
 
@@ -692,6 +710,15 @@ export const portalTraveller: AreaDict = {
     "app.checkout.licensedTransferRow": "लाइसेंस प्राप्त ट्रांसफर",
     "app.checkout.evCharging": "ईवी चार्जिंग",
     "app.checkout.serviceFee": "सेवा शुल्क",
+    "app.checkout.guest.title": "आपका विवरण",
+    "app.checkout.guest.name": "पूरा नाम",
+    "app.checkout.guest.email": "ईमेल",
+    "app.checkout.guest.phone": "मोबाइल (वैकल्पिक)",
+    "app.checkout.guest.note":
+      "साइन अप की ज़रूरत नहीं। हम इसी ईमेल से खाता बना देंगे ताकि आप अपना एंट्री पास देख सकें और मेज़बान से बात कर सकें।",
+    "app.checkout.guest.exists":
+      "इस ईमेल का ParkGo खाता पहले से है। बुकिंग पूरी करने के लिए साइन इन करें।",
+    "app.checkout.guest.error": "कृपया अपना नाम और ईमेल जाँच लें।",
     "app.checkout.pay": "भुगतान करें",
     "app.checkout.releaseNote": "सटीक पता और होस्ट संपर्क भुगतान के बाद जारी",
 
@@ -930,6 +957,15 @@ export const portalTraveller: AreaDict = {
     "app.checkout.licensedTransferRow": "Lizenzierter Transfer",
     "app.checkout.evCharging": "E-Auto-Laden",
     "app.checkout.serviceFee": "Servicegebühr",
+    "app.checkout.guest.title": "Ihre Angaben",
+    "app.checkout.guest.name": "Vollständiger Name",
+    "app.checkout.guest.email": "E-Mail",
+    "app.checkout.guest.phone": "Mobil (optional)",
+    "app.checkout.guest.note":
+      "Keine Registrierung nötig. Wir legen mit dieser Adresse ein Konto an, damit Sie Ihren Einlasspass finden und Ihrem Gastgeber schreiben können.",
+    "app.checkout.guest.exists":
+      "Für diese E-Mail gibt es bereits ein ParkGo-Konto. Bitte melden Sie sich an, um die Buchung abzuschließen.",
+    "app.checkout.guest.error": "Bitte prüfen Sie Namen und E-Mail-Adresse.",
     "app.checkout.pay": "Zahlen",
     "app.checkout.releaseNote": "Genaue Adresse & Kontakt des Gastgebers nach Zahlung freigegeben",
 
@@ -1166,6 +1202,13 @@ export const portalTraveller: AreaDict = {
     "app.checkout.licensedTransferRow": "持牌接送",
     "app.checkout.evCharging": "电动车充电",
     "app.checkout.serviceFee": "服务费",
+    "app.checkout.guest.title": "您的信息",
+    "app.checkout.guest.name": "姓名",
+    "app.checkout.guest.email": "邮箱",
+    "app.checkout.guest.phone": "手机号（选填）",
+    "app.checkout.guest.note": "无需注册。我们会用这个邮箱为您创建账户，方便您查看入场凭证并联系房东。",
+    "app.checkout.guest.exists": "该邮箱已注册 ParkGo 账户。请登录后完成预订。",
+    "app.checkout.guest.error": "请检查您的姓名和邮箱。",
     "app.checkout.pay": "支付",
     "app.checkout.releaseNote": "确切地址和房东联系方式在付款后释放",
 
