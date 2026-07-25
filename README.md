@@ -117,7 +117,7 @@ and a live branch (Supabase) returning identical shapes.
 | Storage | `src/lib/storage.ts` | Token placeholders | **Supabase Storage** — public `space-photos`, private `kyc-docs` and `support-files` (signed URLs, 1h) |
 | Maps | `components/portal/mapbox-map.tsx` / `live-map.tsx` | Schematic animated map | **Mapbox GL** price-pin + route maps (`NEXT_PUBLIC_MAPBOX_TOKEN`) |
 | Email | `src/lib/email.ts` | Console log | **Resend** (`RESEND_API_KEY`, `EMAIL_FROM`) |
-| Inbound email | `api/support/inbound` | Off | Mail provider webhook → support thread (`SUPPORT_INBOUND_SECRET`) |
+| Inbound email | `api/support/inbound` | Off | Resend Receiving → `email.received` webhook, Svix-verified (`RESEND_WEBHOOK_SECRET`); or any provider with `SUPPORT_INBOUND_SECRET` |
 | Web push | `src/lib/push.ts` | Off | Staff push alerts (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) |
 | Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
 | Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
@@ -221,10 +221,20 @@ capacitor.config.ts       iOS/Android wrapper config
 4. **Email**: `RESEND_API_KEY` + `EMAIL_FROM`; mailboxes (info@, support@) in
    Microsoft 365.
 5. **Maps**: `NEXT_PUBLIC_MAPS_PROVIDER=mapbox` + `NEXT_PUBLIC_MAPBOX_TOKEN`.
-6. **Inbound support email** (optional): set `SUPPORT_INBOUND_SECRET`, then
-   point the mail provider's inbound webhook at `/api/support/inbound` with
-   that value in an `X-ParkGo-Secret` header. Without the secret the endpoint
-   stays closed and returns 404.
+6. **Inbound support email** (optional) — lets customers reply to a support
+   email and have it land back in the chat:
+   - In Resend, **Domains → Receiving**: add the MX record it gives you, on a
+     subdomain such as `support.parkgo.ai` (priority 10, and it must be the
+     lowest priority on that host) so existing mail routing is untouched.
+   - **Webhooks → Add webhook**: endpoint `https://www.parkgo.ai/api/support/inbound`
+     (a full URL — a bare path is rejected), event **`email.received`** only.
+   - Copy that webhook's `whsec_…` signing secret into `RESEND_WEBHOOK_SECRET`.
+     Resend signs with Svix and cannot send custom headers, which is why the
+     secret goes here rather than in a header.
+   - `RESEND_API_KEY` must also be set: `email.received` carries metadata only,
+     so the body is fetched from the receiving API.
+   - Any non-Resend provider can instead POST `{from, subject, text}` with
+     `SUPPORT_INBOUND_SECRET` in an `X-ParkGo-Secret` header.
 7. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
    set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`
    (a `mailto:` address). The button stays hidden until these exist.
