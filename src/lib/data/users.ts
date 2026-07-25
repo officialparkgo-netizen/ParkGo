@@ -26,6 +26,7 @@ type UserRow = {
   admin_scope?: string | null;
   email_booking_alerts?: boolean | null;
   cohost_host_id?: string | null;
+  invite_nonce?: string | null;
   created_at: string;
 };
 
@@ -45,6 +46,7 @@ export function userFromRow(r: UserRow): User {
     adminScope: (r.admin_scope as User["adminScope"]) ?? undefined,
     emailBookingAlerts: r.email_booking_alerts ?? undefined,
     cohostHostId: r.cohost_host_id ?? undefined,
+    inviteNonce: r.invite_nonce ?? undefined,
     // Keep undefined (not false) when the column doesn't exist yet — the
     // onboarding gate only fires on a strict `false`.
     onboarded: r.onboarded ?? undefined,
@@ -398,10 +400,109 @@ export async function listAdminUsers(): Promise<User[]> {
   return (await listAllUsers()).filter((u) => u.role === "admin" && !u.suspended);
 }
 
+/** Profile row for an email address (staff sign-in + invite de-duplication). */
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const clean = email.trim().toLowerCase();
+  if (!clean) return null;
+  if (!IS_LIVE) {
+    const { getUserByEmail } = await import("@/lib/data/store");
+    return getUserByEmail(clean) ?? null;
+  }
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  // `_` and `%` are LIKE wildcards and both are legal in an email local part,
+  // so escape them — and re-check the match exactly, because a pattern must
+  // never be able to resolve to somebody else's account.
+  const pattern = clean.replace(/([\\%_])/g, "\\$1");
+  const { data } = await supabaseAdmin()
+    .from("users")
+    .select(PROFILE_COLS)
+    .ilike("email", pattern)
+    .limit(5);
+  const row = (data ?? []).find(
+    (r) => String((r as UserRow).email ?? "").toLowerCase() === clean
+  );
+  return row ? userFromRow(row as UserRow) : null;
+}
+
+/**
+ * Store (or clear) the pending-invite nonce. Setting it mints a fresh invite
+ * link and kills any older one; clearing it makes the current link single-use.
+ */
+export async function setInviteNonce(
+  userId: string,
+  nonce: string | null
+): Promise<boolean> {
+  if (!IS_LIVE) {
+    const u = (await import("@/lib/data/store")).getUser(userId);
+    if (!u) return false;
+    u.inviteNonce = nonce ?? undefined;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ invite_nonce: nonce })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Set a staff password. Live mode hands it to Supabase Auth (which hashes and
+ * owns it); mock mode keeps a scrypt hash in memory, outside the User object.
+ */
+export async function setStaffPassword(
+  userId: string,
+  password: string
+): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser, setMockPasswordHash } = await import("@/lib/data/store");
+    if (!getUser(userId)) return false;
+    const { randomBytes, scryptSync } = await import("crypto");
+    const salt = randomBytes(16).toString("hex");
+    setMockPasswordHash(userId, `${salt}:${scryptSync(password, salt, 64).toString("hex")}`);
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin().auth.admin.updateUserById(userId, {
+      password,
+      email_confirm: true,
+    });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/** Mock-mode password check (live mode goes through Supabase Auth instead). */
+export async function verifyMockPassword(
+  userId: string,
+  password: string
+): Promise<boolean> {
+  const { getMockPasswordHash } = await import("@/lib/data/store");
+  const stored = getMockPasswordHash(userId);
+  if (!stored) return false;
+  const [salt, hash] = stored.split(":");
+  if (!salt || !hash) return false;
+  const { scryptSync, timingSafeEqual } = await import("crypto");
+  const candidate = scryptSync(password, salt, 64);
+  const expected = Buffer.from(hash, "hex");
+  return (
+    candidate.length === expected.length && timingSafeEqual(candidate, expected)
+  );
+}
+
 /**
  * Create (or re-link) a limited support agent: role admin with the "support"
- * scope, so every money page bounces them but the ticket queue works. Mock
- * mode uses a deterministic id; live invites the email via Supabase auth.
+ * scope, so every money page bounces them but the ticket queue works.
+ *
+ * The account is created WITHOUT a password — ParkGo emails its own invite
+ * link (see team-invite-mail) and the teammate picks their password there, so
+ * delivery rides on Resend rather than Supabase's rate-limited default mailer.
  */
 export async function createSupportAgent(
   email: string,
@@ -413,13 +514,22 @@ export async function createSupportAgent(
 
   if (!IS_LIVE) {
     const { addMockUser, getUser } = await import("@/lib/data/store");
-    const id = `user_agent_${cleanEmail.split("@")[0].replace(/[^a-z0-9]/g, "")}`;
+    const { createHash } = await import("crypto");
+    // Include a digest of the FULL address so two people who share a local
+    // part (alice@a.com / alice@b.com) never collide onto one account.
+    const id = `user_agent_${cleanEmail.split("@")[0].replace(/[^a-z0-9]/g, "")}_${createHash(
+      "sha256"
+    )
+      .update(cleanEmail)
+      .digest("hex")
+      .slice(0, 8)}`;
     const existing = getUser(id);
     if (existing) {
       existing.role = "admin";
       existing.adminScope = "support";
       existing.suspended = false;
       existing.email = cleanEmail;
+      existing.name = cleanName;
       return existing;
     }
     return addMockUser({
@@ -437,21 +547,25 @@ export async function createSupportAgent(
   try {
     const { supabaseAdmin } = await import("@/lib/supabase/server");
     const admin = supabaseAdmin();
-    let authId: string | null = null;
-    try {
-      const { data } = await admin.auth.admin.inviteUserByEmail(cleanEmail);
-      authId = data?.user?.id ?? null;
-    } catch {
-      // fall through
-    }
+
+    // Reuse the account when this email is already known, so re-inviting an
+    // existing teammate promotes them instead of failing on a duplicate.
+    let authId = (await findUserByEmail(cleanEmail))?.id ?? null;
     if (!authId) {
-      const { data } = await admin.auth.admin.createUser({
+      const { data, error } = await admin.auth.admin.createUser({
         email: cleanEmail,
         email_confirm: true,
       });
       authId = data?.user?.id ?? null;
+      if (!authId && error) {
+        // Already registered in auth but missing a profile row — find them.
+        const { data: page } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        authId =
+          page?.users?.find((u) => (u.email ?? "").toLowerCase() === cleanEmail)?.id ?? null;
+      }
     }
     if (!authId) return null;
+
     const { data: row, error } = await admin
       .from("users")
       .upsert(

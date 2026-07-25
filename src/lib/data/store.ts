@@ -99,6 +99,20 @@ export const addMockUser = (u: User) => {
   return u;
 };
 
+/**
+ * Mock-only staff passwords, kept OUT of the User object so a hash can never
+ * ride along into a client component. Live mode uses Supabase Auth instead.
+ */
+const mockPasswords = ((globalThis as unknown as {
+  __parkgoTeamPasswords?: Record<string, string>;
+}).__parkgoTeamPasswords ??= {});
+
+export const setMockPasswordHash = (userId: string, hash: string) => {
+  mockPasswords[userId] = hash;
+};
+export const getMockPasswordHash = (userId: string): string | undefined =>
+  mockPasswords[userId];
+
 // -----------------------------------------------------------------------------
 // Hosts & spaces
 // -----------------------------------------------------------------------------

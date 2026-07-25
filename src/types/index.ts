@@ -56,6 +56,11 @@ export interface User {
    */
   cohostHostId?: UUID;
   /**
+   * Pending staff invite: signs the set-password link and is cleared the
+   * moment the password is set, making that link single-use.
+   */
+  inviteNonce?: string;
+  /**
    * First-run profile setup done. Strictly `false` gates non-admins to
    * /welcome; undefined (pre-migration rows) never gates.
    */

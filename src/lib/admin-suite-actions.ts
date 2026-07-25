@@ -22,7 +22,7 @@ import type { ClaimStatus, PromoKind } from "@/types";
 
 /** Support cancellation: full refund, no fee; logged to the admin action log. */
 export async function adminCancelBookingAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const bookingId = String(formData.get("bookingId") || "");
   const reason = String(formData.get("reason") || "").trim().slice(0, 300);
   if (!bookingId) return;
@@ -43,7 +43,7 @@ export async function adminCancelBookingAction(formData: FormData) {
 
 /** Manually settle a payout (bank transfer done outside Stripe). */
 export async function markPayoutPaidAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const paymentId = String(formData.get("paymentId") || "");
   if (!paymentId) return;
   const ok = await markPayoutPaid(paymentId);
@@ -54,7 +54,7 @@ export async function markPayoutPaidAction(formData: FormData) {
 
 /** Hide/restore a review on public pages. */
 export async function setReviewHiddenAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const reviewId = String(formData.get("reviewId") || "");
   const hidden = String(formData.get("state") || "") === "hide";
   if (!reviewId) return;
@@ -66,7 +66,7 @@ export async function setReviewHiddenAction(formData: FormData) {
 }
 
 export async function createPromoAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const code = String(formData.get("code") || "");
   const kind: PromoKind = String(formData.get("kind")) === "fixed" ? "fixed" : "percent";
   const valueRaw = Number(formData.get("value") || 0);
@@ -91,7 +91,7 @@ export async function createPromoAction(formData: FormData) {
 }
 
 export async function setPromoActiveAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const id = String(formData.get("promoId") || "");
   const active = String(formData.get("state") || "") === "on";
   if (!id) return;
@@ -114,7 +114,7 @@ export async function addUserNoteAction(formData: FormData) {
 
 /** Start viewing the app as another (non-admin) user. */
 export async function startImpersonationAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const userId = String(formData.get("userId") || "");
   if (!userId) return;
   const target = (await getUsersByIds([userId])).get(userId);
@@ -177,7 +177,7 @@ export async function fileClaimAction(formData: FormData) {
 
 /** Admin decision on a claim (notifies the claimant). */
 export async function setClaimStatusAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const claimId = String(formData.get("claimId") || "");
   const statusRaw = String(formData.get("status") || "");
   const resolution = String(formData.get("resolution") || "");
@@ -192,7 +192,7 @@ export async function setClaimStatusAction(formData: FormData) {
 
 /** Email an announcement to a whole audience (capped; logged). */
 export async function broadcastEmailAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const audience = String(formData.get("audience") || "");
   const subject = String(formData.get("subject") || "").trim().slice(0, 150);
   const message = String(formData.get("message") || "").trim().slice(0, 5000);
@@ -374,13 +374,50 @@ export async function inviteSupportAgentAction(formData: FormData) {
   const admin = await requireFinanceAdmin();
   const email = String(formData.get("email") || "");
   const name = String(formData.get("name") || "");
-  const { createSupportAgent } = await import("@/lib/data/users");
-  const agent = await createSupportAgent(email, name);
-  if (agent) {
-    await recordAdminAction(admin, "support.agent_invited", "user", agent.id, agent.email);
+  const { createSupportAgent, findUserByEmail } = await import("@/lib/data/users");
+
+  // Never re-point an existing FULL admin: minting an invite for them would
+  // hand this caller a set-password link for a peer's account.
+  const existing = await findUserByEmail(email);
+  if (existing && existing.role === "admin" && existing.adminScope !== "support") {
+    redirect("/admin/support?team=peer");
   }
+
+  const agent = await createSupportAgent(email, name);
+  if (!agent) {
+    revalidatePath("/admin/support");
+    redirect("/admin/support?team=error");
+  }
+
+  // Mint the single-use set-password link and email it.
+  const { sendTeamInvite } = await import("@/lib/team-invite-mail");
+  const { emailed } = await sendTeamInvite(agent, admin.name);
+  await recordAdminAction(admin, "support.agent_invited", "user", agent.id, agent.email);
   revalidatePath("/admin/support");
-  redirect(`/admin/support?team=${agent ? "invited" : "error"}`);
+  redirect(`/admin/support?team=${emailed ? "invited" : "invited-nomail"}`);
+}
+
+/** Re-send a teammate's invite email (rotates the link, killing the old one). */
+export async function resendTeamInviteAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const userId = String(formData.get("userId") || "");
+  const { getUserProfile } = await import("@/lib/data/users");
+  const member = userId ? await getUserProfile(userId) : null;
+  // Only pending support agents — a resend mints a live set-password link, so
+  // it must never be aimable at a peer admin (or at yourself).
+  if (
+    !member ||
+    member.role !== "admin" ||
+    member.adminScope !== "support" ||
+    member.id === admin.id
+  ) {
+    redirect("/admin/support?team=peer");
+  }
+  const { sendTeamInvite } = await import("@/lib/team-invite-mail");
+  const { emailed } = await sendTeamInvite(member, admin.name);
+  await recordAdminAction(admin, "support.agent_invited", "user", member.id, "resend");
+  revalidatePath("/admin/support");
+  redirect(`/admin/support?team=${emailed ? "resent" : "invited-nomail"}`);
 }
 
 /** Revoke a support agent's access (their account becomes a traveller). */
@@ -397,7 +434,7 @@ export async function removeSupportAgentAction(formData: FormData) {
 
 /** Approve every listing waiting for review in one click. */
 export async function bulkApproveListingsAction() {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const { listAllSpaces, reviewSpaceListing } = await import("@/lib/data/hosts");
   const spaces = await listAllSpaces();
   const pending = spaces.filter(
@@ -475,7 +512,7 @@ export async function adminPartialRefundAction(formData: FormData) {
 
 /** Support tool: move a booking's dates (price unchanged). */
 export async function adminChangeBookingDatesAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const bookingId = String(formData.get("bookingId") || "");
   const start = String(formData.get("newStart") || "");
   const end = String(formData.get("newEnd") || "");

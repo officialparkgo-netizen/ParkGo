@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { BookingBundle, PaymentMethod } from "@/types";
-import { requireUser, requireRole } from "@/lib/auth";
+import { requireFinanceAdmin, requireRole, requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { confirmHandover, getAirport, getBooking } from "@/lib/data/store";
 import {
@@ -288,7 +288,7 @@ export async function extendBookingAction(formData: FormData) {
 
 /** Admin: approve or reject a verification (host or transfer provider). */
 export async function reviewVerificationAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const id = String(formData.get("verificationId") || "");
   const decision = String(formData.get("decision") || "") as "approved" | "rejected";
   if (decision !== "approved" && decision !== "rejected") return;
@@ -303,7 +303,7 @@ export async function reviewVerificationAction(formData: FormData) {
 
 /** Admin: approve or reject a single listing (goes live / rejected + notifies host). */
 export async function reviewSpaceAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const spaceId = String(formData.get("spaceId") || "");
   const decision = String(formData.get("decision") || "") as "approved" | "rejected";
   if (decision !== "approved" && decision !== "rejected") return;
@@ -319,7 +319,7 @@ export async function reviewSpaceAction(formData: FormData) {
 
 /** Admin: pause a live listing (hide from search) or put it back live. */
 export async function pauseSpaceAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const spaceId = String(formData.get("spaceId") || "");
   const state = String(formData.get("state") || "");
   if (!spaceId || (state !== "pause" && state !== "reactivate")) return;

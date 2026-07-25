@@ -13,7 +13,10 @@ import {
   assignTicketToAction,
   inviteSupportAgentAction,
   removeSupportAgentAction,
+  resendTeamInviteAction,
 } from "@/lib/admin-suite-actions";
+import { CopyLinkButton } from "@/components/common/copy-link-button";
+import { inviteLinkFor } from "@/lib/team-invite-mail";
 import { listAdminUsers } from "@/lib/data/users";
 import { SupportLiveThread } from "@/components/admin/support-live-thread";
 import { formatDateTime } from "@/lib/utils";
@@ -72,9 +75,24 @@ export default async function AdminSupportPage({
             {t("admin.team.invited")}
           </div>
         )}
+        {team === "resent" && (
+          <div className="rounded-2xl border border-go-200 bg-go-50 px-4 py-3 font-semibold text-go-700">
+            {t("admin.team.resent")}
+          </div>
+        )}
+        {team === "invited-nomail" && (
+          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700" data-nomail>
+            {t("admin.team.noMail")}
+          </div>
+        )}
         {team === "removed" && (
           <div className="rounded-2xl border border-navy-200 bg-navy-50 px-4 py-3 font-semibold text-navy-700">
             {t("admin.team.removed")}
+          </div>
+        )}
+        {team === "peer" && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
+            {t("admin.team.peerBlocked")}
           </div>
         )}
         {team === "error" && (
@@ -252,20 +270,47 @@ export default async function AdminSupportPage({
                         : t("admin.team.full")}
                     </Badge>
                     {m.id === user.id && <Badge tone="neutral">{t("admin.team.you")}</Badge>}
+                    {m.inviteNonce && (
+                      <Badge tone="accent" data-invite-pending>
+                        {t("admin.team.pending")}
+                      </Badge>
+                    )}
                   </div>
                   <div className="truncate text-xs text-navy-400">{m.email}</div>
                 </div>
-                {isFullAdmin && m.adminScope === "support" && m.id !== user.id && (
-                  <form action={removeSupportAgentAction}>
-                    <input type="hidden" name="userId" value={m.id} />
-                    <button
-                      type="submit"
-                      className="text-xs font-semibold text-navy-500 hover:text-red-600"
-                    >
-                      {t("admin.team.remove")}
-                    </button>
-                  </form>
-                )}
+                <div className="flex flex-wrap items-center gap-3">
+                  {isFullAdmin && m.inviteNonce && m.adminScope === "support" && (
+                    <>
+                      <span data-invite-link={inviteLinkFor(m.id, m.inviteNonce)}>
+                        <CopyLinkButton
+                          value={inviteLinkFor(m.id, m.inviteNonce)}
+                          label={t("admin.team.copyInvite")}
+                          copiedLabel={t("host.settings.icalCopied")}
+                        />
+                      </span>
+                      <form action={resendTeamInviteAction}>
+                        <input type="hidden" name="userId" value={m.id} />
+                        <button
+                          type="submit"
+                          className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                        >
+                          {t("admin.team.resend")}
+                        </button>
+                      </form>
+                    </>
+                  )}
+                  {isFullAdmin && m.adminScope === "support" && m.id !== user.id && (
+                    <form action={removeSupportAgentAction}>
+                      <input type="hidden" name="userId" value={m.id} />
+                      <button
+                        type="submit"
+                        className="text-xs font-semibold text-navy-500 hover:text-red-600"
+                      >
+                        {t("admin.team.remove")}
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             ))}
             {isFullAdmin && (

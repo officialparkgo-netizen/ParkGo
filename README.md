@@ -148,6 +148,15 @@ or paste each file into the **Supabase SQL editor**:
 | `0011_support_tickets.sql` | Escalated support tickets |
 | `0012_transfer_messages.sql` | Traveller↔driver chat relay |
 | `0013_user_suspended.sql` | Account suspension flag |
+| `0014_spaces_blocked_dates.sql` | Host-blocked days |
+| `0015_claims.sql` | Damage / incident claims |
+| `0016_user_profile_extras.sql` | Avatars, onboarding, 2FA opt-in |
+| `0017_admin_suite.sql` | Admin action log, promos, search events |
+| `0018_admin_suite2.sql` | Platform settings, admin scopes, receipts |
+| `0019_admin_suite3.sql` | Booking edits, waitlist invites, macros |
+| `0020_host_suite.sql` | Booking messages, host bank details, review replies, weekend pricing |
+| `0021_host_suite2.sql` | Seasonal pricing, bays, request-to-book, guest blocklist, co-hosts, listing views |
+| `0022_team_invites.sql` | Staff invite nonce (set-password links) |
 
 RLS keeps each role to its own rows; the exact address and camera stream are
 released only to the paying traveller. KYC files live in the **private**
@@ -191,7 +200,7 @@ src/
     booking-actions.ts host-actions.ts user-actions.ts chat-actions.ts
     support-actions.ts support-intents.ts        (server actions & support brain)
   types/index.ts          Domain model (single source of truth)
-supabase/migrations/      Postgres schema + RLS (0001–0013)
+supabase/migrations/      Postgres schema + RLS (0001–0022)
 capacitor.config.ts       iOS/Android wrapper config
 ```
 
@@ -199,7 +208,7 @@ capacitor.config.ts       iOS/Android wrapper config
 
 ## Go-live checklist
 
-1. **Supabase**: create the project, run migrations **0001 → 0013**, run
+1. **Supabase**: create the project, run migrations **0001 → 0022**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
 2. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
    `NEXT_PUBLIC_SITE_URL`, Supabase URL + anon + service-role keys.

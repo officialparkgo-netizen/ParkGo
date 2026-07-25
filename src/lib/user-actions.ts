@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { User } from "@/types";
-import { getCurrentUser, requireRole, requireUser, rolePath } from "@/lib/auth";
+import { getCurrentUser, requireFinanceAdmin, requireRole, requireUser, rolePath } from "@/lib/auth";
 import {
   getUserProfile,
   setUserOnboarded,
@@ -117,7 +117,7 @@ export async function setOwnTwofaAction(formData: FormData) {
 
 /** Admin: switch a member between the traveller and host portals. */
 export async function setUserRoleAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const userId = String(formData.get("userId") || "");
   const role = String(formData.get("role") || "");
   if (!userId || userId === admin.id) return;
@@ -136,7 +136,7 @@ export async function setUserRoleAction(formData: FormData) {
 
 /** Admin: suspend or restore an account. Admin accounts can't be suspended. */
 export async function setUserSuspendedAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireFinanceAdmin();
   const userId = String(formData.get("userId") || "");
   const state = String(formData.get("state") || "");
   if (!userId || userId === admin.id) return;

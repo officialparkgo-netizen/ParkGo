@@ -149,6 +149,15 @@ export default async function LoginPage({
                 <p className="mt-6 text-center text-sm text-navy-400">{t("login.productionNote")}</p>
               </>
             )}
+
+            <p className="mt-8 text-center text-sm text-navy-400">
+              <Link
+                href="/team/login"
+                className="font-semibold text-navy-500 underline-offset-2 hover:text-navy-800 hover:underline"
+              >
+                {t("login.staffLink")}
+              </Link>
+            </p>
           </div>
         </div>
       </div>
