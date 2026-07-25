@@ -263,7 +263,7 @@ export default async function SearchPage({
             {suggestion && (
               <Card className="border-go-200 bg-gradient-to-br from-go-50 to-white p-5">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-go-500 text-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-go-500 text-navy-900">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
@@ -293,7 +293,7 @@ export default async function SearchPage({
 
             {results.length === 0 ? (
               <Card className="p-10 text-center">
-                <SearchX className="mx-auto h-10 w-10 text-navy-300" />
+                <SearchX className="mx-auto h-10 w-10 text-navy-400" />
                 <p className="mt-3 font-bold text-navy-900">{t("app.search.emptyTitle")}</p>
                 <p className="mx-auto mt-1 max-w-sm text-sm text-navy-500">
                   {t("app.search.empty")}

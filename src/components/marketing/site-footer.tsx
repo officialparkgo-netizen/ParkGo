@@ -54,7 +54,7 @@ export async function SiteFooter() {
           </div>
           <Link
             href="/app/search"
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-navy-900 transition-colors hover:bg-brand-400"
           >
             {t("home.cta.find")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
           </Link>
@@ -73,7 +73,7 @@ export async function SiteFooter() {
                   key={c.label}
                   className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-navy-600 ring-1 ring-inset ring-navy-200"
                 >
-                  <c.icon className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {c.label}
+                  <c.icon className="h-3.5 w-3.5 text-brand-600" aria-hidden /> {c.label}
                 </span>
               ))}
             </div>
@@ -81,7 +81,7 @@ export async function SiteFooter() {
               href={`mailto:${COMPANY.supportEmail}`}
               className="-mx-2 mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-50 hover:text-navy-900"
             >
-              <Mail className="h-4 w-4 text-brand-500" aria-hidden /> {COMPANY.supportEmail}
+              <Mail className="h-4 w-4 text-brand-600" aria-hidden /> {COMPANY.supportEmail}
             </a>
           </div>
 

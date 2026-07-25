@@ -53,7 +53,7 @@ export default async function HostVerifyPage() {
         <Card className="p-5">
           <div className="flex items-center gap-2">
             <BadgeCheck
-              className={`h-5 w-5 ${verified ? "text-go-600" : "text-navy-300"}`}
+              className={`h-5 w-5 ${verified ? "text-go-600" : "text-navy-400"}`}
             />
             <span className="font-bold text-navy-900">{t("host.verifStatus")}</span>
             <span className="ml-auto">
@@ -105,7 +105,7 @@ export default async function HostVerifyPage() {
           </Card>
         ) : underReview ? (
           <Card className="p-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-accent-500">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-accent-700">
               <Clock className="h-7 w-7" />
             </div>
             <h2 className="text-xl font-extrabold text-navy-900">{t("host.verify.pendingTitle")}</h2>

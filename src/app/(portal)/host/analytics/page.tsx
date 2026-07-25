@@ -172,7 +172,7 @@ export default async function HostAnalyticsPage() {
                         <td className="py-2.5 pr-3">{v}</td>
                         <td className="py-2.5">
                           {conv === null ? (
-                            <span className="text-navy-300">—</span>
+                            <span className="text-navy-400">—</span>
                           ) : (
                             <Badge tone={conv >= 10 ? "go" : "neutral"}>{conv}%</Badge>
                           )}

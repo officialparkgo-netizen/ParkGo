@@ -7,14 +7,35 @@ import type { Config } from "tailwindcss";
  *
  * Tokens are semantic so the whole app + website inherit the theme from here:
  *   navy   → ink/charcoal→black neutral scale (text, dark surfaces, borders)
- *
- * Contrast: every grey used for text clears WCAG AA (4.5:1) on both white and
- * navy-50, the two surfaces they appear on. navy-400 is the lightest text tone
- * and sits right at that floor — do not lighten it.
  *   brand  → orange (primary accent)
  *   accent → orange (highlights)
  *   go     → orange (primary CTAs & positive/"live" states — no green in the brand)
  * (Names kept stable to avoid churning class names across the app.)
+ *
+ * ── Contrast rules, all measured, all currently holding at AA ──────────────
+ * Greys: navy-400 is the lightest ink allowed on white / navy-50 (4.98:1) and
+ * the lightest allowed anywhere. On navy-900 surfaces it flips — navy-400 only
+ * manages 3.6:1 there, so dark cards use navy-200 (12.58:1). Do not lighten
+ * navy-400 and do not use navy-300 as ink.
+ *
+ * Orange, on white:      500 = 3.06:1  ·  600 = 4.09:1  ·  700 = 6.01:1
+ * Orange, on navy-50:    500 = 2.86:1  ·  600 = 3.81:1  ·  700 = 5.60:1
+ * Dark text on orange:   navy-900 on 500 = 5.86:1  ·  on 400 = 7.05:1
+ *
+ * Which means:
+ *   · Orange TEXT must be 700. (600 clears white but not 12px on white, and
+ *     not the tinted -50 surfaces at all.)
+ *   · Orange ICONS may be 600 — graphical objects only need 3:1.
+ *   · Orange BACKGROUNDS carry navy-900 text, never white: #F26A1B with white
+ *     is 3.06:1, and no orange light enough to still read as "ParkGo orange"
+ *     will ever clear 4.5:1 with white. Hover therefore *lightens* (500→400).
+ *   · On the dark CTA gradient (brand-700 → navy-800) it inverts again: text
+ *     needs orange-100 (4.81:1 on the band's lightest stop) and icons
+ *     orange-200 (3.82:1).
+ *
+ * scripts/a11y/contrast-all.mjs walks every page in a real browser and checks
+ * both floors — text at 4.5:1 (3:1 once large) and icons at 3:1 — resolving
+ * gradient bands by their worst stop. Run it after touching any of this.
  */
 const orange = {
   DEFAULT: "#F26A1B",

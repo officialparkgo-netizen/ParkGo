@@ -147,7 +147,7 @@ export default async function SpaceDetail({
 
         {sp.soldout && (
           <div
-            className="space-y-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-accent-500"
+            className="space-y-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-accent-700"
             data-soldout-watch
           >
             <p className="font-semibold">{t("app.space.soldout")}</p>
@@ -416,13 +416,13 @@ export default async function SpaceDetail({
               )}
               <ul className="mt-4 space-y-2 text-sm text-navy-600">
                 <li className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-go-500" /> {t("app.space.freeCancellation")}
+                  <BadgeCheck className="h-4 w-4 text-go-600" /> {t("app.space.freeCancellation")}
                 </li>
                 <li className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-go-500" /> {t("app.space.verifiedInsured")}
+                  <ShieldCheck className="h-4 w-4 text-go-600" /> {t("app.space.verifiedInsured")}
                 </li>
                 <li className="flex items-center gap-2">
-                  <Camera className="h-4 w-4 text-go-500" /> {space.liveCamera ? t("app.space.liveCameraInApp") : t("app.space.cctvMonitoredShort")}
+                  <Camera className="h-4 w-4 text-go-600" /> {space.liveCamera ? t("app.space.liveCameraInApp") : t("app.space.cctvMonitoredShort")}
                 </li>
               </ul>
             </div>

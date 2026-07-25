@@ -131,7 +131,7 @@ export default async function HostTodayPage() {
               <input type="hidden" name="back" value="/host/today" />
               <button
                 type="submit"
-                className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
               >
                 <LogIn className="h-3.5 w-3.5" /> {t("host.today.arrived")}
               </button>
@@ -180,7 +180,7 @@ export default async function HostTodayPage() {
           <section id="requests">
             <div className="mb-3 flex items-center gap-2">
               <h3 className="flex items-center gap-2 text-lg font-bold text-navy-900">
-                <Hourglass className="h-5 w-5 text-accent-500" /> {t("host.rtb.queue")}
+                <Hourglass className="h-5 w-5 text-accent-700" /> {t("host.rtb.queue")}
               </h3>
               <Badge tone="accent">{requests.length}</Badge>
             </div>
@@ -209,7 +209,7 @@ export default async function HostTodayPage() {
                         <div className="truncate text-xs text-navy-400">
                           {traveller?.name ?? "—"} · {spaceMap.get(b.spaceId)?.title ?? ""}
                           {hoursLeft !== null && (
-                            <span className="ms-1 font-semibold text-accent-500">
+                            <span className="ms-1 font-semibold text-accent-700">
                               {t("host.rtb.hoursLeft").replace("{h}", String(hoursLeft))}
                             </span>
                           )}
@@ -222,7 +222,7 @@ export default async function HostTodayPage() {
                         <input type="hidden" name="back" value="/host/today" />
                         <button
                           type="submit"
-                          className="rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                          className="rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
                         >
                           {t("host.rtb.approve")}
                         </button>

@@ -119,7 +119,7 @@ export function SpaceCard({
             <div className="text-xl font-extrabold text-navy-900">
               {formatMoneyShort(estimatedTotal, currency)}
             </div>
-            <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-go-600">
+            <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-go-700">
               <BadgeCheck className="h-3.5 w-3.5" /> {t("app.space.freeCancellation")}
             </div>
           </div>

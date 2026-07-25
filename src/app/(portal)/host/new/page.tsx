@@ -136,7 +136,7 @@ export default async function NewSpacePage() {
                 { name: "covered", label: t("host.new.facility.covered") },
               ].map((f) => (
                 <label key={f.name} className="flex items-center gap-2 text-sm text-navy-700">
-                  <input type="checkbox" name={f.name} value="1" className="h-4 w-4 rounded border-navy-300 text-go-500 focus:ring-go-400" />
+                  <input type="checkbox" name={f.name} value="1" className="h-4 w-4 rounded border-navy-300 text-go-600 focus:ring-go-400" />
                   {f.label}
                 </label>
               ))}

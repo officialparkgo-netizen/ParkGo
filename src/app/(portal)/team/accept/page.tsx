@@ -38,7 +38,7 @@ export default async function TeamAcceptPage({
         backLabel={t("nav.backToSite")}
       >
         <Card className="p-6 text-center" data-invite-invalid>
-          <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-accent-500" aria-hidden />
+          <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-accent-700" aria-hidden />
           <p className="font-semibold text-navy-900">
             {reason === "expired" ? t("team.accept.expired") : t("team.accept.used")}
           </p>

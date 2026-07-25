@@ -427,7 +427,7 @@ export default async function BookingPage({
                   />
                   <button
                     type="submit"
-                    className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600"
+                    className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-500 px-4 text-sm font-semibold text-navy-900 hover:bg-brand-400"
                   >
                     <CalendarPlus className="h-4 w-4" /> {t("app.booking.extend.btn")}
                   </button>
@@ -493,7 +493,7 @@ export default async function BookingPage({
                   {t("app.booking.cancel.refundLabel")}:{" "}
                   {formatMoney(previewRefund, currency)}
                   {lateCancel && (
-                    <span className="ml-1 font-normal text-accent-500">
+                    <span className="ml-1 font-normal text-accent-700">
                       ({t("app.booking.cancel.lateFeeNote")})
                     </span>
                   )}
@@ -543,7 +543,7 @@ export default async function BookingPage({
                         rows={3}
                         maxLength={2000}
                         placeholder={t("app.booking.claim.ph")}
-                        className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                        className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
                       />
                       <button
                         type="submit"

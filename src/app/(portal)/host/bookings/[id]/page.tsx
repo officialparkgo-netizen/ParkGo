@@ -132,7 +132,7 @@ export default async function HostBookingDetailPage({
         {pending && (
           <Card className="border-accent-200 bg-accent-50/60 p-5" data-request-card>
             <p className="flex items-center gap-2 font-bold text-navy-900">
-              <Hourglass className="h-5 w-5 text-accent-500" /> {t("host.rtb.pendingTitle")}
+              <Hourglass className="h-5 w-5 text-accent-700" /> {t("host.rtb.pendingTitle")}
             </p>
             <p className="mt-1 text-sm text-navy-600">{t("host.rtb.pendingSub")}</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -140,7 +140,7 @@ export default async function HostBookingDetailPage({
                 <input type="hidden" name="bookingId" value={booking.id} />
                 <button
                   type="submit"
-                  className="rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-go-600"
+                  className="rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-navy-900 hover:bg-go-400"
                 >
                   {t("host.rtb.approve")}
                 </button>
@@ -220,7 +220,7 @@ export default async function HostBookingDetailPage({
                 <input type="hidden" name="bookingId" value={booking.id} />
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-go-600"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-navy-900 hover:bg-go-400"
                 >
                   <LogIn className="h-4 w-4" /> {t("host.today.arrived")}
                 </button>
@@ -333,7 +333,7 @@ export default async function HostBookingDetailPage({
         {/* Trouble tools — incidents go to the ParkGo team; blocking is host-only */}
         <Card className="p-6">
           <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
-            <ShieldAlert className="h-4 w-4 text-accent-500" /> {t("host.incident.title")}
+            <ShieldAlert className="h-4 w-4 text-accent-700" /> {t("host.incident.title")}
           </h3>
           <p className="mt-1 text-xs text-navy-500">{t("host.incident.sub")}</p>
           <form action={reportIncidentAction} className="mt-3 flex flex-wrap items-center gap-2">
@@ -343,11 +343,11 @@ export default async function HostBookingDetailPage({
               required
               maxLength={2000}
               placeholder={t("host.incident.ph")}
-              className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+              className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
             />
             <button
               type="submit"
-              className="rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-600"
+              className="rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-navy-900 hover:bg-accent-400"
             >
               {t("host.incident.send")}
             </button>

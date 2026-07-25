@@ -116,7 +116,7 @@ export default async function AdminTodayPage() {
         <div className="flex flex-wrap gap-2 text-sm">
           <Link
             href="/admin/verification"
-            className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1.5 font-semibold text-accent-500 hover:bg-accent-100"
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1.5 font-semibold text-accent-700 hover:bg-accent-100"
           >
             <ShieldAlert className="h-3.5 w-3.5" /> {pending.length}{" "}
             {t("admin.attention.verifications")}

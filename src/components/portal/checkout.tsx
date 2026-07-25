@@ -294,7 +294,7 @@ export function Checkout({
                   minLength={2}
                   placeholder={t("app.checkout.guest.name")}
                   aria-label={t("app.checkout.guest.name")}
-                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
                 />
                 <input
                   name="guestEmail"
@@ -302,14 +302,14 @@ export function Checkout({
                   required
                   placeholder={t("app.checkout.guest.email")}
                   aria-label={t("app.checkout.guest.email")}
-                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
                 />
                 <input
                   name="guestPhone"
                   type="tel"
                   placeholder={t("app.checkout.guest.phone")}
                   aria-label={t("app.checkout.guest.phone")}
-                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
                 />
                 <p className="text-[11px] leading-snug text-navy-400">
                   {t("app.checkout.guest.note")}
@@ -327,7 +327,7 @@ export function Checkout({
                 name="promo"
                 defaultValue={promoInvalid ? "" : undefined}
                 placeholder={t("book.promo.ph")}
-                className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm uppercase text-navy-900 placeholder:normal-case placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm uppercase text-navy-900 placeholder:normal-case placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
               />
               {promoInvalid && (
                 <p className="mt-1 text-xs font-semibold text-red-600">
@@ -404,7 +404,7 @@ function Line({
         checked={checked}
         disabled={disabled || !onChange}
         onChange={(e) => onChange?.(e.target.checked)}
-        className="h-5 w-5 rounded border-navy-300 text-brand-500 focus:ring-brand-400"
+        className="h-5 w-5 rounded border-navy-300 text-brand-600 focus:ring-brand-400"
       />
       <Icon className="h-5 w-5 text-brand-700" />
       <span className="flex-1">

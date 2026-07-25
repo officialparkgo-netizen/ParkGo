@@ -225,7 +225,7 @@ export function SupportLiveThread({
             <div
               className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-1.5 text-xs leading-relaxed ${
                 m.role === "agent"
-                  ? "rounded-ee-sm bg-brand-500 text-white"
+                  ? "rounded-ee-sm bg-brand-500 text-navy-900"
                   : m.role === "bot"
                     ? "rounded-es-sm bg-navy-50 italic text-navy-400"
                     : "rounded-es-sm bg-navy-100 text-navy-800"
@@ -301,7 +301,7 @@ export function SupportLiveThread({
               type="button"
               onClick={() => toggleTag(tag)}
               aria-pressed
-              className="rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-semibold text-white"
+              className="rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-navy-900"
             >
               {tag} ×
             </button>
@@ -342,7 +342,7 @@ export function SupportLiveThread({
           <button
             type="submit"
             disabled={!noteDraft.trim()}
-            className="shrink-0 rounded-lg bg-accent-500 px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50"
+            className="shrink-0 rounded-lg bg-accent-500 px-2.5 py-1.5 text-[11px] font-semibold text-navy-900 disabled:opacity-50"
           >
             {labels.addNote}
           </button>

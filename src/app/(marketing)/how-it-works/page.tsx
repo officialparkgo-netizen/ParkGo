@@ -145,7 +145,7 @@ export default async function HowItWorksPage() {
             <li key={s.n}>
               <Card className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[auto_1fr]">
                 <div className="flex items-start gap-4">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-go-500 text-lg font-bold text-white">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-go-500 text-lg font-bold text-navy-900">
                     {s.n}
                   </span>
                   <div
@@ -154,7 +154,7 @@ export default async function HowItWorksPage() {
                         ? "bg-brand-50 text-brand-700"
                         : s.tone === "go"
                           ? "bg-go-50 text-go-600"
-                          : "bg-accent-50 text-accent-500"
+                          : "bg-accent-50 text-accent-700"
                     }`}
                   >
                     <s.icon className="h-6 w-6" />
@@ -166,7 +166,7 @@ export default async function HowItWorksPage() {
                   <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
                     {s.points.map((p) => (
                       <li key={p} className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-700">
-                        <CheckCircle2 className="h-4 w-4 text-go-500" /> {p}
+                        <CheckCircle2 className="h-4 w-4 text-go-600" /> {p}
                       </li>
                     ))}
                   </ul>
@@ -237,7 +237,7 @@ export default async function HowItWorksPage() {
                         : f.tone === "go"
                           ? "bg-go-50 text-go-600"
                           : f.tone === "accent"
-                            ? "bg-accent-50 text-accent-500"
+                            ? "bg-accent-50 text-accent-700"
                             : "bg-navy-50 text-navy-700"
                     }`}
                   >
@@ -332,7 +332,7 @@ export default async function HowItWorksPage() {
 
           <Card className="p-7">
             <div className="flex items-center gap-3">
-              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-700">
                 <CarTaxiFront className="h-5 w-5" />
               </div>
               <h3 className="text-xl font-bold text-navy-900">{t("how.transfer.title")}</h3>
@@ -358,7 +358,7 @@ export default async function HowItWorksPage() {
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <Banknote className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <Banknote className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("how.cta.title")}
             </h2>
@@ -381,7 +381,7 @@ export default async function HowItWorksPage() {
               </Link>
             </div>
             <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-100">
-              <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
+              <Star className="h-3.5 w-3.5 fill-current text-accent-200" />
               {t("how.cta.airports")}
             </p>
           </div>

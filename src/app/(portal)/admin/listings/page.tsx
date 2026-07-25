@@ -69,7 +69,7 @@ export default async function AdminListingsPage({
               <form action={bulkApproveListingsAction} className="ms-auto">
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
                 >
                   <CheckCheck className="h-3.5 w-3.5" /> {t("admin.bulk.approveAll")} ({pendingListings})
                 </button>
@@ -108,14 +108,14 @@ export default async function AdminListingsPage({
                         {s.status === "live" ? (
                           <button
                             type="submit"
-                            className="inline-flex items-center gap-1 rounded-lg border border-accent-200 bg-white px-3 py-1.5 text-xs font-semibold text-accent-500 hover:bg-accent-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-accent-200 bg-white px-3 py-1.5 text-xs font-semibold text-accent-700 hover:bg-accent-50"
                           >
                             <PauseCircle className="h-3.5 w-3.5" /> {t("admin.pause")}
                           </button>
                         ) : (
                           <button
                             type="submit"
-                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" /> {t("admin.reactivate")}
                           </button>
@@ -129,7 +129,7 @@ export default async function AdminListingsPage({
                           type="submit"
                           name="decision"
                           value="approved"
-                          className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                          className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" /> {t("admin.approve")}
                         </button>

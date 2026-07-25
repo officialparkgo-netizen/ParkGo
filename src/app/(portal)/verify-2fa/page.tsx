@@ -77,7 +77,7 @@ export default async function Admin2faPage({
           </p>
         )}
         {IS_LIVE && !emailOk && (
-          <p className="mt-2 rounded-xl bg-accent-50 px-4 py-3 text-xs text-accent-500">
+          <p className="mt-2 rounded-xl bg-accent-50 px-4 py-3 text-xs text-accent-700">
             {t("twofa.noEmail")}
           </p>
         )}

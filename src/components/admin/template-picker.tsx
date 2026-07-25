@@ -44,7 +44,7 @@ export function TemplatePicker({
         maxLength={2000}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-full rounded-lg border border-navy-200 bg-white px-2.5 py-2 text-xs text-navy-700 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+        className="w-full rounded-lg border border-navy-200 bg-white px-2.5 py-2 text-xs text-navy-700 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
       />
     </div>
   );

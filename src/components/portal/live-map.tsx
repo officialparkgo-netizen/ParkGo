@@ -113,7 +113,7 @@ export function LiveMap({
         <MapPin className="h-3.5 w-3.5 text-brand-700" />
       </Pin>
       <Pin x={terminal.x} y={terminal.y} label={terminal.label} tone="accent" delayMs={140}>
-        <Plane className="h-3.5 w-3.5 text-white" />
+        <Plane className="h-3.5 w-3.5 text-navy-900" />
       </Pin>
 
       {showDriver && (
@@ -124,7 +124,7 @@ export function LiveMap({
           <span className="relative flex animate-scale-in">
             <span className="absolute inline-flex h-9 w-9 -translate-x-1/4 -translate-y-1/4 animate-pulse-ring rounded-full bg-go-400/60" />
             <span className="relative flex h-7 w-7 animate-float items-center justify-center rounded-full bg-go-500 shadow-lg ring-2 ring-white">
-              <Car className="h-3.5 w-3.5 text-white" />
+              <Car className="h-3.5 w-3.5 text-navy-900" />
             </span>
           </span>
         </div>

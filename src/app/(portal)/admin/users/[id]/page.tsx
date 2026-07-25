@@ -103,7 +103,7 @@ export default async function AdminUserDetailPage({
           </div>
         )}
         {gdpr === "confirm" && (
-          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700">
             {t("admin.gdpr.confirmNote")}
           </div>
         )}
@@ -111,7 +111,7 @@ export default async function AdminUserDetailPage({
         {/* Risk screening */}
         {riskFlags.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3">
-            <AlertTriangle className="h-5 w-5 shrink-0 text-accent-500" />
+            <AlertTriangle className="h-5 w-5 shrink-0 text-accent-700" />
             <span className="font-bold text-navy-900">{t("admin.risk.title")}</span>
             {riskFlags.map((f) => (
               <span
@@ -189,7 +189,7 @@ export default async function AdminUserDetailPage({
                 >
                   {t("admin.score.cancelRate")} {hostCancelRate}%
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-500">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-700">
                   {host.rating.toFixed(1)}★
                 </span>
                 <StatusBadge status={host.verificationStatus} />
@@ -260,7 +260,7 @@ export default async function AdminUserDetailPage({
                 {target.suspended ? (
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-2 text-xs font-semibold text-white hover:bg-go-600"
+                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-2 text-xs font-semibold text-navy-900 hover:bg-go-400"
                   >
                     <UserCheck className="h-3.5 w-3.5" /> {t("admin.users.restore")}
                   </button>
@@ -358,7 +358,7 @@ export default async function AdminUserDetailPage({
                   <input
                     name="confirm"
                     placeholder={t("admin.gdpr.typeDelete")}
-                    className="w-32 rounded-lg border border-red-200 bg-white px-2.5 py-2 text-xs font-mono text-red-700 placeholder:text-navy-300"
+                    className="w-32 rounded-lg border border-red-200 bg-white px-2.5 py-2 text-xs font-mono text-red-700 placeholder:text-navy-400"
                   />
                   <button
                     type="submit"
@@ -384,7 +384,7 @@ export default async function AdminUserDetailPage({
                 name="note"
                 required
                 placeholder={t("admin.user.notePh")}
-                className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
               />
               <Button type="submit" size="sm">
                 {t("admin.user.addNote")}

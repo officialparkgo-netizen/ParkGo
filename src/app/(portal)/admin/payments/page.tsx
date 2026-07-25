@@ -142,7 +142,7 @@ export default async function AdminPaymentsPage({
               {t("admin.stat.gmv")}{" "}
               <span className="font-bold">{formatMoney(gmv)}</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-700">
               {t("admin.stat.payoutsDue")}{" "}
               <span className="font-bold">{formatMoney(payoutsDue)}</span>
             </span>
@@ -174,7 +174,7 @@ export default async function AdminPaymentsPage({
                             <span
                               className={
                                 isRefunded(p)
-                                  ? "font-semibold text-navy-300 line-through"
+                                  ? "font-semibold text-navy-400 line-through"
                                   : "font-semibold text-navy-900"
                               }
                             >
@@ -195,7 +195,7 @@ export default async function AdminPaymentsPage({
                                   <input type="hidden" name="paymentId" value={p.id} />
                                   <button
                                     type="submit"
-                                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-go-600"
+                                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-2.5 py-1 text-xs font-semibold text-navy-900 hover:bg-go-400"
                                   >
                                     <CheckCircle2 className="h-3 w-3" /> {t("admin.pay.markPaid")}
                                   </button>

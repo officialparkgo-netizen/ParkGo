@@ -123,7 +123,7 @@ export function BookingThread({
               <div
                 className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${
                   mine
-                    ? "rounded-br-md bg-brand-500 text-white"
+                    ? "rounded-br-md bg-brand-500 text-navy-900"
                     : "rounded-bl-md bg-navy-50 text-navy-800"
                 }`}
               >
@@ -148,7 +148,7 @@ export function BookingThread({
           onChange={(e) => setText(e.target.value)}
           maxLength={1000}
           placeholder={labels.placeholder}
-          className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+          className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
         />
         <button
           type="submit"

@@ -114,7 +114,7 @@ export function BlockedDatesPicker({
                 isPast
                   ? "cursor-not-allowed text-navy-200"
                   : isBlocked
-                    ? "bg-red-500 font-bold text-white line-through"
+                    ? "bg-red-600 font-bold text-white line-through"
                     : "text-navy-700 hover:bg-navy-50",
               ].join(" ")}
             >

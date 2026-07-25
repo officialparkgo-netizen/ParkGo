@@ -87,13 +87,13 @@ export default async function TravellersPage() {
           </div>
           <p className="mt-6 flex flex-wrap items-center justify-center gap-x-4 lg:justify-start gap-y-1 text-sm text-navy-500">
             <span className="inline-flex items-center gap-1.5">
-              <BadgeCheck className="h-4 w-4 text-go-500" /> {t("travellers.trust.hosts")}
+              <BadgeCheck className="h-4 w-4 text-go-600" /> {t("travellers.trust.hosts")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-go-500" /> {t("travellers.trust.drivers")}
+              <ShieldCheck className="h-4 w-4 text-go-600" /> {t("travellers.trust.drivers")}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Camera className="h-4 w-4 text-go-500" /> {t("travellers.trust.camera")}
+              <Camera className="h-4 w-4 text-go-600" /> {t("travellers.trust.camera")}
             </span>
           </p>
           </div>
@@ -131,7 +131,7 @@ export default async function TravellersPage() {
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
-                        ? "bg-accent-50 text-accent-500"
+                        ? "bg-accent-50 text-accent-700"
                         : "bg-navy-50 text-navy-700"
                 }`}
               >
@@ -213,10 +213,10 @@ export default async function TravellersPage() {
           {journey.map((s) => (
             <li key={s.n} className="relative rounded-2xl bg-white p-6 shadow-card">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-white">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-navy-900">
                   {s.n}
                 </span>
-                <s.icon className="h-5 w-5 text-brand-500" />
+                <s.icon className="h-5 w-5 text-brand-600" />
               </div>
               <h3 className="mt-4 text-lg font-bold text-navy-900">{s.title}</h3>
               <p className="mt-1.5 text-sm text-navy-600">{s.body}</p>
@@ -268,7 +268,7 @@ export default async function TravellersPage() {
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <MapPin className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <MapPin className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("travellers.waitlist.title")}
             </h2>
@@ -279,7 +279,7 @@ export default async function TravellersPage() {
               <WaitlistForm role="traveller" dark />
             </div>
             <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-100">
-              <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
+              <Star className="h-3.5 w-3.5 fill-current text-accent-200" />
               {t("waitlist.nospam")}
             </p>
           </div>

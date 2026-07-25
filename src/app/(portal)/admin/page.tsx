@@ -413,7 +413,7 @@ export default async function AdminDashboard({
           pendingListings > 0 ||
           supportTickets.some((x) => x.status === "open")) && (
           <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3">
-            <ShieldAlert className="h-5 w-5 shrink-0 text-accent-500" aria-hidden />
+            <ShieldAlert className="h-5 w-5 shrink-0 text-accent-700" aria-hidden />
             <span className="font-bold text-navy-900">{t("admin.attention.title")}</span>
             {pending.length > 0 && (
               <Link
@@ -610,7 +610,7 @@ function PortalLink({
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1 font-bold text-navy-900">
           {title}
-          <ArrowUpRight className="h-3.5 w-3.5 text-navy-300 transition-colors group-hover:text-brand-500" />
+          <ArrowUpRight className="h-3.5 w-3.5 text-navy-400 transition-colors group-hover:text-brand-600" />
         </span>
         <span className="block truncate text-xs text-navy-500">{sub}</span>
       </span>

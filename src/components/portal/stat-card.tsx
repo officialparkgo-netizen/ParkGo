@@ -16,7 +16,7 @@ export function StatCard({
   const toneClass = {
     brand: "bg-brand-50 text-brand-700",
     go: "bg-go-50 text-go-600",
-    accent: "bg-accent-50 text-accent-500",
+    accent: "bg-accent-50 text-accent-700",
     navy: "bg-navy-50 text-navy-700",
   }[tone];
   return (

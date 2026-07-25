@@ -24,7 +24,7 @@ export function Stars({
               key={i}
               className={cn(
                 px,
-                filled || half ? "text-accent-400" : "text-navy-200"
+                filled || half ? "text-accent-600" : "text-navy-200"
               )}
               fill={filled ? "currentColor" : half ? "url(#half)" : "none"}
               strokeWidth={1.5}

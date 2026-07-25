@@ -106,7 +106,7 @@ export default async function AboutPage() {
       <Section className="bg-navy-50/50">
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="p-7">
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-700">
               <TriangleAlert className="h-5 w-5" />
             </div>
             <h3 className="mt-4 text-xl font-bold text-navy-900">{t("about.problem.title")}</h3>
@@ -167,7 +167,7 @@ export default async function AboutPage() {
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
-                        ? "bg-accent-50 text-accent-500"
+                        ? "bg-accent-50 text-accent-700"
                         : "bg-navy-50 text-navy-700"
                 }`}
               >
@@ -226,7 +226,7 @@ export default async function AboutPage() {
             { icon: Lightbulb, k: t("about.vision.trust.k"), v: t("about.vision.trust.v") },
           ].map((s) => (
             <div key={s.v}>
-              <s.icon className="mx-auto mb-3 h-7 w-7 text-go-300" />
+              <s.icon className="mx-auto mb-3 h-7 w-7 text-go-200" />
               <div className="text-2xl font-extrabold text-white">{s.k}</div>
               <div
                 className="mt-1 text-sm text-navy-200"
@@ -242,7 +242,7 @@ export default async function AboutPage() {
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <Sparkles className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <Sparkles className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("about.waitlist.title")}
             </h2>

@@ -54,7 +54,7 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
         {quality.tips.length > 0 && (
           <Card className="mt-3 border-accent-200 bg-accent-50/60 p-5" data-quality-tips>
             <p className="flex items-center gap-2 text-sm font-bold text-navy-900">
-              <Lightbulb className="h-4 w-4 text-accent-500" />
+              <Lightbulb className="h-4 w-4 text-accent-700" />
               {t("host.quality.cardTitle")} · {quality.pct}%
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-navy-600">
@@ -210,7 +210,7 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
                 name="requestToBook"
                 value="1"
                 defaultChecked={!!space.requestToBook}
-                className="mt-0.5 h-4 w-4 rounded border-navy-300 text-go-500 focus:ring-go-400"
+                className="mt-0.5 h-4 w-4 rounded border-navy-300 text-go-600 focus:ring-go-400"
               />
               <span>
                 <span className="block font-semibold text-navy-900">
@@ -294,7 +294,7 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
                     name={f.name}
                     value="1"
                     defaultChecked={f.checked}
-                    className="h-4 w-4 rounded border-navy-300 text-go-500 focus:ring-go-400"
+                    className="h-4 w-4 rounded border-navy-300 text-go-600 focus:ring-go-400"
                   />
                   {f.label}
                 </label>
@@ -335,7 +335,7 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
             </div>
 
             {space.status === "rejected" && (
-              <div className="rounded-xl bg-accent-50 p-3 text-xs font-medium text-accent-500">
+              <div className="rounded-xl bg-accent-50 p-3 text-xs font-medium text-accent-700">
                 {t("host.edit.resubmitNote")}
               </div>
             )}

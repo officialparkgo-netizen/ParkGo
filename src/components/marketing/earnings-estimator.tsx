@@ -71,13 +71,13 @@ export function EarningsEstimator({ keepPct, labels }: { keepPct: number; labels
         </div>
 
         <div className="flex flex-col items-center justify-center rounded-2xl bg-navy-900 p-6 text-center">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-navy-300">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-navy-200">
             <Banknote className="h-4 w-4 text-brand-400" aria-hidden /> {labels.monthly}
           </span>
           <div data-estimator-monthly className="mt-2 text-4xl font-extrabold text-white">
             {formatMoney(monthlyPence)}
           </div>
-          <div className="mt-1 text-sm text-navy-300">
+          <div className="mt-1 text-sm text-navy-200">
             {formatMoney(yearlyPence)} {labels.yearly}
           </div>
           <div className="mt-3 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">

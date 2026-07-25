@@ -203,13 +203,13 @@ export default async function AirportPage({
 
               <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-500">
                 <span className="inline-flex items-center gap-1.5">
-                  <BadgeCheck className="h-4 w-4 text-go-500" /> {t("airport.verifiedHosts")}
+                  <BadgeCheck className="h-4 w-4 text-go-600" /> {t("airport.verifiedHosts")}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-go-500" /> {t("airport.licensedDrivers")}
+                  <ShieldCheck className="h-4 w-4 text-go-600" /> {t("airport.licensedDrivers")}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Camera className="h-4 w-4 text-go-500" /> {t("airport.liveCameraCctv")}
+                  <Camera className="h-4 w-4 text-go-600" /> {t("airport.liveCameraCctv")}
                 </span>
               </p>
             </div>
@@ -271,7 +271,7 @@ export default async function AirportPage({
 
         {results.length === 0 ? (
           <Card className="mx-auto mt-12 max-w-xl p-8 text-center">
-            <Plane className="mx-auto h-8 w-8 text-brand-500" />
+            <Plane className="mx-auto h-8 w-8 text-brand-600" />
             <h3 className="mt-4 text-lg font-bold text-navy-900">
               {t("airport.emptyTitleA")} {airport.name}
             </h3>
@@ -320,10 +320,10 @@ export default async function AirportPage({
 
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-600">
                     <span className="inline-flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-brand-500" /> {space.distanceMiles} mi
+                      <MapPin className="h-3.5 w-3.5 text-brand-600" /> {space.distanceMiles} mi
                     </span>
                     <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-brand-500" /> {space.driveMinutes}{" "}
+                      <Clock className="h-3.5 w-3.5 text-brand-600" /> {space.driveMinutes}{" "}
                       {t("app.card.minToTerminal")}
                     </span>
                   </div>
@@ -408,7 +408,7 @@ export default async function AirportPage({
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
-                        ? "bg-accent-50 text-accent-500"
+                        ? "bg-accent-50 text-accent-700"
                         : "bg-navy-50 text-navy-700"
                 }`}
               >
@@ -437,7 +437,7 @@ export default async function AirportPage({
             {faqsLocalized.map((f) => (
               <Card key={f.q} className="p-6">
                 <dt className="flex items-start gap-3 font-bold text-navy-900">
-                  <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-brand-500" />
+                  <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" />
                   {f.q}
                 </dt>
                 <dd className="mt-2 pl-8 text-navy-600">{f.a}</dd>
@@ -452,7 +452,7 @@ export default async function AirportPage({
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <Sparkles className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <Sparkles className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("airport.ctaHeadingA")} {airport.name}
               {t("airport.ctaHeadingB")}

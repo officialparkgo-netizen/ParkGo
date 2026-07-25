@@ -92,10 +92,10 @@ export default async function HostsPage({
             </div>
             <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-500">
               <span className="inline-flex items-center gap-1.5">
-                <Wallet className="h-4 w-4 text-go-500" /> {t("hosts.hero.keep").replace("{pct}", String(hostKeepPct))}
+                <Wallet className="h-4 w-4 text-go-600" /> {t("hosts.hero.keep").replace("{pct}", String(hostKeepPct))}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-go-500" /> {t("hosts.hero.travellers")}
+                <ShieldCheck className="h-4 w-4 text-go-600" /> {t("hosts.hero.travellers")}
               </span>
             </p>
           </div>
@@ -175,7 +175,7 @@ export default async function HostsPage({
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
-                        ? "bg-accent-50 text-accent-500"
+                        ? "bg-accent-50 text-accent-700"
                         : "bg-navy-50 text-navy-700"
                 }`}
               >
@@ -227,7 +227,7 @@ export default async function HostsPage({
             <li key={s.title}>
               <Card className="h-full p-6">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-white">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-navy-900">
                     {i + 1}
                   </span>
                   <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
@@ -290,7 +290,7 @@ export default async function HostsPage({
                 { t: t("hosts.payouts.setprice.title"), b: t("hosts.payouts.setprice.body") },
               ].map((row) => (
                 <li key={row.t} className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-600" />
                   <div>
                     <p className="font-bold text-navy-900">{row.t}</p>
                     <p className="text-navy-600">{row.b}</p>
@@ -310,7 +310,7 @@ export default async function HostsPage({
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <Building2 className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <Building2 className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("hosts.waitlist.title")}
             </h2>
@@ -321,7 +321,7 @@ export default async function HostsPage({
               <WaitlistForm role="host" dark refValue={ref} />
             </div>
             <p className="mt-3 inline-flex items-center gap-1 text-sm text-brand-100">
-              <Star className="h-3.5 w-3.5 fill-current text-accent-300" />
+              <Star className="h-3.5 w-3.5 fill-current text-accent-200" />
               {t("hosts.waitlist.nospam")}
             </p>
           </div>

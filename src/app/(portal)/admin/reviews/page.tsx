@@ -60,7 +60,7 @@ export default async function AdminReviewsPage() {
                       </span>
                       <span className="inline-flex items-center gap-0.5 text-sm font-bold text-navy-900">
                         {r.rating}
-                        <Star className="h-3.5 w-3.5 fill-accent-400 text-accent-400" />
+                        <Star className="h-3.5 w-3.5 fill-accent-600 text-accent-600" />
                       </span>
                       {r.hidden && <Badge tone="danger">{t("admin.reviews.hiddenBadge")}</Badge>}
                     </div>
@@ -77,7 +77,7 @@ export default async function AdminReviewsPage() {
                     {r.hidden ? (
                       <button
                         type="submit"
-                        className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                        className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
                       >
                         <Eye className="h-3.5 w-3.5" /> {t("admin.reviews.unhide")}
                       </button>

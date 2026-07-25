@@ -97,7 +97,7 @@ export default async function NotificationsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 text-2xl font-extrabold text-navy-900">
-              <Bell className="h-6 w-6 text-brand-500" /> {t("portal.notifications")}
+              <Bell className="h-6 w-6 text-brand-600" /> {t("portal.notifications")}
             </h2>
             <p className="text-navy-500">{t("notif.sub")}</p>
           </div>
@@ -111,7 +111,7 @@ export default async function NotificationsPage() {
 
         {notifications.length === 0 ? (
           <Card className="p-10 text-center">
-            <Bell className="mx-auto mb-3 h-8 w-8 text-navy-300" aria-hidden />
+            <Bell className="mx-auto mb-3 h-8 w-8 text-navy-400" aria-hidden />
             <p className="font-semibold text-navy-700">{t("notif.emptyTitle")}</p>
             <p className="mt-1 text-sm text-navy-500">{t("notif.emptySub")}</p>
           </Card>
@@ -145,7 +145,7 @@ export default async function NotificationsPage() {
                   className="group flex items-start gap-3 p-4 transition-colors hover:bg-navy-50/60"
                 >
                   {row}
-                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-navy-300 transition-colors group-hover:text-brand-700 rtl:-scale-x-100" />
+                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-navy-400 transition-colors group-hover:text-brand-700 rtl:-scale-x-100" />
                 </Link>
               ) : (
                 <div key={n.id} className="flex items-start gap-3 p-4">

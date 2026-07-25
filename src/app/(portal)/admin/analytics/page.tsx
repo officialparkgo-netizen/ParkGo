@@ -128,7 +128,7 @@ export default async function AdminAnalyticsPage() {
                   <span className="text-end text-navy-700">{r.searches}</span>
                   <span
                     className={`text-end font-semibold ${
-                      r.zeroResults > 0 ? "text-accent-500" : "text-navy-400"
+                      r.zeroResults > 0 ? "text-accent-700" : "text-navy-400"
                     }`}
                   >
                     {r.zeroResults}

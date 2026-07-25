@@ -156,7 +156,7 @@ export default async function HostPayoutsPage({
 
         {/* Money at a glance */}
         <div className="flex flex-wrap gap-2 text-sm">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-500">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 font-semibold text-accent-700">
             {t("host.pay.summary.pending")}{" "}
             <span className="font-bold">{formatMoney(pendingPayouts)}</span>
           </span>
@@ -332,7 +332,7 @@ export default async function HostPayoutsPage({
                           <span
                             className={
                               refunded
-                                ? "text-sm font-semibold text-navy-300 line-through"
+                                ? "text-sm font-semibold text-navy-400 line-through"
                                 : "text-sm font-semibold text-navy-900"
                             }
                           >

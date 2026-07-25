@@ -139,7 +139,7 @@ export default async function PricingPage() {
                 t("pricing.bundle.point4").replace("{fee}", serviceFee),
               ].map((p) => (
                 <li key={p} className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-600" />
                   <span className="text-navy-700">{p}</span>
                 </li>
               ))}
@@ -206,7 +206,7 @@ export default async function PricingPage() {
                   e.tone === "go"
                     ? "bg-go-50 text-go-600"
                     : e.tone === "accent"
-                      ? "bg-accent-50 text-accent-500"
+                      ? "bg-accent-50 text-accent-700"
                       : "bg-brand-50 text-brand-700"
                 }`}
               >
@@ -268,7 +268,7 @@ export default async function PricingPage() {
                 t("pricing.corporate.point4"),
               ].map((p) => (
                 <li key={p} className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-600" />
                   <span className="text-navy-700">{p}</span>
                 </li>
               ))}
@@ -280,7 +280,7 @@ export default async function PricingPage() {
 
           <Card className="p-7">
             <div className="flex items-center gap-3">
-              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-700">
                 <Gift className="h-5 w-5" />
               </div>
               <h3 className="text-xl font-bold text-navy-900">{t("pricing.referral.title")}</h3>
@@ -296,7 +296,7 @@ export default async function PricingPage() {
                 t("pricing.referral.point4"),
               ].map((p) => (
                 <li key={p} className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-500" />
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-go-600" />
                   <span className="text-navy-700">{p}</span>
                 </li>
               ))}
@@ -331,7 +331,7 @@ export default async function PricingPage() {
                     : f.tone === "go"
                       ? "bg-go-50 text-go-600"
                       : f.tone === "accent"
-                        ? "bg-accent-50 text-accent-500"
+                        ? "bg-accent-50 text-accent-700"
                         : "bg-navy-50 text-navy-700"
                 }`}
               >
@@ -349,7 +349,7 @@ export default async function PricingPage() {
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <CreditCard className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <CreditCard className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("pricing.cta.title")}
             </h2>

@@ -180,7 +180,7 @@ export default async function FaqPage() {
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <MessageCircle className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <MessageCircle className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("faq.cta.title")}
             </h2>
@@ -203,7 +203,7 @@ export default async function FaqPage() {
               </Link>
             </div>
             <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-100">
-              <Sparkles className="h-3.5 w-3.5 text-accent-300" />
+              <Sparkles className="h-3.5 w-3.5 text-accent-200" />
               {SITE.tagline}
             </p>
           </div>

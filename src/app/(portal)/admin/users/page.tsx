@@ -51,7 +51,7 @@ export default async function AdminUsersPage({
           </div>
         )}
         {invited === "preview" && (
-          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700">
             <Info className="h-5 w-5" /> {t("admin.waitlist.invitePreview")}
           </div>
         )}
@@ -113,7 +113,7 @@ export default async function AdminUsersPage({
                         {u.suspended ? (
                           <button
                             type="submit"
-                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
+                            className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
                           >
                             <UserCheck className="h-3.5 w-3.5" /> {t("admin.users.restore")}
                           </button>
@@ -169,7 +169,7 @@ export default async function AdminUsersPage({
                         <input type="hidden" name="email" value={w.email} />
                         <button
                           type="submit"
-                          className="inline-flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
+                          className="inline-flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-brand-400"
                         >
                           <Send className="h-3.5 w-3.5" /> {t("admin.waitlist.invite")}
                         </button>

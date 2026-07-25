@@ -46,7 +46,7 @@ export default async function AdminBroadcastPage({
           </div>
         )}
         {preview && (
-          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700">
             <Info className="h-5 w-5" /> {t("admin.broadcast.preview")}
           </div>
         )}
@@ -94,7 +94,7 @@ export default async function AdminBroadcastPage({
                 required
                 rows={7}
                 maxLength={5000}
-                className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-3 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-3 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
               />
             </div>
             <Button type="submit" size="lg">

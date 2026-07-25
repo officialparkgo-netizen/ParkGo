@@ -25,7 +25,7 @@ export default async function PrivacyPage() {
           <div className="mx-auto max-w-3xl">
             <Eyebrow>{t("footer.legal")}</Eyebrow>
             <h1 className="flex items-center gap-3 text-4xl font-extrabold tracking-tight text-navy-900">
-              <ShieldCheck className="h-9 w-9 text-go-500" /> {t("privacy.hero.title")}
+              <ShieldCheck className="h-9 w-9 text-go-600" /> {t("privacy.hero.title")}
             </h1>
             <p className="mt-4 text-lg text-navy-600">
               {t("privacy.hero.intro")}

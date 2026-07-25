@@ -110,7 +110,7 @@ export default async function AccountPage({
     <PortalShell user={user} nav={nav} title="account.title">
       <div className="mx-auto max-w-2xl space-y-6">
         {reset && (
-          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700">
             <LockKeyhole className="h-5 w-5" /> {t("account.resetBanner")}
           </div>
         )}
@@ -159,7 +159,7 @@ export default async function AccountPage({
               </div>
               <p className="truncate text-sm text-navy-500">{user.email}</p>
             </div>
-            <UserRound className="hidden h-6 w-6 text-navy-300 sm:block" />
+            <UserRound className="hidden h-6 w-6 text-navy-400 sm:block" />
           </div>
           <div className="mt-4 flex flex-wrap gap-2 border-t border-navy-100 pt-4 text-sm">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1 font-semibold text-navy-700">
@@ -554,7 +554,7 @@ export default async function AccountPage({
         </Card>
 
         <p className="flex items-center gap-2 text-xs text-navy-400">
-          <ShieldCheck className="h-4 w-4 shrink-0 text-go-500" />
+          <ShieldCheck className="h-4 w-4 shrink-0 text-go-600" />
           {t("account.securityNote")}
         </p>
       </div>

@@ -72,7 +72,7 @@ export default async function AdminSettingsPage({
           </div>
         )}
         {digest === "preview" && (
-          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700">
             <Info className="h-5 w-5" /> {t("admin.broadcast.preview")}
           </div>
         )}
@@ -358,7 +358,7 @@ export default async function AdminSettingsPage({
             <p className="mt-0.5 text-sm text-navy-500">
               {t("admin.settings.digestSub")}
               {!emailOk && (
-                <span className="ml-1 text-accent-500">{t("twofa.noEmail")}</span>
+                <span className="ml-1 text-accent-700">{t("twofa.noEmail")}</span>
               )}
             </p>
           </div>

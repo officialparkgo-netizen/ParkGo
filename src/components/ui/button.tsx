@@ -4,9 +4,16 @@ import { cn } from "@/lib/utils";
 type Variant = "primary" | "accent" | "navy" | "outline" | "ghost" | "white";
 type Size = "sm" | "md" | "lg";
 
+/**
+ * The brand orange cannot carry white text at AA — #F26A1B with white is
+ * 3.06:1 against the 4.5:1 body-text floor, and no orange light enough to be
+ * "ParkGo orange" ever will. So the orange stays exactly as it is and the
+ * label goes near-black (5.86:1). Hover *lightens* rather than darkens, which
+ * is the right direction for dark text and keeps the hover state passing too.
+ */
 const variants: Record<Variant, string> = {
-  primary: "bg-go-500 text-white hover:bg-go-600 shadow-sm",
-  accent: "bg-accent-400 text-white hover:bg-accent-500 shadow-sm",
+  primary: "bg-go-500 text-navy-900 hover:bg-go-400 shadow-sm",
+  accent: "bg-accent-400 text-navy-900 hover:bg-accent-300 shadow-sm",
   navy: "bg-navy-800 text-white hover:bg-navy-900 shadow-sm",
   outline: "border border-navy-200 text-navy-800 hover:bg-navy-50 bg-white",
   ghost: "text-navy-700 hover:bg-navy-50",

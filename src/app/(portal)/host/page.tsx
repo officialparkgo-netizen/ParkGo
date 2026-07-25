@@ -174,7 +174,7 @@ export default async function HostDashboard({
                   <div className="flex items-center gap-4">
                     <StatusBadge status={b.status} />
                     {b.status === "cancelled" ? (
-                      <span className="font-bold text-navy-300 line-through">
+                      <span className="font-bold text-navy-400 line-through">
                         {formatMoney(b.price.split.hostPayout, b.price.currency)}
                       </span>
                     ) : (
@@ -278,7 +278,7 @@ export default async function HostDashboard({
           </div>
         )}
         {verify === "submitted" && (
-          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+          <div className="flex items-center gap-2 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700">
             <ShieldCheck className="h-5 w-5" /> {t("host.verify.submittedBanner")}
           </div>
         )}
@@ -556,7 +556,7 @@ export default async function HostDashboard({
                   </div>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-navy-300 transition-transform group-hover:translate-x-0.5" />
+              <ChevronRight className="h-5 w-5 shrink-0 text-navy-400 transition-transform group-hover:translate-x-0.5" />
             </Card>
           </Link>
           <Link href="/host/verify" className="group">
@@ -574,7 +574,7 @@ export default async function HostDashboard({
                   </div>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-navy-300 transition-transform group-hover:translate-x-0.5" />
+              <ChevronRight className="h-5 w-5 shrink-0 text-navy-400 transition-transform group-hover:translate-x-0.5" />
             </Card>
           </Link>
         </div>

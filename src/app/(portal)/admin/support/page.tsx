@@ -171,7 +171,7 @@ export default async function AdminSupportPage({
           </div>
         )}
         {replied === "preview" && (
-          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-500">
+          <div className="rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 font-semibold text-accent-700">
             {t("admin.macros.preview")}
           </div>
         )}
@@ -286,7 +286,7 @@ export default async function AdminSupportPage({
                 type="submit"
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
                   user.supportAvailable
-                    ? "bg-go-500 text-white hover:bg-go-600"
+                    ? "bg-go-500 text-navy-900 hover:bg-go-400"
                     : "border border-navy-200 bg-white text-navy-500 hover:bg-navy-50"
                 }`}
               >
@@ -555,7 +555,7 @@ export default async function AdminSupportPage({
                           <div
                             className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-1.5 text-xs leading-relaxed ${
                               m.role === "agent"
-                                ? "rounded-ee-sm bg-brand-500 text-white"
+                                ? "rounded-ee-sm bg-brand-500 text-navy-900"
                                 : m.role === "bot"
                                   ? "rounded-es-sm bg-navy-50 italic text-navy-400"
                                   : "rounded-es-sm bg-navy-100 text-navy-800"
@@ -710,7 +710,7 @@ export default async function AdminSupportPage({
                     type="email"
                     required
                     placeholder="agent@parkgo.team"
-                    className="w-full rounded-xl border border-navy-200 bg-white px-3 py-2 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                    className="w-full rounded-xl border border-navy-200 bg-white px-3 py-2 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
                   />
                 </div>
                 <button

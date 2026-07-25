@@ -134,7 +134,7 @@ export default async function BlogPostPage({
 
         {/* CTA */}
         <div className="mx-auto mt-12 max-w-2xl rounded-2xl bg-navy-800 p-8 text-center">
-          <Eyebrow className="text-go-300">{t("blog.cta.eyebrow")}</Eyebrow>
+          <Eyebrow className="text-go-100">{t("blog.cta.eyebrow")}</Eyebrow>
           <h2 className="text-2xl font-bold tracking-tight text-white">{t("blog.cta.title")}</h2>
           <p className="mt-2 text-navy-200">{t("blog.cta.body")}</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">

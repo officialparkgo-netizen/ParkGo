@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const base =
-  "w-full rounded-xl border border-navy-200 bg-white px-3.5 text-navy-900 placeholder:text-navy-300 " +
+  "w-full rounded-xl border border-navy-200 bg-white px-3.5 text-navy-900 placeholder:text-navy-400 " +
   "focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100";
 
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {

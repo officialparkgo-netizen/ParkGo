@@ -134,7 +134,7 @@ export function AuthForm({ next }: { next?: string }) {
       )}
 
       {/* Magic link */}
-      <div className="my-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-navy-300">
+      <div className="my-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-navy-400">
         <span className="h-px flex-1 bg-navy-100" /> or <span className="h-px flex-1 bg-navy-100" />
       </div>
       <form action={magicAction}>

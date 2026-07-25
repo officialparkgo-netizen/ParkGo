@@ -188,7 +188,7 @@ export default async function TravellerDashboard() {
                     </div>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 shrink-0 text-navy-300 transition-transform group-hover:translate-x-0.5" />
+                <ChevronRight className="h-5 w-5 shrink-0 text-navy-400 transition-transform group-hover:translate-x-0.5" />
               </Card>
             </Link>
           )}

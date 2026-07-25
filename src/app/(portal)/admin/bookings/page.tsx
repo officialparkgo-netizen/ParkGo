@@ -115,7 +115,7 @@ export default async function AdminBookingsPage({
                     <span
                       className={
                         b.status === "cancelled"
-                          ? "text-sm font-semibold text-navy-300 line-through"
+                          ? "text-sm font-semibold text-navy-400 line-through"
                           : "text-sm font-semibold text-navy-900"
                       }
                     >
@@ -133,7 +133,7 @@ export default async function AdminBookingsPage({
                         <input
                           name="reason"
                           placeholder={t("admin.cancel.reason")}
-                          className="w-36 rounded-lg border border-navy-200 bg-white px-2 py-1.5 text-xs text-navy-700 placeholder:text-navy-300"
+                          className="w-36 rounded-lg border border-navy-200 bg-white px-2 py-1.5 text-xs text-navy-700 placeholder:text-navy-400"
                         />
                         <button
                           type="submit"

@@ -160,13 +160,13 @@ export default async function AdminVerificationPage() {
                         <input
                           name="notes"
                           placeholder={t("admin.verif.notesPh")}
-                          className="rounded-lg border border-navy-200 bg-white px-2.5 py-2 text-xs text-navy-700 placeholder:text-navy-300"
+                          className="rounded-lg border border-navy-200 bg-white px-2.5 py-2 text-xs text-navy-700 placeholder:text-navy-400"
                         />
                         <button
                           type="submit"
                           name="decision"
                           value="approved"
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2 text-sm font-semibold text-white hover:bg-go-600"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2 text-sm font-semibold text-navy-900 hover:bg-go-400"
                         >
                           <CheckCircle2 className="h-4 w-4" /> {t("admin.approve")}
                         </button>

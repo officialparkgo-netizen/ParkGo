@@ -40,7 +40,7 @@ export function ReviewForm({ bookingId }: { bookingId: string }) {
             <Star
               className={cn(
                 "h-7 w-7 transition-colors",
-                n <= rating ? "text-accent-400" : "text-navy-200"
+                n <= rating ? "text-accent-600" : "text-navy-200"
               )}
               fill={n <= rating ? "currentColor" : "none"}
             />

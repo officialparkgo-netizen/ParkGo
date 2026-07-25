@@ -66,7 +66,7 @@ export function DriverChat({ bookingId }: { bookingId: string }) {
             className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-sm leading-relaxed ${
               m.from === "driver"
                 ? "me-auto rounded-es-md border border-navy-100 bg-white text-navy-800"
-                : "ms-auto rounded-ee-md bg-brand-500 text-white"
+                : "ms-auto rounded-ee-md bg-brand-500 text-navy-900"
             }`}
           >
             {m.text}

@@ -57,7 +57,7 @@ export default async function HostReviewsPage({
 
         <div className="flex items-center gap-2">
           <h2 className="flex items-center gap-2 text-xl font-extrabold text-navy-900">
-            <Star className="h-5 w-5 text-accent-400" /> {t("host.reviews.title")}
+            <Star className="h-5 w-5 text-accent-600" /> {t("host.reviews.title")}
           </h2>
           <Badge tone="neutral">{reviews.length}</Badge>
         </div>
@@ -77,7 +77,7 @@ export default async function HostReviewsPage({
                   </span>
                   <span className="inline-flex items-center gap-0.5 text-sm font-bold text-navy-900">
                     {r.rating}
-                    <Star className="h-3.5 w-3.5 fill-accent-400 text-accent-400" />
+                    <Star className="h-3.5 w-3.5 fill-accent-600 text-accent-600" />
                   </span>
                   <span className="text-xs text-navy-400">
                     {spaceMap.get(r.subjectId)?.title ?? ""} · {formatDate(r.createdAt)}
@@ -103,7 +103,7 @@ export default async function HostReviewsPage({
                       required
                       maxLength={600}
                       placeholder={t("host.reviews.replyPh")}
-                      className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-300 focus:border-brand-400 focus:outline-none"
+                      className="min-w-0 flex-1 rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
                     />
                     <button
                       type="submit"

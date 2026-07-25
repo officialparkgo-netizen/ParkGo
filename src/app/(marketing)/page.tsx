@@ -100,16 +100,16 @@ export default async function HomePage() {
 
             <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-navy-100 pt-5 text-sm text-navy-500">
               <span className="inline-flex items-center gap-1.5">
-                <BadgeCheck className="h-4 w-4 text-go-500" /> {t("home.hero.trust.hosts")}
+                <BadgeCheck className="h-4 w-4 text-go-600" /> {t("home.hero.trust.hosts")}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-go-500" /> {t("home.hero.trust.drivers")}
+                <ShieldCheck className="h-4 w-4 text-go-600" /> {t("home.hero.trust.drivers")}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Camera className="h-4 w-4 text-go-500" /> {t("home.hero.trust.camera")}
+                <Camera className="h-4 w-4 text-go-600" /> {t("home.hero.trust.camera")}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <CalendarCheck className="h-4 w-4 text-go-500" /> {t("home.hero.trust.cancel")}
+                <CalendarCheck className="h-4 w-4 text-go-600" /> {t("home.hero.trust.cancel")}
               </span>
             </p>
           </div>
@@ -217,7 +217,7 @@ export default async function HomePage() {
             },
             {
               icon: <Radio className="h-5 w-5" />,
-              iconClass: "bg-accent-50 text-accent-500",
+              iconClass: "bg-accent-50 text-accent-700",
               title: t("value.realtime.title"),
               body: t("value.realtime.body"),
             },
@@ -247,10 +247,10 @@ export default async function HomePage() {
           ].map((s) => (
             <li key={s.n} className="card-hover relative rounded-2xl bg-white p-6 shadow-card">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-white">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-navy-900">
                   {s.n}
                 </span>
-                <s.icon className="h-5 w-5 text-brand-500" />
+                <s.icon className="h-5 w-5 text-brand-600" />
               </div>
               <h3 className="mt-4 text-lg font-bold text-navy-900">{s.title}</h3>
               <p className="mt-1.5 text-sm text-navy-600">{s.body}</p>
@@ -334,7 +334,7 @@ export default async function HomePage() {
           {[
             { icon: CalendarCheck, cls: "bg-go-50 text-go-600", title: t("home.guarantee.cancel.title"), body: t("home.guarantee.cancel.body") },
             { icon: Lock, cls: "bg-brand-50 text-brand-700", title: t("home.guarantee.secure.title"), body: t("home.guarantee.secure.body") },
-            { icon: LifeBuoy, cls: "bg-accent-50 text-accent-500", title: t("home.guarantee.support.title"), body: t("home.guarantee.support.body") },
+            { icon: LifeBuoy, cls: "bg-accent-50 text-accent-700", title: t("home.guarantee.support.title"), body: t("home.guarantee.support.body") },
           ].map((g) => (
             <Card key={g.title} className="card-hover p-6">
               <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl ${g.cls}`}>
@@ -442,7 +442,7 @@ export default async function HomePage() {
             </h2>
             <p className="mt-3 text-brand-100">{t("waitlist.body")}</p>
             <p className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white">
-              <ShieldCheck className="h-4 w-4 text-go-300" aria-hidden />{" "}
+              <ShieldCheck className="h-4 w-4 text-go-200" aria-hidden />{" "}
               {t("waitlist.perk")}
             </p>
             <div className="mx-auto mt-7 max-w-lg">
@@ -502,7 +502,9 @@ function TravelDayPreview({ t, large = false }: { t: (key: string) => string; la
           <div className="relative h-24 overflow-hidden rounded-xl bg-navy-900">
             <div className="absolute inset-0 bg-grid opacity-20" />
             <Camera className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 text-white/70" />
-            <span className="absolute right-2 top-2 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+            {/* red-600, not red-500: at 10px this needs 4.5:1 and red-500
+                only gets white to 3.76:1. */}
+            <span className="absolute right-2 top-2 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
               ● REC
             </span>
             <span className="absolute bottom-2 left-2 text-[10px] font-semibold text-white/80">

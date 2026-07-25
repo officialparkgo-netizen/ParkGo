@@ -234,7 +234,7 @@ export function SearchWidget({
       <div className="flex flex-col overflow-hidden rounded-3xl border border-navy-200 bg-white shadow-card-lg lg:flex-row lg:items-stretch lg:rounded-full">
         <label className="flex min-w-0 flex-col justify-center gap-0.5 border-b border-navy-100 px-6 py-3.5 transition-colors focus-within:bg-navy-50/70 hover:bg-navy-50/70 lg:flex-[1.5] lg:border-b-0 lg:px-5">
           <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-navy-500">
-            <Plane className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {t("search.destination")}
+            <Plane className="h-3.5 w-3.5 text-brand-600" aria-hidden /> {t("search.destination")}
           </span>
           <div className="relative">
             <input
@@ -258,7 +258,7 @@ export function SearchWidget({
               }}
               onBlur={() => setTimeout(() => setOpenSugs(false), 150)}
               placeholder={t("search.destPh")}
-              className="w-full bg-transparent text-sm font-semibold text-navy-900 placeholder:font-normal placeholder:text-navy-300 focus:outline-none"
+              className="w-full bg-transparent text-sm font-semibold text-navy-900 placeholder:font-normal placeholder:text-navy-400 focus:outline-none"
             />
             {openSugs && sugs.length > 0 && (
               <ul
@@ -277,7 +277,7 @@ export function SearchWidget({
                       className="flex w-full items-start gap-2 px-3.5 py-2 text-left text-sm text-navy-800 hover:bg-navy-50"
                     >
                       {s.slug ? (
-                        <Plane className="mt-0.5 h-4 w-4 shrink-0 text-brand-500" aria-hidden />
+                        <Plane className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" aria-hidden />
                       ) : (
                         <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-navy-400" aria-hidden />
                       )}
@@ -357,7 +357,7 @@ export function SearchWidget({
           <button
             type="submit"
             aria-label={t("search.searchSpaces")}
-            className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-go-500 px-7 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-go-600 active:scale-[0.98] lg:h-[3.25rem] lg:w-[3.25rem] lg:shrink-0 lg:rounded-full lg:px-0"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-go-500 px-7 text-sm font-semibold text-navy-900 shadow-sm transition-all duration-150 hover:bg-go-400 active:scale-[0.98] lg:h-[3.25rem] lg:w-[3.25rem] lg:shrink-0 lg:rounded-full lg:px-0"
           >
             <Search className="h-4 w-4 lg:h-5 lg:w-5" aria-hidden />
             <span className="lg:hidden">{t("search.searchSpaces")}</span>

@@ -112,7 +112,7 @@ export default async function ContactPage() {
                         ? "bg-brand-50 text-brand-700"
                         : c.tone === "go"
                           ? "bg-go-50 text-go-600"
-                          : "bg-accent-50 text-accent-500"
+                          : "bg-accent-50 text-accent-700"
                     }`}
                   >
                     <c.icon className="h-5 w-5" />
@@ -173,7 +173,7 @@ export default async function ContactPage() {
                 </div>
                 <h3 className="flex items-center gap-1 text-base font-bold text-navy-900">
                   {l.title}
-                  <ArrowRight className="h-4 w-4 text-navy-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500" />
+                  <ArrowRight className="h-4 w-4 text-navy-400 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-600" />
                 </h3>
                 <p className="mt-1.5 text-sm text-navy-600">{l.body}</p>
               </Card>
@@ -187,7 +187,7 @@ export default async function ContactPage() {
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
           <div className="mx-auto max-w-2xl">
-            <ShieldCheck className="mx-auto mb-4 h-8 w-8 text-go-300" />
+            <ShieldCheck className="mx-auto mb-4 h-8 w-8 text-go-200" />
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {t("contact.cta.title")}
             </h2>
@@ -210,7 +210,7 @@ export default async function ContactPage() {
               </Link>
             </div>
             <p className="mt-4 inline-flex items-center gap-1 text-sm text-brand-100">
-              <Sparkles className="h-3.5 w-3.5 text-accent-300" />
+              <Sparkles className="h-3.5 w-3.5 text-accent-200" />
               {t("contact.cta.note")}
             </p>
           </div>
