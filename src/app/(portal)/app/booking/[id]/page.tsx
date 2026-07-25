@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
   CalendarPlus,
+  CalendarRange,
   CheckCircle2,
   Clock,
   FileText,
@@ -36,7 +37,11 @@ import { listMessagesForBooking } from "@/lib/data/booking-messages";
 import { getPlatformSettings } from "@/lib/data/settings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
-import { cancelBookingAction, extendBookingAction } from "@/lib/booking-actions";
+import {
+  amendBookingDatesAction,
+  cancelBookingAction,
+  extendBookingAction,
+} from "@/lib/booking-actions";
 import {
   adminChangeBookingDatesAction,
   adminPartialRefundAction,
@@ -63,6 +68,7 @@ export default async function BookingPage({
     claim?: string;
     adminedit?: string;
     refunded?: string;
+    amend?: string;
   }>;
 }) {
   const user = await requireRole("traveller");
@@ -78,6 +84,7 @@ export default async function BookingPage({
     claim,
     adminedit,
     refunded,
+    amend,
   } = await searchParams;
   const booking = await getBookingById(id);
   const canView = booking && (booking.travellerId === user.id || user.role === "admin");
@@ -125,6 +132,13 @@ export default async function BookingPage({
   const minExtendDate = new Date(new Date(booking.endAt).getTime() + 86_400_000)
     .toISOString()
     .slice(0, 10);
+  // Dates can be moved right up until the car is dropped off; once the stay is
+  // active the car is already there and only Extend makes sense.
+  const amendable =
+    booking.travellerId === user.id &&
+    (booking.status === "paid" || booking.status === "requested") &&
+    new Date(booking.startAt).getTime() > Date.now();
+  const todayDate = new Date().toISOString().slice(0, 10);
   const policy = await getPlatformSettings();
   const lateCancel = cancellable && msToStart < policy.cancelWindowHours * 3_600_000;
   const previewRefund = lateCancel
@@ -214,6 +228,19 @@ export default async function BookingPage({
         {claim === "error" && (
           <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-semibold text-red-700">
             <XCircle className="h-5 w-5" /> {t("app.booking.claim.error")}
+          </div>
+        )}
+
+        {amend && (
+          <div
+            className={`rounded-2xl border px-4 py-3 font-semibold ${
+              amend === "credited" || amend === "done"
+                ? "border-go-200 bg-go-50 text-go-700"
+                : "border-red-200 bg-red-50 text-red-700"
+            }`}
+            data-amend-result={amend}
+          >
+            {t(`app.booking.amend.${amend}`)}
           </div>
         )}
 
@@ -403,6 +430,54 @@ export default async function BookingPage({
                     className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600"
                   >
                     <CalendarPlus className="h-4 w-4" /> {t("app.booking.extend.btn")}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Move the dates: a flight brought forward, a trip cut short. */}
+            {amendable && (
+              <div className="mt-5 rounded-xl border border-navy-100 bg-navy-50/50 p-4" data-amend>
+                <h3 className="flex items-center gap-2 text-sm font-bold text-navy-900">
+                  <CalendarRange className="h-4 w-4 text-navy-500" />{" "}
+                  {t("app.booking.amend.title")}
+                </h3>
+                <p className="mt-1 text-xs text-navy-500">{t("app.booking.amend.body")}</p>
+                <form action={amendBookingDatesAction} className="mt-3 flex flex-wrap items-end gap-2">
+                  <input type="hidden" name="bookingId" value={booking.id} />
+                  <div>
+                    <label htmlFor="amend-from" className="mb-1 block text-[11px] font-bold text-navy-500">
+                      {t("app.booking.dropOff")}
+                    </label>
+                    <input
+                      id="amend-from"
+                      type="date"
+                      name="newStart"
+                      min={todayDate}
+                      defaultValue={booking.startAt.slice(0, 10)}
+                      required
+                      className="h-10 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="amend-to" className="mb-1 block text-[11px] font-bold text-navy-500">
+                      {t("app.booking.pickUp")}
+                    </label>
+                    <input
+                      id="amend-to"
+                      type="date"
+                      name="newEnd"
+                      min={todayDate}
+                      defaultValue={booking.endAt.slice(0, 10)}
+                      required
+                      className="h-10 rounded-xl border border-navy-200 px-3 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-navy-300 bg-white px-4 text-sm font-semibold text-navy-700 hover:bg-navy-50"
+                  >
+                    <CalendarRange className="h-4 w-4" /> {t("app.booking.amend.btn")}
                   </button>
                 </form>
               </div>

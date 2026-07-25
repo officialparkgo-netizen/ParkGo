@@ -27,7 +27,13 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 export async function createBookingCheckoutSession(
   booking: Booking,
   space: Space,
-  hostAccountId?: string | null
+  hostAccountId?: string | null,
+  /**
+   * The traveller's Stripe customer, when they have one. Passing it lets
+   * Checkout offer the card they used last time instead of making a returning
+   * customer retype it, and keeps their receipts on one customer record.
+   */
+  customer?: { id?: string | null; email?: string | null }
 ): Promise<string> {
   const stripe = getStripe();
   const params: Stripe.Checkout.SessionCreateParams = {
@@ -51,6 +57,19 @@ export async function createBookingCheckoutSession(
     metadata: { bookingId: booking.id },
     payment_intent_data: { metadata: { bookingId: booking.id } },
   };
+
+  if (customer?.id) {
+    params.customer = customer.id;
+    // Remember the card against that customer for the next booking.
+    params.payment_intent_data = {
+      ...params.payment_intent_data,
+      setup_future_usage: "on_session",
+    };
+  } else {
+    // No customer yet: have Stripe make one so the next booking can reuse it.
+    params.customer_creation = "always";
+    if (customer?.email) params.customer_email = customer.email;
+  }
 
   if (hostAccountId) {
     const acct = await stripe.accounts.retrieve(hostAccountId).catch(() => null);

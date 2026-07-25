@@ -40,8 +40,21 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}/app/booking/${bookingId}?extended=1`);
       }
 
+      // Stripe made (or reused) a customer for this payer — remember it so
+      // their next checkout offers the card they just used.
+      const customerId =
+        typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
+
       const booking = await getBookingById(bookingId);
       if (booking) {
+        if (customerId) {
+          try {
+            const { setStripeCustomerId } = await import("@/lib/data/users");
+            await setStripeCustomerId(booking.travellerId, customerId);
+          } catch {
+            // Remembering the card is a convenience, never a payment blocker.
+          }
+        }
         await markBookingPaid(bookingId, {
           amount: booking.price.total,
           currency: booking.price.currency,

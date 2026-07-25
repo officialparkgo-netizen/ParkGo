@@ -6,6 +6,7 @@ import {
   MapPin,
   QrCode,
   Radio,
+  RotateCcw,
   Search,
   Star,
   Zap,
@@ -49,6 +50,26 @@ export default async function TravellerTripsPage() {
   const upcomingTrips = bookings
     .filter((b) => !isPastTrip(b))
     .sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt));
+  /**
+   * Same space, same extras, dates a fortnight out — a starting point they can
+   * adjust rather than a blank search.
+   */
+  const rebookHref = (b: (typeof bookings)[number]) => {
+    const nights = Math.max(
+      1,
+      Math.round((+new Date(b.endAt) - +new Date(b.startAt)) / 86_400_000)
+    );
+    const from = new Date(Date.now() + 14 * 86_400_000);
+    const to = new Date(from.getTime() + nights * 86_400_000);
+    const qs = new URLSearchParams({
+      from: from.toISOString().slice(0, 10),
+      to: to.toISOString().slice(0, 10),
+      ...(b.bundle.transfer ? { transfer: "1" } : {}),
+      ...(b.bundle.ev ? { ev: "1" } : {}),
+    });
+    return `/app/book/${b.spaceId}?${qs.toString()}`;
+  };
+
   const pastTrips = bookings
     .filter(isPastTrip)
     .sort((a, b) => +new Date(b.endAt) - +new Date(a.endAt));
@@ -127,6 +148,18 @@ export default async function TravellerTripsPage() {
                     <Radio className="h-4 w-4" /> {t("app.dash.track")}
                   </Link>
                 )
+              )}
+              {/* One tap back to the same space with the same extras. Repeat
+                  trips are the norm at an airport, and re-running the search
+                  every time is the main thing standing in the way. */}
+              {isPastTrip(b) && (
+                <Link
+                  href={rebookHref(b)}
+                  data-rebook={b.id}
+                  className={buttonVariants({ size: "sm" })}
+                >
+                  <RotateCcw className="h-4 w-4" /> {t("app.dash.rebook")}
+                </Link>
               )}
             </div>
           </div>

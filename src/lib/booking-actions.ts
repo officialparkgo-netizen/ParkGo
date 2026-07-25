@@ -143,7 +143,10 @@ export async function createBookingAction(formData: FormData) {
     await settleCredit(user.id, promo, pending.price.discount);
     // Split to the host's connected account when they've onboarded payouts.
     const host = await getHostById(space.hostId);
-    const url = await createBookingCheckoutSession(pending, space, host?.payoutAccountRef);
+    const url = await createBookingCheckoutSession(pending, space, host?.payoutAccountRef, {
+      id: user.stripeCustomerId,
+      email: user.email,
+    });
     redirect(url);
   }
 
@@ -320,6 +323,83 @@ export async function extendBookingAction(formData: FormData) {
   revalidatePath("/host");
   revalidatePath("/admin");
   redirect(`/app/booking/${bookingId}?extended=1`);
+}
+
+/**
+ * Move a booking's dates without cancelling and rebooking.
+ *
+ * Extend already covers "same start, later finish, pay the difference". This
+ * covers the other shapes — a flight brought forward, a trip cut short, the
+ * whole window shifted — and is deliberately limited to windows that cost the
+ * same or less. Anything that costs more is a payment, and Extend is the path
+ * that takes one; sending someone through a half-built top-up here would be
+ * worse than telling them plainly.
+ *
+ * The difference comes back as ParkGo credit rather than a card refund: it is
+ * instant, it needs no payment provider, and it is spendable on the next
+ * booking. The host's payout is recomputed from the new dates, so nobody is
+ * paid for days the car was not there.
+ */
+export async function amendBookingDatesAction(formData: FormData) {
+  const user = await requireUser();
+  const bookingId = String(formData.get("bookingId") || "");
+  const fromDate = String(formData.get("newStart") || "");
+  const toDate = String(formData.get("newEnd") || "");
+  const back: (why: string) => never = (why) =>
+    redirect(`/app/booking/${bookingId}?amend=${why}`);
+
+  const booking = await getBookingById(bookingId);
+  if (!booking || booking.travellerId !== user.id) back("error");
+  if (booking.status !== "paid" && booking.status !== "requested") back("error");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fromDate) || !/^\d{4}-\d{2}-\d{2}$/.test(toDate)) {
+    back("error");
+  }
+
+  // Keep the original times of day — only the dates are being moved.
+  const oldStart = new Date(booking.startAt);
+  const oldEnd = new Date(booking.endAt);
+  const newStart = new Date(fromDate);
+  const newEnd = new Date(toDate);
+  newStart.setHours(oldStart.getHours(), oldStart.getMinutes(), 0, 0);
+  newEnd.setHours(oldEnd.getHours(), oldEnd.getMinutes(), 0, 0);
+  if (newEnd.getTime() <= newStart.getTime()) back("error");
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (newStart.getTime() < today.getTime()) back("past");
+
+  const space = await getSpaceById(booking.spaceId);
+  if (!space) back("error");
+
+  const startAt = newStart.toISOString();
+  const endAt = newEnd.toISOString();
+
+  // Capacity for the new window. The booking's own dates are moving, so the
+  // check has to ignore this booking when counting what is already there.
+  const free = await isSpaceAvailable(space.id, startAt, endAt, space.capacity ?? 1, bookingId);
+  if (!free) back("full");
+
+  const airport = getAirport(space.airportSlug);
+  const currency = airport?.country === "IE" ? "EUR" : "GBP";
+  const newPrice = priceBundle(space, booking.bundle, startAt, endAt, currency);
+  const paid = booking.price.total;
+  if (newPrice.total > paid) back("costsmore");
+
+  const { amendBookingDates } = await import("@/lib/data/bookings");
+  const result = await amendBookingDates(bookingId, startAt, endAt, newPrice);
+  if (!result.ok) back("error");
+
+  // Hand back the difference as credit.
+  const refund = paid - newPrice.total;
+  if (refund > 0) {
+    const { adjustCredit } = await import("@/lib/data/users");
+    await adjustCredit(user.id, refund);
+  }
+
+  revalidatePath("/app");
+  revalidatePath(`/app/booking/${bookingId}`);
+  revalidatePath("/host");
+  redirect(`/app/booking/${bookingId}?amend=${refund > 0 ? "credited" : "done"}`);
 }
 
 /** Admin: approve or reject a verification (host or transfer provider). */

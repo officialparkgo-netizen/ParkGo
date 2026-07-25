@@ -76,7 +76,13 @@ export async function isSpaceAvailable(
   spaceId: string,
   startAt: string,
   endAt: string,
-  capacity: number
+  capacity: number,
+  /**
+   * Booking to leave out of the count. Needed when an existing stay is being
+   * moved: it currently occupies a bay, and counting itself would make every
+   * amendment look like the space is full.
+   */
+  ignoreBookingId?: string
 ): Promise<boolean> {
   // Host-blocked days close the space in both modes.
   const space = await getSpaceById(spaceId);
@@ -85,13 +91,15 @@ export async function isSpaceAvailable(
 
   if (!IS_LIVE) return true; // demo data isn't capacity-managed
   const { supabaseAdmin } = await import("@/lib/supabase/server");
-  const { count } = await supabaseAdmin()
+  let query = supabaseAdmin()
     .from("bookings")
     .select("id", { count: "exact", head: true })
     .eq("space_id", spaceId)
     .in("status", ["paid", "active"])
     .lt("start_at", endAt)
     .gt("end_at", startAt);
+  if (ignoreBookingId) query = query.neq("id", ignoreBookingId);
+  const { count } = await query;
   return (count ?? 0) < Math.max(1, capacity);
 }
 
@@ -642,6 +650,57 @@ export async function adminUpdateBookingDates(
     title: "Booking dates updated",
     body: `${booking.reference} now runs ${new Date(startAt).toDateString()} → ${new Date(endAt).toDateString()}.`,
     kind: "booking",
+  });
+  return { ok: true };
+}
+
+/**
+ * Move an existing booking's dates and reprice it.
+ *
+ * Unlike the admin equivalent this rewrites the stored price, because the
+ * host's payout has to follow the days actually used — a shortened stay must
+ * not keep paying for nights the car was not there.
+ */
+export async function amendBookingDates(
+  bookingId: string,
+  startAt: string,
+  endAt: string,
+  price: Booking["price"]
+): Promise<{ ok: boolean; error?: string }> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return { ok: false, error: "Booking not found." };
+  if (!["requested", "paid"].includes(booking.status)) {
+    return { ok: false, error: "This booking can no longer be changed." };
+  }
+
+  const note = {
+    title: "Booking dates changed",
+    body: `${booking.reference} now runs ${new Date(startAt).toDateString()} → ${new Date(endAt).toDateString()}.`,
+    kind: "booking" as const,
+  };
+
+  if (!IS_LIVE) {
+    const b = mockGetBooking(bookingId);
+    if (!b) return { ok: false, error: "Booking not found." };
+    b.startAt = startAt;
+    b.endAt = endAt;
+    b.price = price;
+    mockAddNotification({ userId: booking.travellerId, ...note });
+    return { ok: true };
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabase/server");
+  const admin = supabaseAdmin();
+  const { error } = await admin
+    .from("bookings")
+    .update({ start_at: startAt, end_at: endAt, price })
+    .eq("id", bookingId);
+  if (error) return { ok: false, error: "Update failed." };
+  await admin.from("notifications").insert({
+    user_id: booking.travellerId,
+    title: note.title,
+    body: note.body,
+    kind: note.kind,
   });
   return { ok: true };
 }
