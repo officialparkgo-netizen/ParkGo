@@ -1,55 +1,47 @@
 import { NextRequest } from "next/server";
-import { getAirports } from "@/lib/data/store";
 import { geocodeUk } from "@/lib/geo-search";
+import { getSuggestIndex } from "@/lib/suggest-index";
+import { norm, suggestFromIndex, type SuggestRow } from "@/lib/suggest";
 
 export const dynamic = "force-dynamic";
 
-export interface DestSuggestion {
-  label: string;
-  /** Set for destinations we serve directly. */
-  slug?: string;
-  /** Set for geocoded places (search shows the nearest served destination). */
-  lat?: number;
-  lng?: number;
-}
+export type DestSuggestion = SuggestRow;
 
 /**
- * Live destination suggestions for the search box: our own airports/places
- * first, then Mapbox UK/IE geocoding (postcodes, towns, streets) when a
- * token is configured. Without a token only local suggestions come back.
+ * Live destination suggestions for the search box.
+ *
+ * Two sources, in order: our own index (destinations plus the areas and
+ * postcode districts of live listings — see src/lib/suggest.ts, which is also
+ * where the rule about never exposing an exact address lives), then Mapbox
+ * UK/IE geocoding for anything we don't serve. Without a Mapbox token the
+ * second source is simply absent and the first still answers, which is the
+ * state the site ships in today.
  */
 export async function GET(request: NextRequest) {
-  const q = (request.nextUrl.searchParams.get("q") ?? "").trim().toLowerCase();
-  if (q.length < 2) return Response.json({ suggestions: [] });
+  // Bounded before anything touches it: this is unauthenticated and called on
+  // every keystroke, so a megabyte of "q" should cost nothing.
+  const raw = (request.nextUrl.searchParams.get("q") ?? "").trim().slice(0, 64);
+  if (raw.length < 2) return Response.json({ suggestions: [] });
 
-  const local: DestSuggestion[] = getAirports()
-    .filter(
-      (a) =>
-        a.name.toLowerCase().includes(q) ||
-        a.code.toLowerCase().startsWith(q) ||
-        a.city.toLowerCase().includes(q)
-    )
-    .slice(0, 4)
-    .map((a) => ({
-      label: !a.kind || a.kind === "airport" ? `${a.name} (${a.code})` : a.name,
-      slug: a.slug,
-    }));
+  const local = suggestFromIndex(raw, await getSuggestIndex());
 
-  const remote: DestSuggestion[] = (await geocodeUk(q)).map((g) => ({
-    label: g.label,
-    lat: g.lat,
-    lng: g.lng,
-  }));
-
-  // Local first; drop remote rows that duplicate a served destination name.
-  const seen = new Set(local.map((s) => s.label.toLowerCase()));
-  const suggestions = [
-    ...local,
-    ...remote.filter((s) => !seen.has(s.label.toLowerCase())),
-  ].slice(0, 7);
+  // Geocoded places fill whatever room is left, minus anything we already
+  // offer under the same name.
+  const room = Math.max(0, 7 - local.length);
+  let remote: SuggestRow[] = [];
+  if (room > 0) {
+    const seen = new Set(local.map((s) => norm(s.label)));
+    remote = (await geocodeUk(raw))
+      .filter((g) => !seen.has(norm(g.label)))
+      .slice(0, room)
+      .map((g) => ({ label: g.label, lat: g.lat, lng: g.lng, type: "place" as const }));
+  }
 
   return Response.json(
-    { suggestions },
+    { suggestions: [...local, ...remote] },
+    // `private` is deliberate: middleware may attach Set-Cookie on this path in
+    // live mode, and the body reflects mutable listing state. Do not widen this
+    // to a shared/CDN cache.
     { headers: { "cache-control": "private, max-age=60" } }
   );
 }

@@ -1,5 +1,6 @@
 import type { BookingBundle, Host, SearchQuery, SearchResult, Space, User } from "@/types";
 import { IS_LIVE } from "@/lib/config";
+import { invalidateSuggestIndex } from "@/lib/suggest-cache";
 import { priceBundle } from "@/lib/pricing";
 import {
   getHostByUserId as mockGetHostByUserId,
@@ -167,6 +168,7 @@ export async function createSpaceForHost(
     .select(SPACE_COLS)
     .single();
   if (error || !data) throw new Error(`could not create space: ${error?.message}`);
+  invalidateSuggestIndex();
   return spaceFromRow(data);
 }
 
@@ -353,6 +355,7 @@ export async function reviewSpaceListing(
       kind: "verification",
     });
   }
+  invalidateSuggestIndex();
   return space;
 }
 
@@ -400,6 +403,7 @@ export async function setSpacePausedAdmin(
       kind: "verification",
     });
   }
+  invalidateSuggestIndex();
   return space;
 }
 
@@ -545,6 +549,7 @@ export async function updateSpaceForHost(
     const { deleteSpacePhotos } = await import("@/lib/storage");
     await deleteSpacePhotos(removedFiles);
   }
+  invalidateSuggestIndex();
   return spaceFromRow(data);
 }
 
