@@ -26,12 +26,24 @@ import type { Config } from "tailwindcss";
  *   · Orange TEXT must be 700. (600 clears white but not 12px on white, and
  *     not the tinted -50 surfaces at all.)
  *   · Orange ICONS may be 600 — graphical objects only need 3:1.
- *   · Orange BACKGROUNDS carry navy-900 text, never white: #F26A1B with white
- *     is 3.06:1, and no orange light enough to still read as "ParkGo orange"
- *     will ever clear 4.5:1 with white. Hover therefore *lightens* (500→400).
- *   · On the dark CTA gradient (brand-700 → navy-800) it inverts again: text
- *     needs orange-100 (4.81:1 on the band's lightest stop) and icons
- *     orange-200 (3.82:1).
+ *   · On the dark CTA gradient (brand-700 → navy-800) it inverts: text needs
+ *     orange-100 (4.81:1 on the band's lightest stop) and icons orange-200
+ *     (3.82:1).
+ *
+ * ── One deliberate exception ───────────────────────────────────────────────
+ * Orange BACKGROUNDS carry WHITE text, by product decision, and that is the
+ * one place the palette does not meet AA: #F26A1B with white is 3.06:1 against
+ * the 4.5:1 floor. It affects button labels only, and `npm run audit:a11y`
+ * reports every instance rather than hiding it — a run of ~98 findings, all of
+ * them this, is the expected baseline and not a regression. Anything NEW in
+ * that report is.
+ *
+ * If it is ever revisited, the numbers are:
+ *   navy-900 on #F26A1B ......... 5.86:1  (passes; the label goes dark)
+ *   white on #C9510B ............ 4.50:1  (passes; same hue, darkened — the
+ *                                          lightest orange that carries white)
+ *   white on brand-700 #A9430C .. 6.01:1  (passes; visibly browner)
+ *   white on brand-600 #D4560F .. 4.09:1  (still short)
  *
  * scripts/a11y/contrast-all.mjs walks every page in a real browser and checks
  * both floors — text at 4.5:1 (3:1 once large) and icons at 3:1 — resolving

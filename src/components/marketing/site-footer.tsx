@@ -54,7 +54,7 @@ export async function SiteFooter() {
           </div>
           <Link
             href="/app/search"
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-navy-900 transition-colors hover:bg-brand-400"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
           >
             {t("home.cta.find")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
           </Link>

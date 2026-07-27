@@ -268,7 +268,7 @@ export default async function SearchPage({
             {suggestion && (
               <Card className="border-go-200 bg-gradient-to-br from-go-50 to-white p-5">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-go-500 text-navy-900">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-go-500 text-white">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div className="flex-1">

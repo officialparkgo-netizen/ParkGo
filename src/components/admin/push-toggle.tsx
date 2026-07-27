@@ -100,7 +100,7 @@ export function PushToggle({
       aria-pressed={state === "on"}
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
         state === "on"
-          ? "bg-brand-500 text-navy-900"
+          ? "bg-brand-500 text-white"
           : "border border-navy-200 bg-white text-navy-600 hover:bg-navy-50"
       }`}
     >

@@ -331,7 +331,7 @@ export default async function HomePage() {
           ].map((s) => (
             <li key={s.n} className="card-hover relative rounded-2xl bg-white p-6 shadow-card">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-navy-900">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-white">
                   {s.n}
                 </span>
                 <s.icon className="h-5 w-5 text-brand-600" />

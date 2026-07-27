@@ -140,7 +140,7 @@ export default async function HostBookingDetailPage({
                 <input type="hidden" name="bookingId" value={booking.id} />
                 <button
                   type="submit"
-                  className="rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-navy-900 hover:bg-go-400"
+                  className="rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-go-600"
                 >
                   {t("host.rtb.approve")}
                 </button>
@@ -220,7 +220,7 @@ export default async function HostBookingDetailPage({
                 <input type="hidden" name="bookingId" value={booking.id} />
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-navy-900 hover:bg-go-400"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-go-600"
                 >
                   <LogIn className="h-4 w-4" /> {t("host.today.arrived")}
                 </button>
@@ -347,7 +347,7 @@ export default async function HostBookingDetailPage({
             />
             <button
               type="submit"
-              className="rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-navy-900 hover:bg-accent-400"
+              className="rounded-xl bg-accent-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-600"
             >
               {t("host.incident.send")}
             </button>

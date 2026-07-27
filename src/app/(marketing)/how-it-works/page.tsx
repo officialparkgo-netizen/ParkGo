@@ -146,7 +146,7 @@ export default async function HowItWorksPage() {
             <li key={s.n}>
               <Card className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[auto_1fr]">
                 <div className="flex items-start gap-4">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-go-500 text-lg font-bold text-navy-900">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-go-500 text-lg font-bold text-white">
                     {s.n}
                   </span>
                   <div

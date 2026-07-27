@@ -132,9 +132,9 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                     <span
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                         i < stepIndex
-                          ? "bg-go-500 text-navy-900"
+                          ? "bg-go-500 text-white"
                           : i === stepIndex
-                            ? "bg-brand-500 text-navy-900 ring-4 ring-brand-100"
+                            ? "bg-brand-500 text-white ring-4 ring-brand-100"
                             : "border border-navy-200 bg-white text-navy-400"
                       }`}
                     >

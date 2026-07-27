@@ -131,7 +131,7 @@ export default async function HostTodayPage() {
               <input type="hidden" name="back" value="/host/today" />
               <button
                 type="submit"
-                className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
+                className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
               >
                 <LogIn className="h-3.5 w-3.5" /> {t("host.today.arrived")}
               </button>
@@ -222,7 +222,7 @@ export default async function HostTodayPage() {
                         <input type="hidden" name="back" value="/host/today" />
                         <button
                           type="submit"
-                          className="rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
+                          className="rounded-lg bg-go-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
                         >
                           {t("host.rtb.approve")}
                         </button>

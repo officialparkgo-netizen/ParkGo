@@ -286,7 +286,7 @@ export default async function AdminSupportPage({
                 type="submit"
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
                   user.supportAvailable
-                    ? "bg-go-500 text-navy-900 hover:bg-go-400"
+                    ? "bg-go-500 text-white hover:bg-go-600"
                     : "border border-navy-200 bg-white text-navy-500 hover:bg-navy-50"
                 }`}
               >
@@ -555,7 +555,7 @@ export default async function AdminSupportPage({
                           <div
                             className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-1.5 text-xs leading-relaxed ${
                               m.role === "agent"
-                                ? "rounded-ee-sm bg-brand-500 text-navy-900"
+                                ? "rounded-ee-sm bg-brand-500 text-white"
                                 : m.role === "bot"
                                   ? "rounded-es-sm bg-navy-50 italic text-navy-400"
                                   : "rounded-es-sm bg-navy-100 text-navy-800"

@@ -66,7 +66,7 @@ export function CookieConsent() {
         <button
           type="button"
           onClick={() => choose("all")}
-          className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-navy-900 transition-colors hover:bg-brand-400"
+          className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
         >
           {t("cookie.accept")}
         </button>

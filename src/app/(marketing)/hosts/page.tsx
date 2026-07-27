@@ -228,7 +228,7 @@ export default async function HostsPage({
             <li key={s.title}>
               <Card className="h-full p-6">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-navy-900">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-go-500 text-sm font-bold text-white">
                     {i + 1}
                   </span>
                   <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-700">

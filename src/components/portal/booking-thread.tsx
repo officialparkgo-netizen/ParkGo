@@ -123,7 +123,7 @@ export function BookingThread({
               <div
                 className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${
                   mine
-                    ? "rounded-br-md bg-brand-500 text-navy-900"
+                    ? "rounded-br-md bg-brand-500 text-white"
                     : "rounded-bl-md bg-navy-50 text-navy-800"
                 }`}
               >

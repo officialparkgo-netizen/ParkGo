@@ -260,7 +260,7 @@ export default async function AdminUserDetailPage({
                 {target.suspended ? (
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-2 text-xs font-semibold text-navy-900 hover:bg-go-400"
+                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-3 py-2 text-xs font-semibold text-white hover:bg-go-600"
                   >
                     <UserCheck className="h-3.5 w-3.5" /> {t("admin.users.restore")}
                   </button>

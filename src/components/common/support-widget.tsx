@@ -409,7 +409,7 @@ export function SupportWidget() {
           setSeen(true);
           setOpen((v) => !v);
         }}
-        className={`fixed bottom-20 end-4 z-50 flex h-14 items-center justify-center rounded-full bg-brand-500 text-navy-900 shadow-card-lg transition-all duration-150 hover:bg-brand-400 hover:shadow-xl active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 lg:bottom-6 lg:end-6 ${
+        className={`fixed bottom-20 end-4 z-50 flex h-14 items-center justify-center rounded-full bg-brand-500 text-white shadow-card-lg transition-all duration-150 hover:bg-brand-600 hover:shadow-xl active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 lg:bottom-6 lg:end-6 ${
           open ? "w-14" : "w-14 lg:w-auto lg:gap-2.5 lg:px-5"
         }`}
       >
@@ -421,9 +421,9 @@ export function SupportWidget() {
               <Headset className="h-6 w-6" />
               <span className="absolute -end-1 -top-1 flex h-3 w-3">
                 {!seen && (
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-navy-900/70" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/70" />
                 )}
-                <span className="relative inline-flex h-3 w-3 rounded-full bg-navy-900 ring-2 ring-brand-500" />
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-white ring-2 ring-brand-500" />
               </span>
             </span>
             <span className="hidden whitespace-nowrap text-sm font-bold lg:block">
@@ -500,7 +500,7 @@ export function SupportWidget() {
                     ? "me-auto rounded-es-md border border-brand-300 bg-brand-50 text-navy-900"
                     : m.role === "bot"
                       ? "me-auto rounded-es-md border border-navy-100 bg-white text-navy-800"
-                      : "ms-auto rounded-ee-md bg-brand-500 text-navy-900"
+                      : "ms-auto rounded-ee-md bg-brand-500 text-white"
                 }`}
               >
                 {m.role === "agent" && (
@@ -582,7 +582,7 @@ export function SupportWidget() {
                       <button
                         type="button"
                         onClick={() => rate(1)}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-go-500 px-3.5 py-1.5 text-xs font-semibold text-navy-900 hover:bg-go-400"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-go-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-go-600"
                       >
                         <ThumbsUp className="h-3.5 w-3.5" aria-hidden /> {t("support.csat.good")}
                       </button>
@@ -619,7 +619,7 @@ export function SupportWidget() {
                 <button
                   type="button"
                   onClick={onSolved}
-                  className="rounded-full bg-go-500 px-3.5 py-1.5 text-xs font-semibold text-navy-900 transition-colors hover:bg-go-400"
+                  className="rounded-full bg-go-500 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-go-600"
                 >
                   {t("support.yes")}
                 </button>
@@ -653,7 +653,7 @@ export function SupportWidget() {
                 <button
                   type="submit"
                   disabled={stage === "sending"}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 text-sm font-semibold text-navy-900 transition-colors hover:bg-brand-400 disabled:opacity-60"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 text-sm font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-60"
                 >
                   {stage === "sending" ? t("support.sending") : t("support.submit")}
                 </button>

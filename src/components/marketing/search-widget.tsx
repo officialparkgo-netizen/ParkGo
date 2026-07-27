@@ -475,7 +475,7 @@ export function SearchWidget({
           <button
             type="submit"
             aria-label={t("search.searchSpaces")}
-            className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-go-500 px-7 text-sm font-semibold text-navy-900 shadow-sm transition-all duration-150 hover:bg-go-400 active:scale-[0.98] lg:h-[3.25rem] lg:w-[3.25rem] lg:shrink-0 lg:rounded-full lg:px-0"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-go-500 px-7 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-go-600 active:scale-[0.98] lg:h-[3.25rem] lg:w-[3.25rem] lg:shrink-0 lg:rounded-full lg:px-0"
           >
             <Search className="h-4 w-4 lg:h-5 lg:w-5" aria-hidden />
             <span className="lg:hidden">{t("search.searchSpaces")}</span>

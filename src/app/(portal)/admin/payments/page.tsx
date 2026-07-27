@@ -195,7 +195,7 @@ export default async function AdminPaymentsPage({
                                   <input type="hidden" name="paymentId" value={p.id} />
                                   <button
                                     type="submit"
-                                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-2.5 py-1 text-xs font-semibold text-navy-900 hover:bg-go-400"
+                                    className="inline-flex items-center gap-1 rounded-lg bg-go-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-go-600"
                                   >
                                     <CheckCircle2 className="h-3 w-3" /> {t("admin.pay.markPaid")}
                                   </button>

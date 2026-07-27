@@ -166,7 +166,7 @@ export default async function AdminVerificationPage() {
                           type="submit"
                           name="decision"
                           value="approved"
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2 text-sm font-semibold text-navy-900 hover:bg-go-400"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-go-500 px-4 py-2 text-sm font-semibold text-white hover:bg-go-600"
                         >
                           <CheckCircle2 className="h-4 w-4" /> {t("admin.approve")}
                         </button>
