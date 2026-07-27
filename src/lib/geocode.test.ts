@@ -100,6 +100,28 @@ describe("geocodeUkDetailed", () => {
     expect(url).toContain("country=gb%2Cie");
   });
 
+  it("never asks v6 for a type it does not have", async () => {
+    vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "pk.test");
+    const fetchMock = vi.fn().mockResolvedValue(okRes(V6_BODY));
+    vi.stubGlobal("fetch", fetchMock);
+    await geocodeUkDetailed("sw1a");
+    // `poi` was retired from geocoding in v6 (it lives in the Search Box API
+    // now). Sending it gets the whole request rejected, which is exactly how a
+    // working token ends up quietly served by the legacy v5 endpoint.
+    expect(String(fetchMock.mock.calls[0][0])).not.toContain("poi");
+  });
+
+  it("still asks v5 for poi, which v5 does support", async () => {
+    vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "pk.old");
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(errRes(422))
+      .mockResolvedValueOnce(okRes(V5_BODY));
+    vi.stubGlobal("fetch", fetchMock);
+    await geocodeUkDetailed("sw1a");
+    expect(String(fetchMock.mock.calls[1][0])).toContain("poi");
+  });
+
   it("falls back to v5 when v6 rejects the request", async () => {
     vi.stubEnv("NEXT_PUBLIC_MAPBOX_TOKEN", "pk.old");
     const fetchMock = vi

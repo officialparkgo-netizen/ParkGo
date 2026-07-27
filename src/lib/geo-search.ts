@@ -64,7 +64,15 @@ export type GeocodeOutcome =
       via?: "v6" | "v5";
     };
 
-const GEO_TYPES = "postcode,place,locality,neighborhood,address,poi";
+/**
+ * The two versions do not accept the same feature types, and sending v5's list
+ * to v6 gets the whole request rejected. `poi` in particular does not exist in
+ * v6 — Mapbox moved points of interest to the Search Box API — so a v6 call
+ * asking for it fails and we silently end up on the legacy endpoint. `district`
+ * and `street` are the v6 additions worth having for address-level queries.
+ */
+const V6_TYPES = "postcode,place,locality,neighborhood,district,street,address";
+const V5_TYPES = "postcode,place,locality,neighborhood,address,poi";
 
 /** v6 forward geocoding — the current API. */
 function v6Url(query: string, token: string): string {
@@ -75,7 +83,7 @@ function v6Url(query: string, token: string): string {
     limit: "5",
     autocomplete: "true",
     language: "en",
-    types: GEO_TYPES,
+    types: V6_TYPES,
   });
   return `https://api.mapbox.com/search/geocode/v6/forward?${p}`;
 }
@@ -88,7 +96,7 @@ function v5Url(query: string, token: string): string {
     limit: "5",
     autocomplete: "true",
     language: "en",
-    types: GEO_TYPES,
+    types: V5_TYPES,
   });
   return `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${p}`;
 }
