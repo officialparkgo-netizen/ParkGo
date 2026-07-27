@@ -103,6 +103,7 @@ const CHECK = () => {
   };
 
   const out = [];
+  let examined = 0;
   const seen = new Set();
   const push = (kind, label, cs, r, need, el) => {
     const key = `${kind}|${cs.color}|${cs.fontSize}|${label.slice(0, 20)}`;
@@ -135,6 +136,7 @@ const CHECK = () => {
     const size = parseFloat(cs.fontSize);
     const bold = Number(cs.fontWeight) >= 700;
     const need = size >= 24 || (bold && size >= 18.66) ? 3 : 4.5;
+    examined += 1;
     const r = worst(fg.rgb, el);
     if (r < need) push("text", text, cs, r, need, el);
   }
@@ -155,6 +157,7 @@ const CHECK = () => {
     if (host && box.width >= host.width * 0.9 && box.height >= host.height * 0.9) continue;
     const ink = parse(cs.color);
     if (!ink || ink.a < 0.5) continue;
+    examined += 1;
     const r = worst(ink.rgb, el);
     if (r < 3) {
       const label =
@@ -164,7 +167,7 @@ const CHECK = () => {
       push("icon", label, cs, r, 3, el);
     }
   }
-  return out;
+  return { out, examined };
 };
 
 /**
@@ -201,6 +204,7 @@ await assertReachable(BASE);
 const browser = await chromium.launch(EXEC ? { executablePath: EXEC } : {});
 let bad = 0;
 let total = 0;
+let checked = 0;
 
 for (const [user, path] of ROUTES) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -210,6 +214,21 @@ for (const [user, path] of ROUTES) {
   const p = await ctx.newPage();
   await p.goto(BASE + path, { waitUntil: "networkidle", timeout: 45000 }).catch(() => null);
   await p.waitForSelector("main, body", { timeout: 10000 }).catch(() => null);
+  // Scroll the whole page before measuring. `.reveal-scroll` is a scroll-driven
+  // animation that holds its content at opacity 0 until it enters view, and the
+  // checker skips anything under opacity 0.5 — so measuring at scroll 0 audits
+  // only the first screen and reports everything below it as clean.
+  await p
+    .evaluate(async () => {
+      const step = Math.round(window.innerHeight * 0.6);
+      for (let y = 0; y < document.body.scrollHeight; y += step) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 40));
+      }
+      window.scrollTo(0, document.body.scrollHeight);
+      await new Promise((r) => setTimeout(r, 250));
+    })
+    .catch(() => {});
 
   const seen = await readPage(p, () => document.body?.innerText?.trim().length ?? 0);
   if (seen < 50) {
@@ -219,22 +238,23 @@ for (const [user, path] of ROUTES) {
     await ctx.close();
     continue;
   }
-  const fails = await readPage(p, CHECK);
+  const { out: fails, examined } = await readPage(p, CHECK);
   total += fails.length;
+  checked += examined;
   if (fails.length) {
     bad += 1;
-    console.log(`\n### ${path} — ${fails.length} below AA`);
+    console.log(`\n### ${path} — ${fails.length} below AA (${examined} checked)`);
     for (const f of fails.slice(0, 10)) {
       console.log(
         `  [${f.kind}] ${String(f.ratio).padStart(5)}:1 (need ${f.need})  ${f.size}px ${f.color} on ${f.bg}  "${f.text}"`,
       );
     }
   } else {
-    console.log(`### ${path} — passes AA`);
+    console.log(`### ${path} — passes AA (${examined} checked)`);
   }
   await ctx.close();
 }
 
 await browser.close();
-console.log(`\nPages with issues: ${bad}/${ROUTES.length}  (${total} findings)`);
+console.log(`\nPages with issues: ${bad}/${ROUTES.length}  (${total} findings across ${checked} elements)`);
 process.exit(total ? 1 : 0);
