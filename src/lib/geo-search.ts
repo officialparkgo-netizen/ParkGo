@@ -54,30 +54,125 @@ export interface GeoHit {
   lng: number;
 }
 
+/** Why a geocode produced nothing — see geocodeUkDetailed. */
+export type GeocodeOutcome =
+  | { ok: true; hits: GeoHit[]; via: "v6" | "v5" }
+  | {
+      ok: false;
+      reason: "no-token" | "too-short" | "http" | "network" | "no-match";
+      status?: number;
+      via?: "v6" | "v5";
+    };
+
+const GEO_TYPES = "postcode,place,locality,neighborhood,address,poi";
+
+/** v6 forward geocoding — the current API. */
+function v6Url(query: string, token: string): string {
+  const p = new URLSearchParams({
+    q: query,
+    access_token: token,
+    country: "gb,ie",
+    limit: "5",
+    autocomplete: "true",
+    language: "en",
+    types: GEO_TYPES,
+  });
+  return `https://api.mapbox.com/search/geocode/v6/forward?${p}`;
+}
+
+/** v5 — legacy, kept only as a fallback for older tokens. */
+function v5Url(query: string, token: string): string {
+  const p = new URLSearchParams({
+    access_token: token,
+    country: "gb,ie",
+    limit: "5",
+    autocomplete: "true",
+    language: "en",
+    types: GEO_TYPES,
+  });
+  return `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${p}`;
+}
+
+/** Both API versions, normalised to one shape. */
+export function parseGeocode(version: "v6" | "v5", body: unknown): GeoHit[] {
+  const features = (body as { features?: unknown[] })?.features;
+  if (!Array.isArray(features)) return [];
+  const out: GeoHit[] = [];
+  for (const raw of features) {
+    const f = raw as {
+      place_name?: string;
+      center?: [number, number];
+      geometry?: { coordinates?: [number, number] };
+      properties?: { full_address?: string; name?: string; place_formatted?: string };
+    };
+    let label: string | undefined;
+    let coords: [number, number] | undefined;
+    if (version === "v6") {
+      const p = f.properties ?? {};
+      label =
+        p.full_address ??
+        (p.name && p.place_formatted ? `${p.name}, ${p.place_formatted}` : p.name);
+      coords = f.geometry?.coordinates;
+    } else {
+      label = f.place_name;
+      coords = f.center;
+    }
+    if (!label || !Array.isArray(coords) || coords.length !== 2) continue;
+    const [lng, lat] = coords;
+    if (typeof lat !== "number" || typeof lng !== "number") continue;
+    out.push({ label, lat, lng });
+  }
+  return out;
+}
+
 /**
- * Mapbox geocoding, UK & Ireland only. Silent no-op without a token or on
- * any failure — the rest of search keeps working exactly as before.
+ * Mapbox geocoding, UK & Ireland only.
+ *
+ * Tries v6 — the current forward-geocoding API — and falls back to v5 only when
+ * v6 refuses the request outright. The old code called v5 exclusively, which is
+ * Mapbox's legacy endpoint; a token issued today can be perfectly valid and
+ * still get nothing back from it, and because every failure here returns an
+ * empty array that looked exactly like "no results". Hence the outcome type:
+ * a wrong token, a retired endpoint and a timeout are three different problems
+ * and used to be indistinguishable from the outside.
  */
-export async function geocodeUk(q: string): Promise<GeoHit[]> {
+export async function geocodeUkDetailed(q: string): Promise<GeocodeOutcome> {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const query = q.trim();
-  if (!token || query.length < 3) return [];
-  try {
-    const url =
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json` +
-      `?access_token=${token}&country=GB,IE&limit=5&autocomplete=true&language=en` +
-      `&types=postcode,place,locality,neighborhood,address,poi`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(2500), cache: "no-store" });
-    if (!res.ok) return [];
-    const data = (await res.json()) as {
-      features?: Array<{ place_name?: string; center?: [number, number] }>;
-    };
-    return (data.features ?? [])
-      .filter((f) => f.place_name && Array.isArray(f.center) && f.center.length === 2)
-      .map((f) => ({ label: f.place_name as string, lat: f.center![1], lng: f.center![0] }));
-  } catch {
-    return [];
+  if (!token) return { ok: false, reason: "no-token" };
+  // Two characters is a real outward code — N1, E1, W1 — so don't refuse it.
+  if (query.length < 2) return { ok: false, reason: "too-short" };
+
+  let lastStatus: number | undefined;
+  let lastVia: "v6" | "v5" | undefined;
+  for (const via of ["v6", "v5"] as const) {
+    try {
+      const res = await fetch(via === "v6" ? v6Url(query, token) : v5Url(query, token), {
+        signal: AbortSignal.timeout(4000),
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        lastStatus = res.status;
+        lastVia = via;
+        continue; // 401/403/404 on v6 → worth trying the legacy path once
+      }
+      const hits = parseGeocode(via, await res.json());
+      if (hits.length > 0) return { ok: true, hits, via };
+      lastVia = via;
+    } catch {
+      lastVia = via;
+      return { ok: false, reason: "network", via };
+    }
   }
+  return lastStatus !== undefined
+    ? { ok: false, reason: "http", status: lastStatus, via: lastVia }
+    : { ok: false, reason: "no-match", via: lastVia };
+}
+
+/** Hits only. Silent on every failure — callers that want to know use the detailed form. */
+export async function geocodeUk(q: string): Promise<GeoHit[]> {
+  const res = await geocodeUkDetailed(q);
+  return res.ok ? res.hits : [];
 }
 
 export function resolveSearchQuery(
