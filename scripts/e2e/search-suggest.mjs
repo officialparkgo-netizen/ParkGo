@@ -114,6 +114,54 @@ const type = async (p, q) => {
   await c.close();
 }
 
+
+// --- the box must not arrive pre-filled ------------------------------------
+const val = async (p) => p.locator("[data-dest-input]").first().inputValue();
+const ph = async (p) => p.locator("[data-dest-input]").first().getAttribute("placeholder");
+
+for (const [path, user, label, expectEmpty] of [
+  ["/", null, "marketing home", true],
+  ["/app", "user_traveller", "portal dashboard", true],
+  ["/app/search", "user_traveller", "search, no params", true],
+  ["/app/search?airport=gatwick", "user_traveller", "search ?airport=gatwick", false],
+  ["/app/search?q=Lowfield+Heath", "user_traveller", "search ?q=Lowfield Heath", false],
+]) {
+  const c = await ctx(user); const p = await c.newPage();
+  await p.goto(BASE + path, { waitUntil: "networkidle" }).catch(()=>null);
+  if (await p.locator("[data-dest-input]").count() === 0) { check(`${label}: widget present`, false); await c.close(); continue; }
+  const v = await val(p);
+  check(`${label}: ${expectEmpty ? "starts empty" : "keeps its destination"}`,
+        expectEmpty ? v === "" : v.length > 0, JSON.stringify(v));
+  if (expectEmpty) check(`${label}: placeholder is visible`, !!(await ph(p)), await ph(p));
+  await c.close();
+}
+
+// the transfer chip must survive an empty box, and go once a non-airport is picked
+{
+  const c = await ctx(); const p = await c.newPage();
+  await p.goto(BASE + "/", { waitUntil: "networkidle" });
+  const body = await p.locator("form").first().innerText();
+  check("Transfer chip still offered on an empty box", /transfer/i.test(body));
+  const i = p.locator("[data-dest-input]").first();
+  await i.click(); await i.type("Manchester City Centre", { delay: 15 });
+  await p.waitForTimeout(500);
+  await p.keyboard.press("Escape");
+  await p.waitForTimeout(300);
+  const after = await p.locator("form").first().innerText();
+  check("Transfer chip goes for a city-centre destination", !/transfer/i.test(after));
+  await c.close();
+}
+
+// empty submit must not navigate
+{
+  const c = await ctx(); const p = await c.newPage();
+  await p.goto(BASE + "/", { waitUntil: "networkidle" });
+  await p.locator("form button[type=submit]").first().click();
+  await p.waitForTimeout(900);
+  check("an empty box refuses to submit", !p.url().includes("/app/search"), p.url().replace(BASE, "") || "/");
+  await c.close();
+}
+
 await b.close();
 console.log([...ok, ...bad].join("\n"));
 console.log(bad.length ? `\n${bad.length} FAILED` : `\nAll ${ok.length} checks passed.`);

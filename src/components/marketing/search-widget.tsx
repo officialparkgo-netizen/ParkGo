@@ -74,12 +74,15 @@ export function SearchWidget({
   // (area names and postcodes match against real listings).
   const display = (a: (typeof airports)[number]) =>
     !a.kind || a.kind === "airport" ? `${a.name} (${a.code})` : a.name;
-  const initialDest =
-    initial?.q ??
-    display(
-      airports.find((a) => a.slug === (initial?.airport ?? "heathrow")) ?? airports[0]
-    );
-  const [dest, setDest] = useState(initialDest ?? "");
+  // Empty unless the current search actually names a destination. It used to
+  // default to Heathrow, which put a real search term in the box that nobody
+  // typed — easy to submit by accident, and it hid the placeholder that tells
+  // you an area or a postcode works here too.
+  const initialAirport = initial?.airport
+    ? airports.find((a) => a.slug === initial.airport)
+    : undefined;
+  const initialDest = initial?.q ?? (initialAirport ? display(initialAirport) : "");
+  const [dest, setDest] = useState(initialDest);
   // A geocoded pick (postcode / town / street) — search runs at the nearest
   // destination we serve, sorted by distance to this point.
   const [geoSel, setGeoSel] = useState<{ label: string; lat: number; lng: number } | null>(null);
@@ -226,6 +229,10 @@ export function SearchWidget({
   const airportDests = airports.filter((a) => !a.kind || a.kind === "airport");
   const placeDests = airports.filter((a) => a.kind && a.kind !== "airport");
   const isAirport = airportDests.some((a) => a.slug === airport);
+  // Before anything is typed we cannot know whether the destination has a
+  // terminal transfer, and most do — so keep offering it, and drop it only once
+  // a place that definitely has none is chosen.
+  const canTransfer = isAirport || !dest.trim();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -513,7 +520,7 @@ export function SearchWidget({
           <Chip active={needsCctv} onClick={() => setNeedsCctv((v) => !v)} icon={Camera}>
             {t("search.cctv")}
           </Chip>
-          {isAirport && (
+          {canTransfer && (
             <Chip active={needsTransfer} onClick={() => setNeedsTransfer((v) => !v)} icon={CarTaxiFront}>
               {t("search.transfer")}
             </Chip>

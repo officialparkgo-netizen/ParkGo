@@ -88,6 +88,11 @@ export default async function SearchPage({
       }
     }
   }
+  // Landing here with no destination at all still needs something to show, so
+  // results fall back to Heathrow. The search box does not: prefilling it would
+  // put a destination the traveller never chose into a field they are about to
+  // submit.
+  const destWasChosen = !!airportSlug || !!rawQ;
   if (!airportSlug) airportSlug = "heathrow";
   const airport = getAirport(airportSlug);
 
@@ -179,7 +184,7 @@ export default async function SearchPage({
         <SearchWidget
           airports={airports}
           initial={{
-            airport: airportSlug,
+            airport: destWasChosen ? airportSlug : "",
             q: rawQ || undefined,
             from: sp.from,
             to: sp.to,
