@@ -71,7 +71,7 @@ export default async function HostsPage({
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
-        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+        <Container className="hero-enter relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div>
             <Badge tone="go" className="mb-5">
               <Sparkles className="h-3.5 w-3.5" /> {t("hosts.badge")}
@@ -161,7 +161,7 @@ export default async function HostsPage({
             {t("hosts.why.body")}
           </p>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: Banknote, tone: "go", title: t("hosts.why.economics.title"), body: t("hosts.why.economics.body").replace("{pct}", String(hostKeepPct)) },
             { icon: Home, tone: "brand", title: t("hosts.why.usewhat.title"), body: t("hosts.why.usewhat.body") },
@@ -223,7 +223,7 @@ export default async function HostsPage({
           </p>
         </div>
 
-        <ol className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ol className="reveal-stagger mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {onboarding.map((s, i) => (
             <li key={s.title}>
               <Card className="h-full p-6">

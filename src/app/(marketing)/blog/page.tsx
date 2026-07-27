@@ -84,7 +84,7 @@ export default async function BlogIndexPage() {
 
       {/* ---------------------------------------------------------- Grid */}
       <Section>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="reveal-stagger grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`} className="group block h-full">
               <Card className="flex h-full flex-col overflow-hidden">

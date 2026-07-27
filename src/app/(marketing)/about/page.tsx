@@ -65,7 +65,7 @@ export default async function AboutPage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
-        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+        <Container className="hero-enter relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div className="text-center lg:text-left">
           <Badge tone="brand" className="mb-5">
             <Sparkles className="h-3.5 w-3.5" /> {t("about.badge")}
@@ -105,7 +105,7 @@ export default async function AboutPage() {
 
       {/* --------------------------------------------- Problem & approach */}
       <Section className="bg-navy-50/50">
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="reveal-stagger grid gap-6 lg:grid-cols-2">
           <Card className="p-7">
             <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-700">
               <TriangleAlert className="h-5 w-5" />
@@ -158,7 +158,7 @@ export default async function AboutPage() {
             {t("about.values.title")}
           </h2>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {values.map((f) => (
             <Card key={f.title} className="p-6">
               <div
@@ -192,7 +192,7 @@ export default async function AboutPage() {
             {t("about.team.body")}
           </p>
         </div>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {team.map((m) => (
             <Card key={m.name} className="p-7 text-center">
               <div

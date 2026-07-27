@@ -165,7 +165,7 @@ export default async function AirportPage({
             </ol>
           </nav>
 
-          <div className="grid items-center gap-10 lg:grid-cols-2">
+          <div className="hero-enter grid items-center gap-10 lg:grid-cols-2">
             <div>
               <Badge tone="brand" className="mb-5">
                 <Plane className="h-3.5 w-3.5" /> {airport.code} · {airport.city}, {countryLabel}
@@ -285,7 +285,7 @@ export default async function AirportPage({
             </Link>
           </Card>
         ) : (
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="reveal-stagger mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {results.map(({ space }) => (
               <Card key={space.id} className="flex flex-col overflow-hidden">
                 <div className="relative">
@@ -375,7 +375,7 @@ export default async function AirportPage({
             {t("airport.whyHeadingA")} {airport.name} {t("airport.whyHeadingB")}
           </h2>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
               icon: MapPin,

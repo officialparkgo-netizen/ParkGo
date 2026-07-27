@@ -226,7 +226,11 @@ for (const [user, path] of ROUTES) {
         await new Promise((r) => setTimeout(r, 40));
       }
       window.scrollTo(0, document.body.scrollHeight);
-      await new Promise((r) => setTimeout(r, 250));
+      // Long enough for the scroll-driven reveals to settle. Too short and the
+      // checker samples elements mid-fade, skips them as "under opacity 0.5"
+      // and quietly audits less of the page — visible as a drop in the count
+      // printed alongside each result.
+      await new Promise((r) => setTimeout(r, 700));
     })
     .catch(() => {});
 

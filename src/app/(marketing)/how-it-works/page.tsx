@@ -96,7 +96,7 @@ export default async function HowItWorksPage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
-        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+        <Container className="hero-enter relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div className="text-center lg:text-left">
           <Badge tone="go" className="mb-5">
             <Sparkles className="h-3.5 w-3.5" /> {t("how.hero.badge")}
@@ -189,11 +189,11 @@ export default async function HowItWorksPage() {
             {t("how.live.body")}
           </p>
         </div>
-        <div className="mt-12 grid gap-8 lg:grid-cols-2 items-center">
+        <div className="reveal-stagger mt-12 grid gap-8 lg:grid-cols-2 items-center">
           <div className="grid gap-5">
             {liveFeatures.map((f) => (
               <Card key={f.title} className="p-6">
-                <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
+                <div className="icon-tile mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-base font-bold text-navy-900">{f.title}</h3>
@@ -303,7 +303,7 @@ export default async function HowItWorksPage() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-2">
+        <div className="reveal-stagger mt-12 grid gap-6 lg:grid-cols-2">
           <Card className="p-7">
             <div className="flex items-center gap-3">
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-go-50 text-go-600">

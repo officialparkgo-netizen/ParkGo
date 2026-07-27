@@ -125,36 +125,50 @@ export default async function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
         <div
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-400/20 blur-3xl"
+          className="drift pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-400/20 blur-3xl"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-accent-300/10 blur-3xl"
+          className="drift-slow pointer-events-none absolute -left-32 top-40 h-80 w-80 rounded-full bg-accent-300/10 blur-3xl"
           aria-hidden
         />
         <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-[3fr_2fr] lg:py-20">
-          <div className="animate-fade-in">
-            <Badge tone="go" className="mb-5">
+          {/* Entrance runs top to bottom so the eye lands on the headline, then
+              the search box — the two things the page is actually for. */}
+          <div>
+            <Badge tone="go" className="enter mb-5">
               <Sparkles className="h-3.5 w-3.5" /> {t("home.hero.badge")}
             </Badge>
-            <h1 className="text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl">
+            <h1
+              className="enter text-balance text-4xl font-extrabold leading-[1.08] tracking-tight text-navy-900 sm:text-5xl"
+              style={{ "--enter-delay": "60ms" } as React.CSSProperties}
+            >
               {t("hero.title")}
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-navy-600">{t("hero.subtitle")}</p>
+            <p
+              className="enter mt-5 max-w-xl text-lg text-navy-600"
+              style={{ "--enter-delay": "130ms" } as React.CSSProperties}
+            >
+              {t("hero.subtitle")}
+            </p>
 
-            <div className="mt-7">
+            <div className="enter mt-7" style={{ "--enter-delay": "200ms" } as React.CSSProperties}>
               <SearchWidget airports={airports} />
             </div>
 
             <a
               href="#waitlist"
-              className="link-underline mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-700"
+              className="link-underline enter group mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-700"
+              style={{ "--enter-delay": "280ms" } as React.CSSProperties}
             >
               {t("home.hero.waitlistLink")}{" "}
-              <ArrowRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100" aria-hidden />
             </a>
 
-            <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-navy-100 pt-5 text-sm text-navy-500">
+            <p
+              className="enter mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-navy-100 pt-5 text-sm text-navy-500"
+              style={{ "--enter-delay": "350ms" } as React.CSSProperties}
+            >
               <span className="inline-flex items-center gap-1.5">
                 <BadgeCheck className="h-4 w-4 text-go-600" /> {t("home.hero.trust.hosts")}
               </span>
@@ -170,7 +184,10 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="relative mt-2 block h-60 w-full sm:h-72 lg:mt-0 lg:h-full lg:min-h-[400px]">
+          <div
+            className="enter relative mt-2 block h-60 w-full sm:h-72 lg:mt-0 lg:h-full lg:min-h-[400px]"
+            style={{ "--enter-delay": "160ms" } as React.CSSProperties}
+          >
             <Image
               src="/images/hero.webp"
               alt="ParkGo Airport Parking"
@@ -212,7 +229,7 @@ export default async function HomePage() {
           </div>
           <p className="max-w-sm text-sm text-navy-500">{t("home.dest.sub")}</p>
         </div>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="reveal-stagger grid grid-cols-2 gap-4 lg:grid-cols-4">
           {destCards.map((d) => {
             const KindIcon = KIND_ICONS[d.kind];
             return (
@@ -222,7 +239,7 @@ export default async function HomePage() {
                 className="card-hover group rounded-2xl border border-navy-100 bg-white p-5 shadow-card"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+                  <span className="icon-tile flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                     <KindIcon className="h-5 w-5" aria-hidden />
                   </span>
                   {d.count > 0 && (
@@ -296,7 +313,7 @@ export default async function HomePage() {
             {t("home.how.heading")}
           </h2>
         </div>
-        <ol className="mt-12 grid gap-6 md:grid-cols-3">
+        <ol className="reveal-stagger mt-12 grid gap-6 md:grid-cols-3">
           {[
             { n: "1", title: t("home.how.step1.title"), body: t("home.how.step1.body"), icon: MapPin },
             { n: "2", title: t("home.how.step2.title"), body: t("home.how.step2.body"), icon: CarTaxiFront },
@@ -356,7 +373,7 @@ export default async function HomePage() {
 
       {/* ----------------------------------------------------- Audiences */}
       <Section className="bg-navy-50/50">
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="reveal-stagger grid gap-6 md:grid-cols-3">
           {[
             { href: "/travellers", title: t("home.audience.travellers.title"), body: t("home.audience.travellers.body"), cta: t("home.audience.travellers.cta"), tone: "brand" as const },
             { href: "/hosts", title: t("home.audience.hosts.title"), body: t("home.audience.hosts.body"), cta: t("home.audience.hosts.cta"), tone: "go" as const },
@@ -387,7 +404,7 @@ export default async function HomePage() {
             {t("home.guarantee.heading")}
           </h2>
         </div>
-        <div className="mt-12 grid gap-5 md:grid-cols-3">
+        <div className="reveal-stagger mt-12 grid gap-5 md:grid-cols-3">
           {[
             { icon: CalendarCheck, cls: "bg-go-50 text-go-600", title: t("home.guarantee.cancel.title"), body: t("home.guarantee.cancel.body") },
             { icon: Lock, cls: "bg-brand-50 text-brand-700", title: t("home.guarantee.secure.title"), body: t("home.guarantee.secure.body") },
@@ -406,7 +423,7 @@ export default async function HomePage() {
 
       {/* --------------------------------------------------------- Stats */}
       <Section className="pt-0">
-        <div className="grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
           {[
             { k: String(getAirports().length), v: t("home.stats.airports") },
             { k: t("home.stats.onePrice"), v: t("home.stats.onePriceLabel") },

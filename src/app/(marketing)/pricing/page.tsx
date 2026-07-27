@@ -88,7 +88,7 @@ export default async function PricingPage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
-        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+        <Container className="hero-enter relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div className="text-center lg:text-left">
           <Badge tone="go" className="mb-5">
             <Sparkles className="h-3.5 w-3.5" /> {t("pricing.hero.badge")}
@@ -199,7 +199,7 @@ export default async function PricingPage() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="reveal-stagger mt-12 grid gap-6 md:grid-cols-3">
           {economics.map((e) => (
             <Card key={e.who} className="flex flex-col p-7">
               <div
@@ -250,7 +250,7 @@ export default async function PricingPage() {
           </h2>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
+        <div className="reveal-stagger mt-12 grid gap-6 md:grid-cols-2">
           <Card className="p-7">
             <div className="flex items-center gap-3">
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
@@ -317,7 +317,7 @@ export default async function PricingPage() {
             {t("pricing.included.title")}
           </h2>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: ShieldCheck, tone: "go", title: t("pricing.included.verified.title"), body: t("pricing.included.verified.body") },
             { icon: Wallet, tone: "brand", title: t("pricing.included.secure.title"), body: t("pricing.included.secure.body") },

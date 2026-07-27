@@ -90,7 +90,7 @@ export default async function TrustSafetyPage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-navy-50/60 to-white">
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />
-        <Container className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
+        <Container className="hero-enter relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div className="text-center lg:text-left">
           <Badge tone="go" className="mb-5">
             <ShieldCheck className="h-3.5 w-3.5" /> {t("trust.hero.badge")}
@@ -134,7 +134,7 @@ export default async function TrustSafetyPage() {
             {t("trust.pillars.body")}
           </p>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="reveal-stagger mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {pillars.map((f) => (
             <Card key={f.title} className="p-6">
               <div
@@ -228,10 +228,10 @@ export default async function TrustSafetyPage() {
             {t("trust.data.body")}
           </p>
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {dataPractices.map((f) => (
             <Card key={f.title} className="p-6">
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+              <div className="icon-tile mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="text-base font-bold text-navy-900">{f.title}</h3>

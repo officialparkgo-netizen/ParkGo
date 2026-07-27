@@ -41,9 +41,15 @@
   .link-underline {
     @apply relative after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-0 after:bg-go-500 after:transition-all hover:after:w-full;
   }
-  /* Interactive card: subtle lift + deeper shadow on hover */
+  /* Interactive card: subtle lift + deeper shadow on hover. The border warms
+     to brand at the same time, which is what makes it read as "this is a
+     link" rather than just a box that happens to move. */
   .card-hover {
-    @apply transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-card-lg;
+    @apply transition-all duration-200 ease-out hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-lg;
+  }
+  /* The icon tile inside a card. Pairs with `group` on the card itself. */
+  .icon-tile {
+    @apply transition-transform duration-200 ease-out group-hover:scale-110;
   }
   /* Hide the scrollbar on swipeable carousels (still scrollable) */
   .no-scrollbar {
@@ -72,11 +78,99 @@
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
+    /* Both ends of the range are `entry`, deliberately. A range ending in
+       `cover` cannot complete for the last block on a page: once the document
+       is scrolled to the bottom the element stops advancing, so it sticks
+       part-way — the footer CTA sat at opacity 0.76 permanently, dimming its
+       own text. Anything measured in `entry` finishes as the element finishes
+       entering the viewport, which always happens. */
     .reveal-scroll {
       animation: reveal-up linear both;
       animation-timeline: view();
-      animation-range: entry 4% cover 24%;
+      animation-range: entry 5% entry 70%;
     }
+
+    /* Stagger. Each child gets its own view() timeline with a slightly later
+       range, so a row of cards resolves left-to-right instead of snapping in
+       as one slab. Six steps covers every grid we have; anything beyond shares
+       the last one rather than falling out of the sequence. */
+    .reveal-stagger > * {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+    .reveal-stagger > *:nth-child(2) {
+      animation-range: entry 8% entry 63%;
+    }
+    .reveal-stagger > *:nth-child(3) {
+      animation-range: entry 16% entry 71%;
+    }
+    .reveal-stagger > *:nth-child(4) {
+      animation-range: entry 24% entry 79%;
+    }
+    .reveal-stagger > *:nth-child(5) {
+      animation-range: entry 32% entry 87%;
+    }
+    .reveal-stagger > *:nth-child(n + 6) {
+      animation-range: entry 40% entry 95%;
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Entrance choreography — the one screen that is already there on load, so it
+ * is time-based rather than scroll-driven. Base state is visible: the animation
+ * only exists inside the media query, so anything that cannot run it (reduced
+ * motion, an old engine) simply gets the finished layout.
+ * --------------------------------------------------------------------------- */
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .enter {
+    animation: enter-up 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--enter-delay, 0ms);
+  }
+  /* The whole-hero version: one class on the grid, and its columns arrive in
+     order. Saves hanging a delay on every element of every page hero. */
+  .hero-enter > * {
+    animation: enter-up 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero-enter > *:nth-child(2) {
+    animation-delay: 120ms;
+  }
+  .hero-enter > *:nth-child(3) {
+    animation-delay: 220ms;
+  }
+  .hero-enter > *:nth-child(n + 4) {
+    animation-delay: 300ms;
+  }
+}
+
+/* Ambient drift for the blurred hero glows. Long, slow and low-amplitude — it
+   should read as depth, not as something moving. */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, 3%, 0) scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .drift {
+    animation: drift 18s ease-in-out infinite;
+  }
+  .drift-slow {
+    animation: drift 26s ease-in-out infinite reverse;
   }
 }
 
