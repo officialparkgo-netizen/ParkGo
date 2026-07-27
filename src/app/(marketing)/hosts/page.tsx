@@ -100,49 +100,57 @@ export default async function HostsPage({
             </p>
           </div>
 
-          {/* Host scene + earnings card */}
+          {/* Host scene + earnings card.
+              The photo used to be aspect-square under a card taller than
+              itself, so the right column ran roughly twice the height of the
+              left and the card trailed off below the fold. A landscape crop
+              and a tighter card bring the two columns level. */}
           <div className="mx-auto w-full max-w-md">
-            <div className="hidden sm:block relative w-full aspect-square min-h-[300px]">
+            <div className="relative hidden aspect-[5/3] w-full sm:block">
               <Image
                 src="/images/hosts.webp"
                 alt="ParkGo Host"
                 fill
                 sizes="(min-width: 640px) 448px, 100vw"
-                className="object-cover rounded-2xl shadow-2xl"
+                className="rounded-2xl object-cover shadow-2xl"
                 priority
               />
             </div>
-            <Card className="relative z-10 p-7 sm:mx-4 sm:-mt-14 sm:shadow-card-lg">
-              <div className="flex items-center gap-2">
-                <PiggyBank className="h-5 w-5 text-go-600" />
-                <span className="text-sm font-bold uppercase tracking-wide text-navy-500">
+            <Card className="relative z-10 p-6 sm:mx-4 sm:-mt-12 sm:shadow-card-lg">
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-navy-500">
+                  <PiggyBank className="h-4 w-4 text-go-600" />
                   {t("hosts.earnings.label")}
                 </span>
-              </div>
-              <div className="mt-5 flex items-end justify-between">
-                <div>
-                  <div className="text-5xl font-extrabold text-navy-900">~{hostKeepPct}%</div>
-                  <div className="mt-1 text-sm text-navy-500">{t("hosts.earnings.ofBooking")}</div>
-                </div>
                 <Badge tone="go">{t("hosts.earnings.indicative")}</Badge>
               </div>
-              <div className="mt-6 space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-navy-600">{t("hosts.earnings.travellerPays")}</span>
-                  <span className="font-semibold text-navy-900">100%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-navy-600">{t("hosts.earnings.commission")}</span>
-                  <span className="font-semibold text-navy-900">
-                    ~{100 - hostKeepPct}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between border-t border-navy-100 pt-3">
-                  <span className="font-bold text-navy-700">{t("hosts.earnings.youReceive")}</span>
-                  <span className="text-lg font-extrabold text-go-700">~{hostKeepPct}%</span>
-                </div>
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="text-4xl font-extrabold leading-none text-navy-900">
+                  ~{hostKeepPct}%
+                </span>
+                <span className="text-sm text-navy-500">{t("hosts.earnings.ofBooking")}</span>
               </div>
-              <p className="mt-4 text-xs text-navy-500">
+              {/* The split as a bar, not three more rows of text — it is one
+                  number and a picture says it faster than a table does. */}
+              <div
+                className="mt-5 flex h-2.5 overflow-hidden rounded-full bg-navy-100"
+                role="img"
+                aria-label={`${t("hosts.earnings.youReceive")} ~${hostKeepPct}%, ${t("hosts.earnings.commission")} ~${100 - hostKeepPct}%`}
+              >
+                <span className="bg-go-500" style={{ width: `${hostKeepPct}%` }} />
+                <span className="flex-1 bg-navy-300" />
+              </div>
+              <div className="mt-3 flex items-center justify-between text-sm">
+                <span className="inline-flex items-center gap-1.5 font-bold text-navy-800">
+                  <span className="h-2 w-2 rounded-full bg-go-500" aria-hidden />
+                  {t("hosts.earnings.youReceive")} ~{hostKeepPct}%
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-navy-500">
+                  <span className="h-2 w-2 rounded-full bg-navy-300" aria-hidden />
+                  {t("hosts.earnings.commission")} ~{100 - hostKeepPct}%
+                </span>
+              </div>
+              <p className="mt-4 border-t border-navy-100 pt-3 text-xs text-navy-500">
                 {t("hosts.earnings.note")}
               </p>
             </Card>

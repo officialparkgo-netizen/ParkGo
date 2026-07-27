@@ -3,6 +3,7 @@ import { ArrowRight, KeyRound, Plane, Route, ShieldCheck, Tag } from "lucide-rea
 import { Logo } from "@/components/brand/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { NavLinks } from "@/components/marketing/nav-links";
 import { MobileNav, StickyHeader } from "@/components/common/mobile-nav";
 import { getI18n } from "@/lib/i18n";
 
@@ -22,17 +23,7 @@ export async function SiteHeader() {
       <div className="container-px flex h-16 items-center justify-between gap-4">
         <Logo />
 
-        <nav className="hidden items-center gap-6 lg:flex">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="link-underline text-sm font-medium text-navy-700 hover:text-navy-900"
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+        <NavLinks items={links.map(({ href, label }) => ({ href, label }))} />
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher current={locale} className="hidden sm:inline-flex" />
