@@ -274,6 +274,16 @@ export default async function HomePage() {
           </p>
         </div>
 
+        <div className="relative mx-auto mt-10 mb-10 w-full max-w-3xl h-64 sm:h-80 rounded-2xl overflow-hidden shadow-2xl">
+          <Image
+            src="/images/ev-charging.webp"
+            alt="EV Charging at ParkGo host driveway"
+            fill
+            sizes="(min-width: 1024px) 768px, 100vw"
+            className="object-cover"
+          />
+        </div>
+
         <FeatureCarousel
           label={t("home.bundle.heading")}
           items={[
@@ -367,7 +377,18 @@ export default async function HomePage() {
               ))}
             </ul>
           </div>
-          <TravelDayPreview t={t} large />
+          <div className="relative">
+            <div className="relative w-full h-64 sm:h-80 lg:h-full lg:min-h-[400px] rounded-2xl overflow-hidden shadow-2xl">
+              <Image
+                src="/images/showcase.webp"
+                alt="Live tracking on ParkGo app"
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
+              />
+            </div>
+            <TravelDayPreview t={t} large />
+          </div>
         </div>
       </Section>
 
