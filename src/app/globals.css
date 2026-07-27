@@ -154,6 +154,19 @@
   }
 }
 
+/* The live route on the travel-day preview: dashes travel along the path, the
+   way a navigation app draws an active leg. */
+@keyframes route-flow {
+  to {
+    stroke-dashoffset: -44;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .route-flow {
+    animation: route-flow 1.4s linear infinite;
+  }
+}
+
 /* Ambient drift for the blurred hero glows. Long, slow and low-amplitude — it
    should read as depth, not as something moving. */
 @keyframes drift {

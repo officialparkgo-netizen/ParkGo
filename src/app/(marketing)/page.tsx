@@ -377,8 +377,10 @@ export default async function HomePage() {
               ))}
             </ul>
           </div>
+          {/* Photo and preview overlap into one object. Stacked, they read as
+              two unrelated things and the card looks like it fell off. */}
           <div className="relative">
-            <div className="relative w-full h-64 sm:h-80 lg:h-full lg:min-h-[400px] rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative h-64 w-full overflow-hidden rounded-2xl shadow-2xl sm:h-80 lg:h-96">
               <Image
                 src="/images/showcase.webp"
                 alt="Live tracking on ParkGo app"
@@ -387,7 +389,9 @@ export default async function HomePage() {
                 className="object-cover"
               />
             </div>
-            <TravelDayPreview t={t} large />
+            <div className="relative z-10 -mt-16 px-3 sm:-mt-20 sm:px-8">
+              <TravelDayPreview t={t} large />
+            </div>
           </div>
         </div>
       </Section>
@@ -559,21 +563,51 @@ function TravelDayPreview({ t, large = false }: { t: (key: string) => string; la
   return (
     <div className={large ? "" : "hidden lg:block"}>
       <div className="relative mx-auto max-w-md rounded-[2rem] border border-navy-100 bg-white p-3 shadow-card-lg">
-        {/* mini map */}
-        <div className="relative h-56 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-navy-700">
-          <div className="absolute inset-0 bg-grid opacity-30" />
-          {/* route */}
-          <svg viewBox="0 0 320 220" className="absolute inset-0 h-full w-full">
+        {/* Mini map. Drawn as an actual street layout rather than a gradient —
+            an orange rectangle with a dashed line through it reads as a
+            placeholder, which is the opposite of the point of this section. */}
+        <div className="relative h-56 overflow-hidden rounded-2xl bg-navy-950">
+          <svg
+            viewBox="0 0 320 220"
+            className="absolute inset-0 h-full w-full"
+            role="img"
+            aria-label={t("home.preview.mapAlt")}
+          >
+            {/* park and water, so the ground is not a flat slab */}
+            <path d="M232 150 h88 v70 h-88 z" fill="#16251C" />
+            <path d="M0 0 h96 v40 H30 Q0 40 0 18 z" fill="#12202B" />
+            {/* minor streets */}
+            <g stroke="#22262C" strokeWidth="7" strokeLinecap="square">
+              <path d="M0 58 H320 M0 118 H320 M0 178 H320" />
+              <path d="M62 0 V220 M150 0 V220 M238 0 V220" />
+            </g>
+            {/* arterials */}
+            <g stroke="#31363E" strokeWidth="13" strokeLinecap="square">
+              <path d="M0 148 H320" />
+              <path d="M196 0 V220" />
+            </g>
+            {/* the leg the driver is on */}
             <path
-              d="M40 180 C 120 160, 140 80, 230 60"
+              d="M44 146 C 116 130, 140 66, 232 52"
               fill="none"
               stroke="#F26A1B"
-              strokeWidth="3"
-              strokeDasharray="2 8"
+              strokeWidth="9"
+              strokeLinecap="round"
+              opacity="0.22"
+            />
+            <path
+              className="route-flow"
+              d="M44 146 C 116 130, 140 66, 232 52"
+              fill="none"
+              stroke="#F5843A"
+              strokeWidth="4"
+              strokeDasharray="14 8"
               strokeLinecap="round"
             />
-            <circle cx="40" cy="180" r="7" fill="#fff" />
-            <circle cx="230" cy="60" r="9" fill="#15171A" stroke="#fff" strokeWidth="3" />
+            {/* pickup, then the car */}
+            <circle cx="44" cy="146" r="6" fill="#0C0D0F" stroke="#fff" strokeWidth="3" />
+            <circle cx="232" cy="52" r="13" fill="#F26A1B" opacity="0.28" />
+            <circle cx="232" cy="52" r="7" fill="#F26A1B" stroke="#fff" strokeWidth="2.5" />
           </svg>
           <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-go-700">
             <span className="relative flex h-2 w-2">
