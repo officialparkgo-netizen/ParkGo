@@ -1,6 +1,7 @@
 import {
   BadgeCheck,
   Banknote,
+  Building2,
   CalendarCheck,
   CalendarClock,
   ChartSpline,
@@ -30,6 +31,7 @@ export const travellerNav: NavItem[] = [
   { href: "/app/trips", label: "nav.myTrips", icon: Ticket },
   { href: "/app/saved", label: "app.saved.title", icon: Heart },
   { href: "/app/rewards", label: "guest.rewards.title", icon: Gift },
+  { href: "/app/company", label: "guest.org.title", icon: Building2 },
   { href: "/faq", label: "nav.help", icon: LifeBuoy },
 ];
 

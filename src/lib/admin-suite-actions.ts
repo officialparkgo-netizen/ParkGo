@@ -17,6 +17,7 @@ import {
   makeImpersonationToken,
 } from "@/lib/impersonation";
 import { isEmailConfigured, sendEmail, emailShell } from "@/lib/email";
+import { uploadSpacePhoto } from "@/lib/storage";
 import { IS_LIVE } from "@/lib/config";
 import type { ClaimStatus, PromoKind } from "@/types";
 
@@ -156,12 +157,29 @@ export async function fileClaimAction(formData: FormData) {
   if (!booking) redirect("/app");
   // Only the traveller who owns the booking (or an admin) can raise it here.
   if (booking.travellerId !== user.id && user.role !== "admin") redirect("/app");
+
+  /**
+   * Photographs are what actually settle a damage dispute, so the form takes
+   * them alongside the description. Uploaded before the claim is created: a
+   * claim that exists without its evidence reads as a weaker case than it is,
+   * and there is no second chance to attach them once it is filed.
+   */
+  const photos: string[] = [];
+  const files = formData
+    .getAll("photos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  for (const file of files.slice(0, 6)) {
+    const url = await uploadSpacePhoto(file, `claims/${bookingId}`);
+    if (url) photos.push(url);
+  }
+
   const claim = await fileClaim({
     bookingId,
     bookingRef: booking.reference,
     openedBy: user.id,
     openedByRole: user.role,
     description,
+    photos,
   });
   const { sendOpsAlert } = await import("@/lib/ops-alerts");
   await sendOpsAlert(`🛑 New claim on ${booking.reference} from ${user.name}`);

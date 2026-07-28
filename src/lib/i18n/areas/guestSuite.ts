@@ -6,6 +6,12 @@ import type { AreaDict } from "@/lib/i18n/config";
  */
 export const guestSuite: AreaDict = {
   en: {
+    "journey.title": "Following this journey",
+    "journey.booked": "Parking booked",
+    "journey.dropped": "Car dropped off",
+    "journey.transfer": "On the way to the terminal",
+    "journey.back": "Back at the car",
+    "journey.privacy": "A shared view. No address, no gate code, no payment details.",
     "guest.sms.needPhone": "Add a mobile number to your profile above and this switch appears.",
     "guest.sms.pending": "Texts go live once the SMS provider is connected. Your choice is saved either way.",
     "host.edit.care": "Car care you offer",
@@ -140,6 +146,12 @@ export const guestSuite: AreaDict = {
   },
 
   ur: {
+    "journey.title": "اس سفر کی پیروی",
+    "journey.booked": "پارکنگ بک ہو گئی",
+    "journey.dropped": "گاڑی چھوڑ دی گئی",
+    "journey.transfer": "ٹرمینل کی طرف روانہ",
+    "journey.back": "گاڑی پر واپس",
+    "journey.privacy": "مشترکہ منظر۔ نہ پتہ، نہ گیٹ کوڈ، نہ ادائیگی کی تفصیلات۔",
     "guest.sms.needPhone": "اوپر اپنے پروفائل میں موبائل نمبر شامل کریں، پھر یہ آپشن ظاہر ہوگا۔",
     "guest.sms.pending": "ایس ایم ایس سروس جڑنے پر پیغامات شروع ہو جائیں گے۔ آپ کا انتخاب دونوں صورتوں میں محفوظ ہے۔",
     "host.edit.care": "آپ کی پیش کردہ گاڑی کی دیکھ بھال",
@@ -257,6 +269,12 @@ export const guestSuite: AreaDict = {
   },
 
   hi: {
+    "journey.title": "इस यात्रा को देख रहे हैं",
+    "journey.booked": "पार्किंग बुक हुई",
+    "journey.dropped": "गाड़ी छोड़ी गई",
+    "journey.transfer": "टर्मिनल की ओर",
+    "journey.back": "गाड़ी पर वापस",
+    "journey.privacy": "साझा दृश्य। न पता, न गेट कोड, न भुगतान विवरण।",
     "guest.sms.needPhone": "ऊपर अपनी प्रोफ़ाइल में मोबाइल नंबर जोड़ें, फिर यह विकल्प दिखेगा।",
     "guest.sms.pending": "SMS सेवा जुड़ने पर संदेश शुरू हो जाएँगे। आपकी पसंद दोनों स्थितियों में सुरक्षित है।",
     "host.edit.care": "आपकी दी जाने वाली कार सेवाएँ",
@@ -374,6 +392,12 @@ export const guestSuite: AreaDict = {
   },
 
   de: {
+    "journey.title": "Diese Reise verfolgen",
+    "journey.booked": "Parkplatz gebucht",
+    "journey.dropped": "Auto abgestellt",
+    "journey.transfer": "Unterwegs zum Terminal",
+    "journey.back": "Wieder am Auto",
+    "journey.privacy": "Geteilte Ansicht. Keine Adresse, kein Torcode, keine Zahlungsdaten.",
     "guest.sms.needPhone": "Fügen Sie oben eine Mobilnummer hinzu, dann erscheint dieser Schalter.",
     "guest.sms.pending": "SMS starten, sobald der Anbieter verbunden ist. Ihre Auswahl wird ohnehin gespeichert.",
     "host.edit.care": "Fahrzeugpflege, die Sie anbieten",
@@ -491,6 +515,12 @@ export const guestSuite: AreaDict = {
   },
 
   zh: {
+    "journey.title": "正在关注此行程",
+    "journey.booked": "停车已预订",
+    "journey.dropped": "车辆已交付",
+    "journey.transfer": "前往航站楼途中",
+    "journey.back": "已返回取车",
+    "journey.privacy": "共享视图。不含地址、门禁码或付款信息。",
     "guest.sms.needPhone": "请先在上方资料中填写手机号码，此开关便会出现。",
     "guest.sms.pending": "短信服务接入后即会发送。无论如何，您的选择都已保存。",
     "host.edit.care": "您提供的车辆养护",

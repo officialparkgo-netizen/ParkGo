@@ -8,6 +8,7 @@ import { Photo } from "@/components/common/photo";
 import { PortalShell } from "@/components/portal/shell";
 import { travellerNav } from "@/components/portal/navs";
 import { SaveSpaceButton } from "@/components/portal/save-space-button";
+import { DateWatchList } from "@/components/portal/date-waitlist";
 import { requireRole } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
 import { getSpacesByIds } from "@/lib/data/hosts";
@@ -42,6 +43,10 @@ export default async function SavedPage({
   const spaces = savedIds.map((id) => spaceMap.get(id)).filter((s) => !!s);
   const alerts = await listAlertsForUser(user.id).catch(() => []);
   const open = alerts.filter((a) => !a.notifiedAt);
+  const { listDateWatches } = await import("@/lib/data/travel-day");
+  const watches = (await listDateWatches(user.id).catch(() => [])).filter(
+    (w) => !w.notifiedAt
+  );
 
   return (
     <PortalShell user={user} nav={travellerNav} title="app.saved.title">
@@ -56,6 +61,8 @@ export default async function SavedPage({
             {t("app.saved.watchError")}
           </div>
         )}
+
+        <DateWatchList watches={watches} />
 
         <section>
           <div className="mb-3 flex items-center gap-2">

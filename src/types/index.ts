@@ -651,6 +651,8 @@ export interface Claim {
   status: ClaimStatus;
   /** Admin's decision note, shown to the claimant. */
   resolution?: string;
+  /** Evidence attached by whoever raised it. Photographs settle these. */
+  photos?: string[];
   createdAt: ISODateString;
   updatedAt?: ISODateString;
 }

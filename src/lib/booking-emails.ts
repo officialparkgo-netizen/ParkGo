@@ -1,5 +1,5 @@
 import "server-only";
-import type { Booking, GiftCard } from "@/types";
+import type { Booking, DateWatch, GiftCard, User } from "@/types";
 import { emailButton, emailRows, emailShell, isEmailConfigured, sendEmail } from "@/lib/email";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 
@@ -376,6 +376,43 @@ export async function sendFlightExtendedEmail(
            ["Extra cost", "None"],
          ])}
          ${emailButton(`${SITE}/app/booking/${booking.id}`, "View booking")}`
+      )
+    );
+  } catch {
+    // never break the sweep
+  }
+}
+
+/**
+ * A watched date range has opened up. Sent once per watch and then the watch
+ * is closed — the space is not held for anyone, so the useful thing is speed,
+ * not a running commentary.
+ */
+export async function sendWaitlistOpenEmail(
+  user: Pick<User, "email" | "name">,
+  watch: Pick<DateWatch, "airportSlug" | "startAt" | "endAt">,
+  count: number
+): Promise<void> {
+  if (!isEmailConfigured() || !user.email) return;
+  const search = `${SITE}/app/search?airport=${encodeURIComponent(
+    watch.airportSlug
+  )}&from=${watch.startAt.slice(0, 10)}&to=${watch.endAt.slice(0, 10)}`;
+  try {
+    await sendEmail(
+      user.email,
+      `A space opened up for your dates`,
+      emailShell(
+        `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">Good news, ${escapeHtml(
+          user.name?.split(" ")[0] ?? "there"
+        )} 🎉</h2>
+         <p style="margin:0">${count === 1 ? "A space is" : `${count} spaces are`} now free on the dates you were waiting for.</p>
+         ${emailRows([
+           ["Where", watch.airportSlug],
+           ["Drop-off", formatDateTime(watch.startAt)],
+           ["Pick-up", formatDateTime(watch.endAt)],
+         ])}
+         ${emailButton(search, "See what's available")}
+         <p style="margin:0;font-size:12px;color:#878D96">We don't hold spaces — first to book gets it. This is the only email you'll get for this watch.</p>`
       )
     );
   } catch {

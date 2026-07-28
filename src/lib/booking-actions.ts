@@ -132,8 +132,16 @@ export async function createBookingAction(formData: FormData) {
     redirect(`/app/space/${spaceId}?dates=invalid`);
   }
 
-  // Capacity: bounce back with a clear message when the space is full.
-  const available = await isSpaceAvailable(spaceId, startAt, endAt, space.capacity ?? 1);
+  /**
+   * Capacity. A group booking needs a bay per car, so the check runs once per
+   * vehicle against a capacity reduced by the ones already claimed — checking
+   * "is there room" once would let two cars into a space that fits one.
+   */
+  const bays = 1 + (vehicles?.length ?? 0);
+  const capacity = space.capacity ?? 1;
+  const available =
+    bays <= capacity &&
+    (await isSpaceAvailable(spaceId, startAt, endAt, capacity - (bays - 1)));
   if (!available) {
     redirect(`/app/space/${spaceId}?soldout=1`);
   }

@@ -27,6 +27,7 @@ export async function GET(request: Request) {
   } catch {
     // best-effort
   }
+  let waitlistFired = 0;
   try {
     const { sendArrivalReminders } = await import("@/lib/booking-emails");
     arrivalReminders = await sendArrivalReminders();
@@ -41,6 +42,15 @@ export async function GET(request: Request) {
   } catch {
     // best-effort
   }
+  // People waiting on sold-out dates. Same cadence as the price watches: this
+  // is a "something changed overnight" message, not a live feed.
+  try {
+    const { sweepDateWaitlist } = await import("@/lib/waitlist-actions");
+    waitlistFired = await sweepDateWaitlist();
+  } catch {
+    // best-effort
+  }
+
   // Support chats that blew past their reply target. The queue page also
   // sweeps on load, but that only helps if somebody is looking — this covers
   // the overnight case, which is exactly when a missed urgent chat hurts.
@@ -63,6 +73,7 @@ export async function GET(request: Request) {
     sweptRequests,
     arrivalReminders,
     alertsFired,
+    waitlistFired,
     slaBreaches,
     emailed: summary.emailed,
     recipients: summary.sentTo.length,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
@@ -106,10 +107,11 @@ export default async function BookingPage({
   const airport = getAirport(space.airportSlug);
   // Signed, expires a day after pick-up: enough for a delayed flight, not a
   // link that keeps opening a gate months later.
-  const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL || SITE.url}/pass/${booking.id}?t=${makeShareToken(
-    booking.id,
-    shareExpiryFor(booking.endAt)
-  )}`;
+  const shareToken = makeShareToken(booking.id, shareExpiryFor(booking.endAt));
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
+  const shareUrl = `${siteUrl}/pass/${booking.id}?t=${shareToken}`;
+  // Same token, thinner page: progress and flight status, no gate code.
+  const journeyUrl = `${siteUrl}/journey/${booking.id}?t=${shareToken}`;
   const host = await getHostById(space.hostId);
   const hostUser = host ? await getUserProfile(host.userId) : null;
   const currency = booking.price.currency;
@@ -302,6 +304,19 @@ export default async function BookingPage({
                     {t("app.booking.sharePassHint")}
                   </p>
                   <WalletButtons bookingId={booking.id} available={wallet} />
+                  <div className="w-full space-y-1.5 border-t border-navy-100 pt-4">
+                    <p className="text-xs font-bold text-navy-600">{t("guest.share.title")}</p>
+                    <span data-share-journey={journeyUrl}>
+                      <CopyLinkButton
+                        value={journeyUrl}
+                        label={t("guest.share.copy")}
+                        copiedLabel={t("guest.share.copied")}
+                      />
+                    </span>
+                    <p className="text-[11px] leading-snug text-navy-400">
+                      {t("guest.share.sub")}
+                    </p>
+                  </div>
                 </div>
               )}
             </Card>
@@ -580,6 +595,24 @@ export default async function BookingPage({
                         {c.resolution && (
                           <p className="mt-1 text-xs text-navy-600">{c.resolution}</p>
                         )}
+                        {(c.photos ?? []).length > 0 && (
+                          <ul className="mt-2 flex flex-wrap gap-1.5" data-claim-photos>
+                            {(c.photos ?? []).map((url) => (
+                              <li
+                                key={url}
+                                className="relative h-14 w-14 overflow-hidden rounded-lg border border-navy-100"
+                              >
+                                <Image
+                                  src={url}
+                                  alt="Claim evidence"
+                                  fill
+                                  sizes="56px"
+                                  className="object-cover"
+                                />
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -597,6 +630,18 @@ export default async function BookingPage({
                         placeholder={t("app.booking.claim.ph")}
                         className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
                       />
+                      <label className="block">
+                        <span className="mb-1 block text-xs font-bold text-navy-600">
+                          {t("guest.claim.photos")}
+                        </span>
+                        <input
+                          type="file"
+                          name="photos"
+                          accept="image/*"
+                          multiple
+                          className="w-full text-xs text-navy-600 file:mr-2 file:rounded-lg file:border-0 file:bg-navy-100 file:px-2.5 file:py-1.5 file:text-xs file:font-bold file:text-navy-800"
+                        />
+                      </label>
                       <button
                         type="submit"
                         className="inline-flex items-center gap-1.5 rounded-xl border border-navy-200 bg-white px-4 py-2 text-sm font-semibold text-navy-700 hover:bg-navy-50"

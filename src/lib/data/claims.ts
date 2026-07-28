@@ -16,6 +16,7 @@ function fromRow(r: any): Claim {
     description: r.description,
     status: (r.status ?? "open") as ClaimStatus,
     resolution: r.resolution ?? undefined,
+    photos: r.photos?.length ? r.photos : undefined,
     createdAt: r.created_at,
     updatedAt: r.updated_at ?? undefined,
   };
@@ -28,6 +29,7 @@ export async function fileClaim(input: {
   openedBy: string;
   openedByRole: Role;
   description: string;
+  photos?: string[];
 }): Promise<Claim | null> {
   const description = input.description.trim().slice(0, 2000);
   if (!description) return null;
@@ -40,6 +42,7 @@ export async function fileClaim(input: {
       openedByRole: input.openedByRole,
       description,
       status: "open",
+      photos: input.photos?.length ? input.photos : undefined,
       createdAt: new Date().toISOString(),
     };
     mockClaims.unshift(claim);
@@ -55,6 +58,7 @@ export async function fileClaim(input: {
         opened_by: input.openedBy,
         role: input.openedByRole,
         description,
+        photos: input.photos ?? [],
       })
       .select("*")
       .single();

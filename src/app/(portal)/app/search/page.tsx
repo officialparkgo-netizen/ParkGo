@@ -8,6 +8,7 @@ import { PortalShell } from "@/components/portal/shell";
 import { travellerNav } from "@/components/portal/navs";
 import { SearchWidget } from "@/components/marketing/search-widget";
 import { SpaceCard } from "@/components/portal/space-card";
+import { JoinDateWaitlist } from "@/components/portal/date-waitlist";
 import { ResultsMap } from "@/components/portal/results-map";
 import { SearchMap } from "@/components/portal/search-map";
 import { requireRole } from "@/lib/auth";
@@ -309,6 +310,25 @@ export default async function SearchPage({
                 >
                   {t("app.search.clearFilters")}
                 </Link>
+
+                {/* An empty search is where a customer is lost. Offer to tell
+                    them when something frees up rather than nothing at all. */}
+                <div className="mt-6 border-t border-navy-100 pt-5">
+                  <p className="font-bold text-navy-900">{t("guest.waitlist.title")}</p>
+                  <JoinDateWaitlist
+                    airportSlug={airportSlug}
+                    startAt={
+                      sp.from
+                        ? new Date(sp.from).toISOString()
+                        : new Date(Date.now() + 86_400_000).toISOString()
+                    }
+                    endAt={
+                      sp.to
+                        ? new Date(sp.to).toISOString()
+                        : new Date(Date.now() + 3 * 86_400_000).toISOString()
+                    }
+                  />
+                </div>
               </Card>
             ) : (
               results.map((r) => (

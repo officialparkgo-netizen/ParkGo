@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { CheckCircle2, Search, ShieldAlert, XCircle } from "lucide-react";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
@@ -70,6 +71,27 @@ export default async function AdminClaimsPage() {
                     <p className="mt-2 whitespace-pre-line text-sm text-navy-700">
                       {c.description}
                     </p>
+                    {/* The evidence, full width and openable — deciding a
+                        damage claim off a thumbnail is deciding it blind. */}
+                    {(c.photos ?? []).length > 0 && (
+                      <ul className="mt-3 flex flex-wrap gap-2" data-claim-photos>
+                        {(c.photos ?? []).map((url) => (
+                          <li key={url}>
+                            <a href={url} target="_blank" rel="noopener noreferrer">
+                              <span className="relative block h-24 w-24 overflow-hidden rounded-lg border border-navy-200">
+                                <Image
+                                  src={url}
+                                  alt="Claim evidence"
+                                  fill
+                                  sizes="96px"
+                                  className="object-cover"
+                                />
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {c.resolution && (
                       <p className="mt-2 rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-700">
                         {c.resolution}
