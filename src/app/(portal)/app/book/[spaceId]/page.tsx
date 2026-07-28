@@ -55,6 +55,29 @@ export default async function BookPage({
     transferCommissionBps: cfg.transferCommissionBps,
   };
 
+  // What this traveller has already earned or bought. Resolved here so the
+  // preview matches what the server will actually charge.
+  let account: {
+    completedTrips: number;
+    passDaysLeft: number;
+    organisationName?: string;
+  } | null = null;
+  if (user) {
+    const { activeTripPass, completedTripCount } = await import("@/lib/data/rewards");
+    const { organisationForUser } = await import("@/lib/data/organisations");
+    const { passDaysLeft } = await import("@/lib/rewards");
+    const [completedTrips, pass, org] = await Promise.all([
+      completedTripCount(user),
+      activeTripPass(user.id),
+      organisationForUser(user),
+    ]);
+    account = {
+      completedTrips,
+      passDaysLeft: pass ? passDaysLeft(pass) : 0,
+      organisationName: org?.name,
+    };
+  }
+
   const body = (
       <div className="mx-auto max-w-5xl space-y-5">
         <Link href={`/app/space/${space.id}`} className="text-sm font-semibold text-brand-700">
@@ -82,6 +105,7 @@ export default async function BookPage({
           promoInvalid={sp.promo === "invalid"}
           priceCfg={priceCfg}
           guest={user ? null : { error: sp.guest ?? null }}
+          account={account}
         />
       </div>
   );

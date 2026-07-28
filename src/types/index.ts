@@ -45,12 +45,19 @@ export interface User {
   referredBy?: UUID;
   /** Referral credit held against the account, pence. */
   creditPence?: number;
+  /** Trips finished, which is what earns a loyalty tier — not money spent. */
+  completedTrips?: number;
   /**
    * Account created for someone mid-checkout rather than by them signing up.
    * They booked as a guest and still have to claim it with the emailed link.
    */
   guestCreated?: boolean;
   corporateAccountId?: UUID;
+  /** Company account this person books on. */
+  organisationId?: UUID;
+  organisationRole?: "owner" | "member";
+  /** Opt-in to travel-day text messages. Requires a phone number. */
+  smsOptIn?: boolean;
   /** Admin-set: suspended accounts are bounced at the sign-in guard. */
   suspended?: boolean;
   /** Admin self-service: require an email code at sign-in (2FA). */
@@ -248,6 +255,8 @@ export interface Space {
   bayNames?: string[];
   /** Bookings need the host's approval (24h window, else auto-refund). */
   requestToBook?: boolean;
+  /** Extras this host will perform while the car is here, priced per stay. */
+  careServices?: CareService[];
   rating: number;
   reviewCount: number;
   status: SpaceStatus;
@@ -336,6 +345,115 @@ export interface Booking {
   approvalDeadline?: ISODateString;
   /** Index into the space's bayNames the host assigned this stay to. */
   bayIndex?: number;
+  /** Flight this trip is tied to — drives the dates and the delay watch. */
+  flight?: FlightLink;
+  /** Cars on this booking. One entry is the normal case; two is a group stay. */
+  vehicles?: VehicleProfile[];
+  /** Cancellation protection was bought. */
+  protection?: boolean;
+  /** Car care bought at checkout, priced at the time of booking. */
+  care?: CareService[];
+  /** Free-text help the traveller asked for at handover. */
+  assistance?: string;
+  /** "I'm N minutes away", set by the traveller so the host can be ready. */
+  arrivingEtaMin?: number;
+  arrivingPingedAt?: ISODateString;
+  /** Billed to a company account rather than the individual. */
+  organisationId?: UUID;
+  /**
+   * Paid with a gift card or trip pass at checkout. The price is unchanged —
+   * this is only how much of it had already been handed over, so the card is
+   * charged for the rest and the host is still owed their full share.
+   */
+  prepaid?: Pence;
+  /** Which balances the prepayment came out of, for the receipt and refunds. */
+  prepaidFrom?: { giftCard?: string; passId?: string; passDays?: number };
+  createdAt: ISODateString;
+}
+
+/** A flight the booking is pinned to. Dates follow it; delays extend it. */
+export interface FlightLink {
+  /** IATA flight designator, e.g. "BA2490". */
+  number: string;
+  /** Scheduled arrival back at the origin airport. */
+  scheduledArrival: ISODateString;
+  /** Latest known arrival — differs from scheduled once a delay is known. */
+  estimatedArrival?: ISODateString;
+  status: "scheduled" | "delayed" | "landed" | "cancelled" | "unknown";
+  /** Set once a delay has already pushed the booking's end date out. */
+  extendedAt?: ISODateString;
+  checkedAt?: ISODateString;
+}
+
+/** Something the host will do to the car while it is parked. */
+export interface CareService {
+  id: string;
+  label: string;
+  pricePence: Pence;
+}
+
+/** Timestamped evidence of the car's condition, both sides of the stay. */
+export interface ConditionPhoto {
+  id: UUID;
+  bookingId: UUID;
+  phase: "dropoff" | "pickup";
+  url: string;
+  takenBy: UUID;
+  createdAt: ISODateString;
+}
+
+/** A traveller waiting for a sold-out date range to open up. */
+export interface DateWatch {
+  id: UUID;
+  userId: UUID;
+  airportSlug: string;
+  /** Set when waiting on one specific space rather than the destination. */
+  spaceId?: UUID;
+  startAt: ISODateString;
+  endAt: ISODateString;
+  notifiedAt?: ISODateString;
+  createdAt: ISODateString;
+}
+
+/** Prepaid balance, bought by one person and spent by another. */
+export interface GiftCard {
+  id: UUID;
+  code: string;
+  initialPence: Pence;
+  balancePence: Pence;
+  purchasedBy?: UUID;
+  recipientEmail?: string;
+  message?: string;
+  /** The payment that bought it, so a repeated redirect cannot mint a second. */
+  stripeRef?: string;
+  createdAt: ISODateString;
+}
+
+/** Days bought up front at a discount, spent one per booked day. */
+export interface TripPass {
+  id: UUID;
+  userId: UUID;
+  daysTotal: number;
+  daysUsed: number;
+  pricePence: Pence;
+  /** What one day is worth when spent, fixed at purchase so a later price
+   *  rise at the destination cannot devalue a pass already bought. */
+  dayValuePence: Pence;
+  expiresAt: ISODateString;
+  /** See GiftCard.stripeRef. */
+  stripeRef?: string;
+  createdAt: ISODateString;
+}
+
+/** A company whose employees book on one account. */
+export interface Organisation {
+  id: UUID;
+  name: string;
+  vatNumber?: string;
+  billingEmail: string;
+  ownerId: UUID;
+  /** Invoice monthly instead of charging each booking. */
+  monthlyInvoice?: boolean;
   createdAt: ISODateString;
 }
 
@@ -344,6 +462,11 @@ export interface PriceBreakdown {
   transfer: Pence;
   ev: Pence;
   serviceFee: Pence;
+  /** Cancellation protection premium. Pure platform revenue. */
+  protection: Pence;
+  /** Car care bought at checkout. The host performs it, so it is host revenue
+   *  net of the usual parking commission. */
+  care: Pence;
   total: Pence;
   /** Marketplace split derived from the total. */
   split: PaymentSplit;

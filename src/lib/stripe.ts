@@ -36,6 +36,10 @@ export async function createBookingCheckoutSession(
   customer?: { id?: string | null; email?: string | null }
 ): Promise<string> {
   const stripe = getStripe();
+  // A gift card or trip pass already covered part of this, and that money is
+  // sitting in the platform account — so only the remainder is charged today.
+  const prepaid = Math.max(0, booking.prepaid ?? 0);
+  const charge = Math.max(0, booking.price.total - prepaid);
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
     line_items: [
@@ -43,10 +47,12 @@ export async function createBookingCheckoutSession(
         quantity: 1,
         price_data: {
           currency: booking.price.currency.toLowerCase(),
-          unit_amount: booking.price.total, // pence/cent
+          unit_amount: charge, // pence/cent
           product_data: {
             name: `ParkGo · ${space.title}`,
-            description: `Booking ${booking.reference}`,
+            description: prepaid
+              ? `Booking ${booking.reference} · ${(prepaid / 100).toFixed(2)} already paid`
+              : `Booking ${booking.reference}`,
           },
         },
       },
@@ -71,7 +77,15 @@ export async function createBookingCheckoutSession(
     if (customer?.email) params.customer_email = customer.email;
   }
 
-  if (hostAccountId) {
+  /**
+   * Destination charge, but only when nothing was prepaid. A destination
+   * charge can never transfer more than it collects, so a gift card covering
+   * most of a stay would cap the host's share at whatever was left to pay.
+   * With a prepayment the platform collects the remainder instead and settles
+   * the host in full from its own balance — where the gift card money already
+   * is — through the normal payout run.
+   */
+  if (hostAccountId && prepaid === 0) {
     const acct = await stripe.accounts.retrieve(hostAccountId).catch(() => null);
     if (acct?.charges_enabled) {
       const hostShare = booking.price.split.hostPayout;
@@ -137,6 +151,44 @@ export async function createExtensionCheckoutSession(
   }
 
   const session = await stripe.checkout.sessions.create(params);
+  if (!session.url) throw new Error("Stripe did not return a checkout URL");
+  return session.url;
+}
+
+/**
+ * Buying a gift card or a trip pass. Neither is a stay, so nothing is split to
+ * a host here — the money sits with the platform until it is spent on a
+ * booking, and that booking works out the split as usual.
+ */
+export async function createRewardCheckoutSession(input: {
+  kind: "gift" | "pass";
+  amount: number;
+  userId: string;
+  label: string;
+  description: string;
+  /** Everything needed to create the card or pass once the payment lands. */
+  metadata: Record<string, string>;
+}): Promise<string> {
+  const stripe = getStripe();
+  const metadata = { ...input.metadata, kind: input.kind, userId: input.userId };
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "gbp",
+          unit_amount: input.amount,
+          product_data: { name: input.label, description: input.description },
+        },
+      },
+    ],
+    success_url: `${SITE}/api/stripe/confirm?session_id={CHECKOUT_SESSION_ID}&reward=${input.kind}`,
+    cancel_url: `${SITE}/app/rewards`,
+    client_reference_id: input.userId,
+    metadata,
+    payment_intent_data: { metadata },
+  });
   if (!session.url) throw new Error("Stripe did not return a checkout URL");
   return session.url;
 }

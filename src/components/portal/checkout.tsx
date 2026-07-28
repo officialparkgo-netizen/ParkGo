@@ -1,11 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CarTaxiFront, CheckCircle2, CreditCard, Lock, ShieldCheck, Wallet, Zap } from "lucide-react";
-import type { Space } from "@/types";
+import {
+  Accessibility,
+  Building2,
+  CarTaxiFront,
+  CheckCircle2,
+  CreditCard,
+  Gift,
+  Lock,
+  Plane,
+  Sparkles,
+  Ticket,
+  Umbrella,
+  Wallet,
+  Zap,
+  ShieldCheck,
+} from "lucide-react";
+import type { CareService, Space } from "@/types";
 import { priceBundle, type PriceConfig } from "@/lib/pricing";
 import { formatMoney } from "@/lib/utils";
 import { createBookingAction } from "@/lib/booking-actions";
+import { applyLoyaltyToPrice, tierFor } from "@/lib/rewards";
 import { useT } from "@/lib/i18n/client";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +41,7 @@ export function Checkout({
   promoInvalid = false,
   priceCfg,
   guest = null,
+  account = null,
 }: {
   space: Space;
   startDate: string; // YYYY-MM-DD
@@ -43,6 +60,16 @@ export function Checkout({
    * account is built from, rather than sending the visitor away to register.
    */
   guest?: { error: string | null } | null;
+  /**
+   * What the signed-in traveller already has: an earned tier, a pass with days
+   * on it, a company to bill. All resolved server-side — none of it is
+   * something the form is allowed to claim for itself.
+   */
+  account?: {
+    completedTrips: number;
+    passDaysLeft: number;
+    organisationName?: string;
+  } | null;
 }) {
   const t = useT();
   // "2026-07-21T09:00"-style props mean an hourly (same-day) stay.
@@ -63,18 +90,53 @@ export function Checkout({
     setEnd(`${nextDay}T${nextTo}`);
   }
 
-  const price = useMemo(
-    () =>
-      priceBundle(
-        space,
-        { parking: true, transfer, ev, transferReturn },
-        new Date(start).toISOString(),
-        new Date(end).toISOString(),
-        currency,
-        priceCfg
-      ),
-    [space, transfer, ev, transferReturn, start, end, currency, priceCfg]
-  );
+  // Paid extras and travel-day details.
+  const [protection, setProtection] = useState(false);
+  const [careIds, setCareIds] = useState<string[]>([]);
+  const [assistance, setAssistance] = useState("");
+  const [flightNumber, setFlightNumber] = useState("");
+  const [secondReg, setSecondReg] = useState("");
+  const [secondMake, setSecondMake] = useState("");
+  const [billToCompany, setBillToCompany] = useState(false);
+  const [giftCard, setGiftCard] = useState("");
+  const [usePass, setUsePass] = useState(false);
+
+  const careOffered: CareService[] = space.careServices ?? [];
+  const care = careOffered.filter((c) => careIds.includes(c.id));
+
+  const price = useMemo(() => {
+    const base = priceBundle(
+      space,
+      { parking: true, transfer, ev, transferReturn },
+      new Date(start).toISOString(),
+      new Date(end).toISOString(),
+      currency,
+      priceCfg,
+      { protection, care }
+    );
+    // Same order the server uses, so the number on the button is the number
+    // that gets charged.
+    return account?.completedTrips
+      ? applyLoyaltyToPrice(base, account.completedTrips)
+      : base;
+    // `care` is derived from careIds within the same render, so tracking the
+    // ids is enough and avoids a new array identity re-running this every time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    space,
+    transfer,
+    ev,
+    transferReturn,
+    start,
+    end,
+    currency,
+    priceCfg,
+    protection,
+    careIds,
+    account?.completedTrips,
+  ]);
+
+  const tier = tierFor(account?.completedTrips ?? 0);
 
   return (
     <div className="grid gap-6 pb-24 lg:grid-cols-5 lg:pb-0">
@@ -224,6 +286,107 @@ export function Checkout({
           </div>
         )}
 
+        {/* ------------------------------------------------ paid extras --- */}
+        <h3 className="mt-7 text-sm font-bold text-navy-900">{t("guest.extras.title")}</h3>
+        <p className="text-xs text-navy-500">{t("guest.extras.sub")}</p>
+        <div className="mt-3 space-y-3">
+          <Line
+            checked={protection}
+            onChange={setProtection}
+            icon={Umbrella}
+            title={t("guest.protection.title")}
+            subtitle={t("guest.protection.sub")}
+            price={protection ? formatMoney(price.protection, currency) : undefined}
+          />
+          {careOffered.map((c) => (
+            <Line
+              key={c.id}
+              checked={careIds.includes(c.id)}
+              onChange={(v) =>
+                setCareIds((ids) => (v ? [...ids, c.id] : ids.filter((x) => x !== c.id)))
+              }
+              icon={Sparkles}
+              title={c.label}
+              subtitle={t("guest.care.sub")}
+              price={formatMoney(c.pricePence, currency)}
+            />
+          ))}
+        </div>
+
+        {/* ------------------------------------------- travel-day details --- */}
+        <h3 className="mt-7 text-sm font-bold text-navy-900">{t("guest.details.title")}</h3>
+        <div className="mt-3 space-y-3">
+          {allowTransfer && (
+            <label className="block">
+              <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-navy-600">
+                <Plane className="h-3.5 w-3.5 text-brand-700" /> {t("guest.flight.label")}
+              </span>
+              <input
+                value={flightNumber}
+                onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
+                placeholder={t("guest.flight.ph")}
+                maxLength={8}
+                className="h-11 w-full rounded-xl border border-navy-200 px-3.5 text-sm uppercase text-navy-900 placeholder:normal-case placeholder:text-navy-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+              <span className="mt-1 block text-[11px] leading-snug text-navy-400">
+                {t("guest.flight.note")}
+              </span>
+            </label>
+          )}
+
+          <details className="rounded-xl border border-navy-200 p-3.5 open:bg-navy-50/40">
+            <summary className="cursor-pointer text-sm font-bold text-navy-900">
+              {t("guest.second.title")}
+            </summary>
+            <p className="mt-1 text-xs text-navy-500">{t("guest.second.sub")}</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <input
+                value={secondReg}
+                onChange={(e) => setSecondReg(e.target.value.toUpperCase())}
+                placeholder={t("guest.second.reg")}
+                aria-label={t("guest.second.reg")}
+                maxLength={12}
+                className="h-10 rounded-xl border border-navy-200 bg-white px-3 text-sm uppercase text-navy-900 placeholder:normal-case placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
+              />
+              <input
+                value={secondMake}
+                onChange={(e) => setSecondMake(e.target.value)}
+                placeholder={t("guest.second.make")}
+                aria-label={t("guest.second.make")}
+                maxLength={40}
+                className="h-10 rounded-xl border border-navy-200 bg-white px-3 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
+              />
+            </div>
+            <p className="mt-2 text-[11px] leading-snug text-navy-400">
+              {t("guest.second.note")}
+            </p>
+          </details>
+
+          <label className="block">
+            <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-navy-600">
+              <Accessibility className="h-3.5 w-3.5 text-brand-700" /> {t("guest.assist.label")}
+            </span>
+            <textarea
+              value={assistance}
+              onChange={(e) => setAssistance(e.target.value)}
+              rows={2}
+              maxLength={400}
+              placeholder={t("guest.assist.ph")}
+              className="w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            />
+          </label>
+
+          {account?.organisationName && (
+            <Line
+              checked={billToCompany}
+              onChange={setBillToCompany}
+              icon={Building2}
+              title={t("guest.company.title")}
+              subtitle={account.organisationName}
+            />
+          )}
+        </div>
+
         <h3 className="mt-6 text-sm font-bold text-navy-900">{t("app.checkout.paymentMethod")}</h3>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {METHODS.map((m) => (
@@ -247,6 +410,11 @@ export function Checkout({
       <div className="lg:col-span-2">
         <div className="sticky top-20 rounded-2xl border border-navy-100 bg-white p-5 shadow-card">
           <h3 className="font-bold text-navy-900">{t("app.checkout.orderSummary")}</h3>
+          {tier.discountBps > 0 && (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold text-brand-800">
+              <Sparkles className="h-3 w-3" /> {tier.label} · {t("guest.loyalty.applied")}
+            </p>
+          )}
           <dl className="mt-4 space-y-2 text-sm">
             <Row label={t("app.checkout.parking")} value={formatMoney(price.parking, currency)} />
             {transfer && (
@@ -258,7 +426,23 @@ export function Checkout({
               />
             )}
             {ev && <Row label={t("app.checkout.evCharging")} value={formatMoney(price.ev, currency)} />}
+            {care.map((c) => (
+              <Row key={c.id} label={c.label} value={formatMoney(c.pricePence, currency)} />
+            ))}
+            {protection && (
+              <Row
+                label={t("guest.protection.row")}
+                value={formatMoney(price.protection, currency)}
+              />
+            )}
             <Row label={t("app.checkout.serviceFee")} value={formatMoney(price.serviceFee, currency)} />
+            {tier.discountBps > 0 && price.discount ? (
+              <Row
+                label={`${tier.label} · ${(tier.discountBps / 100).toFixed(0)}%`}
+                value={`− ${formatMoney(price.discount, currency)}`}
+                tone="good"
+              />
+            ) : null}
             <div className="my-2 border-t border-navy-100" />
             <div className="flex items-center justify-between">
               <dt className="text-base font-bold text-navy-900">{t("common.total")}</dt>
@@ -335,6 +519,40 @@ export function Checkout({
                 </p>
               )}
             </div>
+            {/* Balances already paid for. These do not change the price — the
+                host is owed the same either way — only what reaches the card. */}
+            {!guest && (
+              <div className="mb-3 space-y-2">
+                <label htmlFor="giftCard" className="flex items-center gap-1.5 text-xs font-bold text-navy-600">
+                  <Gift className="h-3.5 w-3.5 text-brand-700" /> {t("guest.gift.label")}
+                </label>
+                <input
+                  id="giftCard"
+                  name="giftCard"
+                  value={giftCard}
+                  onChange={(e) => setGiftCard(e.target.value.toUpperCase())}
+                  placeholder={t("guest.gift.ph")}
+                  className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm uppercase tracking-wider text-navy-900 placeholder:normal-case placeholder:tracking-normal placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
+                />
+                {(account?.passDaysLeft ?? 0) > 0 && (
+                  <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-navy-200 p-2.5">
+                    <input
+                      type="checkbox"
+                      name="usePass"
+                      value="1"
+                      checked={usePass}
+                      onChange={(e) => setUsePass(e.target.checked)}
+                      className="h-4 w-4 rounded border-navy-300 text-brand-600 focus:ring-brand-400"
+                    />
+                    <Ticket className="h-4 w-4 text-brand-700" />
+                    <span className="text-xs font-semibold text-navy-700">
+                      {t("guest.pass.use")} · {account?.passDaysLeft} {t("guest.pass.daysLeft")}
+                    </span>
+                  </label>
+                )}
+              </div>
+            )}
+
             <input type="hidden" name="spaceId" value={space.id} />
             <input type="hidden" name="startAt" value={new Date(start).toISOString()} />
             <input type="hidden" name="endAt" value={new Date(end).toISOString()} />
@@ -343,6 +561,15 @@ export function Checkout({
             <input type="hidden" name="transferTime" value={transfer ? transferTime : ""} />
             <input type="hidden" name="ev" value={ev ? "1" : ""} />
             <input type="hidden" name="method" value={method} />
+            <input type="hidden" name="protection" value={protection ? "1" : ""} />
+            {care.map((c) => (
+              <input key={c.id} type="hidden" name="care" value={c.id} />
+            ))}
+            <input type="hidden" name="assistance" value={assistance} />
+            <input type="hidden" name="flightNumber" value={flightNumber} />
+            {secondReg && <input type="hidden" name="vehicleReg" value={secondReg} />}
+            {secondReg && <input type="hidden" name="vehicleMake" value={secondMake} />}
+            <input type="hidden" name="billToCompany" value={billToCompany ? "1" : ""} />
             <Button type="submit" size="lg" className="w-full">
               <Lock className="h-4 w-4" /> {t("app.checkout.pay")} {formatMoney(price.total, currency)}
             </Button>
@@ -385,6 +612,7 @@ function Line({
   icon: Icon,
   title,
   subtitle,
+  price,
 }: {
   checked: boolean;
   onChange?: (v: boolean) => void;
@@ -392,6 +620,8 @@ function Line({
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   subtitle: string;
+  /** Shown on the right when the line costs extra. */
+  price?: string;
 }) {
   return (
     <label
@@ -411,15 +641,26 @@ function Line({
         <span className="block text-sm font-bold text-navy-900">{title}</span>
         <span className="block text-xs text-navy-500">{subtitle}</span>
       </span>
+      {price && <span className="shrink-0 text-sm font-bold text-navy-900">{price}</span>}
     </label>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "good";
+}) {
   return (
     <div className="flex items-center justify-between text-navy-600">
-      <dt>{label}</dt>
-      <dd className="font-semibold text-navy-800">{value}</dd>
+      <dt className={tone === "good" ? "font-semibold text-emerald-700" : undefined}>{label}</dt>
+      <dd className={`font-semibold ${tone === "good" ? "text-emerald-700" : "text-navy-800"}`}>
+        {value}
+      </dd>
     </div>
   );
 }

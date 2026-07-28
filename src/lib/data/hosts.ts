@@ -1,4 +1,12 @@
-import type { BookingBundle, Host, SearchQuery, SearchResult, Space, User } from "@/types";
+import type {
+  BookingBundle,
+  CareService,
+  Host,
+  SearchQuery,
+  SearchResult,
+  Space,
+  User,
+} from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { invalidateSuggestIndex } from "@/lib/suggest-cache";
 import { priceBundle } from "@/lib/pricing";
@@ -69,6 +77,7 @@ function spaceFromRow(r: any): Space {
     liveCamera: r.live_camera,
     covered: r.covered ?? false,
     accessible: r.accessible ?? false,
+    careServices: r.care_services?.length ? r.care_services : undefined,
     accessRules: r.access_rules,
     photos: r.photos ?? [],
     pricePerDay: r.price_per_day,
@@ -283,6 +292,25 @@ export async function listAllSpaces(): Promise<Space[]> {
   return (data ?? []).map(spaceFromRow);
 }
 
+/**
+ * The cheapest live daily rate, optionally at one destination. A trip pass is
+ * priced off this so a day on the pass is always worth at least a day of the
+ * cheapest parking it can buy — a fixed figure would go stale the moment
+ * prices moved.
+ */
+export async function cheapestDayRateAt(airportSlug?: string): Promise<number> {
+  const FALLBACK = 1200;
+  try {
+    const spaces = (await listAllSpaces()).filter(
+      (s) => s.status === "live" && (!airportSlug || s.airportSlug === airportSlug)
+    );
+    const rates = spaces.map((s) => s.pricePerDay).filter((n) => n > 0);
+    return rates.length ? Math.min(...rates) : FALLBACK;
+  } catch {
+    return FALLBACK;
+  }
+}
+
 /** All hosts (admin trust panel). Newest first in live mode. */
 export async function listAllHosts(): Promise<Host[]> {
   if (!IS_LIVE) return mockGetAllHosts();
@@ -436,6 +464,8 @@ export interface UpdateSpaceInput {
   bayNames?: string[];
   /** Approval-first bookings; omit = unchanged. */
   requestToBook?: boolean;
+  /** Car care the host will perform; omit = unchanged, [] clears. */
+  careServices?: CareService[];
 }
 
 /**
@@ -471,6 +501,8 @@ export async function updateSpaceForHost(
     if (input.bayNames !== undefined)
       s.bayNames = input.bayNames.length ? input.bayNames : undefined;
     if (input.requestToBook !== undefined) s.requestToBook = input.requestToBook || undefined;
+    if (input.careServices !== undefined)
+      s.careServices = input.careServices.length ? input.careServices : undefined;
     {
       const removeSet = new Set(input.removePhotos ?? []);
       let photos = s.photos.filter((p) => !removeSet.has(p));
@@ -532,6 +564,7 @@ export async function updateSpaceForHost(
     ...(input.customPrices !== undefined ? { custom_prices: input.customPrices } : {}),
     ...(input.bayNames !== undefined ? { bay_names: input.bayNames } : {}),
     ...(input.requestToBook !== undefined ? { request_to_book: input.requestToBook } : {}),
+    ...(input.careServices !== undefined ? { care_services: input.careServices } : {}),
   };
   const hasExtras = Object.keys(extras).length > 0;
   let { data, error } = await doUpdate(hasExtras ? { ...baseUpdate, ...extras } : baseUpdate);

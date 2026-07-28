@@ -1,4 +1,5 @@
 import type {
+  CareService,
   BookingBundle,
   EvCharger,
   PaymentSplit,
@@ -64,13 +65,25 @@ export interface PriceConfig {
   transferCommissionBps: number;
 }
 
+/** Cancellation protection premium as a share of the stay, in basis points. */
+export const PROTECTION_BPS = 800;
+
+/** What the traveller adds on top of the stay itself. */
+export interface BundleExtras {
+  /** Buy cancellation protection. */
+  protection?: boolean;
+  /** Care services chosen from the ones this host offers. */
+  care?: CareService[];
+}
+
 export function priceBundle(
   space: Space,
   bundle: BookingBundle,
   startAt: string,
   endAt: string,
   currency: "GBP" | "EUR" = "GBP",
-  cfg?: PriceConfig
+  cfg?: PriceConfig,
+  extras?: BundleExtras
 ): PriceBreakdown {
   const parking: Pence = isHourlyStay(space, startAt, endAt)
     ? Math.min(hoursBetween(startAt, endAt) * (space.pricePerHour as Pence), space.pricePerDay)
@@ -80,11 +93,16 @@ export function priceBundle(
     : 0;
   const ev: Pence = bundle.ev ? evCost(space.evCharger) : 0;
   const serviceFee: Pence = cfg?.serviceFee ?? SERVICE_FEE;
+  // Protection is priced off the stay, not the whole bundle: it covers the
+  // booking being cancelled, and the transfer and service fee are refundable
+  // anyway.
+  const protection: Pence = extras?.protection ? bps(parking, PROTECTION_BPS) : 0;
+  const care: Pence = (extras?.care ?? []).reduce((n, c) => n + Math.max(0, c.pricePence), 0);
 
-  const total = parking + transfer + ev + serviceFee;
-  const split = computeSplit({ parking, transfer, ev, serviceFee }, cfg);
+  const total = parking + transfer + ev + serviceFee + protection + care;
+  const split = computeSplit({ parking, transfer, ev, serviceFee, protection, care }, cfg);
 
-  return { parking, transfer, ev, serviceFee, total, split, currency };
+  return { parking, transfer, ev, serviceFee, protection, care, total, split, currency };
 }
 
 /**
@@ -132,11 +150,17 @@ export function computeSplit(
     transfer: Pence;
     ev: Pence;
     serviceFee: Pence;
+    /** Cancellation protection premium — the platform carries the risk. */
+    protection?: Pence;
+    /** Car care — the host does the work, so it is theirs net of commission. */
+    care?: Pence;
   },
   cfg?: PriceConfig
 ): PaymentSplit {
+  const protection = lines.protection ?? 0;
+  const care = lines.care ?? 0;
   const parkingCommission = bps(
-    lines.parking + lines.ev,
+    lines.parking + lines.ev + care,
     cfg?.parkingCommissionBps ?? COMMISSION.parkingBps
   );
   const transferCommission = bps(
@@ -144,8 +168,10 @@ export function computeSplit(
     cfg?.transferCommissionBps ?? COMMISSION.transferBps
   );
 
-  const platform = parkingCommission + transferCommission + lines.serviceFee;
-  const hostPayout = lines.parking + lines.ev - parkingCommission;
+  // Protection is pure platform revenue: ParkGo refunds the traveller when it
+  // is claimed, so ParkGo keeps the premium.
+  const platform = parkingCommission + transferCommission + lines.serviceFee + protection;
+  const hostPayout = lines.parking + lines.ev + care - parkingCommission;
   const driverPayout = lines.transfer - transferCommission;
 
   return { platform, hostPayout, driverPayout };

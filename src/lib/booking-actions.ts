@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { BookingBundle, PaymentMethod } from "@/types";
+import type { Booking, BookingBundle, PaymentMethod, VehicleProfile } from "@/types";
 import { getCurrentUser, requireFinanceAdmin, requireRole, requireUser } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n";
 import { confirmHandover, getAirport, getBooking } from "@/lib/data/store";
@@ -104,6 +104,24 @@ export async function createBookingAction(formData: FormData) {
   const endAt = String(formData.get("endAt") || new Date().toISOString());
   const method = (String(formData.get("method") || "card") as PaymentMethod);
 
+  /**
+   * Paid extras. Care services are matched against the listing rather than
+   * trusted from the form — otherwise the price of the wash is whatever the
+   * buyer posts.
+   */
+  const careIds = formData.getAll("care").map(String);
+  const extras = {
+    protection: formData.get("protection") === "1",
+    care: (space.careServices ?? []).filter((c) => careIds.includes(c.id)),
+  };
+  const assistance = String(formData.get("assistance") || "").trim().slice(0, 400) || undefined;
+  // Group booking: the extra cars typed at checkout, on top of the account's.
+  const vehicles = parseVehicles(formData);
+  // Expensing it to the company the traveller belongs to.
+  const organisationId =
+    formData.get("billToCompany") === "1" ? user.organisationId : undefined;
+  const flightNumber = String(formData.get("flightNumber") || "").trim().toUpperCase();
+
   // Dates must make sense: drop-off from today onward, pick-up after drop-off.
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -147,38 +165,29 @@ export async function createBookingAction(formData: FormData) {
     const { getPlatformSettings } = await import("@/lib/data/settings");
     const cfg = await getPlatformSettings();
     const currency = getAirport(space.airportSlug)?.country === "IE" ? "EUR" : "GBP";
-    const preview = priceBundle(space, bundle, startAt, endAt, currency, {
-      serviceFee: cfg.serviceFee,
-      parkingCommissionBps: cfg.parkingCommissionBps,
-      transferCommissionBps: cfg.transferCommissionBps,
-    });
+    const preview = priceBundle(
+      space,
+      bundle,
+      startAt,
+      endAt,
+      currency,
+      {
+        serviceFee: cfg.serviceFee,
+        parkingCommissionBps: cfg.parkingCommissionBps,
+        transferCommissionBps: cfg.transferCommissionBps,
+      },
+      extras
+    );
     const spend = creditToApply(user.creditPence ?? 0, preview.total);
     if (spend > 0) promo = { id: "credit", code: "CREDIT", kind: "fixed", value: spend };
   }
 
-  // Stripe path: create a pending booking, then redirect to Stripe Checkout.
-  // The /api/stripe/confirm route marks it paid on return.
-  if (isStripeConfigured()) {
-    const pending = await createBookingLive(
-      { travellerId: user.id, spaceId, bundle, startAt, endAt, method, promo },
-      { status: "requested", recordPayment: false }
-    );
-    if (promo && promo.id !== "credit") {
-      const { incrementPromoUse } = await import("@/lib/data/promos");
-      await incrementPromoUse(promo.id);
-    }
-    await settleCredit(user.id, promo, pending.price.discount);
-    // Split to the host's connected account when they've onboarded payouts.
-    const host = await getHostById(space.hostId);
-    const url = await createBookingCheckoutSession(pending, space, host?.payoutAccountRef, {
-      id: user.stripeCustomerId,
-      email: user.email,
-    });
-    redirect(url);
-  }
+  // Loyalty tier, earned by finishing trips. Worked out server-side from the
+  // bookings themselves — a tier is not something the form gets to claim.
+  const { completedTripCount } = await import("@/lib/data/rewards");
+  const completedTrips = await completedTripCount(user);
 
-  // Mock path: create the booking (computes the split) + simulate the charge.
-  const booking = await createBookingLive({
+  const common = {
     travellerId: user.id,
     spaceId,
     bundle,
@@ -186,15 +195,51 @@ export async function createBookingAction(formData: FormData) {
     endAt,
     method,
     promo,
-  });
+    extras,
+    vehicles,
+    assistance,
+    organisationId,
+    completedTrips,
+    ...(flightNumber ? { flight: { number: flightNumber, scheduledArrival: endAt, status: "scheduled" as const } } : {}),
+  };
+
+  // Stripe path: create a pending booking, then redirect to Stripe Checkout.
+  // The /api/stripe/confirm route marks it paid on return.
+  if (isStripeConfigured()) {
+    const pending = await createBookingLive(common, {
+      status: "requested",
+      recordPayment: false,
+    });
+    if (promo && promo.id !== "credit") {
+      const { incrementPromoUse } = await import("@/lib/data/promos");
+      await incrementPromoUse(promo.id);
+    }
+    await settleCredit(user.id, promo, pending.price.discount);
+    const prepaid = await settlePrepayment(pending, formData, user.id);
+    // Split to the host's connected account when they've onboarded payouts.
+    const host = await getHostById(space.hostId);
+    const url = await createBookingCheckoutSession(
+      { ...pending, ...prepaid },
+      space,
+      host?.payoutAccountRef,
+      { id: user.stripeCustomerId, email: user.email }
+    );
+    redirect(url);
+  }
+
+  // Mock path: create the booking (computes the split) + simulate the charge.
+  const booking = await createBookingLive(common);
   if (promo && promo.id !== "credit") {
     const { incrementPromoUse } = await import("@/lib/data/promos");
     await incrementPromoUse(promo.id);
   }
   await settleCredit(user.id, promo, booking.price.discount);
+  const prepaid = await settlePrepayment(booking, formData, user.id);
   await getPaymentGateway().charge({
     bookingRef: booking.reference,
-    amount: booking.price.total,
+    // Only the part that still has to reach the card. The split is unchanged:
+    // the host is owed the same whether a gift card paid for it or not.
+    amount: Math.max(0, booking.price.total - (prepaid.prepaid ?? 0)),
     currency: booking.price.currency,
     method,
     split: booking.price.split,
@@ -202,6 +247,85 @@ export async function createBookingAction(formData: FormData) {
 
   revalidatePath("/app");
   redirect(`/app/booking/${booking.id}?new=1`);
+}
+
+/**
+ * Spend a gift card and/or trip pass against a booking that already exists.
+ *
+ * Deliberately after creation: if the booking had failed, a balance deducted
+ * first would be gone with nothing to show for it. Whatever comes back is what
+ * was *actually* taken — a card someone else spent a second earlier yields
+ * less than planned, and the card is charged for the difference.
+ */
+async function settlePrepayment(
+  booking: Pick<Booking, "id" | "price" | "startAt" | "endAt">,
+  formData: FormData,
+  userId: string
+): Promise<Pick<Booking, "prepaid" | "prepaidFrom">> {
+  const code = String(formData.get("giftCard") || "").trim();
+  const wantPass = formData.get("usePass") === "1";
+  if (!code && !wantPass) return {};
+
+  const { activeTripPass, findGiftCard, spendGiftCard, spendPassDays } = await import(
+    "@/lib/data/rewards"
+  );
+  const { planPrepayment } = await import("@/lib/rewards");
+  const { daysBetween } = await import("@/lib/utils");
+
+  const card = code ? await findGiftCard(code) : null;
+  const pass = wantPass ? await activeTripPass(userId) : null;
+  const plan = planPrepayment(booking.price.total, {
+    // Referral credit is NOT included here: it is platform-issued marketing
+    // money and already applied above as a discount. A gift card is money a
+    // customer handed over, so it reduces the charge without touching price.
+    giftCard: card ? { code: card.code, balancePence: card.balancePence } : undefined,
+    pass: pass
+      ? { id: pass.id, daysLeft: pass.daysTotal - pass.daysUsed, dayValue: pass.dayValuePence }
+      : undefined,
+    daysBooked: Math.max(1, daysBetween(booking.startAt, booking.endAt)),
+  });
+
+  const from: NonNullable<Booking["prepaidFrom"]> = {};
+  let prepaid = 0;
+  if (pass && plan.passDays > 0) {
+    const days = await spendPassDays(pass.id, plan.passDays);
+    if (days > 0) {
+      prepaid += days * pass.dayValuePence;
+      from.passId = pass.id;
+      from.passDays = days;
+    }
+  }
+  if (card && plan.fromGiftCard > 0) {
+    const took = await spendGiftCard(card.code, plan.fromGiftCard);
+    if (took > 0) {
+      prepaid += took;
+      from.giftCard = card.code;
+    }
+  }
+  if (prepaid <= 0) return {};
+
+  const { setBookingPrepaid } = await import("@/lib/data/bookings");
+  await setBookingPrepaid(booking.id, prepaid, from);
+  return { prepaid, prepaidFrom: from };
+}
+
+/** Extra cars typed at checkout for a group booking. */
+function parseVehicles(formData: FormData): VehicleProfile[] | undefined {
+  const regs = formData.getAll("vehicleReg").map((v) => String(v).trim().toUpperCase());
+  const makes = formData.getAll("vehicleMake").map((v) => String(v).trim());
+  const out: VehicleProfile[] = [];
+  for (let i = 0; i < regs.length; i += 1) {
+    if (!regs[i]) continue;
+    out.push({
+      make: makes[i] || "—",
+      model: "",
+      colour: "",
+      reg: regs[i].slice(0, 12),
+      size: "medium",
+      ev: false,
+    });
+  }
+  return out.length ? out : undefined;
 }
 
 export interface HandoverState {

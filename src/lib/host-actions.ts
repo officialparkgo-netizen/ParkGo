@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { Space, VerificationDocument } from "@/types";
+import type { CareService, Space, VerificationDocument } from "@/types";
 import { requireRole } from "@/lib/auth";
 import {
   createSpaceForHost,
@@ -67,9 +67,35 @@ function parseSpaceForm(formData: FormData) {
       .filter(Boolean)
       .slice(0, 20),
     requestToBook: formData.get("requestToBook") === "1",
+    careServices: parseCareServices(formData),
     lengthM: Number(formData.get("lengthM") || 5),
     widthM: Number(formData.get("widthM") || 2.5),
   };
+}
+
+/**
+ * Car care the host offers, one "Label | price" line each. A free-text list
+ * rather than a fixed menu — what a host with a jet wash can offer is not the
+ * same as what a host with a garage and a compressor can.
+ */
+function parseCareServices(formData: FormData): CareService[] {
+  return String(formData.get("careServices") || "")
+    .split("\n")
+    .map((line) => {
+      const [rawLabel, rawPrice] = line.split("|");
+      const label = (rawLabel ?? "").trim().slice(0, 60);
+      const pounds = Number((rawPrice ?? "").replace(/[^0-9.]/g, ""));
+      if (!label || !Number.isFinite(pounds) || pounds <= 0) return null;
+      return {
+        // Stable from the label, so editing the price of an existing service
+        // does not orphan it on bookings that already reference the id.
+        id: label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32),
+        label,
+        pricePence: Math.round(pounds * 100),
+      };
+    })
+    .filter((c): c is CareService => !!c && !!c.id)
+    .slice(0, 8);
 }
 
 /** Blocked days from the edit form (JSON array of "YYYY-MM-DD", capped). */

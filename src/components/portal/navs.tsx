@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   CalendarClock,
   ChartSpline,
+  Gift,
   Headset,
   Heart,
   LayoutGrid,
@@ -28,6 +29,7 @@ export const travellerNav: NavItem[] = [
   { href: "/app/search", label: "nav.findParking", icon: Search },
   { href: "/app/trips", label: "nav.myTrips", icon: Ticket },
   { href: "/app/saved", label: "app.saved.title", icon: Heart },
+  { href: "/app/rewards", label: "guest.rewards.title", icon: Gift },
   { href: "/faq", label: "nav.help", icon: LifeBuoy },
 ];
 

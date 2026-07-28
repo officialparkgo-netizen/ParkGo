@@ -18,6 +18,13 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const sessionId = searchParams.get("session_id");
   const bookingId = searchParams.get("booking");
+  const reward = searchParams.get("reward");
+
+  // Gift cards and trip passes are bought without a booking, so they return
+  // here with `reward` instead of `booking`.
+  if (sessionId && reward) {
+    return finishRewardPurchase(sessionId, origin);
+  }
 
   if (!sessionId || !bookingId) {
     return NextResponse.redirect(`${origin}/app`);
@@ -70,4 +77,60 @@ export async function GET(request: Request) {
     // fall through to the un-paid redirect
   }
   return NextResponse.redirect(`${origin}/app/booking/${bookingId}`);
+}
+
+/**
+ * Create the gift card or trip pass now that the money has actually arrived.
+ *
+ * Stripe can send a payer back here twice (a refresh, a slow redirect), so the
+ * payment intent id is recorded on the row and a repeat lands on the same card
+ * rather than minting a second one.
+ */
+async function finishRewardPurchase(sessionId: string, origin: string) {
+  try {
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
+    if (session.payment_status !== "paid") {
+      return NextResponse.redirect(`${origin}/app/rewards?bought=failed`);
+    }
+    const meta = session.metadata ?? {};
+    const userId = meta.userId;
+    if (!userId) return NextResponse.redirect(`${origin}/app/rewards`);
+    const stripeRef =
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id ?? session.id;
+
+    if (meta.kind === "gift") {
+      const { createGiftCard } = await import("@/lib/data/rewards");
+      const card = await createGiftCard({
+        amountPence: Number(meta.amount || 0),
+        purchasedBy: userId,
+        recipientEmail: meta.recipientEmail || undefined,
+        message: meta.message || undefined,
+        stripeRef,
+      });
+      if (card?.recipientEmail) {
+        const { sendGiftCardEmail } = await import("@/lib/booking-emails");
+        await sendGiftCardEmail(card, meta.buyerName || "A friend");
+      }
+      return NextResponse.redirect(
+        `${origin}/app/rewards?bought=gift${card ? `&code=${encodeURIComponent(card.code)}` : ""}`
+      );
+    }
+
+    if (meta.kind === "pass") {
+      const { createTripPass } = await import("@/lib/data/rewards");
+      await createTripPass({
+        userId,
+        days: Number(meta.days || 0),
+        pricePence: Number(meta.amount || 0),
+        dayValuePence: Number(meta.dayValue || 0),
+        stripeRef,
+      });
+      return NextResponse.redirect(`${origin}/app/rewards?bought=pass`);
+    }
+  } catch {
+    // fall through
+  }
+  return NextResponse.redirect(`${origin}/app/rewards?bought=failed`);
 }

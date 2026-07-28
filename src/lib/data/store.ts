@@ -33,9 +33,12 @@ import type {
   SupportMessage,
   SupportTicket,
   TransferMessage,
+  FlightLink,
+  VehicleProfile,
 } from "@/types";
 import * as seed from "@/lib/data/seed";
 import { applyPromoToPrice, priceBundle } from "@/lib/pricing";
+import { applyLoyaltyToPrice } from "@/lib/rewards";
 import { averageRating, computeTrustScore } from "@/lib/trust";
 import { accessCode, nextId, shortRef } from "@/lib/utils";
 
@@ -354,6 +357,18 @@ export interface CreateBookingInput {
   promo?: { code: string; kind: "percent" | "fixed"; value: number };
   /** Fee overrides from /admin/settings (threaded in by the data layer). */
   priceCfg?: import("@/lib/pricing").PriceConfig;
+  /** Cancellation protection and car care chosen at checkout. */
+  extras?: import("@/lib/pricing").BundleExtras;
+  /** Cars on this booking — more than one is a group stay. */
+  vehicles?: VehicleProfile[];
+  /** Free-text help asked for at handover. */
+  assistance?: string;
+  /** Billed to a company account. */
+  organisationId?: string;
+  /** Flight the stay is pinned to, so a delay can extend it. */
+  flight?: FlightLink;
+  /** Loyalty tier discount, worked out from the traveller's completed trips. */
+  completedTrips?: number;
 }
 
 /** Create a booking + payment (+ transfer job if bundled). Returns the booking. */
@@ -363,7 +378,19 @@ export function createBooking(input: CreateBookingInput): Booking {
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
 
-  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency, input.priceCfg);
+  let price = priceBundle(
+    space,
+    input.bundle,
+    input.startAt,
+    input.endAt,
+    currency,
+    input.priceCfg,
+    input.extras
+  );
+  // Loyalty before the promo: the tier is earned and always applies, whereas a
+  // code is optional. Both are clamped to the platform's cut, so applying the
+  // earned one first is what stops a code eating the whole discount budget.
+  if (input.completedTrips) price = applyLoyaltyToPrice(price, input.completedTrips);
   if (input.promo) price = applyPromoToPrice(price, input.promo);
   const reference = shortRef(`${input.spaceId}|${input.travellerId}|${db.bookings.length}`);
   const id = `bk_${reference.replace("PG-", "").toLowerCase()}`;
@@ -380,6 +407,12 @@ export function createBooking(input: CreateBookingInput): Booking {
     status: "paid",
     price,
     qrToken,
+    ...(input.extras?.protection ? { protection: true } : {}),
+    ...(input.extras?.care?.length ? { care: input.extras.care } : {}),
+    ...(input.vehicles?.length ? { vehicles: input.vehicles } : {}),
+    ...(input.assistance ? { assistance: input.assistance } : {}),
+    ...(input.organisationId ? { organisationId: input.organisationId } : {}),
+    ...(input.flight ? { flight: input.flight } : {}),
     // Request-to-book spaces hold the booking until the host accepts (24h,
     // else it auto-declines with a full refund).
     ...(space.requestToBook

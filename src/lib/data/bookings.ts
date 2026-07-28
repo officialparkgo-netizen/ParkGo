@@ -1,6 +1,7 @@
 import type { Booking, Payment, PaymentMethod, PaymentSplit } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { applyPromoToPrice, priceBundle } from "@/lib/pricing";
+import { applyLoyaltyToPrice } from "@/lib/rewards";
 import { shortRef } from "@/lib/utils";
 import { getSpaceById } from "@/lib/data/hosts";
 import {
@@ -46,6 +47,27 @@ function bookingFromRow(r: any): Booking {
     approval: r.approval ?? undefined,
     approvalDeadline: r.approval_deadline ?? undefined,
     bayIndex: r.bay_index ?? undefined,
+    protection: r.protection ?? undefined,
+    care: r.care_services?.length ? r.care_services : undefined,
+    vehicles: r.vehicles?.length ? r.vehicles : undefined,
+    assistance: r.assistance ?? undefined,
+    arrivingEtaMin: r.arriving_eta_min ?? undefined,
+    arrivingPingedAt: r.arriving_pinged_at ?? undefined,
+    organisationId: r.organisation_id ?? undefined,
+    prepaid: r.prepaid_pence || undefined,
+    prepaidFrom: r.prepaid_from ?? undefined,
+    // Assembled from columns rather than a jsonb blob so the delay sweep can
+    // index on the arrival time instead of scanning every booking.
+    flight: r.flight_number
+      ? {
+          number: r.flight_number,
+          scheduledArrival: r.flight_scheduled_at ?? r.end_at,
+          estimatedArrival: r.flight_arrival_at ?? undefined,
+          status: r.flight_status ?? "unknown",
+          extendedAt: r.flight_extended_at ?? undefined,
+          checkedAt: r.flight_checked_at ?? undefined,
+        }
+      : undefined,
     createdAt: r.created_at,
   };
 }
@@ -146,7 +168,17 @@ export async function createBookingLive(
 
   const airport = getAirport(space.airportSlug);
   const currency = airport?.country === "IE" ? "EUR" : "GBP";
-  let price = priceBundle(space, input.bundle, input.startAt, input.endAt, currency, input.priceCfg);
+  let price = priceBundle(
+    space,
+    input.bundle,
+    input.startAt,
+    input.endAt,
+    currency,
+    input.priceCfg,
+    input.extras
+  );
+  // Earned discount first, then the optional code — see the mock path.
+  if (input.completedTrips) price = applyLoyaltyToPrice(price, input.completedTrips);
   if (input.promo) price = applyPromoToPrice(price, input.promo);
   const reference = shortRef(`${input.spaceId}|${input.travellerId}|${new Date().toISOString()}`);
   const qrToken = `${reference}|${space.id}|${input.travellerId}`;
@@ -166,6 +198,23 @@ export async function createBookingLive(
       status,
       price,
       qr_token: qrToken,
+      // Migration 0026 columns. Written unconditionally: an older DB without
+      // them would reject the whole insert, which is the loud failure we want
+      // rather than a booking that silently loses the extras it was paid for.
+      protection: !!input.extras?.protection,
+      care_services: input.extras?.care ?? [],
+      vehicles: input.vehicles ?? [],
+      assistance: input.assistance ?? null,
+      organisation_id: input.organisationId ?? null,
+      ...(input.flight
+        ? {
+            flight_number: input.flight.number,
+            flight_status: input.flight.status,
+            flight_scheduled_at: input.flight.scheduledArrival,
+            flight_arrival_at: input.flight.estimatedArrival ?? input.flight.scheduledArrival,
+            flight_checked_at: input.flight.checkedAt ?? null,
+          }
+        : {}),
       // Only present when the host switched request-to-book on — which
       // requires migration 0021, so the columns are guaranteed to exist.
       ...(space.requestToBook
@@ -379,6 +428,36 @@ export async function applyBookingExtension(
   return extended;
 }
 
+/**
+ * Record what a gift card or trip pass already covered. The price is untouched
+ * — only how much still has to reach the card.
+ */
+export async function setBookingPrepaid(
+  bookingId: string,
+  prepaid: number,
+  from: NonNullable<Booking["prepaidFrom"]>
+): Promise<void> {
+  if (prepaid <= 0) return;
+  if (!IS_LIVE) {
+    const b = mockGetBooking(bookingId);
+    if (b) {
+      b.prepaid = prepaid;
+      b.prepaidFrom = from;
+    }
+    return;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin()
+      .from("bookings")
+      .update({ prepaid_pence: prepaid, prepaid_from: from })
+      .eq("id", bookingId);
+  } catch {
+    // The balances were already deducted; the booking simply shows the full
+    // price. Support can reconcile from the gift card's own redeemed_at.
+  }
+}
+
 export type CancelResult =
   | { ok: true; refund: number; feeApplied: boolean }
   | { ok: false; error: string };
@@ -408,11 +487,15 @@ export async function cancelBooking(
   // Policy is DB-configurable (/admin/settings); constants are the defaults.
   const { getPlatformSettings } = await import("@/lib/data/settings");
   const policy = await getPlatformSettings();
-  const feeApplied = start - now < policy.cancelWindowHours * 3_600_000;
+  // Cancellation protection is exactly this: the late fee is waived. The
+  // premium itself is not refunded — it bought cover that has now been used.
+  const feeApplied =
+    !booking.protection && start - now < policy.cancelWindowHours * 3_600_000;
   const fee = feeApplied
     ? Math.round((booking.price.total * policy.cancelFeeBps) / 10_000)
     : 0;
-  const refund = Math.max(0, booking.price.total - fee);
+  const premium = booking.protection ? booking.price.protection ?? 0 : 0;
+  const refund = Math.max(0, booking.price.total - fee - premium);
 
   if (!IS_LIVE) {
     mockSetBookingStatus(bookingId, "cancelled");

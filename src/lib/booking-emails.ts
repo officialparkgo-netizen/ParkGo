@@ -1,5 +1,5 @@
 import "server-only";
-import type { Booking } from "@/types";
+import type { Booking, GiftCard } from "@/types";
 import { emailButton, emailRows, emailShell, isEmailConfigured, sendEmail } from "@/lib/email";
 import { formatDateTime, formatMoney } from "@/lib/utils";
 
@@ -280,4 +280,52 @@ export async function sendArrivalReminders(): Promise<number> {
     }
   }
   return sent;
+}
+
+/**
+ * The gift card itself, sent to whoever it was bought for. The code is the
+ * whole value of the email, so it is the one thing rendered large enough to
+ * read off a phone and type in one go.
+ */
+export async function sendGiftCardEmail(card: GiftCard, buyerName: string): Promise<void> {
+  if (!isEmailConfigured() || !card.recipientEmail) return;
+  try {
+    const note = card.message
+      ? `<p style="margin:14px 0 0;padding:12px 14px;background:#F7F8F9;border-radius:10px;font-style:italic;color:#3F4650">“${escapeHtml(
+          card.message
+        )}”</p><p style="margin:6px 0 0;font-size:12px;color:#878D96">— ${escapeHtml(buyerName)}</p>`
+      : "";
+    await sendEmail(
+      card.recipientEmail,
+      `${buyerName} sent you ${formatMoney(card.initialPence, "GBP")} of ParkGo parking`,
+      emailShell(
+        `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">A gift from ${escapeHtml(
+          buyerName
+        )} 🎁</h2>
+         <p style="margin:0">Airport parking, a licensed transfer to the terminal and EV charging — all on one booking.</p>
+         <div style="margin:18px 0;padding:18px;border:2px dashed #F26A1B;border-radius:14px;text-align:center">
+           <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#878D96">Your code</div>
+           <div style="margin-top:6px;font-size:26px;font-weight:800;letter-spacing:.12em;color:#15171A">${card.code}</div>
+           <div style="margin-top:6px;font-size:14px;color:#3F4650">Worth ${formatMoney(
+             card.initialPence,
+             "GBP"
+           )}</div>
+         </div>
+         ${note}
+         ${emailButton(`${SITE}/app/search`, "Find parking")}
+         <p style="margin:0;font-size:12px;color:#878D96">Enter the code at checkout. Spend it across as many trips as you like until it runs out.</p>`
+      )
+    );
+  } catch {
+    // a gift card that fails to email still exists and can be resent
+  }
+}
+
+/** Codes are ours, but a buyer's message is not — never inline it raw. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

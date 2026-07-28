@@ -204,6 +204,21 @@ export default async function EditSpacePage({ params }: { params: Promise<{ id: 
               <p className="mt-1 text-xs text-navy-400">{t("host.edit.baysHint")}</p>
             </div>
 
+            <div>
+              <Label htmlFor="careServices">{t("host.edit.care")}</Label>
+              <textarea
+                id="careServices"
+                name="careServices"
+                rows={4}
+                placeholder={"Exterior wash | 20\nInterior valet | 35\nTyre pressure check | 8"}
+                defaultValue={(space.careServices ?? [])
+                  .map((c) => `${c.label} | ${(c.pricePence / 100).toFixed(2)}`)
+                  .join("\n")}
+                className="w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              />
+              <p className="mt-1 text-xs text-navy-400">{t("host.edit.careHint")}</p>
+            </div>
+
             <label className="flex items-start gap-2 rounded-2xl border border-navy-100 p-4 text-sm text-navy-700">
               <input
                 type="checkbox"

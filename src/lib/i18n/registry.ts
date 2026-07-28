@@ -11,6 +11,7 @@ import { legal } from "@/lib/i18n/areas/legal";
 import { blog } from "@/lib/i18n/areas/blog";
 import { airports } from "@/lib/i18n/areas/airports";
 import { support } from "@/lib/i18n/areas/support";
+import { guestSuite } from "@/lib/i18n/areas/guestSuite";
 
 /** All translation areas. Add new area modules here. */
 const AREAS: AreaDict[] = [
@@ -25,6 +26,7 @@ const AREAS: AreaDict[] = [
   blog,
   airports,
   support,
+  guestSuite,
 ];
 
 /** Merge every area into one flat dict for a locale, with English fallback. */
