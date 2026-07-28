@@ -52,16 +52,18 @@ npm run dev          # dev server
 npm run build        # production build
 npm start            # run the production build
 npm run typecheck    # tsc --noEmit
-npm test             # vitest — 216 tests across 22 files
+npm test             # vitest — 291 tests across 26 files
 npm run lint         # next lint
 ```
 
 The suite covers the money paths (commission split, hourly pricing, payout
 hold), the guards (admin scopes, staff sessions, auth redirects, 2FA core),
 the support brain (intents, bot, queue, business hours, SLA stats, inbound
-parsing, Svix signatures), and the guest suite (saved spaces, vehicles,
-referral credit). See **[Quality gates](#quality-gates)** for the two browser
-audits that run against a real build.
+parsing, Svix signatures), the guest suite (saved spaces, vehicles, referral
+credit), the rewards maths (loyalty clamped to the platform's cut, gift cards
+and passes as prepayments rather than discounts), and the flight rules (which
+designators are real, when a delay is worth extending for). See
+**[Quality gates](#quality-gates)** for the audits that run against a real build.
 
 ---
 
@@ -96,6 +98,27 @@ audits that run against a real build.
   the account.
 - **Account**: saved spaces, several vehicles per account, business/VAT details
   for company bookings, accessibility preferences, saved card for next time.
+- **Paid extras at checkout**: cancellation protection (waives the late-cancel
+  fee; the premium itself is not refunded because the cover was used) and
+  **car care** the host performs while the car is parked — a wash, a valet, a
+  tyre check — priced off the listing, not off the posted form.
+- **Rewards**: a loyalty tier earned by completed trips rather than money spent
+  (Silver/Gold/Platinum at 3/8/20 trips, 3/6/10% off the parking), **gift cards**
+  and **trip passes** of prepaid parking days. Loyalty is a discount the
+  platform absorbs and is clamped to its own cut; gift cards and passes are
+  **prepayments** — they reduce what reaches the card without changing what the
+  host is owed.
+- **Flight tracking**: attach a return flight and a late landing extends the
+  stay automatically, free. The host is still paid for the extra time, funded
+  out of the platform's commission rather than out of them.
+- **Travel-day tools**: wallet pass, "I'm N minutes away" to the host,
+  timestamped **condition photos** at drop-off and pick-up that neither side can
+  delete, an assistance request that reaches the host's board, and opt-in SMS.
+- **Group bookings** (two cars, one reservation, capacity checked per car),
+  **company accounts** (one owner, one invoice, month-to-date spend), a
+  **date waitlist** for when a search comes back empty, a **journey share** link
+  that shows progress without the address or gate code, and **claims with
+  photos**, because photographs are what settle a damage dispute.
 - **Referrals**: a personal code, credit for the referrer once the invited
   traveller completes a first booking, applied automatically at checkout while
   leaving enough to satisfy Stripe's minimum charge.
@@ -192,6 +215,9 @@ and a live branch (Supabase) returning identical shapes.
 | Email | `src/lib/email.ts` | Console log | **Resend** (`RESEND_API_KEY`, `EMAIL_FROM`) |
 | Inbound email | `api/support/inbound` | Off | Resend Receiving → `email.received` webhook, Svix-verified (`RESEND_WEBHOOK_SECRET`); or any provider with `SUPPORT_INBOUND_SECRET` |
 | Web push | `src/lib/push.ts` | Off | Staff push alerts (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) |
+| Flight tracking | `src/lib/flights.ts` | Off — the number is stored but not watched | **AviationStack** (`AVIATIONSTACK_KEY`); a delay extends the stay free, funded from the platform's own cut |
+| Travel-day SMS | `src/lib/sms.ts` | Off | **Twilio** (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`). Opt-in per account on top of the keys |
+| Wallet passes | `src/lib/wallet.ts` | Off — `/pass/[id]` works offline regardless | **Google Wallet** (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`, `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`); **Apple Wallet** needs a Pass Type certificate (`APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT_P12`, `APPLE_WWDR_CERT`) |
 | Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
 | Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
 | Transfer operator | `services/transfer-operator.ts` | Derived from bookings | Licensed operator REST API |
@@ -235,6 +261,7 @@ or paste each file into the **Supabase SQL editor**:
 | `0023_support_suite.sql` | Support tickets: account link, priority, presence, read receipts, first-response timing, CSAT, `support-files` bucket |
 | `0024_support_suite2.sql` | Support notes, tags, snooze, SLA escalation, callbacks, visitor language, agent duty flag, `push_subscriptions`; `support-files` becomes private |
 | `0025_guest_suite.sql` | Saved spaces, several vehicles per account, business/VAT details, referral credit, price & availability alerts, step-free listing flag |
+| `0026_guest_suite2.sql` | Cancellation protection, host car-care services, gift cards, trip passes, loyalty counter, flight tracking columns, condition photos, date waitlist, group bookings, company accounts, claim photos |
 
 RLS keeps each role to its own rows; the exact address and camera stream are
 released only to the paying traveller. KYC files live in the **private**
@@ -315,17 +342,22 @@ capacitor.config.ts       iOS/Android wrapper config
 
 ## Quality gates
 
-Beyond `npm test`, two audits run against a **real production build in a real
-browser**, because both check things that only exist once the page is composed
-— a colour is only wrong against the background it actually lands on, and a
-meta tag is only right once the framework has finished resolving it.
+Beyond `npm test`, several audits run against a **real production build in a
+real browser**, because they check things that only exist once the page is
+composed — a colour is only wrong against the background it actually lands on,
+and a meta tag is only right once the framework has finished resolving it.
 
 ```bash
 npm i -D playwright && npx playwright install chromium   # one time
 
 npm run build && npm start &                # audits need a running build
-BASE=http://localhost:3000 npm run audit:a11y
-BASE=http://localhost:3000 npm run audit:seo
+BASE=http://localhost:3000 npm run audit:a11y     # contrast, 35 routes
+BASE=http://localhost:3000 npm run audit:seo      # titles, canonicals, JSON-LD
+BASE=http://localhost:3000 npm run audit:motion   # prefers-reduced-motion
+BASE=http://localhost:3000 npm run e2e:search     # destination suggestions
+BASE=http://localhost:3000 npm run e2e:nav        # current-page indicator
+
+npm run audit:i18n                          # no server needed
 ```
 
 Both exit non-zero when they find something, so they drop straight into CI, and
@@ -341,11 +373,29 @@ details matter or it quietly lies to you. A gradient band reports
 white body and scores white-on-white at 1:1 — it pulls the stops out of the
 gradient and judges against the worst one instead. And a full-bleed background
 texture is decoration, not a graphical object, so those are skipped by
-geometry. Currently **0 findings**.
+geometry.
+
+Currently **98 findings, all the same one**: white on ParkGo orange is 3.06:1,
+below the 4.5:1 floor. That is a deliberate, informed brand decision — the
+orange is not moving and the labels stay white — so the audit reports it rather
+than being taught to ignore it. `#C9510B` is the same hue at 4.50:1 and is
+recorded in `tailwind.config.ts` as the swap that would clear all 98 without
+touching anything else. **Any finding that is not white-on-orange is a
+regression.**
 
 **`audit:seo`** checks title and description length against what Google
 actually renders, plus canonical, `og:image`, JSON-LD validity, `h1` count and
 missing `alt`s, across all 13 public pages. Currently **0 findings**.
+
+**`audit:motion`** loads the marketing pages under `prefers-reduced-motion` and
+checks that nothing is left hidden — a scroll-triggered reveal that never fires
+is content that does not exist for anyone who turned animation off.
+
+**`audit:i18n`** compares every locale against English per area. English is the
+source of truth and everything falls back to it, so a missing key is never a
+crash, which is exactly why it goes unnoticed. Areas a signed-in user acts on
+(`core`, `portalTraveller`, `guestSuite`) must be complete in all five
+languages; marketing copy is allowed to fall back.
 
 To rebuild the share card, edit `scripts/og/og-card.html` and screenshot it at
 1200×630 — it is rendered in a browser rather than drawn by hand so it inherits
@@ -355,17 +405,21 @@ the site's own type and palette.
 
 ## Go-live checklist
 
-1. **Supabase**: create the project, run migrations **0001 → 0025**, run
+1. **Supabase**: create the project, run migrations **0001 → 0026**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
 2. **Crons** (`vercel.json`): `/api/admin/digest` daily (KPI digest, expired
-   booking requests, arrival reminders, space watches) and `/api/admin/sla`
-   every 15 minutes (support reply targets). Add an env var named exactly
+   booking requests, arrival reminders, space watches, date waitlist),
+   `/api/admin/sla` every 15 minutes (support reply targets) and
+   `/api/booking/flights` every 30 minutes (flight delays — the traveller is on
+   an aeroplane, so this cannot wait for them to open the page). Add an env var
+   named exactly
    **`CRON_SECRET`** — Vercel then sends it as `Authorization: Bearer …`
    automatically, and the routes reject anything else.
-   > ⚠️ **The 15-minute schedule needs a Pro plan.** Vercel Hobby allows daily
+   > ⚠️ **The sub-daily schedules need a Pro plan.** Vercel Hobby allows daily
    > crons only, and a sub-daily entry fails the deployment outright rather
-   > than degrading. On Hobby, either drop the `/api/admin/sla` entry from
-   > `vercel.json` or move it to an external scheduler that calls the route.
+   > than degrading. On Hobby, drop the `/api/admin/sla` and
+   > `/api/booking/flights` entries from `vercel.json`, or move them to an
+   > external scheduler that calls the routes with the same secret.
 3. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
    Supabase URL + anon + service-role keys, and
    **`NEXT_PUBLIC_SITE_URL=https://www.parkgo.ai`** — canonicals, the sitemap
@@ -377,7 +431,22 @@ the site's own type and palette.
 5. **Email**: `RESEND_API_KEY` + `EMAIL_FROM`; mailboxes (info@, support@) in
    Microsoft 365.
 6. **Maps**: `NEXT_PUBLIC_MAPS_PROVIDER=mapbox` + `NEXT_PUBLIC_MAPBOX_TOKEN`.
-7. **Inbound support email** (optional) — lets customers reply to a support
+   The token must **not** carry a URL restriction: postcode lookups run on the
+   server, which sends no `Referer`, so a restricted token returns 401 and
+   every postcode silently finds nothing. `/api/geo/suggest?q=sw1a&diag=1`
+   reports which endpoint answered and why.
+7. **Flight delays** (optional): `AVIATIONSTACK_KEY`. Without it a flight
+   number is stored and shown but never watched, and no stay is ever extended.
+8. **Travel-day SMS** (optional): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
+   `TWILIO_FROM_NUMBER`. Texts also require the recipient to have opted in on
+   their account — the keys alone never cause a message to be sent.
+9. **Wallet passes** (optional): Google needs a service account
+   (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`,
+   `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`). Apple needs a Pass Type
+   ID certificate, which is a build artefact rather than an env var; until it
+   exists the Apple button is not shown at all. `/pass/[id]` works offline
+   either way, so nothing is lost by skipping this.
+10. **Inbound support email** (optional) — lets customers reply to a support
    email and have it land back in the chat:
    - In Resend, **Domains → Receiving**: add the MX record it gives you, on a
      subdomain such as `support.parkgo.ai` (priority 10, and it must be the
@@ -391,17 +460,17 @@ the site's own type and palette.
      so the body is fetched from the receiving API.
    - Any non-Resend provider can instead POST `{from, subject, text}` with
      `SUPPORT_INBOUND_SECRET` in an `X-ParkGo-Secret` header.
-8. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
+11. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
    set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`
    (a `mailto:` address). The button stays hidden until these exist.
-9. **Support team**: invite agents from the admin console. They get an email
+12. **Support team**: invite agents from the admin console. They get an email
    with a single-use link, set their own password and sign in at
    `/team/login`. Give them the `support` scope unless they genuinely need the
    money pages.
-10. Optional: Sentry DSN, commission overrides
+13. Optional: Sentry DSN, commission overrides
     (`PARKGO_COMMISSION_PARKING_BPS` / `_TRANSFER_BPS`).
 
-Then run the two audits against the deployed URL —
+Then run the audits against the deployed URL —
 `BASE=https://www.parkgo.ai npm run audit:seo` will tell you immediately if
 step 3 was missed, because every canonical will still say `localhost`.
 

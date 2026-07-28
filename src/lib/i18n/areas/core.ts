@@ -289,6 +289,15 @@ export const core: AreaDict = {
   },
 
   ur: {
+    "host.onboard.title": "ParkGo برائے میزبان میں خوش آمدید",
+    "host.onboard.body": "کمائی شروع کرنے کے لیے اپنی پہلی پارکنگ جگہ درج کریں۔ ہم اس کی تصدیق کریں گے، پھر اسے آپ کے ہوائی اڈے کے قریب تلاش کرنے والے مسافروں کے لیے فعال کر دیں گے۔",
+    "host.payouts.title": "ادائیگیاں",
+    "host.payouts.connected": "منسلک — آمدنی Stripe کے ذریعے آپ کے بینک میں جاتی ہے۔",
+    "host.payouts.finish": "آمدنی وصول کرنے کے لیے اپنا بینک منسلک کرنا مکمل کریں۔",
+    "host.payouts.setup": "اپنی آمدنی خودکار طور پر وصول کرنے کے لیے بینک منسلک کریں۔",
+    "host.payouts.badge": "منسلک",
+    "host.payouts.setupBtn": "ادائیگیاں ترتیب دیں",
+    "host.payouts.finishBtn": "ترتیب مکمل کریں",
     "brand.tagline": "ہوشیاری سے پارک کریں۔ آسانی سے سفر کریں۔",
     "brand.positioning": "مربوط پارکنگ، لائسنس یافتہ ٹرانسفر اور ای وی کے لیے تیار سفری ٹیکنالوجی — ہوائی اڈوں سے شہروں تک۔",
     "nav.how": "یہ کیسے کام کرتا ہے",
@@ -553,6 +562,15 @@ export const core: AreaDict = {
   },
 
   hi: {
+    "host.onboard.title": "ParkGo होस्ट में आपका स्वागत है",
+    "host.onboard.body": "कमाई शुरू करने के लिए अपनी पहली पार्किंग जगह दर्ज करें। हम उसे सत्यापित करेंगे, फिर आपके हवाई अड्डे के पास खोज रहे यात्रियों के लिए उसे लाइव कर देंगे।",
+    "host.payouts.title": "भुगतान",
+    "host.payouts.connected": "जुड़ा हुआ — कमाई Stripe के ज़रिए आपके बैंक में जाती है।",
+    "host.payouts.finish": "कमाई पाने के लिए अपना बैंक जोड़ना पूरा करें।",
+    "host.payouts.setup": "अपनी कमाई अपने आप पाने के लिए बैंक जोड़ें।",
+    "host.payouts.badge": "जुड़ा हुआ",
+    "host.payouts.setupBtn": "भुगतान सेट करें",
+    "host.payouts.finishBtn": "सेटअप पूरा करें",
     "brand.tagline": "स्मार्ट पार्क करें। आसानी से यात्रा करें।",
     "brand.positioning": "एकीकृत पार्किंग, लाइसेंस प्राप्त ट्रांसफर और ईवी-तैयार यात्रा तकनीक — एयरपोर्ट से शहरों तक।",
     "nav.how": "यह कैसे काम करता है",
@@ -817,6 +835,15 @@ export const core: AreaDict = {
   },
 
   de: {
+    "host.onboard.title": "Willkommen bei ParkGo für Gastgeber",
+    "host.onboard.body": "Legen Sie Ihren ersten Stellplatz an, um zu verdienen. Wir prüfen ihn und schalten ihn dann für Reisende frei, die in Flughafennähe suchen.",
+    "host.payouts.title": "Auszahlungen",
+    "host.payouts.connected": "Verbunden — Einnahmen gehen über Stripe auf Ihr Bankkonto.",
+    "host.payouts.finish": "Schließen Sie die Bankverbindung ab, um Einnahmen zu erhalten.",
+    "host.payouts.setup": "Verbinden Sie Ihre Bank, um Einnahmen automatisch zu erhalten.",
+    "host.payouts.badge": "Verbunden",
+    "host.payouts.setupBtn": "Auszahlungen einrichten",
+    "host.payouts.finishBtn": "Einrichtung abschließen",
     "brand.tagline": "Clever parken. Entspannt reisen.",
     "brand.positioning": "Integriertes Parken, lizenzierte Transfers und E-Auto-fähige Reisetechnologie — von Flughäfen bis Städten.",
     "nav.how": "So funktioniert's",
@@ -1081,6 +1108,15 @@ export const core: AreaDict = {
   },
 
   zh: {
+    "host.onboard.title": "欢迎使用 ParkGo 房东端",
+    "host.onboard.body": "发布您的第一个车位即可开始赚取收入。我们会先审核，随后向在机场附近搜索的旅客上线。",
+    "host.payouts.title": "收款",
+    "host.payouts.connected": "已连接——收入通过 Stripe 打入您的银行账户。",
+    "host.payouts.finish": "完成银行绑定即可收款。",
+    "host.payouts.setup": "绑定银行账户，自动收取您的收入。",
+    "host.payouts.badge": "已连接",
+    "host.payouts.setupBtn": "设置收款",
+    "host.payouts.finishBtn": "完成设置",
     "brand.tagline": "聪明停车，轻松出行。",
     "brand.positioning": "一体化停车、持牌接送和电动车友好出行技术 — 从机场到城市。",
     "nav.how": "运作方式",

@@ -334,6 +334,10 @@ export function Checkout({
             </label>
           )}
 
+          {/* Only where a second bay actually exists. Offering it on a
+              one-car driveway means the booking is refused at the last step,
+              after the traveller has typed a registration in. */}
+          {(space.capacity ?? 1) >= 2 && (
           <details className="rounded-xl border border-navy-200 p-3.5 open:bg-navy-50/40">
             <summary className="cursor-pointer text-sm font-bold text-navy-900">
               {t("guest.second.title")}
@@ -361,6 +365,7 @@ export function Checkout({
               {t("guest.second.note")}
             </p>
           </details>
+          )}
 
           <label className="block">
             <span className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-navy-600">
