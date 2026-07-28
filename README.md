@@ -407,19 +407,42 @@ the site's own type and palette.
 
 1. **Supabase**: create the project, run migrations **0001 → 0026**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
-2. **Crons** (`vercel.json`): `/api/admin/digest` daily (KPI digest, expired
-   booking requests, arrival reminders, space watches, date waitlist),
-   `/api/admin/sla` every 15 minutes (support reply targets) and
-   `/api/booking/flights` every 30 minutes (flight delays — the traveller is on
-   an aeroplane, so this cannot wait for them to open the page). Add an env var
-   named exactly
-   **`CRON_SECRET`** — Vercel then sends it as `Authorization: Bearer …`
-   automatically, and the routes reject anything else.
-   > ⚠️ **The sub-daily schedules need a Pro plan.** Vercel Hobby allows daily
-   > crons only, and a sub-daily entry fails the deployment outright rather
-   > than degrading. On Hobby, drop the `/api/admin/sla` and
-   > `/api/booking/flights` entries from `vercel.json`, or move them to an
-   > external scheduler that calls the routes with the same secret.
+
+   Migrations are applied by hand, so there is always a gap between a deploy and
+   the SQL landing. The app is built to survive that gap: writes that touch
+   columns a migration has not added yet retry without them and log a warning,
+   so checkout keeps working and only the new fields are lost until you run it.
+   Reads use `select("*")`, so a missing column simply comes back undefined.
+2. **Crons.** `vercel.json` declares **one** cron — `/api/admin/digest`, daily
+   at 07:00 — and that is deliberate. Vercel Hobby allows daily schedules only,
+   and a sub-daily entry does not degrade, it **fails the whole deployment**,
+   which means every commit after it silently never reaches the site. One daily
+   entry deploys on any plan.
+
+   That daily pass runs every sweep: expired booking requests, arrival
+   reminders, space watches, the date waitlist, flight delays and support reply
+   targets. Add an env var named exactly **`CRON_SECRET`** — Vercel then sends
+   it as `Authorization: Bearer …` automatically and the routes reject anything
+   else.
+
+   **On Pro**, two of those want to run far more often than once a day. Add them
+   back and redeploy:
+
+   ```jsonc
+   {
+     "crons": [
+       { "path": "/api/admin/digest",   "schedule": "0 7 * * *"   },
+       { "path": "/api/admin/sla",      "schedule": "*/15 * * * *" },  // Pro only
+       { "path": "/api/booking/flights","schedule": "*/30 * * * *" }   // Pro only
+     ]
+   }
+   ```
+
+   Both routes are idempotent, so the daily pass finding nothing left to do is
+   the expected outcome, not a sign it is misconfigured. A delayed flight is the
+   one that really needs the frequent schedule: once a day, the traveller may be
+   home before it fires.
+
 3. **Vercel env**: `PARKGO_MODE=live`, `NEXT_PUBLIC_PARKGO_MODE=live`,
    Supabase URL + anon + service-role keys, and
    **`NEXT_PUBLIC_SITE_URL=https://www.parkgo.ai`** — canonicals, the sitemap

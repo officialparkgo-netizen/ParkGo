@@ -186,46 +186,66 @@ export async function createBookingLive(
   const { supabaseAdmin } = await import("@/lib/supabase/server");
   const admin = supabaseAdmin();
 
-  const { data: bRow, error } = await admin
-    .from("bookings")
-    .insert({
-      reference,
-      traveller_id: input.travellerId,
-      space_id: input.spaceId,
-      bundle: input.bundle,
-      start_at: input.startAt,
-      end_at: input.endAt,
-      status,
-      price,
-      qr_token: qrToken,
-      // Migration 0026 columns. Written unconditionally: an older DB without
-      // them would reject the whole insert, which is the loud failure we want
-      // rather than a booking that silently loses the extras it was paid for.
-      protection: !!input.extras?.protection,
-      care_services: input.extras?.care ?? [],
-      vehicles: input.vehicles ?? [],
-      assistance: input.assistance ?? null,
-      organisation_id: input.organisationId ?? null,
-      ...(input.flight
-        ? {
-            flight_number: input.flight.number,
-            flight_status: input.flight.status,
-            flight_scheduled_at: input.flight.scheduledArrival,
-            flight_arrival_at: input.flight.estimatedArrival ?? input.flight.scheduledArrival,
-            flight_checked_at: input.flight.checkedAt ?? null,
-          }
-        : {}),
-      // Only present when the host switched request-to-book on — which
-      // requires migration 0021, so the columns are guaranteed to exist.
-      ...(space.requestToBook
-        ? {
-            approval: "pending",
-            approval_deadline: new Date(Date.now() + 86_400_000).toISOString(),
-          }
-        : {}),
-    })
-    .select(BOOKING_COLS)
-    .single();
+  const core = {
+    reference,
+    traveller_id: input.travellerId,
+    space_id: input.spaceId,
+    bundle: input.bundle,
+    start_at: input.startAt,
+    end_at: input.endAt,
+    status,
+    price,
+    qr_token: qrToken,
+    // Only present when the host switched request-to-book on — which
+    // requires migration 0021, so the columns are guaranteed to exist.
+    ...(space.requestToBook
+      ? {
+          approval: "pending",
+          approval_deadline: new Date(Date.now() + 86_400_000).toISOString(),
+        }
+      : {}),
+  };
+
+  /**
+   * Migration 0026 columns, sent separately so the insert can be retried
+   * without them.
+   *
+   * Migrations here are applied by hand in the SQL editor, which means there is
+   * always a window between a deploy and the migration landing. Failing the
+   * insert during that window takes checkout down for everybody, including the
+   * overwhelming majority of bookings that use none of these fields — so the
+   * booking is saved either way and only the extras are lost. Anything actually
+   * paid for is carried in `price`, which is a column that has always existed,
+   * so nothing chargeable disappears; the retry is logged rather than silent.
+   */
+  const guestExtras: Record<string, unknown> = {
+    protection: !!input.extras?.protection,
+    care_services: input.extras?.care ?? [],
+    vehicles: input.vehicles ?? [],
+    assistance: input.assistance ?? null,
+    organisation_id: input.organisationId ?? null,
+    ...(input.flight
+      ? {
+          flight_number: input.flight.number,
+          flight_status: input.flight.status,
+          flight_scheduled_at: input.flight.scheduledArrival,
+          flight_arrival_at: input.flight.estimatedArrival ?? input.flight.scheduledArrival,
+          flight_checked_at: input.flight.checkedAt ?? null,
+        }
+      : {}),
+  };
+
+  const doInsert = (payload: Record<string, unknown>) =>
+    admin.from("bookings").insert(payload).select(BOOKING_COLS).single();
+
+  let { data: bRow, error } = await doInsert({ ...core, ...guestExtras });
+  if (error) {
+    console.warn(
+      `[booking] insert with 0026 columns failed (${error.message}); ` +
+        "retrying without them — run supabase/migrations/0026_guest_suite2.sql"
+    );
+    ({ data: bRow, error } = await doInsert(core));
+  }
   if (error || !bRow) throw new Error(`booking failed: ${error?.message}`);
   const booking = bookingFromRow(bRow);
 

@@ -1,16 +1,9 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
       "path": "/api/admin/digest",
       "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/admin/sla",
-      "schedule": "*/15 * * * *"
-    },
-    {
-      "path": "/api/booking/flights",
-      "schedule": "*/30 * * * *"
     }
   ]
 }

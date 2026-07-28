@@ -2,9 +2,19 @@ import { composeAndSendDigest } from "@/lib/digest";
 import { IS_LIVE } from "@/lib/config";
 
 /**
- * Daily KPI digest. Called by the Vercel cron (see vercel.json) with
+ * Daily KPI digest, and the fallback home for every sweep.
+ *
+ * Called by the Vercel cron (see vercel.json) with
  * `Authorization: Bearer $CRON_SECRET`, or manually from /admin/settings.
  * In live mode the secret is required; mock mode is open for local testing.
+ *
+ * This is the **only** cron `vercel.json` declares, because a daily schedule is
+ * the only kind the Hobby plan accepts and a sub-daily entry fails the whole
+ * deployment rather than degrading. So every sweep runs from here as well as
+ * from its own route: on Hobby that daily pass is the only pass, and on Pro the
+ * frequent crons (see the README) simply get there first and leave nothing to
+ * do. Each one is independently guarded — a sweep that throws must not take the
+ * digest, or any of the others, down with it.
  */
 export async function GET(request: Request) {
   if (IS_LIVE) {
@@ -21,6 +31,8 @@ export async function GET(request: Request) {
   let arrivalReminders = 0;
   let alertsFired = 0;
   let slaBreaches = 0;
+  let flightsChecked = 0;
+  let flightsExtended = 0;
   try {
     const { sweepExpiredApprovals } = await import("@/lib/data/bookings");
     sweptRequests = await sweepExpiredApprovals();
@@ -51,6 +63,19 @@ export async function GET(request: Request) {
     // best-effort
   }
 
+  // Flights running late. Once a day is thin cover for a delay — the traveller
+  // may already be home before it fires — so on Pro this really wants the
+  // half-hourly cron. It runs here so that a Hobby deployment still catches the
+  // overnight delays rather than none at all.
+  try {
+    const { runFlightSweep } = await import("@/lib/flight-sweep");
+    const result = await runFlightSweep();
+    flightsChecked = result.checked;
+    flightsExtended = result.extended;
+  } catch {
+    // best-effort
+  }
+
   // Support chats that blew past their reply target. The queue page also
   // sweeps on load, but that only helps if somebody is looking — this covers
   // the overnight case, which is exactly when a missed urgent chat hurts.
@@ -74,6 +99,8 @@ export async function GET(request: Request) {
     arrivalReminders,
     alertsFired,
     waitlistFired,
+    flightsChecked,
+    flightsExtended,
     slaBreaches,
     emailed: summary.emailed,
     recipients: summary.sentTo.length,

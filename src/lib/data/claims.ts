@@ -50,18 +50,27 @@ export async function fileClaim(input: {
   }
   try {
     const { supabaseAdmin } = await import("@/lib/supabase/server");
-    const { data, error } = await supabaseAdmin()
-      .from("claims")
-      .insert({
-        booking_id: input.bookingId,
-        booking_ref: input.bookingRef,
-        opened_by: input.openedBy,
-        role: input.openedByRole,
-        description,
-        photos: input.photos ?? [],
-      })
-      .select("*")
-      .single();
+    const core = {
+      booking_id: input.bookingId,
+      booking_ref: input.bookingRef,
+      opened_by: input.openedBy,
+      role: input.openedByRole,
+      description,
+    };
+    const insert = (payload: Record<string, unknown>) =>
+      supabaseAdmin().from("claims").insert(payload).select("*").single();
+
+    // `photos` arrives with migration 0026. Losing the attachments is bad;
+    // losing the report itself is worse, because the traveller has no way to
+    // know it went nowhere and the evidence goes cold either way.
+    let { data, error } = await insert({ ...core, photos: input.photos ?? [] });
+    if (error) {
+      console.warn(
+        `[claim] insert with photos failed (${error.message}); retrying without — ` +
+          "run supabase/migrations/0026_guest_suite2.sql"
+      );
+      ({ data, error } = await insert(core));
+    }
     if (error || !data) return null;
     return fromRow(data);
   } catch {
