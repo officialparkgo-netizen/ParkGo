@@ -52,7 +52,7 @@ npm run dev          # dev server
 npm run build        # production build
 npm start            # run the production build
 npm run typecheck    # tsc --noEmit
-npm test             # vitest — 291 tests across 26 files
+npm test             # vitest — 308 tests across 27 files
 npm run lint         # next lint
 ```
 
@@ -68,6 +68,15 @@ designators are real, when a delay is worth extending for). See
 ---
 
 ## What's in the product
+
+**Support**
+- Live chat with a rule-based first responder, escalation to a human, saved
+  replies, attachments, typing and read receipts, priority triage, CSAT.
+- **Any language in, English out.** A visitor writing in Urdu, Hindi, German or
+  Chinese reaches the agent console in English, with the original underneath —
+  never instead of it. Machine translation drops negations often enough that an
+  agent acting only on the English could refund the wrong booking, so both are
+  always on screen and the queue preview shows the readable one.
 
 **Traveller**
 - Search by destination (airports **and** city centres, stations, stadiums) with
@@ -219,6 +228,7 @@ and a live branch (Supabase) returning identical shapes.
 | Travel-day SMS | `src/lib/sms.ts` | Off | **Twilio** (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`). Opt-in per account on top of the keys |
 | Wallet passes | `src/lib/wallet.ts` | Off — `/pass/[id]` works offline regardless | **Google Wallet** (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`, `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`); **Apple Wallet** needs a Pass Type certificate (`APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT_P12`, `APPLE_WWDR_CERT`) |
 | Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
+| Support translation | `src/lib/translate.ts` | Off (`PARKGO_DEMO_TRANSLATE=1` shows the console wiring with clearly-labelled placeholder text) | **DeepL** (`DEEPL_API_KEY`) or **Google Translate** (`GOOGLE_TRANSLATE_API_KEY`) — visitor messages rendered into English for the team, original always kept |
 | Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
 | Transfer operator | `services/transfer-operator.ts` | Derived from bookings | Licensed operator REST API |
 
@@ -356,6 +366,11 @@ BASE=http://localhost:3000 npm run audit:seo      # titles, canonicals, JSON-LD
 BASE=http://localhost:3000 npm run audit:motion   # prefers-reduced-motion
 BASE=http://localhost:3000 npm run e2e:search     # destination suggestions
 BASE=http://localhost:3000 npm run e2e:nav        # current-page indicator
+BASE=http://localhost:3000 npm run e2e:guest2     # traveller round two
+
+# Support translation needs the placeholder provider switched on:
+#   PARKGO_DEMO_TRANSLATE=1 npm start &
+BASE=http://localhost:3000 npm run e2e:translate
 
 npm run audit:i18n                          # no server needed
 ```
@@ -463,13 +478,19 @@ the site's own type and palette.
 8. **Travel-day SMS** (optional): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
    `TWILIO_FROM_NUMBER`. Texts also require the recipient to have opted in on
    their account — the keys alone never cause a message to be sent.
-9. **Wallet passes** (optional): Google needs a service account
+9. **Support translation** (optional): `DEEPL_API_KEY`, or
+   `GOOGLE_TRANSLATE_API_KEY` if you need languages DeepL does not cover.
+   Whichever is set, a visitor writing in any language reaches the agent
+   console in English with the original underneath. Without a key nothing is
+   translated and agents see what they see today — the original plus a language
+   badge. No message is ever lost to a missing key or a provider outage.
+10. **Wallet passes** (optional): Google needs a service account
    (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`,
    `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`). Apple needs a Pass Type
    ID certificate, which is a build artefact rather than an env var; until it
    exists the Apple button is not shown at all. `/pass/[id]` works offline
    either way, so nothing is lost by skipping this.
-10. **Inbound support email** (optional) — lets customers reply to a support
+11. **Inbound support email** (optional) — lets customers reply to a support
    email and have it land back in the chat:
    - In Resend, **Domains → Receiving**: add the MX record it gives you, on a
      subdomain such as `support.parkgo.ai` (priority 10, and it must be the
@@ -483,14 +504,14 @@ the site's own type and palette.
      so the body is fetched from the receiving API.
    - Any non-Resend provider can instead POST `{from, subject, text}` with
      `SUPPORT_INBOUND_SECRET` in an `X-ParkGo-Secret` header.
-11. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
+12. **Staff push alerts** (optional): `npx web-push generate-vapid-keys`, then
    set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`
    (a `mailto:` address). The button stays hidden until these exist.
-12. **Support team**: invite agents from the admin console. They get an email
+13. **Support team**: invite agents from the admin console. They get an email
    with a single-use link, set their own password and sign in at
    `/team/login`. Give them the `support` scope unless they genuinely need the
    money pages.
-13. Optional: Sentry DSN, commission overrides
+14. Optional: Sentry DSN, commission overrides
     (`PARKGO_COMMISSION_PARKING_BPS` / `_TRANSFER_BPS`).
 
 Then run the audits against the deployed URL —

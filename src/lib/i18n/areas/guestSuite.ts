@@ -6,6 +6,9 @@ import type { AreaDict } from "@/lib/i18n/config";
  */
 export const guestSuite: AreaDict = {
   en: {
+    "admin.sup.original": "Original",
+    "admin.sup.translated": "Translated",
+    "admin.sup.translatedHint": "Visitor messages are translated to English for the team. The original is shown underneath — always check it before acting on a refund or a cancellation.",
     "journey.title": "Following this journey",
     "journey.booked": "Parking booked",
     "journey.dropped": "Car dropped off",
@@ -146,6 +149,9 @@ export const guestSuite: AreaDict = {
   },
 
   ur: {
+    "admin.sup.original": "اصل متن",
+    "admin.sup.translated": "ترجمہ شدہ",
+    "admin.sup.translatedHint": "ٹیم کے لیے صارف کے پیغامات انگریزی میں ترجمہ ہوتے ہیں۔ اصل متن نیچے دکھایا جاتا ہے — رقم کی واپسی یا منسوخی سے پہلے ہمیشہ اسے دیکھ لیں۔",
     "journey.title": "اس سفر کی پیروی",
     "journey.booked": "پارکنگ بک ہو گئی",
     "journey.dropped": "گاڑی چھوڑ دی گئی",
@@ -269,6 +275,9 @@ export const guestSuite: AreaDict = {
   },
 
   hi: {
+    "admin.sup.original": "मूल पाठ",
+    "admin.sup.translated": "अनूदित",
+    "admin.sup.translatedHint": "टीम के लिए यात्री के संदेश अंग्रेज़ी में अनूदित होते हैं। मूल पाठ नीचे दिखता है — रिफ़ंड या रद्दीकरण से पहले उसे ज़रूर देखें।",
     "journey.title": "इस यात्रा को देख रहे हैं",
     "journey.booked": "पार्किंग बुक हुई",
     "journey.dropped": "गाड़ी छोड़ी गई",
@@ -392,6 +401,9 @@ export const guestSuite: AreaDict = {
   },
 
   de: {
+    "admin.sup.original": "Original",
+    "admin.sup.translated": "Übersetzt",
+    "admin.sup.translatedHint": "Besuchernachrichten werden für das Team ins Englische übersetzt. Das Original steht darunter — prüfen Sie es immer, bevor Sie erstatten oder stornieren.",
     "journey.title": "Diese Reise verfolgen",
     "journey.booked": "Parkplatz gebucht",
     "journey.dropped": "Auto abgestellt",
@@ -515,6 +527,9 @@ export const guestSuite: AreaDict = {
   },
 
   zh: {
+    "admin.sup.original": "原文",
+    "admin.sup.translated": "已翻译",
+    "admin.sup.translatedHint": "访客消息会为团队翻译成英文，原文显示在下方——退款或取消前请务必核对原文。",
     "journey.title": "正在关注此行程",
     "journey.booked": "停车已预订",
     "journey.dropped": "车辆已交付",

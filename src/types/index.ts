@@ -789,7 +789,17 @@ export interface SpaceAlert {
 /** One line of a support-chat conversation. */
 export interface SupportMessage {
   role: "bot" | "user" | "agent";
+  /** Exactly what was typed. Never overwritten by a translation. */
   text: string;
+  /**
+   * English rendering of `text`, for the agent console. Only set on visitor
+   * messages that were not already English, and only when a translation
+   * provider is configured — the original is always the record of what was
+   * said, because machine translation loses negations.
+   */
+  translated?: string;
+  /** Language `text` was written in, when it was not English. */
+  sourceLocale?: Locale;
   /** ISO timestamp — absent on messages written before attachments landed. */
   at?: ISODateString;
   /**

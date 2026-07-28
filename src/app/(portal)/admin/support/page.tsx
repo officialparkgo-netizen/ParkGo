@@ -94,6 +94,7 @@ export default async function AdminSupportPage({
     noteHint: t("admin.sup.noteHint"),
     tags: t("admin.sup.tags"),
     addTag: t("admin.sup.addTag"),
+    original: t("admin.sup.original"),
   };
 
   const allTickets = await listSupportTickets().catch(() => []);
@@ -413,6 +414,15 @@ export default async function AdminSupportPage({
                     {ticket.locale && ticket.locale !== "en" && (
                       <Badge tone="brand" data-locale>
                         <Languages className="h-3 w-3" /> {LOCALE_LABELS[ticket.locale]}
+                        {/* Says whether the English is actually there. A
+                            language badge on its own leaves an agent guessing
+                            whether the thread has been translated or they are
+                            simply looking at text they cannot read. */}
+                        {ticket.transcript.some((m) => m.translated) && (
+                          <span className="ms-1 font-normal opacity-80">
+                            · {t("admin.sup.translated")}
+                          </span>
+                        )}
                       </Badge>
                     )}
                     {(historyByTicket.get(ticket.id) ?? 0) > 0 && (
@@ -530,7 +540,9 @@ export default async function AdminSupportPage({
                   <p className="mt-2 line-clamp-2 text-sm text-navy-600">
                     {ticket.transcript
                       .filter((m) => m.role === "user")
-                      .map((m) => m.text)
+                      // The preview is what an agent skims to decide what to
+                      // pick up, so it shows the language they can read.
+                      .map((m) => m.translated || m.text)
                       .join(" · ") || ticket.transcript[ticket.transcript.length - 1]?.text}
                   </p>
                 )}
@@ -569,7 +581,22 @@ export default async function AdminSupportPage({
                                   : ticket.name || t("admin.support.visitor")}
                               :
                             </span>
-                            {m.text}
+                            {m.translated ? (
+                              <>
+                                {m.translated}
+                                <span className="mt-1 flex items-start gap-1 border-t border-navy-200/70 pt-1 text-[11px] text-navy-500">
+                                  <Languages className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                                  <span dir="auto">
+                                    <span className="sr-only">
+                                      {t("admin.sup.original")}:{" "}
+                                    </span>
+                                    {m.text}
+                                  </span>
+                                </span>
+                              </>
+                            ) : (
+                              m.text
+                            )}
                           </div>
                         </div>
                       ))}

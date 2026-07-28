@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import type { SupportMessage } from "@/types";
+import type { Locale, SupportMessage } from "@/types";
 import { getCurrentUser, requireRole } from "@/lib/auth";
 import { createSupportTicket, setSupportTicketResolved } from "@/lib/data/support";
 import { deskState, detectPriority, formatWait } from "@/lib/support-hours";
@@ -18,6 +18,38 @@ import {
   supportRef,
 } from "@/lib/support-thread";
 import { COMPANY } from "@/lib/seo";
+
+/**
+ * Attach an English rendering to each thing the visitor said, so the agent
+ * console can show both. Bot lines are already English and are left alone.
+ *
+ * One call per message rather than one for the joined text: the provider needs
+ * to see each message whole, and joining them would hand the agent one wall of
+ * prose with no idea which line was which.
+ */
+async function translateForTeam(
+  transcript: { role: "bot" | "user"; text: string }[],
+  locale: Locale
+): Promise<SupportMessage[]> {
+  const { isTranslationConfigured, translateText, worthTranslating } = await import(
+    "@/lib/translate"
+  );
+  if (locale === "en" || !isTranslationConfigured()) return transcript;
+
+  return Promise.all(
+    transcript.map(async (m) => {
+      if (m.role !== "user" || !worthTranslating(m.text, locale)) return m;
+      try {
+        const out = await translateText(m.text, "en", locale);
+        return out?.text && out.text.trim() !== m.text
+          ? { ...m, translated: out.text.slice(0, 4000), sourceLocale: locale }
+          : m;
+      } catch {
+        return m;
+      }
+    })
+  );
+}
 
 function escapeHtml(s: string) {
   return s
@@ -119,11 +151,22 @@ export async function submitSupportTicket(input: {
         // push is an extra channel, never the only one
       }
     }
+    /**
+     * Translate what the visitor said before the ticket is created.
+     *
+     * This transcript is the conversation they had with the bot, so it holds
+     * the actual question — the single most important thing for the agent to
+     * understand, and the one message that never passes through
+     * `appendSupportThreadMessage`. Best-effort: a provider outage must not
+     * stop a customer reaching support.
+     */
+    const translatedTranscript = await translateForTeam(transcript, locale);
+
     const ticket = await createSupportTicket({
       name,
       email: email.slice(0, 200),
       topic: String(input.topic || "other").slice(0, 40),
-      transcript,
+      transcript: translatedTranscript,
       userId: me?.id,
       priority,
       locale,
@@ -135,11 +178,18 @@ export async function submitSupportTicket(input: {
 
     // Forward to the team inbox — best-effort, the ticket is already stored.
     if (isEmailConfigured()) {
-      const lines = transcript
-        .map(
-          (m) =>
-            `<p style="margin:4px 0;"><strong>${m.role === "bot" ? "Assistant" : "Visitor"}:</strong> ${escapeHtml(m.text)}</p>`
-        )
+      // The team inbox is where most tickets are first read, so the English
+      // goes here too — with the original underneath, never instead of it.
+      const lines = translatedTranscript
+        .map((m) => {
+          const who = m.role === "bot" ? "Assistant" : "Visitor";
+          const original = `<p style="margin:4px 0;"><strong>${who}:</strong> ${escapeHtml(m.text)}</p>`;
+          if (!m.translated) return original;
+          return (
+            `<p style="margin:4px 0;"><strong>${who}:</strong> ${escapeHtml(m.translated)}` +
+            `<br><span style="color:#878D96;font-size:12px">${escapeHtml(m.text)}</span></p>`
+          );
+        })
         .join("");
       await sendEmail(
         COMPANY.infoEmail,

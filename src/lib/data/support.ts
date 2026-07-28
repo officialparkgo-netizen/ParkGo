@@ -174,6 +174,29 @@ export async function appendSupportThreadMessage(
   };
   if (!msg.text && !attachment) return false;
 
+  /**
+   * Translate a visitor's message for the team, once, here.
+   *
+   * At write time rather than read time: an agent console that translated on
+   * render would call the provider again on every poll, for every agent
+   * looking at the queue. Storing it also makes the English part of the record
+   * — the ticket still reads the same in six months if the provider is gone.
+   */
+  if (role === "user" && msg.text) {
+    const { detectLocale } = await import("@/lib/support-lang");
+    const { translateText, worthTranslating } = await import("@/lib/translate");
+    const sourceLocale = detectLocale(msg.text);
+    if (worthTranslating(msg.text, sourceLocale)) {
+      const out = await translateText(msg.text, "en", sourceLocale);
+      // No provider, or a failed call: the agent still gets the original and
+      // the language badge, which is exactly the behaviour before this.
+      if (out?.text && out.text.trim() !== msg.text) {
+        msg.translated = out.text.slice(0, 4000);
+        msg.sourceLocale = sourceLocale;
+      }
+    }
+  }
+
   if (!IS_LIVE) {
     const { appendSupportMessage, patchSupportTicket } = await import("@/lib/data/store");
     const t = appendSupportMessage(id, msg);

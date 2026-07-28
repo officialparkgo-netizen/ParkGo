@@ -55,7 +55,13 @@ async function view(ticket: SupportTicket, as: "user" | "agent") {
     assignedTo: ticket.assignedTo ?? null,
     name: ticket.name,
     // Attachment links are short-lived, so they are minted per read.
-    transcript: await signTranscript(ticket.transcript),
+    // The English rendering of a visitor's own message is for the team; it
+    // would only clutter their widget with a worse copy of what they typed.
+    transcript: await signTranscript(
+      as === "agent"
+        ? ticket.transcript
+        : ticket.transcript.map(({ translated: _t, sourceLocale: _s, ...m }) => m)
+    ),
     typing: typingFresh,
     seenAt: (as === "user" ? ticket.agentReadAt : ticket.userReadAt) ?? null,
     csat: ticket.csat ?? null,

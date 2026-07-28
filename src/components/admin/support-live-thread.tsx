@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, Paperclip, Send, StickyNote, Tag } from "lucide-react";
+import { Bell, Languages, Paperclip, Send, StickyNote, Tag } from "lucide-react";
 import type { SupportMessage, SupportNote } from "@/types";
 import { SUGGESTED_TAGS } from "@/lib/support-queue";
 
@@ -55,6 +55,8 @@ export function SupportLiveThread({
     noteHint: string;
     tags: string;
     addTag: string;
+    /** Screen-reader label for the untranslated text under a translation. */
+    original: string;
   };
 }) {
   const [messages, setMessages] = useState<SupportMessage[]>(initial);
@@ -234,7 +236,24 @@ export function SupportLiveThread({
               <span className="me-1 font-bold">
                 {m.role === "agent" ? labels.team : m.role === "bot" ? "bot" : labels.visitor}:
               </span>
-              {m.text}
+              {/* Translated visitor messages lead with the English, because
+                  that is the one the agent can act on — but the original is
+                  right there, because machine translation drops negations and
+                  an agent must be able to check what was actually said. */}
+              {m.translated ? (
+                <>
+                  {m.translated}
+                  <span className="mt-1 flex items-start gap-1 border-t border-navy-200/70 pt-1 text-[11px] text-navy-500">
+                    <Languages className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                    <span dir="auto">
+                      <span className="sr-only">{labels.original}: </span>
+                      {m.text}
+                    </span>
+                  </span>
+                </>
+              ) : (
+                m.text
+              )}
               {m.attachment &&
                 (m.attachment.kind === "image" ? (
                   <a href={m.attachment.url} target="_blank" rel="noopener noreferrer">
