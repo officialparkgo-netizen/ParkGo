@@ -11,7 +11,7 @@ import { chromium } from "playwright";
  * in mock mode. What is tested is the plumbing and the rendering — that a
  * translation reaches the agent, that the original survives beside it, and that
  * the visitor's own widget is not cluttered with it. The quality of a real
- * translation is DeepL's problem, not this suite's.
+ * translation is the provider's problem, not this suite's.
  */
 
 const BASE = process.env.BASE || "http://localhost:3000";

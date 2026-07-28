@@ -42,10 +42,28 @@ describe("provider gating", () => {
     expect(out?.text).toContain("no translation provider configured");
   });
 
-  it("prefers DeepL when both are set", () => {
+  it("prefers Google when both are set", () => {
+    // ParkGo's second language is Urdu, which is the one Google certainly
+    // covers. DeepL is better at German, which we barely see.
+    vi.stubEnv("TRANSLATE_PROVIDER", "");
     vi.stubEnv("DEEPL_API_KEY", "k");
     vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "g");
+    expect(translationProvider()).toBe("google");
+  });
+
+  it("lets the choice be overridden", () => {
+    vi.stubEnv("DEEPL_API_KEY", "k");
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "g");
+    vi.stubEnv("TRANSLATE_PROVIDER", "deepl");
     expect(translationProvider()).toBe("deepl");
+  });
+
+  it("ignores an override whose key is missing", () => {
+    // A stale override must never be the reason translation silently stops.
+    vi.stubEnv("DEEPL_API_KEY", "");
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "g");
+    vi.stubEnv("TRANSLATE_PROVIDER", "deepl");
+    expect(translationProvider()).toBe("google");
   });
 
   it("translates nothing without a key, rather than throwing", async () => {
@@ -62,6 +80,7 @@ describe("provider gating", () => {
 
 describe("translateText", () => {
   it("reads DeepL's shape", async () => {
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
     vi.stubEnv("DEEPL_API_KEY", "k");
     vi.stubGlobal(
       "fetch",
@@ -77,6 +96,7 @@ describe("translateText", () => {
   });
 
   it("sends free-tier keys to the free host", async () => {
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
     vi.stubEnv("DEEPL_API_KEY", "abc:fx");
     const fetchMock = vi.fn().mockResolvedValue(ok({ translations: [{ text: "hi" }] }));
     vi.stubGlobal("fetch", fetchMock);
@@ -99,18 +119,21 @@ describe("translateText", () => {
   });
 
   it("returns null rather than throwing when the provider is down", async () => {
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
     vi.stubEnv("DEEPL_API_KEY", "k");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("timeout")));
     expect(await translateText("hallo", "en", "de")).toBeNull();
   });
 
   it("returns null on an HTTP error", async () => {
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
     vi.stubEnv("DEEPL_API_KEY", "k");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 456, json: async () => ({}) }));
     expect(await translateText("hallo", "en", "de")).toBeNull();
   });
 
   it("does not call out when the source is already the target", async () => {
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
     vi.stubEnv("DEEPL_API_KEY", "k");
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -119,6 +142,7 @@ describe("translateText", () => {
   });
 
   it("ignores an empty message", async () => {
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
     vi.stubEnv("DEEPL_API_KEY", "k");
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -153,6 +177,7 @@ describe("worthTranslating", () => {
 
 describe("what actually gets translated end to end", () => {
   it("detects then translates the languages the product supports", async () => {
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
     vi.stubEnv("DEEPL_API_KEY", "k");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok({ translations: [{ text: "translated" }] })));
 

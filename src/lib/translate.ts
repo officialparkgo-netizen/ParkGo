@@ -20,9 +20,26 @@ import type { Locale } from "@/types";
 
 export type Provider = "deepl" | "google" | "demo";
 
+/**
+ * Which provider to use.
+ *
+ * Google first. DeepL translates German better, but ParkGo's second language
+ * is Urdu, and that is the one Google certainly covers — a provider that is
+ * excellent at a language we barely see and unreliable at the one we do is the
+ * wrong default. `TRANSLATE_PROVIDER=deepl` overrides it for anyone who
+ * decides otherwise, and is ignored unless that provider's key is actually set,
+ * so a stale override can never silently turn translation off.
+ */
 export function translationProvider(): Provider | null {
-  if (process.env.DEEPL_API_KEY) return "deepl";
-  if (process.env.GOOGLE_TRANSLATE_API_KEY) return "google";
+  const google = !!process.env.GOOGLE_TRANSLATE_API_KEY;
+  const deepl = !!process.env.DEEPL_API_KEY;
+  const forced = process.env.TRANSLATE_PROVIDER;
+
+  if (forced === "deepl" && deepl) return "deepl";
+  if (forced === "google" && google) return "google";
+  if (google) return "google";
+  if (deepl) return "deepl";
+
   // Demo only, and only when asked for by name: it lets the console be seen
   // working before anyone buys a translation plan. It never runs in live mode,
   // and what it emits is labelled so it cannot be mistaken for a translation.

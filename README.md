@@ -231,7 +231,7 @@ and a live branch (Supabase) returning identical shapes.
 | Travel-day SMS | `src/lib/sms.ts` | Off | **Twilio** (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`). Opt-in per account on top of the keys |
 | Wallet passes | `src/lib/wallet.ts` | Off — `/pass/[id]` works offline regardless | **Google Wallet** (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`, `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`); **Apple Wallet** needs a Pass Type certificate (`APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT_P12`, `APPLE_WWDR_CERT`) |
 | Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
-| Support translation | `src/lib/translate.ts` | Off (`PARKGO_DEMO_TRANSLATE=1` shows the console wiring with clearly-labelled placeholder text) | **DeepL** (`DEEPL_API_KEY`) or **Google Translate** (`GOOGLE_TRANSLATE_API_KEY`) — visitor messages rendered into English for the team, agent replies rendered into the visitor's language, original always kept on both sides |
+| Support translation | `src/lib/translate.ts` | Off (`PARKGO_DEMO_TRANSLATE=1` shows the console wiring with clearly-labelled placeholder text) | **Google Translate** (`GOOGLE_TRANSLATE_API_KEY`), or **DeepL** (`DEEPL_API_KEY`) — visitor messages rendered into English for the team, agent replies rendered into the visitor's language, original always kept on both sides |
 | Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
 | Transfer operator | `services/transfer-operator.ts` | Derived from bookings | Licensed operator REST API |
 
@@ -481,9 +481,24 @@ the site's own type and palette.
 8. **Travel-day SMS** (optional): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
    `TWILIO_FROM_NUMBER`. Texts also require the recipient to have opted in on
    their account — the keys alone never cause a message to be sent.
-9. **Support translation** (optional): `DEEPL_API_KEY`, or
-   `GOOGLE_TRANSLATE_API_KEY` if you need languages DeepL does not cover.
-   Whichever is set, a visitor writing in any language reaches the agent
+9. **Support translation** (optional): **`GOOGLE_TRANSLATE_API_KEY`**.
+
+   Google is the default when both are configured. DeepL renders German more
+   naturally, but ParkGo's second language is Urdu and that is the one Google
+   certainly covers — a provider that excels at a language we barely see and is
+   unreliable at the one we do is the wrong default. Set
+   `TRANSLATE_PROVIDER=deepl` to override; the override is ignored unless that
+   provider's key is set, so a stale value cannot quietly switch translation off.
+
+   Getting the key: Google Cloud Console → new project → **enable billing**
+   (the free allowance requires it) → enable the **Cloud Translation API** →
+   Credentials → Create credentials → API key. Restrict it to the Cloud
+   Translation API, and leave the *application* restriction as **None**: these
+   calls are made server-side and send no `Referer`, so an HTTP-referrer
+   restriction produces a 403 on every request — the same trap the Mapbox token
+   fell into. Then set a budget alert, because the free allowance does not stop
+   at zero, it starts billing.
+   A visitor writing in any language reaches the agent
    console in English, and the agent's English reply reaches them in their own
    language — with the original kept underneath in both directions. Agents keep
    writing English; a note above the composer tells them the reply is
