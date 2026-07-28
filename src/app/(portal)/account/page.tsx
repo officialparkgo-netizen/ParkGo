@@ -8,6 +8,7 @@ import {
   FileDown,
   Gift,
   LockKeyhole,
+  MessageSquare,
   ShieldCheck,
   Trash2,
   UserRound,
@@ -38,6 +39,8 @@ import { ensureReferralCode } from "@/lib/data/users";
 import { CopyLinkButton } from "@/components/common/copy-link-button";
 import { updateHostProfileAction } from "@/lib/host-actions";
 import { setBookingAlertsAction } from "@/lib/host-suite-actions";
+import { setSmsOptInAction } from "@/lib/travel-day-actions";
+import { isSmsConfigured } from "@/lib/sms";
 import { listBookingsForTraveller, listPaymentsForHost } from "@/lib/data/bookings";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { getI18n } from "@/lib/i18n";
@@ -66,6 +69,7 @@ export default async function AccountPage({
 }) {
   const user = await requireUser();
   const { t } = await getI18n();
+  const smsConfigured = isSmsConfigured();
   const { reset, twofa, profile, privacy, hostbio, alerts, saved, referral } = await searchParams;
   // Derived from the user id, so it is the same code every time even before
   // the column has been written.
@@ -398,6 +402,37 @@ export default async function AccountPage({
             </form>
           </Card>
         )}
+
+        {/* Travel-day texts. Opt-in, and only offered once a number exists —
+            a switch that cannot do anything is worse than no switch. */}
+        <Card className="p-5" data-sms-card>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900">
+              <MessageSquare className="h-5 w-5 text-navy-500" /> {t("guest.sms.title")}
+            </h2>
+            <Badge tone={user.smsOptIn ? "go" : "neutral"} data-sms-state>
+              {user.smsOptIn ? t("account.twofa.on") : t("account.twofa.off")}
+            </Badge>
+          </div>
+          <p className="mb-4 mt-0.5 text-sm text-navy-500">{t("guest.sms.sub")}</p>
+          {user.phone ? (
+            <form action={setSmsOptInAction}>
+              <input type="hidden" name="smsOptIn" value={user.smsOptIn ? "" : "1"} />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                data-sms-toggle
+              >
+                {user.smsOptIn ? t("account.alerts.disable") : t("account.alerts.enable")}
+              </button>
+            </form>
+          ) : (
+            <p className="text-xs font-semibold text-navy-500">{t("guest.sms.needPhone")}</p>
+          )}
+          {!smsConfigured && (
+            <p className="mt-2 text-[11px] text-navy-400">{t("guest.sms.pending")}</p>
+          )}
+        </Card>
 
         {/* Host guest-facing profile (moved from the host dashboard) */}
         {host && (

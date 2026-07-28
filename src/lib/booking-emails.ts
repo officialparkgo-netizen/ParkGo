@@ -273,6 +273,24 @@ export async function sendArrivalReminders(): Promise<number> {
             );
           }
         }
+        // And a text, for whoever asked for one. A drop-off reminder is the
+        // single most useful message of the whole trip, and it is the one most
+        // likely to be read on a lock screen rather than in an inbox.
+        try {
+          const { getUserProfile } = await import("@/lib/data/users");
+          const { sendSmsIfOptedIn } = await import("@/lib/sms");
+          const traveller = await getUserProfile(booking.travellerId);
+          if (traveller) {
+            await sendSmsIfOptedIn(
+              traveller,
+              `ParkGo: parking tomorrow, ${booking.reference}. Drop-off ${formatDateTime(
+                booking.startAt
+              )}. Directions and QR: ${SITE}/app/booking/${booking.id}`
+            );
+          }
+        } catch {
+          // a failed text must not stop the reminder batch
+        }
       }
       sent++;
     } catch {
@@ -328,4 +346,39 @@ function escapeHtml(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+/**
+ * A late flight moved the pick-up out. Sent because the traveller did not ask
+ * for this and needs to know their space is still theirs — the worst version
+ * of this feature is one that works silently and is not believed.
+ */
+export async function sendFlightExtendedEmail(
+  booking: Booking,
+  flightNumber: string
+): Promise<void> {
+  if (!isEmailConfigured()) return;
+  try {
+    const { traveller, spaceTitle } = await bookingParties(booking);
+    if (!traveller?.email) return;
+    await sendEmail(
+      traveller.email,
+      `Your parking is extended · ${booking.reference}`,
+      emailShell(
+        `<h2 style="margin:0 0 10px;font-size:19px;color:#15171A">${escapeHtml(
+          flightNumber
+        )} is running late — we've held your space ✈️</h2>
+         <p style="margin:0">No action needed and nothing extra to pay. Your car can stay where it is until you get there.</p>
+         ${emailRows([
+           ["Reference", booking.reference],
+           ["Space", spaceTitle],
+           ["New pick-up", formatDateTime(booking.endAt)],
+           ["Extra cost", "None"],
+         ])}
+         ${emailButton(`${SITE}/app/booking/${booking.id}`, "View booking")}`
+      )
+    );
+  } catch {
+    // never break the sweep
+  }
 }

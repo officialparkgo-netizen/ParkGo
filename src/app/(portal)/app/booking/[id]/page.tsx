@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
+  Accessibility,
   CalendarPlus,
   CalendarRange,
+  Car,
   CheckCircle2,
   Clock,
   FileText,
@@ -27,6 +29,15 @@ import { StatusBadge } from "@/components/portal/status";
 import { QrCode } from "@/components/portal/qr";
 import { CopyLinkButton } from "@/components/common/copy-link-button";
 import { makeShareToken, shareExpiryFor } from "@/lib/booking-share";
+import { listConditionPhotos, MAX_PHOTOS_PER_PHASE } from "@/lib/data/travel-day";
+import { isFlightTrackingConfigured } from "@/lib/flights";
+import { walletAvailability } from "@/lib/wallet";
+import {
+  ArrivingPing,
+  ConditionPhotos,
+  FlightCard,
+  WalletButtons,
+} from "@/components/portal/travel-day";
 import { SITE } from "@/lib/seo";
 import { BookingThread } from "@/components/portal/booking-thread";
 import { travellerNav } from "@/components/portal/navs";
@@ -105,6 +116,8 @@ export default async function BookingPage({
   const paid = booking.status !== "requested" && booking.status !== "cancelled";
   const { listClaimsForBooking } = await import("@/lib/data/claims");
   const claims = await listClaimsForBooking(booking.id);
+  const conditionPhotos = await listConditionPhotos(booking.id).catch(() => []);
+  const wallet = walletAvailability();
   // Claims make sense once the car is (or was) on site: any active/finished
   // stay, or a paid one whose drop-off time has passed.
   const stayStarted =
@@ -288,6 +301,7 @@ export default async function BookingPage({
                   <p className="text-[11px] leading-snug text-navy-400">
                     {t("app.booking.sharePassHint")}
                   </p>
+                  <WalletButtons bookingId={booking.id} available={wallet} />
                 </div>
               )}
             </Card>
@@ -361,6 +375,20 @@ export default async function BookingPage({
                     )}
                   </p>
                   <p className="text-navy-500">{space.accessRules}</p>
+                  {(booking.vehicles ?? []).length > 0 && (
+                    <p className="flex items-center gap-2" data-second-vehicle>
+                      <Car className="h-4 w-4 text-navy-400" />
+                      {(booking.vehicles ?? [])
+                        .map((v) => `${v.reg}${v.make && v.make !== "—" ? ` · ${v.make}` : ""}`)
+                        .join(" / ")}
+                    </p>
+                  )}
+                  {booking.assistance && (
+                    <p className="flex items-start gap-2" data-assistance>
+                      <Accessibility className="mt-0.5 h-4 w-4 shrink-0 text-navy-400" />
+                      <span>{booking.assistance}</span>
+                    </p>
+                  )}
                 </div>
               ) : (
                 <p className="mt-1 text-sm text-navy-500">{t("app.booking.completeToReveal")}</p>
@@ -383,6 +411,15 @@ export default async function BookingPage({
               {booking.bundle.ev && (
                 <Row label={t("app.booking.evCharging")} value={formatMoney(booking.price.ev, currency)} />
               )}
+              {(booking.care ?? []).map((c) => (
+                <Row key={c.id} label={c.label} value={formatMoney(c.pricePence, currency)} />
+              ))}
+              {booking.protection && (
+                <Row
+                  label={t("guest.protection.row")}
+                  value={formatMoney(booking.price.protection, currency)}
+                />
+              )}
               <Row label={t("app.booking.serviceFee")} value={formatMoney(booking.price.serviceFee, currency)} />
               {(booking.price.discount ?? 0) > 0 && (
                 <div className="flex items-center justify-between text-go-700">
@@ -400,6 +437,21 @@ export default async function BookingPage({
                 <dt>{t("app.booking.totalPaid")}</dt>
                 <dd>{formatMoney(booking.price.total, currency)}</dd>
               </div>
+              {/* A gift card or pass covered part of it. Shown after the total
+                  because the total is what the booking is worth — this is only
+                  how it was settled. */}
+              {(booking.prepaid ?? 0) > 0 && (
+                <div className="flex items-center justify-between text-navy-500" data-prepaid>
+                  <dt>
+                    {booking.prepaidFrom?.giftCard
+                      ? t("guest.gift.label")
+                      : t("guest.rewards.passTitle")}
+                  </dt>
+                  <dd className="font-semibold">
+                    −{formatMoney(booking.prepaid ?? 0, currency)}
+                  </dd>
+                </div>
+              )}
             </dl>
 
             {extendable && (
@@ -676,6 +728,31 @@ export default async function BookingPage({
             </div>
           </Card>
         </div>
+
+        {/* ------------------------------------------------- travel day --- */}
+        {paid && booking.travellerId === user.id && (
+          <div className="grid gap-5 lg:grid-cols-2">
+            {booking.flight && (
+              <FlightCard
+                bookingId={booking.id}
+                flight={booking.flight}
+                tracking={isFlightTrackingConfigured()}
+              />
+            )}
+            <ArrivingPing
+              bookingId={booking.id}
+              etaMin={booking.arrivingEtaMin}
+              pingedAt={booking.arrivingPingedAt}
+            />
+            <div className="lg:col-span-2">
+              <ConditionPhotos
+                bookingId={booking.id}
+                photos={conditionPhotos}
+                max={MAX_PHOTOS_PER_PHASE}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </PortalShell>
   );

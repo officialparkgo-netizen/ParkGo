@@ -1,4 +1,4 @@
-import type { Booking, Payment, PaymentMethod, PaymentSplit } from "@/types";
+import type { Booking, FlightLink, Payment, PaymentMethod, PaymentSplit } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { applyPromoToPrice, priceBundle } from "@/lib/pricing";
 import { applyLoyaltyToPrice } from "@/lib/rewards";
@@ -270,7 +270,30 @@ export async function createBookingLive(
 
 /** Notify the host that owns the booked space (best-effort). */
 async function notifyHostOfBooking(booking: Booking, title: string): Promise<void> {
-  if (!IS_LIVE) return;
+  if (!IS_LIVE) {
+    // `createBooking` already notifies the host in mock mode; later events
+    // (extensions, arrival pings) come through here and would otherwise be
+    // invisible on the demo host dashboard.
+    try {
+      const { getHost, getSpace, getUser } = await import("@/lib/data/store");
+      const space = getSpace(booking.spaceId);
+      const host = space ? getHost(space.hostId) : undefined;
+      const hostUser = host ? getUser(host.userId) : undefined;
+      if (hostUser) {
+        mockAddNotification({
+          userId: hostUser.id,
+          title: `${title} · ${booking.reference}`,
+          body: `“${space?.title ?? "your space"}” · ${new Date(
+            booking.endAt
+          ).toDateString()}`,
+          kind: "booking",
+        });
+      }
+    } catch {
+      // see below
+    }
+    return;
+  }
   try {
     const { supabaseAdmin } = await import("@/lib/supabase/server");
     const admin = supabaseAdmin();
@@ -426,6 +449,202 @@ export async function applyBookingExtension(
   await notifyHostOfBooking(extended, "Booking extended");
 
   return extended;
+}
+
+/**
+ * Extend a booking because the traveller's flight is late, at no cost to them.
+ *
+ * The traveller pays nothing more — that is the promise, and a promise with a
+ * surcharge attached is not one. But the host is still hosting the car for
+ * longer, so the extra parking is moved out of the platform's cut and into
+ * their payout. The total is untouched, so the split still reconciles, and the
+ * cost of the guarantee lands on whoever made it.
+ *
+ * Clamped at the platform's share: past that there is nothing left to give, and
+ * the shortfall is recorded on the booking rather than silently swallowed.
+ */
+export async function applyFlightExtension(
+  bookingId: string,
+  newEndAt: string,
+  flight: { number: string; estimatedArrival?: string; status: string }
+): Promise<{ booking: Booking; shortfall: number } | null> {
+  const booking = await getBookingById(bookingId);
+  if (!booking) return null;
+  if (booking.status !== "paid" && booking.status !== "active") return null;
+  if (new Date(newEndAt) <= new Date(booking.endAt)) return null;
+  // One extension per flight, enforced here as well as in extendedEndFor, so a
+  // double-fired sweep cannot move the same booking twice.
+  if (booking.flight?.extendedAt) return null;
+
+  const space = await getSpaceById(booking.spaceId);
+  if (!space) return null;
+  const airport = getAirport(space.airportSlug);
+  const currency = airport?.country === "IE" ? "EUR" : "GBP";
+  const longer = priceBundle(space, booking.bundle, booking.startAt, newEndAt, currency);
+
+  const owedToHost = Math.max(0, longer.split.hostPayout - booking.price.split.hostPayout);
+  const canFund = Math.min(owedToHost, booking.price.split.platform);
+  const shortfall = owedToHost - canFund;
+
+  // Same total, redistributed. The traveller's receipt does not change.
+  const price: Booking["price"] = {
+    ...booking.price,
+    split: {
+      platform: booking.price.split.platform - canFund,
+      hostPayout: booking.price.split.hostPayout + canFund,
+      driverPayout: booking.price.split.driverPayout,
+    },
+  };
+  const extendedAt = new Date().toISOString();
+
+  if (!IS_LIVE) {
+    const b = mockGetBooking(bookingId);
+    if (!b) return null;
+    b.endAt = newEndAt;
+    b.price = price;
+    b.flight = { ...(b.flight ?? { number: flight.number, scheduledArrival: booking.endAt, status: "delayed" }), extendedAt, checkedAt: extendedAt };
+    mockAddNotification({
+      userId: b.travellerId,
+      title: "Parking extended for your delay",
+      body: `${b.reference} · ${flight.number} is late, so your space is held until ${new Date(
+        newEndAt
+      ).toUTCString().slice(0, 22)}. No extra charge.`,
+      kind: "booking",
+    });
+    return { booking: { ...b }, shortfall };
+  }
+
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const admin = supabaseAdmin();
+    const { error } = await admin
+      .from("bookings")
+      .update({
+        end_at: newEndAt,
+        price,
+        flight_status: flight.status,
+        flight_arrival_at: flight.estimatedArrival ?? null,
+        flight_extended_at: extendedAt,
+        flight_checked_at: extendedAt,
+      })
+      .eq("id", bookingId)
+      // Guard: only extend a booking that has not already been extended, so two
+      // sweeps running at once cannot both win.
+      .is("flight_extended_at", null);
+    if (error) return null;
+
+    await admin.from("notifications").insert([
+      {
+        user_id: booking.travellerId,
+        title: "Parking extended for your delay",
+        body: `${booking.reference} · ${flight.number} is late, so your space is held until ${new Date(
+          newEndAt
+        ).toUTCString().slice(0, 22)}. No extra charge.`,
+        kind: "booking",
+      },
+    ]);
+    const extended: Booking = { ...booking, endAt: newEndAt, price };
+    await notifyHostOfBooking(extended, `Held longer (flight ${flight.number} delayed)`);
+    return { booking: extended, shortfall };
+  } catch {
+    return null;
+  }
+}
+
+/** Record the outcome of a flight check that did not move the booking. */
+export async function recordFlightCheck(
+  bookingId: string,
+  status: FlightLink["status"],
+  estimatedArrival?: string
+): Promise<void> {
+  const checkedAt = new Date().toISOString();
+  if (!IS_LIVE) {
+    const b = mockGetBooking(bookingId);
+    if (b?.flight) {
+      b.flight = {
+        ...b.flight,
+        status,
+        estimatedArrival: estimatedArrival ?? b.flight.estimatedArrival,
+        checkedAt,
+      };
+    }
+    return;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin()
+      .from("bookings")
+      .update({
+        flight_status: status,
+        flight_arrival_at: estimatedArrival ?? null,
+        flight_checked_at: checkedAt,
+      })
+      .eq("id", bookingId);
+  } catch {
+    // The next sweep tries again.
+  }
+}
+
+/** Bookings with a flight attached that have not yet been extended. */
+export async function listFlightWatchedBookings(limit = 100): Promise<Booking[]> {
+  if (!IS_LIVE) {
+    return mockGetAllBookings()
+      .filter((b) => !!b.flight && !b.flight.extendedAt)
+      .filter((b) => b.status === "paid" || b.status === "active")
+      .slice(0, limit);
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { data } = await supabaseAdmin()
+      .from("bookings")
+      .select(BOOKING_COLS)
+      .not("flight_number", "is", null)
+      .is("flight_extended_at", null)
+      .in("status", ["paid", "active"])
+      .order("end_at", { ascending: true })
+      .limit(limit);
+    return (data ?? []).map(bookingFromRow);
+  } catch {
+    return [];
+  }
+}
+
+/** "I'm N minutes away" — the host's cue to open the gate. */
+export async function pingArriving(
+  bookingId: string,
+  travellerId: string,
+  etaMin: number
+): Promise<boolean> {
+  const eta = Math.max(1, Math.min(180, Math.round(etaMin)));
+  const booking = await getBookingById(bookingId);
+  if (!booking || booking.travellerId !== travellerId) return false;
+  if (booking.status !== "paid" && booking.status !== "active") return false;
+  const at = new Date().toISOString();
+
+  if (!IS_LIVE) {
+    const b = mockGetBooking(bookingId);
+    if (!b) return false;
+    b.arrivingEtaMin = eta;
+    b.arrivingPingedAt = at;
+  } else {
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/server");
+      const { error } = await supabaseAdmin()
+        .from("bookings")
+        .update({ arriving_eta_min: eta, arriving_pinged_at: at })
+        .eq("id", bookingId)
+        .eq("traveller_id", travellerId);
+      if (error) return false;
+    } catch {
+      return false;
+    }
+  }
+
+  await notifyHostOfBooking(
+    { ...booking, arrivingEtaMin: eta },
+    `Arriving in ${eta} min`
+  );
+  return true;
 }
 
 /**

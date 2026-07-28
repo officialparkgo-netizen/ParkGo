@@ -25,6 +25,10 @@ type UserRow = {
   referred_by?: string | null;
   credit_pence?: number | null;
   guest_created?: boolean | null;
+  completed_trips?: number | null;
+  organisation_id?: string | null;
+  organisation_role?: string | null;
+  sms_opt_in?: boolean | null;
   corporate_account_id: string | null;
   suspended?: boolean | null;
   twofa_enabled?: boolean | null;
@@ -67,6 +71,10 @@ export function userFromRow(r: UserRow): User {
     referredBy: r.referred_by ?? undefined,
     creditPence: r.credit_pence ?? 0,
     guestCreated: r.guest_created ?? undefined,
+    completedTrips: r.completed_trips ?? undefined,
+    organisationId: r.organisation_id ?? undefined,
+    organisationRole: (r.organisation_role as User["organisationRole"]) ?? undefined,
+    smsOptIn: r.sms_opt_in ?? undefined,
     inviteNonce: r.invite_nonce ?? undefined,
     // Keep undefined (not false) when the column doesn't exist yet — the
     // onboarding gate only fires on a strict `false`.
@@ -394,6 +402,30 @@ export async function setStripeCustomerId(userId: string, customerId: string): P
     const { error } = await supabaseAdmin()
       .from("users")
       .update({ stripe_customer_id: customerId })
+      .eq("id", userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Opt in or out of travel-day texts. Stored on the account rather than per
+ * booking: consent to be texted is about the person, not the trip.
+ */
+export async function setSmsOptIn(userId: string, on: boolean): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { getUser } = await import("@/lib/data/store");
+    const u = getUser(userId);
+    if (!u) return false;
+    u.smsOptIn = on;
+    return true;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    const { error } = await supabaseAdmin()
+      .from("users")
+      .update({ sms_opt_in: on })
       .eq("id", userId);
     return !error;
   } catch {

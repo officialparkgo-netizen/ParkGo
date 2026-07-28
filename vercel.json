@@ -7,6 +7,10 @@
     {
       "path": "/api/admin/sla",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/booking/flights",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

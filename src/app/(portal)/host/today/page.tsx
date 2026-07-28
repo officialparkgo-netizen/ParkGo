@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
+  Accessibility,
   CalendarClock,
   Car,
   CheckCircle2,
@@ -8,6 +9,8 @@ import {
   LogIn,
   LogOut,
   ParkingSquare,
+  Sparkles,
+  Timer,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -121,6 +124,47 @@ export default async function HostTodayPage() {
                 </span>
               ) : null}
             </div>
+            {/* What the host needs to know before the car pulls up. */}
+            {(b.arrivingEtaMin || b.assistance || (b.care ?? []).length > 0 ||
+              (b.vehicles ?? []).length > 0) && (
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {b.arrivingEtaMin && b.arrivingPingedAt && (
+                  <span
+                    className="inline-flex items-center gap-1 rounded bg-go-100 px-1.5 py-0.5 text-[11px] font-bold text-go-800"
+                    data-arriving-badge
+                  >
+                    <Timer className="h-3 w-3" /> {b.arrivingEtaMin} {t("guest.arriving.min")}
+                  </span>
+                )}
+                {(b.vehicles ?? []).map((v) => (
+                  <span
+                    key={v.reg}
+                    className="inline-flex items-center gap-1 rounded bg-navy-100 px-1.5 py-0.5 font-mono text-[11px] font-bold text-navy-700"
+                  >
+                    <Car className="h-3 w-3" /> {v.reg}
+                  </span>
+                ))}
+                {(b.care ?? []).map((c) => (
+                  <span
+                    key={c.id}
+                    className="inline-flex items-center gap-1 rounded bg-brand-50 px-1.5 py-0.5 text-[11px] font-bold text-brand-800"
+                    data-care-job
+                  >
+                    <Sparkles className="h-3 w-3" /> {c.label}
+                  </span>
+                ))}
+                {b.assistance && (
+                  <span
+                    className="inline-flex items-center gap-1 rounded bg-accent-50 px-1.5 py-0.5 text-[11px] font-bold text-accent-800"
+                    data-assistance-badge
+                    title={b.assistance}
+                  >
+                    <Accessibility className="h-3 w-3" /> {b.assistance.slice(0, 40)}
+                    {b.assistance.length > 40 ? "…" : ""}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </Link>
         <div className="flex items-center gap-2">

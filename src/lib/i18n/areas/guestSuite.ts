@@ -6,6 +6,8 @@ import type { AreaDict } from "@/lib/i18n/config";
  */
 export const guestSuite: AreaDict = {
   en: {
+    "guest.sms.needPhone": "Add a mobile number to your profile above and this switch appears.",
+    "guest.sms.pending": "Texts go live once the SMS provider is connected. Your choice is saved either way.",
     "host.edit.care": "Car care you offer",
     "host.edit.careHint": "One per line: \"Label | price in pounds\". Travellers add these at checkout; you keep the fee less the usual commission.",
     // Checkout extras
@@ -138,6 +140,8 @@ export const guestSuite: AreaDict = {
   },
 
   ur: {
+    "guest.sms.needPhone": "اوپر اپنے پروفائل میں موبائل نمبر شامل کریں، پھر یہ آپشن ظاہر ہوگا۔",
+    "guest.sms.pending": "ایس ایم ایس سروس جڑنے پر پیغامات شروع ہو جائیں گے۔ آپ کا انتخاب دونوں صورتوں میں محفوظ ہے۔",
     "host.edit.care": "آپ کی پیش کردہ گاڑی کی دیکھ بھال",
     "host.edit.careHint": "ہر لائن میں ایک: \"عنوان | قیمت پاؤنڈ میں\"۔ مسافر چیک آؤٹ پر یہ شامل کرتے ہیں؛ معمول کے کمیشن کے بعد رقم آپ کی۔",
     "guest.extras.title": "اپنے قیام میں اضافہ کریں",
@@ -253,6 +257,8 @@ export const guestSuite: AreaDict = {
   },
 
   hi: {
+    "guest.sms.needPhone": "ऊपर अपनी प्रोफ़ाइल में मोबाइल नंबर जोड़ें, फिर यह विकल्प दिखेगा।",
+    "guest.sms.pending": "SMS सेवा जुड़ने पर संदेश शुरू हो जाएँगे। आपकी पसंद दोनों स्थितियों में सुरक्षित है।",
     "host.edit.care": "आपकी दी जाने वाली कार सेवाएँ",
     "host.edit.careHint": "प्रति पंक्ति एक: \"शीर्षक | कीमत पाउंड में\"। यात्री चेकआउट पर जोड़ते हैं; सामान्य कमीशन के बाद राशि आपकी।",
     "guest.extras.title": "अपने ठहराव में जोड़ें",
@@ -368,6 +374,8 @@ export const guestSuite: AreaDict = {
   },
 
   de: {
+    "guest.sms.needPhone": "Fügen Sie oben eine Mobilnummer hinzu, dann erscheint dieser Schalter.",
+    "guest.sms.pending": "SMS starten, sobald der Anbieter verbunden ist. Ihre Auswahl wird ohnehin gespeichert.",
     "host.edit.care": "Fahrzeugpflege, die Sie anbieten",
     "host.edit.careHint": "Eine pro Zeile: „Bezeichnung | Preis in Pfund“. Reisende buchen sie beim Checkout; Sie behalten den Betrag abzüglich der üblichen Provision.",
     "guest.extras.title": "Zu Ihrem Aufenthalt hinzufügen",
@@ -483,6 +491,8 @@ export const guestSuite: AreaDict = {
   },
 
   zh: {
+    "guest.sms.needPhone": "请先在上方资料中填写手机号码，此开关便会出现。",
+    "guest.sms.pending": "短信服务接入后即会发送。无论如何，您的选择都已保存。",
     "host.edit.care": "您提供的车辆养护",
     "host.edit.careHint": "每行一项：“名称 | 价格（英镑）”。旅客在结账时选购；扣除常规佣金后归您。",
     "guest.extras.title": "为您的停车添加服务",
