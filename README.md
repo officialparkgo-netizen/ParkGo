@@ -72,11 +72,14 @@ designators are real, when a delay is worth extending for). See
 **Support**
 - Live chat with a rule-based first responder, escalation to a human, saved
   replies, attachments, typing and read receipts, priority triage, CSAT.
-- **Any language in, English out.** A visitor writing in Urdu, Hindi, German or
-  Chinese reaches the agent console in English, with the original underneath —
-  never instead of it. Machine translation drops negations often enough that an
-  agent acting only on the English could refund the wrong booking, so both are
-  always on screen and the queue preview shows the readable one.
+- **Any language in, English out — and back again.** A visitor writing in Urdu,
+  Hindi, German or Chinese reaches the agent console in English; the agent
+  writes English and the visitor receives it in their own language. Neither
+  side is ever shown a translation on its own: the original sits underneath it,
+  every time. Machine translation drops negations often enough that an agent
+  acting only on the English could refund the wrong booking — and a customer
+  reading "we have refunded you" deserves the sentence the company actually
+  wrote, not only a machine's copy of it.
 
 **Traveller**
 - Search by destination (airports **and** city centres, stations, stadiums) with
@@ -228,7 +231,7 @@ and a live branch (Supabase) returning identical shapes.
 | Travel-day SMS | `src/lib/sms.ts` | Off | **Twilio** (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`). Opt-in per account on top of the keys |
 | Wallet passes | `src/lib/wallet.ts` | Off — `/pass/[id]` works offline regardless | **Google Wallet** (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`, `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`); **Apple Wallet** needs a Pass Type certificate (`APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT_P12`, `APPLE_WWDR_CERT`) |
 | Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
-| Support translation | `src/lib/translate.ts` | Off (`PARKGO_DEMO_TRANSLATE=1` shows the console wiring with clearly-labelled placeholder text) | **DeepL** (`DEEPL_API_KEY`) or **Google Translate** (`GOOGLE_TRANSLATE_API_KEY`) — visitor messages rendered into English for the team, original always kept |
+| Support translation | `src/lib/translate.ts` | Off (`PARKGO_DEMO_TRANSLATE=1` shows the console wiring with clearly-labelled placeholder text) | **DeepL** (`DEEPL_API_KEY`) or **Google Translate** (`GOOGLE_TRANSLATE_API_KEY`) — visitor messages rendered into English for the team, agent replies rendered into the visitor's language, original always kept on both sides |
 | Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
 | Transfer operator | `services/transfer-operator.ts` | Derived from bookings | Licensed operator REST API |
 
@@ -481,9 +484,12 @@ the site's own type and palette.
 9. **Support translation** (optional): `DEEPL_API_KEY`, or
    `GOOGLE_TRANSLATE_API_KEY` if you need languages DeepL does not cover.
    Whichever is set, a visitor writing in any language reaches the agent
-   console in English with the original underneath. Without a key nothing is
-   translated and agents see what they see today — the original plus a language
-   badge. No message is ever lost to a missing key or a provider outage.
+   console in English, and the agent's English reply reaches them in their own
+   language — with the original kept underneath in both directions. Agents keep
+   writing English; a note above the composer tells them the reply is
+   translated, so they avoid idioms that do not survive the trip. Without a key
+   nothing is translated and both sides see exactly what they see today. No
+   message is ever lost to a missing key or a provider outage.
 10. **Wallet passes** (optional): Google needs a service account
    (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`,
    `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`). Apple needs a Pass Type

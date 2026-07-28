@@ -43,6 +43,7 @@ import { isSnoozed, slaState, SNOOZE_CHOICES } from "@/lib/support-sla";
 import { searchTickets } from "@/lib/support-queue";
 import { sweepSlaBreaches } from "@/lib/support-escalate";
 import { LOCALE_LABELS } from "@/lib/support-lang";
+import { isTranslationConfigured } from "@/lib/translate";
 import { signTranscript } from "@/lib/storage";
 import { listTicketsForVisitor } from "@/lib/data/support";
 import { getPlatformSettings } from "@/lib/data/settings";
@@ -95,7 +96,13 @@ export default async function AdminSupportPage({
     tags: t("admin.sup.tags"),
     addTag: t("admin.sup.addTag"),
     original: t("admin.sup.original"),
+    sentAs: t("admin.sup.sentAs"),
+    replyTranslated: t("admin.sup.replyTranslated"),
   };
+
+  // Whether replies actually get translated on the way out — no provider means
+  // the note above the composer would be a promise the system does not keep.
+  const translating = isTranslationConfigured();
 
   const allTickets = await listSupportTickets().catch(() => []);
   const stats = supportStats(allTickets);
@@ -583,14 +590,23 @@ export default async function AdminSupportPage({
                             </span>
                             {m.translated ? (
                               <>
-                                {m.translated}
-                                <span className="mt-1 flex items-start gap-1 border-t border-navy-200/70 pt-1 text-[11px] text-navy-500">
+                                {m.role === "agent" ? m.text : m.translated}
+                                <span
+                                  className={`mt-1 flex items-start gap-1 border-t pt-1 text-[11px] ${
+                                    m.role === "agent"
+                                      ? "border-white/30 text-white/80"
+                                      : "border-navy-200/70 text-navy-500"
+                                  }`}
+                                >
                                   <Languages className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
                                   <span dir="auto">
                                     <span className="sr-only">
-                                      {t("admin.sup.original")}:{" "}
+                                      {m.role === "agent"
+                                        ? t("admin.sup.sentAs")
+                                        : t("admin.sup.original")}
+                                      :{" "}
                                     </span>
-                                    {m.text}
+                                    {m.role === "agent" ? m.translated : m.text}
                                   </span>
                                 </span>
                               </>
@@ -630,6 +646,7 @@ export default async function AdminSupportPage({
                     initial={transcriptOf(ticket.id, ticket.transcript)}
                     initialNotes={ticket.notes ?? []}
                     initialTags={ticket.tags ?? []}
+                    translating={translating && !!ticket.locale && ticket.locale !== "en"}
                     templates={templates}
                     labels={{
                       ...threadLabels,

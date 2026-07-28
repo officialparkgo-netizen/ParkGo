@@ -6,6 +6,8 @@ import type { AreaDict } from "@/lib/i18n/config";
  */
 export const guestSuite: AreaDict = {
   en: {
+    "admin.sup.sentAs": "Sent to the visitor as",
+    "admin.sup.replyTranslated": "Replies are translated into the visitor’s language automatically. Write in English.",
     "admin.sup.original": "Original",
     "admin.sup.translated": "Translated",
     "admin.sup.translatedHint": "Visitor messages are translated to English for the team. The original is shown underneath — always check it before acting on a refund or a cancellation.",
@@ -149,6 +151,8 @@ export const guestSuite: AreaDict = {
   },
 
   ur: {
+    "admin.sup.sentAs": "صارف کو اس طرح بھیجا گیا",
+    "admin.sup.replyTranslated": "جوابات خود بخود صارف کی زبان میں ترجمہ ہو جاتے ہیں۔ آپ انگریزی میں لکھیں۔",
     "admin.sup.original": "اصل متن",
     "admin.sup.translated": "ترجمہ شدہ",
     "admin.sup.translatedHint": "ٹیم کے لیے صارف کے پیغامات انگریزی میں ترجمہ ہوتے ہیں۔ اصل متن نیچے دکھایا جاتا ہے — رقم کی واپسی یا منسوخی سے پہلے ہمیشہ اسے دیکھ لیں۔",
@@ -275,6 +279,8 @@ export const guestSuite: AreaDict = {
   },
 
   hi: {
+    "admin.sup.sentAs": "यात्री को इस रूप में भेजा गया",
+    "admin.sup.replyTranslated": "उत्तर अपने आप यात्री की भाषा में अनूदित हो जाते हैं। आप अंग्रेज़ी में लिखें।",
     "admin.sup.original": "मूल पाठ",
     "admin.sup.translated": "अनूदित",
     "admin.sup.translatedHint": "टीम के लिए यात्री के संदेश अंग्रेज़ी में अनूदित होते हैं। मूल पाठ नीचे दिखता है — रिफ़ंड या रद्दीकरण से पहले उसे ज़रूर देखें।",
@@ -401,6 +407,8 @@ export const guestSuite: AreaDict = {
   },
 
   de: {
+    "admin.sup.sentAs": "An den Besucher gesendet als",
+    "admin.sup.replyTranslated": "Antworten werden automatisch in die Sprache des Besuchers übersetzt. Schreiben Sie auf Englisch.",
     "admin.sup.original": "Original",
     "admin.sup.translated": "Übersetzt",
     "admin.sup.translatedHint": "Besuchernachrichten werden für das Team ins Englische übersetzt. Das Original steht darunter — prüfen Sie es immer, bevor Sie erstatten oder stornieren.",
@@ -527,6 +535,8 @@ export const guestSuite: AreaDict = {
   },
 
   zh: {
+    "admin.sup.sentAs": "发送给访客的版本",
+    "admin.sup.replyTranslated": "回复会自动翻译成访客的语言。请用英文书写。",
     "admin.sup.original": "原文",
     "admin.sup.translated": "已翻译",
     "admin.sup.translatedHint": "访客消息会为团队翻译成英文，原文显示在下方——退款或取消前请务必核对原文。",

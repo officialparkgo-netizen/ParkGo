@@ -792,13 +792,16 @@ export interface SupportMessage {
   /** Exactly what was typed. Never overwritten by a translation. */
   text: string;
   /**
-   * English rendering of `text`, for the agent console. Only set on visitor
-   * messages that were not already English, and only when a translation
-   * provider is configured — the original is always the record of what was
-   * said, because machine translation loses negations.
+   * `text` rendered into the *other* party's language — English on a visitor's
+   * message, the visitor's language on an agent's reply. Only set when the two
+   * sides differ and a translation provider is configured.
+   *
+   * Both sides are always shown the original alongside it. Machine translation
+   * loses negations, and neither an agent deciding a refund nor a customer
+   * reading one should have to act on a rendering they cannot check.
    */
   translated?: string;
-  /** Language `text` was written in, when it was not English. */
+  /** Language `text` was written in. */
   sourceLocale?: Locale;
   /** ISO timestamp — absent on messages written before attachments landed. */
   at?: ISODateString;

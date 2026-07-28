@@ -175,24 +175,47 @@ export async function appendSupportThreadMessage(
   if (!msg.text && !attachment) return false;
 
   /**
-   * Translate a visitor's message for the team, once, here.
+   * Translate across the language gap, once, here — in both directions.
    *
-   * At write time rather than read time: an agent console that translated on
-   * render would call the provider again on every poll, for every agent
-   * looking at the queue. Storing it also makes the English part of the record
-   * — the ticket still reads the same in six months if the provider is gone.
+   * A visitor's message is rendered into English for the team; an agent's
+   * reply is rendered into the language the visitor is writing in. Either way
+   * the original is kept and both sides are shown both, because a rendering
+   * nobody can check is a rendering nobody should have to act on.
+   *
+   * At write time rather than read time: translating on render would call the
+   * provider again on every poll, for every agent watching the queue and every
+   * open widget. Storing it also makes the translation part of the record, so
+   * the ticket still reads the same in six months if the provider is gone.
    */
-  if (role === "user" && msg.text) {
+  if (msg.text && (role === "user" || role === "agent")) {
     const { detectLocale } = await import("@/lib/support-lang");
     const { translateText, worthTranslating } = await import("@/lib/translate");
-    const sourceLocale = detectLocale(msg.text);
-    if (worthTranslating(msg.text, sourceLocale)) {
-      const out = await translateText(msg.text, "en", sourceLocale);
-      // No provider, or a failed call: the agent still gets the original and
-      // the language badge, which is exactly the behaviour before this.
-      if (out?.text && out.text.trim() !== msg.text) {
-        msg.translated = out.text.slice(0, 4000);
-        msg.sourceLocale = sourceLocale;
+
+    if (role === "user") {
+      const sourceLocale = detectLocale(msg.text);
+      if (worthTranslating(msg.text, sourceLocale)) {
+        const out = await translateText(msg.text, "en", sourceLocale);
+        // No provider, or a failed call: the agent still gets the original and
+        // the language badge, which is exactly the behaviour before this.
+        if (out?.text && out.text.trim() !== msg.text) {
+          msg.translated = out.text.slice(0, 4000);
+          msg.sourceLocale = sourceLocale;
+        }
+      }
+    } else {
+      /**
+       * The reply goes back in the visitor's language. Read from the ticket
+       * rather than guessed from the agent's own words — the agent writes
+       * English either way, so their text says nothing about who is reading it.
+       */
+      const ticket = await getSupportTicketById(id);
+      const target = ticket?.locale;
+      if (target && target !== "en") {
+        const out = await translateText(msg.text, target, "en");
+        if (out?.text && out.text.trim() !== msg.text) {
+          msg.translated = out.text.slice(0, 4000);
+          msg.sourceLocale = "en";
+        }
       }
     }
   }

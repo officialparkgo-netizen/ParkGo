@@ -4,6 +4,7 @@ import type { AreaDict } from "@/lib/i18n/config";
 // "admin.support.*". Topic answers reuse the translated FAQ content.
 export const support: AreaDict = {
   en: {
+    "support.original": "Original (English)",
     "support.title": "ParkGo support",
     "support.subtitle": "Instant answers · real humans",
     "support.open": "Open support chat",
@@ -150,6 +151,7 @@ export const support: AreaDict = {
     "admin.support.empty": "No support tickets yet.",
   },
   ur: {
+    "support.original": "اصل متن (انگریزی)",
     "support.title": "ParkGo سپورٹ",
     "support.subtitle": "فوری جواب · حقیقی لوگ",
     "support.open": "سپورٹ چیٹ کھولیں",
@@ -297,6 +299,7 @@ export const support: AreaDict = {
     "admin.support.empty": "ابھی کوئی سپورٹ ٹکٹ نہیں۔",
   },
   hi: {
+    "support.original": "मूल पाठ (अंग्रेज़ी)",
     "support.title": "ParkGo सपोर्ट",
     "support.subtitle": "तुरंत जवाब · असली लोग",
     "support.open": "सपोर्ट चैट खोलें",
@@ -444,6 +447,7 @@ export const support: AreaDict = {
     "admin.support.empty": "अभी कोई सपोर्ट टिकट नहीं।",
   },
   de: {
+    "support.original": "Original (Englisch)",
     "support.title": "ParkGo-Support",
     "support.subtitle": "Sofortige Antworten · echte Menschen",
     "support.open": "Support-Chat öffnen",
@@ -592,6 +596,7 @@ export const support: AreaDict = {
     "admin.support.empty": "Noch keine Support-Tickets.",
   },
   zh: {
+    "support.original": "原文（英文）",
     "support.title": "ParkGo 客服",
     "support.subtitle": "即时解答 · 真人服务",
     "support.open": "打开客服聊天",

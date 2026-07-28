@@ -29,6 +29,7 @@ export function SupportLiveThread({
   initial,
   initialNotes = [],
   initialTags = [],
+  translating = false,
   templates,
   labels,
 }: {
@@ -36,6 +37,8 @@ export function SupportLiveThread({
   initial: SupportMessage[];
   initialNotes?: SupportNote[];
   initialTags?: string[];
+  /** True when replies on this ticket get translated before they are sent. */
+  translating?: boolean;
   templates: Template[];
   labels: {
     pick: string;
@@ -57,6 +60,10 @@ export function SupportLiveThread({
     addTag: string;
     /** Screen-reader label for the untranslated text under a translation. */
     original: string;
+    /** …and for the translated copy under an agent's own reply. */
+    sentAs: string;
+    /** Warns the agent that what they type will be machine-translated. */
+    replyTranslated: string;
   };
 }) {
   const [messages, setMessages] = useState<SupportMessage[]>(initial);
@@ -236,18 +243,29 @@ export function SupportLiveThread({
               <span className="me-1 font-bold">
                 {m.role === "agent" ? labels.team : m.role === "bot" ? "bot" : labels.visitor}:
               </span>
-              {/* Translated visitor messages lead with the English, because
-                  that is the one the agent can act on — but the original is
-                  right there, because machine translation drops negations and
-                  an agent must be able to check what was actually said. */}
+              {/* Whichever way the translation runs, the agent reads English
+                  first and sees the other language second. On a visitor's
+                  message that means the translation leads and the original
+                  follows — machine translation drops negations, and an agent
+                  must be able to check what was actually said. On their own
+                  reply it is the reverse: their English leads, and what the
+                  visitor was actually sent sits underneath. */}
               {m.translated ? (
                 <>
-                  {m.translated}
-                  <span className="mt-1 flex items-start gap-1 border-t border-navy-200/70 pt-1 text-[11px] text-navy-500">
+                  {m.role === "agent" ? m.text : m.translated}
+                  <span
+                    className={`mt-1 flex items-start gap-1 border-t pt-1 text-[11px] ${
+                      m.role === "agent"
+                        ? "border-white/30 text-white/80"
+                        : "border-navy-200/70 text-navy-500"
+                    }`}
+                  >
                     <Languages className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
                     <span dir="auto">
-                      <span className="sr-only">{labels.original}: </span>
-                      {m.text}
+                      <span className="sr-only">
+                        {m.role === "agent" ? labels.sentAs : labels.original}:{" "}
+                      </span>
+                      {m.role === "agent" ? m.translated : m.text}
                     </span>
                   </span>
                 </>
@@ -368,6 +386,16 @@ export function SupportLiveThread({
         </form>
         <p className="mt-1 text-[10px] text-navy-400">{labels.noteHint}</p>
       </details>
+
+      {/* Said once, above the box, because an agent who does not know their
+          words will be machine-translated writes idioms and abbreviations that
+          do not survive the trip. */}
+      {translating && (
+        <p className="mt-2 flex items-start gap-1 text-[11px] leading-snug text-navy-500">
+          <Languages className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+          {labels.replyTranslated}
+        </p>
+      )}
 
       <form onSubmit={send} className="mt-2 space-y-2">
         <div className="flex gap-2">

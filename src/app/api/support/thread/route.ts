@@ -54,13 +54,21 @@ async function view(ticket: SupportTicket, as: "user" | "agent") {
     priority: ticket.priority ?? "normal",
     assignedTo: ticket.assignedTo ?? null,
     name: ticket.name,
-    // Attachment links are short-lived, so they are minted per read.
-    // The English rendering of a visitor's own message is for the team; it
-    // would only clutter their widget with a worse copy of what they typed.
+    /**
+     * Attachment links are short-lived, so they are minted per read.
+     *
+     * Each side keeps only the translation meant for them. The visitor gets
+     * the agent's reply in their own language but not the English rendering of
+     * their own message — that is for the team, and to them it would just be a
+     * worse copy of what they already typed. The agent sees everything,
+     * including what the visitor was actually sent.
+     */
     transcript: await signTranscript(
       as === "agent"
         ? ticket.transcript
-        : ticket.transcript.map(({ translated: _t, sourceLocale: _s, ...m }) => m)
+        : ticket.transcript.map(({ translated, sourceLocale, ...m }) =>
+            m.role === "agent" ? { ...m, translated, sourceLocale } : m
+          )
     ),
     typing: typingFresh,
     seenAt: (as === "user" ? ticket.agentReadAt : ticket.userReadAt) ?? null,

@@ -24,6 +24,8 @@ const check = (n, c, x = "") => (c ? ok : bad).push(`${c ? "✓" : "✗"} ${n}${
 const URDU = "میری گاڑی گیٹ کے پیچھے پھنس گئی ہے، مجھے مدد چاہیے";
 const GERMAN = "Ich kann meine Buchung nicht stornieren, bitte helfen Sie mir";
 const DEMO = "no translation provider configured";
+const REPLY = "We have cancelled your booking and refunded the full amount.";
+const REPLY_NOTE = "Replies are translated";
 
 const browser = await chromium.launch(EXEC ? { executablePath: EXEC } : {});
 async function ctx() {
@@ -109,7 +111,7 @@ const visitor = await ctx();
   const body = await p.locator('[role="dialog"]').innerText();
   check("the visitor still sees what they wrote", body.includes(URDU));
   check("and is not shown a worse copy of it", !body.includes(DEMO));
-  await visitor.close();
+  await p.close();
 }
 
 // ------------------------------------------------- a Latin-script language --
@@ -127,6 +129,49 @@ const visitor = await ctx();
   check("the German ticket is translated as well", body.includes(GERMAN) && body.includes(DEMO));
   check("its language badge reads Deutsch", /Deutsch/.test(body));
   await ac.close();
+}
+
+// ---------------------- the reply goes back in the visitor's language -------
+{
+  // Reopen the Urdu visitor's widget alongside the agent, so the reply can be
+  // watched arriving rather than assumed.
+  const ac = await adminCtx();
+  const ap = await ac.newPage();
+  await ap.goto(`${BASE}/admin/support`, { waitUntil: "domcontentloaded" });
+  await mainText(ap);
+
+  const consoleBody = await ap.locator("body").innerText();
+  check("the agent is told their reply will be translated", consoleBody.includes(REPLY_NOTE));
+
+  // The Urdu ticket is the newest open one, so its thread is the first.
+  const thread = ap.locator("[data-admin-thread]").first();
+  const box = thread.locator('input[name="message"]');
+  await box.waitFor({ timeout: 15000 });
+  await box.fill(REPLY);
+  await thread.locator('form:has(input[name="message"]) button[type=submit]').first().click();
+  await ap.waitForTimeout(3000);
+
+  const agentBody = await thread.innerText();
+  check("the agent still reads their own reply in English", agentBody.includes(REPLY));
+  check("and can see it was sent translated", agentBody.includes(DEMO));
+  await ac.close();
+
+  // The point of the whole direction: it has to arrive.
+  const vp = await visitor.newPage();
+  await vp.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+  await vp.click('button[aria-label="Open support chat"]');
+  await vp.waitForSelector('[role="dialog"]');
+  await vp.waitForFunction(
+    (needle) => document.querySelector('[role="dialog"]')?.textContent?.includes(needle) ?? false,
+    REPLY,
+    { timeout: 20000 }
+  );
+  const visitorBody = await vp.locator('[role="dialog"]').innerText();
+  check("the reply reaches the visitor", visitorBody.includes(REPLY));
+  // Translated for them, with the English the team wrote kept underneath —
+  // a refund promise is not something to hand over in one language only.
+  check("rendered for their language", visitorBody.includes(DEMO));
+  await visitor.close();
 }
 
 // -------------------------------- an English ticket is left entirely alone --

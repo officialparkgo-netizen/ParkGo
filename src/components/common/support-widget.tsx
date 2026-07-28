@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Headset, Paperclip, PhoneCall, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import {
+  Headset,
+  Languages,
+  Paperclip,
+  PhoneCall,
+  Send,
+  ThumbsDown,
+  ThumbsUp,
+  X,
+} from "lucide-react";
 import type { SupportMessage } from "@/types";
 import { SUPPORT_TOPICS, matchSupportIntent } from "@/lib/support-intents";
 import { answerBookingIntent, detectBookingIntent } from "@/lib/support-bot";
@@ -508,7 +517,25 @@ export function SupportWidget() {
                     {thread?.assignedTo || t("support.title")}
                   </div>
                 )}
-                {m.text}
+                {/* A reply translated into the reader's language leads, with
+                    the English the team actually wrote kept underneath. The
+                    translation is a machine's; the English is the company's
+                    answer, and on something like a refund the difference
+                    matters enough to keep both on screen. */}
+                {m.translated ? (
+                  <>
+                    <span dir="auto">{m.translated}</span>
+                    <span className="mt-1.5 flex items-start gap-1 border-t border-brand-200 pt-1.5 text-[11px] leading-snug text-navy-500">
+                      <Languages className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                      <span dir="ltr">
+                        <span className="sr-only">{t("support.original")}: </span>
+                        {m.text}
+                      </span>
+                    </span>
+                  </>
+                ) : (
+                  m.text
+                )}
                 {m.attachment &&
                   (m.attachment.kind === "image" ? (
                     // eslint-disable-next-line @next/next/no-img-element
