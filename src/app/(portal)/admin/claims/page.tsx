@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav, supportAgentNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { setClaimStatusAction } from "@/lib/admin-suite-actions";
 import { listAllClaims } from "@/lib/data/claims";
 import { getUsersByIds } from "@/lib/data/users";
@@ -22,7 +22,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function AdminClaimsPage() {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   const isFullAdmin = user.adminScope !== "support";
   const { t } = await getI18n();
 

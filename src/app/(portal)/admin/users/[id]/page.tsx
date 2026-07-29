@@ -22,7 +22,7 @@ import { Avatar } from "@/components/common/avatar";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav, supportAgentNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { getAuthLastSignIn, getUsersByIds } from "@/lib/data/users";
 import { listBookingsForTraveller, listBookingsForHost } from "@/lib/data/bookings";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
@@ -53,7 +53,7 @@ export default async function AdminUserDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ gdpr?: string }>;
 }) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const { t } = await getI18n();
   const { id } = await params;
   const { gdpr } = await searchParams;

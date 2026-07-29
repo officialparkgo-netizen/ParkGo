@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { buildAuditFeed } from "@/lib/admin-insights";
 import { listAdminActions } from "@/lib/data/admin-actions";
 import { listAllBookings } from "@/lib/data/bookings";
@@ -23,7 +23,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function AdminAuditPage() {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   // Support agents live on the ticket queue — nothing else here is theirs.
   if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();

@@ -60,10 +60,37 @@ function inline(escaped: string): string {
   return out.replace(/\u0000(\d+)\u0000/g, (_, i: string) => codes[Number(i)] ?? "");
 }
 
+/**
+ * The h2/h3 headings of a document, with the ids the renderer will give them —
+ * one function used by both, so the table of contents can never point at an
+ * anchor that is not there.
+ */
+export function extractHeadings(md: string): { id: string; text: string; level: 2 | 3 }[] {
+  const seen = new Map<string, number>();
+  const out: { id: string; text: string; level: 2 | 3 }[] = [];
+  let inFence = false;
+  for (const line of md.split(/\r?\n/)) {
+    if (line.trim().startsWith("```")) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    const m = line.match(/^(#{2,3})\s+(.*)$/);
+    if (!m) continue;
+    const text = m[2].trim();
+    const base = slugify(text) || "section";
+    const n = seen.get(base) ?? 0;
+    seen.set(base, n + 1);
+    out.push({ id: n === 0 ? base : `${base}-${n + 1}`, text, level: m[1].length as 2 | 3 });
+  }
+  return out;
+}
+
 export function renderMarkdown(md: string): string {
   // The placeholder used to protect code spans must not be forgeable.
   const lines = md.replaceAll("\u0000", "").split(/\r?\n/);
   const html: string[] = [];
+  const headingSeen = new Map<string, number>();
   let paragraph: string[] = [];
   let list: { kind: "ul" | "ol"; items: string[] } | null = null;
   let quote: string[] = [];
@@ -113,7 +140,13 @@ export function renderMarkdown(md: string): string {
     if (heading) {
       flushAll();
       const level = heading[1].length;
-      html.push(`<h${level}>${inline(escapeHtml(heading[2]))}</h${level}>`);
+      // Anchor ids let a table of contents link in. Same slugging + dedupe as
+      // extractHeadings, so the two always agree.
+      const base = slugify(heading[2].trim()) || "section";
+      const n = headingSeen.get(base) ?? 0;
+      headingSeen.set(base, n + 1);
+      const id = n === 0 ? base : `${base}-${n + 1}`;
+      html.push(`<h${level} id="${id}">${inline(escapeHtml(heading[2]))}</h${level}>`);
       continue;
     }
     if (/^\s*---+\s*$/.test(line)) {

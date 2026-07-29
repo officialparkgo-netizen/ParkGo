@@ -9,12 +9,15 @@ import type { SupportTicket, User } from "@/types";
  *
  * Only agents who have marked themselves on duty are eligible. Full admins
  * count as on duty unless they explicitly opt out — they are the fallback so
- * a ticket is never left with nobody's name on it.
+ * a ticket is never left with nobody's name on it. Invited writers ("content"
+ * scope) are never eligible: they cannot even open the ticket desk.
  */
 export function onDuty(members: User[]): User[] {
-  return members.filter((m) =>
-    m.adminScope === "support" ? m.supportAvailable === true : m.supportAvailable !== false
-  );
+  return members
+    .filter((m) => m.adminScope !== "content")
+    .filter((m) =>
+      m.adminScope === "support" ? m.supportAvailable === true : m.supportAvailable !== false
+    );
 }
 
 export function pickAssignee(

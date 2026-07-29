@@ -4,6 +4,11 @@ import { getAirports } from "@/lib/data/store";
 import { getAllPosts } from "@/content/blog";
 import { listArticlesAdmin } from "@/lib/data/blog";
 
+// Rendered per request, not at build: the sitemap lists admin-written
+// articles, and a post published this morning must be in it this morning —
+// crawlers only re-fetch what the sitemap tells them exists.
+export const dynamic = "force-dynamic";
+
 /** Static marketing routes, highest priority first. */
 const STATIC_ROUTES: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
   { path: "/", priority: 1, changeFrequency: "weekly" },

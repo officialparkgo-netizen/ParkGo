@@ -765,9 +765,22 @@ export async function createSupportAgent(
   email: string,
   name: string
 ): Promise<User | null> {
+  return createStaffAccount(email, name, "support");
+}
+
+/**
+ * Mint a limited staff account: a support agent or an invited blog writer.
+ * Same flow either way — the scope is the only difference, and it is what the
+ * guards read to decide which console the person may see.
+ */
+export async function createStaffAccount(
+  email: string,
+  name: string,
+  scope: "support" | "content"
+): Promise<User | null> {
   const cleanEmail = email.trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail)) return null;
-  const cleanName = name.trim().slice(0, 60) || "Support agent";
+  const cleanName = name.trim().slice(0, 60) || (scope === "content" ? "Writer" : "Support agent");
 
   if (!IS_LIVE) {
     const { addMockUser, getUser } = await import("@/lib/data/store");
@@ -783,7 +796,7 @@ export async function createSupportAgent(
     const existing = getUser(id);
     if (existing) {
       existing.role = "admin";
-      existing.adminScope = "support";
+      existing.adminScope = scope;
       existing.suspended = false;
       existing.email = cleanEmail;
       existing.name = cleanName;
@@ -795,7 +808,7 @@ export async function createSupportAgent(
       name: cleanName,
       email: cleanEmail,
       locale: "en",
-      adminScope: "support",
+      adminScope: scope,
       onboarded: true,
       createdAt: new Date().toISOString(),
     });
@@ -832,7 +845,7 @@ export async function createSupportAgent(
           name: cleanName,
           email: cleanEmail,
           locale: "en",
-          admin_scope: "support",
+          admin_scope: scope,
           onboarded: true,
         },
         { onConflict: "id" }
@@ -847,14 +860,15 @@ export async function createSupportAgent(
 }
 
 /**
- * Revoke a support agent: back to a plain traveller account. Deliberately
- * refuses to touch full admins — only "support"-scoped accounts demote.
+ * Revoke a limited staff account (support agent or writer): back to a plain
+ * traveller. Deliberately refuses to touch full admins — only limited scopes
+ * demote, so this can never be used to eject a peer.
  */
 export async function revokeSupportAgent(userId: string): Promise<boolean> {
   if (!IS_LIVE) {
     const { getUser } = await import("@/lib/data/store");
     const u = getUser(userId);
-    if (!u || u.role !== "admin" || u.adminScope !== "support") return false;
+    if (!u || u.role !== "admin" || u.adminScope === "full" || !u.adminScope) return false;
     u.role = "traveller";
     u.adminScope = undefined;
     return true;
@@ -866,7 +880,8 @@ export async function revokeSupportAgent(userId: string): Promise<boolean> {
       .update({ role: "traveller", admin_scope: null })
       .eq("id", userId)
       .eq("role", "admin")
-      .eq("admin_scope", "support");
+      // Limited scopes only — a full admin's row must be untouchable here.
+      .in("admin_scope", ["support", "content"]);
     return !error;
   } catch {
     return false;

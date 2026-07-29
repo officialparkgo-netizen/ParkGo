@@ -246,6 +246,7 @@ and a live branch (Supabase) returning identical shapes.
 | Travel-day SMS | `src/lib/sms.ts` | Off | **Twilio** (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`). Opt-in per account on top of the keys |
 | Wallet passes | `src/lib/wallet.ts` | Off — `/pass/[id]` works offline regardless | **Google Wallet** (`GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`, `GOOGLE_WALLET_SA_EMAIL`, `GOOGLE_WALLET_SA_KEY`); **Apple Wallet** needs a Pass Type certificate (`APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT_P12`, `APPLE_WWDR_CERT`) |
 | Support AI | `src/lib/support-intents.ts` | Rule-based intents (works in both modes) | Same; LLM swap-ready |
+| Blog newsletter + IndexNow | `src/lib/blog-notify.ts` | Off | Publishing emails subscribers (via Resend) and pings Bing/Yandex (`INDEXNOW_KEY`; the middleware serves the `/{key}.txt` proof file) |
 | Support translation | `src/lib/translate.ts` | Off (`PARKGO_DEMO_TRANSLATE=1` shows the console wiring with clearly-labelled placeholder text) | **Google Translate** (`GOOGLE_TRANSLATE_API_KEY`), or **DeepL** (`DEEPL_API_KEY`) — visitor messages rendered into English for the team, agent replies rendered into the visitor's language, original always kept on both sides |
 | Live camera | `services/camera.ts` | Simulated CCTV | IP/RTSP → HLS/WebRTC (interface ready) |
 | Transfer operator | `services/transfer-operator.ts` | Derived from bookings | Licensed operator REST API |
@@ -291,6 +292,7 @@ or paste each file into the **Supabase SQL editor**:
 | `0025_guest_suite.sql` | Saved spaces, several vehicles per account, business/VAT details, referral credit, price & availability alerts, step-free listing flag |
 | `0026_guest_suite2.sql` | Cancellation protection, host car-care services, gift cards, trip passes, loyalty counter, flight tracking columns, condition photos, date waitlist, group bookings, company accounts, claim photos |
 | `0027_blog.sql` | Blog platform: admin-written articles with drafts, publishing and covers |
+| `0028_blog_platform.sql` | Blog round two: scheduled publishing, linked translations, view/helpful stats, revision history, newsletter subscribers |
 
 RLS keeps each role to its own rows; the exact address and camera stream are
 released only to the paying traveller. KYC files live in the **private**
@@ -440,7 +442,7 @@ the site's own type and palette.
 
 ## Go-live checklist
 
-1. **Supabase**: create the project, run migrations **0001 → 0026**, run
+1. **Supabase**: create the project, run migrations **0001 → 0028**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
 
    Migrations are applied by hand, so there is always a gap between a deploy and
@@ -549,7 +551,15 @@ the site's own type and palette.
    with a single-use link, set their own password and sign in at
    `/team/login`. Give them the `support` scope unless they genuinely need the
    money pages.
-14. Optional: Sentry DSN, commission overrides
+14. **Blog writers** (optional): invite a content writer from `/admin/blog`.
+   Same single-use link and `/team/login` as agents, but their login opens the
+   blog console and nothing else — no bookings, users or payments.
+15. **IndexNow** (optional): set `INDEXNOW_KEY` to any 32+ char hex string.
+   Publishing a post then pings Bing/Yandex the moment it goes live; the
+   middleware serves the required `/{key}.txt` proof file from the same
+   variable. Without it, search engines still find posts via the sitemap and
+   RSS, just not instantly.
+16. Optional: Sentry DSN, commission overrides
     (`PARKGO_COMMISSION_PARKING_BPS` / `_TRANSFER_BPS`).
 
 Then run the audits against the deployed URL —

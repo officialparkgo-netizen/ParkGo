@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav, supportAgentNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { listSupportTickets } from "@/lib/data/support";
 import { resolveSupportTicketAction } from "@/lib/support-actions";
 import {
@@ -63,10 +63,14 @@ export default async function AdminSupportPage({
 }: {
   searchParams: Promise<{ replied?: string; team?: string; show?: string; q?: string }>;
 }) {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   const { t } = await getI18n();
   const { replied, team, show, q } = await searchParams;
-  const teamMembers = await listAdminUsers().catch(() => []);
+  // Blog writers ("content" scope) are staff, but not support staff — they
+  // belong on /admin/blog, not in the assignment dropdown or this team list.
+  const teamMembers = (await listAdminUsers().catch(() => [])).filter(
+    (m) => m.adminScope !== "content"
+  );
   const isFullAdmin = user.adminScope !== "support";
   // Canned replies come from settings once an admin has written their own;
   // until then the three translated built-ins keep the dropdown useful.

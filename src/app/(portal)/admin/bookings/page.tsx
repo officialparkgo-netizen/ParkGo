@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav, supportAgentNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { adminCancelBookingAction } from "@/lib/admin-suite-actions";
 import { listAllBookings } from "@/lib/data/bookings";
 import { listAllSpaces } from "@/lib/data/hosts";
@@ -26,7 +26,7 @@ export default async function AdminBookingsPage({
 }: {
   searchParams: Promise<{ bstatus?: string; cancelled?: string; cancelerror?: string }>;
 }) {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   const isFullAdmin = user.adminScope !== "support";
   const { t } = await getI18n();
   const { bstatus: bstatusRaw, cancelled, cancelerror } = await searchParams;

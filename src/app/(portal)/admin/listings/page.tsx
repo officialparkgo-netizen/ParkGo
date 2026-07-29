@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { pauseSpaceAction, reviewSpaceAction } from "@/lib/booking-actions";
 import { bulkApproveListingsAction } from "@/lib/admin-suite-actions";
 import { getAirport } from "@/lib/data/store";
@@ -27,7 +27,7 @@ export default async function AdminListingsPage({
 }: {
   searchParams: Promise<{ bulk?: string }>;
 }) {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   // Support agents live on the ticket queue — nothing else here is theirs.
   if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();

@@ -76,6 +76,27 @@ export async function GET(request: Request) {
     // best-effort
   }
 
+  // Blog drafts scheduled for a moment that has now passed. The public
+  // listing also publishes due drafts on read, but that needs a reader — this
+  // covers a quiet night, and announces (newsletter + IndexNow) what it flips.
+  let postsPublished = 0;
+  try {
+    const { publishDuePosts, listArticlesAdmin } = await import("@/lib/data/blog");
+    const before = new Set(
+      (await listArticlesAdmin()).filter((a) => a.status === "published").map((a) => a.id)
+    );
+    postsPublished = await publishDuePosts();
+    if (postsPublished > 0) {
+      const { announceNewPost } = await import("@/lib/blog-notify");
+      const after = await listArticlesAdmin();
+      for (const a of after) {
+        if (a.status === "published" && !before.has(a.id)) await announceNewPost(a);
+      }
+    }
+  } catch {
+    // best-effort
+  }
+
   // Support chats that blew past their reply target. The queue page also
   // sweeps on load, but that only helps if somebody is looking — this covers
   // the overnight case, which is exactly when a missed urgent chat hurts.
@@ -101,6 +122,7 @@ export async function GET(request: Request) {
     waitlistFired,
     flightsChecked,
     flightsExtended,
+    postsPublished,
     slaBreaches,
     emailed: summary.emailed,
     recipients: summary.sentTo.length,

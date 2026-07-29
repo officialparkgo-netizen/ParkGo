@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { requireFinanceAdmin, requireRole, requireUser, rolePath } from "@/lib/auth";
+import { requireFinanceAdmin, requireRole, requireUser, rolePath, requireOpsAdmin } from "@/lib/auth";
 import { recordAdminAction } from "@/lib/data/admin-actions";
 import { adminCancelBooking, getBookingById, markPayoutPaid } from "@/lib/data/bookings";
 import { setReviewHiddenAdmin } from "@/lib/data/reviews";
@@ -105,7 +105,7 @@ export async function setPromoActiveAction(formData: FormData) {
 
 /** Internal note on a user, stored in the admin action log. */
 export async function addUserNoteAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const userId = String(formData.get("userId") || "");
   const note = String(formData.get("note") || "").trim().slice(0, 500);
   if (!userId || !note) return;
@@ -332,7 +332,7 @@ export async function sendDigestNowAction() {
 
 /** Pick up an open support ticket. */
 export async function assignSupportTicketAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const id = String(formData.get("ticketId") || "");
   if (!id) return;
   const { setSupportTicketAssigned } = await import("@/lib/data/support");
@@ -343,7 +343,7 @@ export async function assignSupportTicketAction(formData: FormData) {
 
 /** Assign a ticket to any teammate (full admin or support agent). */
 export async function assignTicketToAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const id = String(formData.get("ticketId") || "");
   const assigneeId = String(formData.get("assigneeId") || "");
   if (!id || !assigneeId) return;
@@ -402,7 +402,7 @@ export async function assignTicketToAction(formData: FormData) {
 
 /** Bump a ticket to the top of the queue (or back down) by hand. */
 export async function setTicketPriorityAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const id = String(formData.get("ticketId") || "");
   const priority = formData.get("priority") === "urgent" ? "urgent" : "normal";
   if (!id) return;
@@ -414,7 +414,7 @@ export async function setTicketPriorityAction(formData: FormData) {
 
 /** Agent duty switch: on duty means auto-assignment may pick you. */
 export async function setSupportAvailableAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const on = formData.get("state") === "on";
   const { setSupportAvailable } = await import("@/lib/data/users");
   await setSupportAvailable(admin.id, on);
@@ -423,7 +423,7 @@ export async function setSupportAvailableAction(formData: FormData) {
 
 /** Park a ticket until later — or wake it now with an empty hours value. */
 export async function snoozeTicketAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const id = String(formData.get("ticketId") || "");
   const hours = Number(formData.get("hours"));
   if (!id) return;
@@ -469,21 +469,24 @@ export async function resendTeamInviteAction(formData: FormData) {
   const userId = String(formData.get("userId") || "");
   const { getUserProfile } = await import("@/lib/data/users");
   const member = userId ? await getUserProfile(userId) : null;
-  // Only pending support agents — a resend mints a live set-password link, so
-  // it must never be aimable at a peer admin (or at yourself).
+  // Only limited-scope teammates (agents and writers) — a resend mints a live
+  // set-password link, so it must never be aimable at a peer admin (or at
+  // yourself).
   if (
     !member ||
     member.role !== "admin" ||
-    member.adminScope !== "support" ||
+    (member.adminScope !== "support" && member.adminScope !== "content") ||
     member.id === admin.id
   ) {
     redirect("/admin/support?team=peer");
   }
+  // Back to whichever console manages this kind of teammate.
+  const home = member.adminScope === "content" ? "/admin/blog" : "/admin/support";
   const { sendTeamInvite } = await import("@/lib/team-invite-mail");
   const { emailed } = await sendTeamInvite(member, admin.name);
   await recordAdminAction(admin, "support.agent_invited", "user", member.id, "resend");
-  revalidatePath("/admin/support");
-  redirect(`/admin/support?team=${emailed ? "resent" : "invited-nomail"}`);
+  revalidatePath(home);
+  redirect(`${home}?team=${emailed ? "resent" : "invited-nomail"}`);
 }
 
 /** Revoke a support agent's access (their account becomes a traveller). */
@@ -602,7 +605,7 @@ export async function adminChangeBookingDatesAction(formData: FormData) {
 
 /** Reply to a support ticket by email (with saved-reply templates). */
 export async function replySupportTicketAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const ticketId = String(formData.get("ticketId") || "");
   const message = String(formData.get("message") || "").trim().slice(0, 2000);
   if (!ticketId || !message) redirect("/admin/support?replied=error");

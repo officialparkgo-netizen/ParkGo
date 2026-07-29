@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav, supportAgentNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { listAllUsers } from "@/lib/data/users";
 import { listWaitlist } from "@/lib/data/waitlist";
 import { setUserRoleAction, setUserSuspendedAction } from "@/lib/user-actions";
@@ -26,7 +26,7 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<{ invited?: string }>;
 }) {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   const isFullAdmin = user.adminScope !== "support";
   const { t } = await getI18n();
   const { invited } = await searchParams;

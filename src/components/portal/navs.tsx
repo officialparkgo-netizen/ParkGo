@@ -65,6 +65,14 @@ export const supportAgentNav: NavItem[] = [
   { href: "/admin/claims", label: "admin.claims.title", icon: ShieldAlert },
 ];
 
+/**
+ * Invited writers: the blog console and nothing else. Their guard bounces
+ * every ops page anyway — the nav just stops pretending those pages exist.
+ */
+export const contentWriterNav: NavItem[] = [
+  { href: "/admin/blog", label: "admin.blog.title", icon: Newspaper },
+];
+
 export const adminNav: NavItem[] = [
   { href: "/admin", label: "nav.dashboard", icon: LayoutGrid },
   { href: "/admin/today", label: "admin.today.title", icon: CalendarClock },
@@ -84,3 +92,10 @@ export const adminNav: NavItem[] = [
   { href: "/admin/audit", label: "nav.audit", icon: ScrollText },
   { href: "/admin/settings", label: "admin.settings.title", icon: Settings },
 ];
+
+/** The admin-side nav that matches a user's scope. */
+export function adminNavFor(user: { adminScope?: string }): NavItem[] {
+  if (user.adminScope === "support") return supportAgentNav;
+  if (user.adminScope === "content") return contentWriterNav;
+  return adminNav;
+}

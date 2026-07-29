@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { IS_LIVE } from "@/lib/config";
 
 /**
@@ -17,7 +17,7 @@ const TYPE_BY_EXT: Record<string, string> = {
 };
 
 export async function GET(request: Request) {
-  await requireRole("admin");
+  await requireOpsAdmin();
   const ref = new URL(request.url).searchParams.get("ref") ?? "";
   if (!ref || ref.includes("..")) return new Response("Bad request", { status: 400 });
 

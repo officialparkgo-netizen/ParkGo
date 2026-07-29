@@ -70,10 +70,10 @@ export interface User {
    */
   impersonatedBy?: UUID;
   /**
-   * Admin-only: "support" scope is locked out of the money pages
-   * (payments, promos, broadcast, settings, finance exports). Absent = full.
+   * Admin-only. "support" scope is locked out of the money pages; "content"
+   * scope is an invited writer who sees nothing but /admin/blog. Absent = full.
    */
-  adminScope?: "full" | "support";
+  adminScope?: "full" | "support" | "content";
   /** Host preference: email me when a booking lands (default on). */
   emailBookingAlerts?: boolean;
   /**
@@ -478,8 +478,31 @@ export interface BlogArticle {
   /** Drafts are visible only in the admin console; the public page 404s. */
   status: "draft" | "published";
   publishedAt?: ISODateString;
+  /** A draft with this set publishes itself once the moment passes. */
+  scheduledAt?: ISODateString;
+  /** Language the article is written in. */
+  lang: Locale;
+  /** The original this article translates; the original leaves it unset. */
+  translationOf?: UUID;
   createdAt: ISODateString;
   updatedAt: ISODateString;
+}
+
+/** A previous version of an article, snapshotted on save. */
+export interface BlogRevision {
+  id: UUID;
+  postId: UUID;
+  title: string;
+  excerpt: string;
+  body: string;
+  createdAt: ISODateString;
+}
+
+/** Per-slug counters. Slug-keyed so the built-in posts count too. */
+export interface BlogStats {
+  slug: string;
+  views: number;
+  helpful: number;
 }
 
 export interface PriceBreakdown {

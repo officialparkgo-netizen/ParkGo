@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { getOperatorJobs, getOperatorStatus } from "@/lib/services/transfer-operator";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -28,7 +28,7 @@ function Metric({ value, label }: { value: string; label: string }) {
 }
 
 export default async function AdminOperatorPage() {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   // Support agents live on the ticket queue — nothing else here is theirs.
   if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();

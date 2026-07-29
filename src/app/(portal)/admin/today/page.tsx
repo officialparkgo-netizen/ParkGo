@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav, supportAgentNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { listAllBookings } from "@/lib/data/bookings";
 import { listAllSpaces } from "@/lib/data/hosts";
 import { getUsersByIds } from "@/lib/data/users";
@@ -35,7 +35,7 @@ export const metadata: Metadata = pageMetadata({
 
 /** Live-ops view: everything happening on site today, one screen. */
 export default async function AdminTodayPage() {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   const { t } = await getI18n();
 
   const bookings = await listAllBookings();

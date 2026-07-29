@@ -95,7 +95,9 @@ export function inviteeKind(
 /** Where each kind of teammate belongs once signed in. */
 export function inviteeHome(kind: "staff" | "cohost", adminScope?: string): string {
   if (kind === "cohost") return "/host/today";
-  return adminScope === "support" ? "/admin/support" : "/admin";
+  if (adminScope === "support") return "/admin/support";
+  if (adminScope === "content") return "/admin/blog";
+  return "/admin";
 }
 
 /** Minimum length we accept for a staff password. */

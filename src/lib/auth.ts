@@ -109,9 +109,33 @@ export async function requireRole(role: Role): Promise<User> {
 
 /**
  * Guard for the money pages (payments, promos, broadcast, settings, finance
- * exports): "support"-scope admins are bounced back to the dashboard.
+ * exports): limited scopes are bounced back to their own console.
  */
 export async function requireFinanceAdmin(): Promise<User> {
+  const user = await requireRole("admin");
+  if (user.adminScope === "support") redirect("/admin/support");
+  if (user.adminScope === "content") redirect("/admin/blog");
+  return user;
+}
+
+/**
+ * Guard for the ops side of the admin console — everything except the blog.
+ * An invited writer ("content" scope) exists to publish articles and nothing
+ * else: bookings, users and payments are none of a freelancer's business, so
+ * every ops page sends them straight back to the one console they own.
+ */
+export async function requireOpsAdmin(): Promise<User> {
+  const user = await requireRole("admin");
+  if (user.adminScope === "content") redirect("/admin/blog");
+  return user;
+}
+
+/**
+ * Guard for /admin/blog and the blog actions: full admins and invited writers.
+ * Support agents stay on the ticket desk — publishing to the public site was
+ * never part of their lockdown's allowed list.
+ */
+export async function requireContentAdmin(): Promise<User> {
   const user = await requireRole("admin");
   if (user.adminScope === "support") redirect("/admin/support");
   return user;

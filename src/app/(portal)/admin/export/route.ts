@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { listSupportTickets } from "@/lib/data/support";
 import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
 import { listAllUsers } from "@/lib/data/users";
@@ -237,7 +237,7 @@ async function buildUserDataRows(userId: string) {
 }
 
 export async function GET(request: Request) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const url = new URL(request.url);
   const type = url.searchParams.get("type") ?? "bookings";
   // Support agents get no bulk exports at all — data stays in the building.

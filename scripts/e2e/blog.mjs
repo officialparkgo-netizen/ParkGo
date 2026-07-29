@@ -73,7 +73,11 @@ const admin = await ctx("user_admin");
   await p.click("[data-preview-tab]");
   await p.waitForSelector("[data-body-preview]");
   const previewHtml = await p.locator("[data-body-preview]").innerHTML();
-  check("the preview renders the heading", previewHtml.includes("<h2>Before you drive</h2>"));
+  // Headings carry slug ids now (they anchor the table of contents).
+  check(
+    "the preview renders the heading",
+    /<h2 id="before-you-drive">Before you drive<\/h2>/.test(previewHtml)
+  );
   check("the preview renders bold", previewHtml.includes("<strong>tyre pressure</strong>"));
   check("hostile HTML is inert in the preview", !previewHtml.includes("<script>"));
 

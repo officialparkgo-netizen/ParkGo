@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { setReviewHiddenAction } from "@/lib/admin-suite-actions";
 import { listAllReviews } from "@/lib/data/reviews";
 import { listAllSpaces } from "@/lib/data/hosts";
@@ -22,7 +22,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function AdminReviewsPage() {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   // Support agents live on the ticket queue — nothing else here is theirs.
   if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();

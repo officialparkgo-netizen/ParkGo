@@ -23,7 +23,7 @@ import { StatusBadge } from "@/components/portal/status";
 import { StatCard } from "@/components/portal/stat-card";
 import { EarningsChart } from "@/components/portal/earnings-chart";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
 import { getHostsByIds, listAllSpaces } from "@/lib/data/hosts";
 import { listPendingVerificationsLive } from "@/lib/data/verifications";
@@ -42,7 +42,7 @@ export default async function AdminDashboard({
 }: {
   searchParams: Promise<{ q?: string; range?: string }>;
 }) {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   // Support agents live on the ticket queue — nothing else here is theirs.
   if (user.adminScope === "support") redirect("/admin/support");
   const { t, locale } = await getI18n();

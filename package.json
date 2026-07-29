@@ -19,7 +19,8 @@
     "audit:i18n": "node scripts/i18n/parity.mjs --strict",
     "e2e:guest2": "node scripts/e2e/guest-suite2.mjs",
     "e2e:translate": "node scripts/e2e/support-translate.mjs",
-    "e2e:blog": "node scripts/e2e/blog.mjs"
+    "e2e:blog": "node scripts/e2e/blog.mjs",
+    "e2e:blog2": "node scripts/e2e/blog2.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.65.0",

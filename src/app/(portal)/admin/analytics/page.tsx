@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { StatCard } from "@/components/portal/stat-card";
 import { adminNav } from "@/components/portal/navs";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { listSearchStats } from "@/lib/data/search-events";
 import { listAllBookings } from "@/lib/data/bookings";
 import { listAllSpaces } from "@/lib/data/hosts";
@@ -23,7 +23,7 @@ export const metadata: Metadata = pageMetadata({
 
 /** Demand funnel: searches → zero-result gaps → bookings, per destination. */
 export default async function AdminAnalyticsPage() {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   // Support agents live on the ticket queue — nothing else here is theirs.
   if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import type { Locale, SupportMessage } from "@/types";
-import { getCurrentUser, requireRole } from "@/lib/auth";
+import { getCurrentUser, requireRole, requireOpsAdmin } from "@/lib/auth";
 import { createSupportTicket, setSupportTicketResolved } from "@/lib/data/support";
 import { deskState, detectPriority, formatWait } from "@/lib/support-hours";
 import { detectLocale } from "@/lib/support-lang";
@@ -140,7 +140,8 @@ export async function submitSupportTicket(input: {
       try {
         const { listAdminUsers } = await import("@/lib/data/users");
         const { pushToUsers } = await import("@/lib/push");
-        const team = await listAdminUsers();
+        // Writers ("content" scope) never work the desk — no support pushes.
+        const team = (await listAdminUsers()).filter((u) => u.adminScope !== "content");
         await pushToUsers(team.map((u) => u.id), {
           title: phone ? "Callback requested" : "Urgent support chat",
           body: `${name || email}${phone ? ` · ${phone}` : ""}`,
@@ -260,7 +261,7 @@ export async function submitSupportTicket(input: {
 
 /** Admin: mark a ticket handled. */
 export async function resolveSupportTicketAction(formData: FormData) {
-  const admin = await requireRole("admin");
+  const admin = await requireOpsAdmin();
   const id = String(formData.get("ticketId") || "");
   if (id) {
     await setSupportTicketResolved(id);

@@ -38,7 +38,8 @@ export async function sweepSlaBreaches(
 
   try {
     const { listAdminUsers } = await import("@/lib/data/users");
-    const everyone = await listAdminUsers();
+    // Writers ("content" scope) have no ticket desk — SLA noise skips them.
+    const everyone = (await listAdminUsers()).filter((u) => u.adminScope !== "content");
     const admins = everyone.filter((u) => u.adminScope !== "support");
 
     // Push reaches the on-call agent whose console tab is closed — the exact

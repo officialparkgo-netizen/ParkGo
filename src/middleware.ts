@@ -50,6 +50,16 @@ function touchStaffActivity(request: NextRequest, response: NextResponse) {
  * with Supabase configured, so mock deployments are unaffected.
  */
 export async function middleware(request: NextRequest) {
+  // IndexNow ownership proof: the protocol requires `/{key}.txt` to exist at
+  // the site root and contain the key. Served from the same env var the ping
+  // uses, so the two can never disagree.
+  const indexNowKey = process.env.INDEXNOW_KEY;
+  if (indexNowKey && request.nextUrl.pathname === `/${indexNowKey}.txt`) {
+    return new NextResponse(indexNowKey, {
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    });
+  }
+
   const idle = staffIdleRedirect(request);
   if (idle) return idle;
 

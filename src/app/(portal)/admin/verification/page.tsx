@@ -20,7 +20,7 @@ import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
 import { trustBand } from "@/lib/trust";
 import { hostTrustScore } from "@/lib/admin-insights";
-import { requireRole } from "@/lib/auth";
+import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { reviewVerificationAction } from "@/lib/booking-actions";
 import { getHostsByIds, listAllHosts, listAllSpaces } from "@/lib/data/hosts";
 import { listPendingVerificationsLive } from "@/lib/data/verifications";
@@ -36,7 +36,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function AdminVerificationPage() {
-  const user = await requireRole("admin");
+  const user = await requireOpsAdmin();
   // Support agents live on the ticket queue — nothing else here is theirs.
   if (user.adminScope === "support") redirect("/admin/support");
   const { t } = await getI18n();
