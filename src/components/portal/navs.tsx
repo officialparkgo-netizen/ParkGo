@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   LifeBuoy,
   Megaphone,
+  Newspaper,
   Radio,
   ScrollText,
   Search,
@@ -79,6 +80,7 @@ export const adminNav: NavItem[] = [
   { href: "/admin/claims", label: "admin.claims.title", icon: ShieldAlert },
   { href: "/admin/support", label: "admin.support.title", icon: Headset },
   { href: "/admin/broadcast", label: "admin.broadcast.title", icon: Megaphone },
+  { href: "/admin/blog", label: "admin.blog.title", icon: Newspaper },
   { href: "/admin/audit", label: "nav.audit", icon: ScrollText },
   { href: "/admin/settings", label: "admin.settings.title", icon: Settings },
 ];

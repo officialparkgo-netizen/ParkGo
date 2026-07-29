@@ -36,18 +36,21 @@ export function pageMetadata({
   description,
   path = "/",
   noindex = false,
+  image: imageOverride,
 }: {
   title?: string;
   description?: string;
   path?: string;
   noindex?: boolean;
+  /** Page-specific share image (e.g. a blog cover). Absolute URLs pass through. */
+  image?: string;
 }): Metadata {
   const fullTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
   const desc = description || SITE.description;
   const url = new URL(path, SITE.url).toString();
   // Absolute, because several scrapers (WhatsApp among them) will not resolve
   // a relative og:image against the page URL.
-  const image = new URL(SITE.ogImage, SITE.url).toString();
+  const image = new URL(imageOverride || SITE.ogImage, SITE.url).toString();
   return {
     title: fullTitle,
     description: desc,

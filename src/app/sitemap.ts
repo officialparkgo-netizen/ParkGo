@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE } from "@/lib/seo";
 import { getAirports } from "@/lib/data/store";
 import { getAllPosts } from "@/content/blog";
+import { listArticlesAdmin } from "@/lib/data/blog";
 
 /** Static marketing routes, highest priority first. */
 const STATIC_ROUTES: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
@@ -19,7 +20,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: Metadata
   { path: "/blog", priority: 0.7, changeFrequency: "weekly" },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const base = SITE.url.replace(/\/$/, "");
 
@@ -44,5 +45,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...airportEntries, ...blogEntries];
+  // Admin-written articles — published only. A draft in the sitemap would
+  // invite crawlers to a page that 404s.
+  const articles = await listArticlesAdmin().catch(() => []);
+  const articleEntries: MetadataRoute.Sitemap = articles
+    .filter((a) => a.status === "published")
+    .map((a) => ({
+      url: `${base}/blog/${a.slug}`,
+      lastModified: new Date(a.updatedAt),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    }));
+
+  return [...staticEntries, ...airportEntries, ...blogEntries, ...articleEntries];
 }

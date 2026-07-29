@@ -245,3 +245,48 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ------------------------------------------------------------------ blog ---
+ * Article body styling for admin-written posts. The markdown renderer emits
+ * bare tags (p, h2, h3, ul, ol, blockquote, pre, img, a) with no classes —
+ * the look lives here so the stored markdown stays presentation-free.
+ */
+.prose-blog {
+  @apply leading-relaxed text-navy-700;
+}
+.prose-blog p {
+  @apply mt-4;
+}
+.prose-blog h2 {
+  @apply mt-10 text-2xl font-bold tracking-tight text-navy-900;
+}
+.prose-blog h3 {
+  @apply mt-7 text-xl font-bold tracking-tight text-navy-900;
+}
+.prose-blog a {
+  @apply font-semibold text-brand-700 underline underline-offset-2;
+}
+.prose-blog ul {
+  @apply mt-4 list-disc space-y-1.5 ps-6;
+}
+.prose-blog ol {
+  @apply mt-4 list-decimal space-y-1.5 ps-6;
+}
+.prose-blog blockquote {
+  @apply mt-4 border-s-4 border-brand-300 bg-navy-50/60 px-4 py-2 italic;
+}
+.prose-blog pre {
+  @apply mt-4 overflow-x-auto rounded-xl bg-navy-900 px-4 py-3 text-sm text-navy-50;
+}
+.prose-blog code {
+  @apply rounded bg-navy-100 px-1.5 py-0.5 text-[0.9em] text-navy-800;
+}
+.prose-blog pre code {
+  @apply bg-transparent p-0 text-navy-50;
+}
+.prose-blog img {
+  @apply mt-6 w-full rounded-2xl;
+}
+.prose-blog hr {
+  @apply mt-8 border-navy-100;
+}

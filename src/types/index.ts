@@ -457,6 +457,31 @@ export interface Organisation {
   createdAt: ISODateString;
 }
 
+/**
+ * A blog article written in the admin console, as opposed to the built-in
+ * launch posts that ship as code (src/content/blog.ts). The two live side by
+ * side: built-ins carry translations and never change; these are the client's
+ * own words, written once in whatever language they wrote them.
+ */
+export interface BlogArticle {
+  id: UUID;
+  /** URL path segment. Unique across articles AND the built-in posts. */
+  slug: string;
+  title: string;
+  /** Shown on cards and used as the meta description. */
+  excerpt: string;
+  /** Markdown. Rendered by src/lib/markdown.ts, which escapes first. */
+  body: string;
+  coverUrl?: string;
+  author: string;
+  tags: string[];
+  /** Drafts are visible only in the admin console; the public page 404s. */
+  status: "draft" | "published";
+  publishedAt?: ISODateString;
+  createdAt: ISODateString;
+  updatedAt: ISODateString;
+}
+
 export interface PriceBreakdown {
   parking: Pence;
   transfer: Pence;
@@ -579,7 +604,7 @@ export interface AdminAction {
   adminId: UUID;
   adminName: string;
   action: string; // e.g. "verification.approved", "user.suspended", "note"
-  targetType: "user" | "host" | "space" | "booking" | "payment" | "review" | "promo" | "claim" | "verification" | "broadcast";
+  targetType: "user" | "host" | "space" | "booking" | "payment" | "review" | "promo" | "claim" | "verification" | "broadcast" | "blog";
   targetId: string;
   detail?: string;
   createdAt: ISODateString;

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, CalendarDays, Clock, UserRound } from "lucide-react";
 import { Container, Eyebrow } from "@/components/ui/section";
@@ -8,6 +9,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { pageMetadata, SITE } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
 import { getAllPosts, getPost } from "@/content/blog";
+import { getArticleBySlug } from "@/lib/data/blog";
+import { readMinutes, renderMarkdown } from "@/lib/markdown";
 import { getI18n } from "@/lib/i18n";
 
 const DATE_LOCALE: Record<string, string> = {
@@ -28,6 +31,17 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  // Admin-written articles first; the built-ins keep their slugs for good, so
+  // the two can never collide (the editor refuses built-in slugs).
+  const article = await getArticleBySlug(slug);
+  if (article) {
+    return pageMetadata({
+      title: article.title,
+      description: article.excerpt,
+      path: `/blog/${slug}`,
+      image: article.coverUrl,
+    });
+  }
   const post = getPost(slug);
   if (!post) {
     return pageMetadata({ title: "Article", path: `/blog/${slug}` });
@@ -45,12 +59,36 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getPost(slug);
-  if (!post) notFound();
+  // Drafts 404 here on purpose: the data layer only returns published
+  // articles to this page, so an unpublished URL is indistinguishable from a
+  // nonexistent one — a draft leaking through a guessed link would be worse.
+  const article = await getArticleBySlug(slug);
+  const builtinPost = article ? null : getPost(slug);
+  if (!article && !builtinPost) notFound();
 
   const { t, locale } = await getI18n();
   const dateLocale = DATE_LOCALE[locale] ?? "en-GB";
-  const body = t("blog.post." + slug + ".body").split("\n\n");
+
+  const post = article
+    ? {
+        title: article.title,
+        excerpt: article.excerpt,
+        author: article.author,
+        date: article.publishedAt ?? article.createdAt,
+        readMins: readMinutes(article.body),
+        tags: article.tags,
+      }
+    : {
+        title: builtinPost!.title,
+        excerpt: builtinPost!.excerpt,
+        author: builtinPost!.author,
+        date: builtinPost!.date,
+        readMins: builtinPost!.readMins,
+        tags: builtinPost!.tags,
+      };
+  const heading = article ? article.title : t("blog.post." + slug + ".title");
+  const standfirst = article ? article.excerpt : t("blog.post." + slug + ".excerpt");
+  const body = article ? [] : t("blog.post." + slug + ".body").split("\n\n");
 
   const url = new URL(`/blog/${slug}`, SITE.url).toString();
   const articleLd = {
@@ -97,9 +135,9 @@ export default async function BlogPostPage({
               ))}
             </div>
             <h1 className="mt-4 text-balance text-3xl font-extrabold leading-[1.12] tracking-tight text-navy-900 sm:text-4xl">
-              {t("blog.post." + slug + ".title")}
+              {heading}
             </h1>
-            <p className="mt-4 text-lg text-navy-600">{t("blog.post." + slug + ".excerpt")}</p>
+            <p className="mt-4 text-lg text-navy-600">{standfirst}</p>
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-navy-100 pt-5 text-sm text-navy-500">
               <span className="inline-flex items-center gap-1.5">
                 <UserRound className="h-4 w-4" /> {t("blog.by")} {post.author}
@@ -117,20 +155,40 @@ export default async function BlogPostPage({
 
       {/* -------------------------------------------------------- Article */}
       <Container className="py-12 sm:py-16">
-        <article className="mx-auto max-w-2xl space-y-4 text-navy-700 leading-relaxed">
-          {body.map((para, i) =>
-            para.startsWith("## ") ? (
-              <h2
-                key={i}
-                className="!mt-10 text-2xl font-bold tracking-tight text-navy-900"
-              >
-                {para.slice(3)}
-              </h2>
-            ) : (
-              <p key={i}>{para}</p>
-            )
-          )}
-        </article>
+        {article?.coverUrl && (
+          <div className="relative mx-auto mb-10 aspect-[2/1] max-w-3xl overflow-hidden rounded-2xl">
+            <Image
+              src={article.coverUrl}
+              alt=""
+              fill
+              sizes="(min-width: 768px) 768px, 100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
+        {article ? (
+          <article
+            className="prose-blog mx-auto max-w-2xl"
+            // Safe: renderMarkdown escapes before transforming (src/lib/markdown.ts).
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(article.body) }}
+          />
+        ) : (
+          <article className="mx-auto max-w-2xl space-y-4 text-navy-700 leading-relaxed">
+            {body.map((para, i) =>
+              para.startsWith("## ") ? (
+                <h2
+                  key={i}
+                  className="!mt-10 text-2xl font-bold tracking-tight text-navy-900"
+                >
+                  {para.slice(3)}
+                </h2>
+              ) : (
+                <p key={i}>{para}</p>
+              )
+            )}
+          </article>
+        )}
 
         {/* CTA */}
         <div className="mx-auto mt-12 max-w-2xl rounded-2xl bg-navy-800 p-8 text-center">

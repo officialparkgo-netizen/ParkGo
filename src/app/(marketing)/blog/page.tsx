@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { pageMetadata } from "@/lib/seo";
 import { formatDate } from "@/lib/utils";
-import { getAllPosts } from "@/content/blog";
+import Image from "next/image";
+import { listPublicPosts } from "@/lib/data/blog";
 import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
@@ -26,7 +27,13 @@ const DATE_LOCALE: Record<string, string> = {
 export default async function BlogIndexPage() {
   const { t, locale } = await getI18n();
   const dateLocale = DATE_LOCALE[locale] ?? "en-GB";
-  const posts = getAllPosts();
+  // Admin-written articles and the built-in launch posts, one list, newest
+  // first. Built-ins resolve their title through the translator; articles are
+  // the client's own words and render as written.
+  const posts = await listPublicPosts();
+  const title = (p: (typeof posts)[number]) => (p.i18nKey ? t(`${p.i18nKey}.title`) : p.title);
+  const excerpt = (p: (typeof posts)[number]) =>
+    p.i18nKey ? t(`${p.i18nKey}.excerpt`) : p.excerpt;
   const [featured, ...rest] = posts;
 
   return (
@@ -51,7 +58,17 @@ export default async function BlogIndexPage() {
           <Link href={`/blog/${featured.slug}`} className="group block">
             <Card className="grid items-stretch overflow-hidden lg:grid-cols-2">
               <div className="relative min-h-[14rem] bg-gradient-to-br from-brand-600 to-navy-700">
-                <div className="absolute inset-0 bg-grid opacity-30" aria-hidden />
+                {featured.coverUrl ? (
+                  <Image
+                    src={featured.coverUrl}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-grid opacity-30" aria-hidden />
+                )}
                 <div className="absolute bottom-4 left-4 flex flex-wrap gap-1.5">
                   {featured.tags.slice(0, 2).map((t) => (
                     <Badge key={t} tone="go" className="bg-white/95">
@@ -70,9 +87,9 @@ export default async function BlogIndexPage() {
                   </span>
                 </p>
                 <h2 className="mt-3 text-2xl font-bold tracking-tight text-navy-900 group-hover:text-brand-700 sm:text-3xl">
-                  {t("blog.post." + featured.slug + ".title")}
+                  {title(featured)}
                 </h2>
-                <p className="mt-3 text-navy-600">{t("blog.post." + featured.slug + ".excerpt")}</p>
+                <p className="mt-3 text-navy-600">{excerpt(featured)}</p>
                 <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-brand-700">
                   {t("blog.readArticle")} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
@@ -89,7 +106,17 @@ export default async function BlogIndexPage() {
             <Link key={post.slug} href={`/blog/${post.slug}`} className="group block h-full">
               <Card className="flex h-full flex-col overflow-hidden">
                 <div className="relative h-40 bg-gradient-to-br from-navy-700 to-brand-500">
-                  <div className="absolute inset-0 bg-grid opacity-30" aria-hidden />
+                  {post.coverUrl ? (
+                    <Image
+                      src={post.coverUrl}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-grid opacity-30" aria-hidden />
+                  )}
                   <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
                     {post.tags.slice(0, 1).map((t) => (
                       <Badge key={t} tone="brand" className="bg-white/95">
@@ -108,9 +135,9 @@ export default async function BlogIndexPage() {
                     </span>
                   </p>
                   <h3 className="mt-2 text-lg font-bold leading-snug text-navy-900 group-hover:text-brand-700">
-                    {t("blog.post." + post.slug + ".title")}
+                    {title(post)}
                   </h3>
-                  <p className="mt-2 flex-1 text-sm text-navy-600">{t("blog.post." + post.slug + ".excerpt")}</p>
+                  <p className="mt-2 flex-1 text-sm text-navy-600">{excerpt(post)}</p>
                   <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700">
                     {t("blog.readMore")} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>

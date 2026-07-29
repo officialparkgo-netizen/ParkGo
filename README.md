@@ -52,7 +52,7 @@ npm run dev          # dev server
 npm run build        # production build
 npm start            # run the production build
 npm run typecheck    # tsc --noEmit
-npm test             # vitest — 308 tests across 27 files
+npm test             # vitest — 324 tests across 28 files
 npm run lint         # next lint
 ```
 
@@ -68,6 +68,21 @@ designators are real, when a delay is worth extending for). See
 ---
 
 ## What's in the product
+
+**Content**
+- A **blog platform** at `/admin/blog`: write in Markdown with a live preview
+  (rendered by the same function the public page uses, so the preview is the
+  truth), save as a draft, publish, unpublish, delete. Cover images, tags,
+  authors, editable URL slugs that follow the title until touched. Drafts 404
+  publicly; published posts join the listing, the sitemap, and carry canonical
+  + description + share-image metadata and Article JSON-LD.
+- The renderer is an **escape-first** markdown implementation
+  (`src/lib/markdown.ts`): the input is HTML-escaped before any transform runs,
+  link/image URLs must be http(s) or site-relative, and the XSS cases are
+  pinned by unit tests — this is admin-written content served to the public,
+  which makes it a security boundary, not a formatting nicety.
+- The five built-in launch posts remain, translated in all five languages, and
+  keep their slugs — the editor refuses to take one over.
 
 **Support**
 - Live chat with a rule-based first responder, escalation to a human, saved
@@ -275,6 +290,7 @@ or paste each file into the **Supabase SQL editor**:
 | `0024_support_suite2.sql` | Support notes, tags, snooze, SLA escalation, callbacks, visitor language, agent duty flag, `push_subscriptions`; `support-files` becomes private |
 | `0025_guest_suite.sql` | Saved spaces, several vehicles per account, business/VAT details, referral credit, price & availability alerts, step-free listing flag |
 | `0026_guest_suite2.sql` | Cancellation protection, host car-care services, gift cards, trip passes, loyalty counter, flight tracking columns, condition photos, date waitlist, group bookings, company accounts, claim photos |
+| `0027_blog.sql` | Blog platform: admin-written articles with drafts, publishing and covers |
 
 RLS keeps each role to its own rows; the exact address and camera stream are
 released only to the paying traveller. KYC files live in the **private**
@@ -370,6 +386,7 @@ BASE=http://localhost:3000 npm run audit:motion   # prefers-reduced-motion
 BASE=http://localhost:3000 npm run e2e:search     # destination suggestions
 BASE=http://localhost:3000 npm run e2e:nav        # current-page indicator
 BASE=http://localhost:3000 npm run e2e:guest2     # traveller round two
+BASE=http://localhost:3000 npm run e2e:blog       # blog platform, write→publish
 
 # Support translation needs the placeholder provider switched on:
 #   PARKGO_DEMO_TRANSLATE=1 npm start &
