@@ -177,6 +177,22 @@ export async function submitSupportTicket(input: {
       ...(phone ? { tags: ["callback"] } : {}),
     });
 
+    // A bell for the whole desk (agents + full admins, never writers). On
+    // /notifications this kind links straight to the queue — the webhook and
+    // email above only reach whoever watches those.
+    try {
+      const { listAdminUsers } = await import("@/lib/data/users");
+      const { notifyUsers } = await import("@/lib/data/notifications");
+      const team = (await listAdminUsers()).filter((u) => u.adminScope !== "content");
+      await notifyUsers(team.map((u) => u.id), {
+        title: `${priority === "urgent" ? "🚨 Urgent" : "🎧 New"} support ticket · ${supportRef(ticket.id)}`,
+        body: `${ticket.name || email} · ${ticket.topic}${phone ? ` · callback ${phone}` : ""}`,
+        kind: "support",
+      });
+    } catch {
+      // the queue itself is the source of truth; a lost bell is cosmetic
+    }
+
     // Forward to the team inbox — best-effort, the ticket is already stored.
     if (isEmailConfigured()) {
       // The team inbox is where most tickets are first read, so the English

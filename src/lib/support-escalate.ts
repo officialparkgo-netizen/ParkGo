@@ -52,32 +52,21 @@ export async function sweepSlaBreaches(
       tag: "parkgo-sla",
       urgent: true,
     });
-    const { IS_LIVE } = await import("@/lib/config");
     const body = due
       .map((t) => `${supportRef(t.id)} · ${t.name || t.email}`)
       .join("\n");
 
-    for (const admin of admins) {
-      const note = {
+    const { notifyUsers } = await import("@/lib/data/notifications");
+    await notifyUsers(
+      admins.map((a) => a.id),
+      {
         title: `Support SLA missed · ${due.length}`,
         body: `No reply yet on:\n${body}`,
-        kind: "system" as const,
-      };
-      if (!IS_LIVE) {
-        const { addNotification } = await import("@/lib/data/store");
-        addNotification({ userId: admin.id, ...note });
-      } else {
-        const { supabaseAdmin } = await import("@/lib/supabase/server");
-        await supabaseAdmin()
-          .from("notifications")
-          .insert({
-            user_id: admin.id,
-            title: note.title,
-            body: note.body,
-            kind: note.kind,
-          });
+        // "support" rather than "system": on /notifications this kind is a
+        // link straight to the ticket desk.
+        kind: "support",
       }
-    }
+    );
   } catch {
     // best-effort
   }

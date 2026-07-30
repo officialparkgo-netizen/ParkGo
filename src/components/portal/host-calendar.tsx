@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Ticket, X } from "lucide-react";
+import { StatusBadge } from "@/components/portal/status";
 
 interface CalBooking {
+  id: string;
+  reference: string;
   startAt: string;
   endAt: string;
   status: string;
@@ -12,19 +15,31 @@ const navBtn =
 
 /**
  * Month occupancy calendar for the host dashboard. Server-rendered: the
- * prev/next arrows are plain links (`?cal=YYYY-MM#calendar`), so no client
- * JS is needed. Days are compared in UTC to match the booking timestamps.
+ * prev/next arrows and the day cells are plain links (`?cal=YYYY-MM&day=D`),
+ * so no client JS is needed. A day with bookings opens a panel underneath
+ * listing them, each linking to its booking page. Days are compared in UTC to
+ * match the booking timestamps.
  */
 export function HostCalendar({
   bookings,
   month,
+  selectedDay,
   localeTag,
   labels,
 }: {
   bookings: CalBooking[];
   month: string; // "YYYY-MM", validated by the caller
+  /** Day-of-month from ?day=, validated by the caller; null = nothing open. */
+  selectedDay?: number | null;
   localeTag: string;
-  labels: { prev: string; next: string; legend: string };
+  labels: {
+    prev: string;
+    next: string;
+    legend: string;
+    dayTitle: string;
+    dayNone: string;
+    dayClose: string;
+  };
 }) {
   const [y, m] = month.split("-").map(Number);
   const first = new Date(Date.UTC(y, m - 1, 1));
@@ -37,12 +52,12 @@ export function HostCalendar({
   const nextMonth = fmtMonth(new Date(Date.UTC(y, m, 1)));
 
   const active = bookings.filter((b) => b.status !== "cancelled");
-  const carsOn = (day: number) => {
+  const bookingsOn = (day: number) => {
     const dayStart = Date.UTC(y, m - 1, day);
     const dayEnd = Date.UTC(y, m - 1, day + 1);
     return active.filter(
       (b) => +new Date(b.startAt) < dayEnd && +new Date(b.endAt) > dayStart
-    ).length;
+    );
   };
 
   const now = new Date();
@@ -61,6 +76,25 @@ export function HostCalendar({
     year: "numeric",
     timeZone: "UTC",
   });
+
+  const open = selectedDay && selectedDay >= 1 && selectedDay <= daysInMonth ? selectedDay : null;
+  const openBookings = open ? bookingsOn(open) : [];
+  const openDate = open
+    ? new Date(Date.UTC(y, m - 1, open)).toLocaleDateString(localeTag, {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      })
+    : "";
+  const fmtDT = (iso: string) =>
+    new Date(iso).toLocaleString(localeTag, {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "UTC",
+    });
 
   return (
     <div>
@@ -90,21 +124,17 @@ export function HostCalendar({
         ))}
         {Array.from({ length: daysInMonth }, (_, i) => {
           const day = i + 1;
-          const n = carsOn(day);
-          return (
-            <div
-              key={day}
-              data-cal-day={day}
-              {...(n > 0 ? { "data-occupied": "1" } : {})}
-              title={n > 0 ? String(n) : undefined}
-              className={[
-                "flex h-11 flex-col items-center justify-center gap-1 rounded-lg text-sm sm:h-12",
-                n > 0 ? "bg-brand-50 font-semibold text-navy-900" : "text-navy-600",
-                isToday(day) ? "ring-2 ring-brand-400" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
+          const n = bookingsOn(day).length;
+          const cellClass = [
+            "flex h-11 flex-col items-center justify-center gap-1 rounded-lg text-sm sm:h-12",
+            n > 0 ? "bg-brand-50 font-semibold text-navy-900" : "text-navy-600",
+            isToday(day) ? "ring-2 ring-brand-400" : "",
+            open === day ? "ring-2 ring-navy-700" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          const inner = (
+            <>
               <span className="leading-none">{day}</span>
               {n > 0 &&
                 (n <= 3 ? (
@@ -116,10 +146,73 @@ export function HostCalendar({
                 ) : (
                   <span className="text-[10px] font-bold leading-none text-brand-700">{n}</span>
                 ))}
+            </>
+          );
+          // An occupied day is a link: open its bookings (or close them again).
+          return n > 0 ? (
+            <Link
+              key={day}
+              href={
+                open === day
+                  ? `/host?cal=${month}#calendar`
+                  : `/host?cal=${month}&day=${day}#calendar`
+              }
+              data-cal-day={day}
+              data-occupied="1"
+              title={String(n)}
+              className={`${cellClass} transition-colors hover:bg-brand-100`}
+            >
+              {inner}
+            </Link>
+          ) : (
+            <div key={day} data-cal-day={day} className={cellClass}>
+              {inner}
             </div>
           );
         })}
       </div>
+
+      {/* ------------------------------------------------ the day, opened --- */}
+      {open && (
+        <div className="mt-4 rounded-xl border border-navy-100 bg-navy-50/50 p-4" data-cal-day-panel>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-sm font-bold text-navy-900">
+              {labels.dayTitle} {openDate}
+            </p>
+            <Link
+              href={`/host?cal=${month}#calendar`}
+              aria-label={labels.dayClose}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-navy-400 hover:bg-navy-100 hover:text-navy-700"
+            >
+              <X className="h-4 w-4" />
+            </Link>
+          </div>
+          {openBookings.length === 0 ? (
+            <p className="text-sm text-navy-500">{labels.dayNone}</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {openBookings.map((b) => (
+                <li key={b.id}>
+                  <Link
+                    href={`/host/bookings/${b.id}`}
+                    data-cal-booking={b.reference}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-navy-100 transition-colors hover:ring-brand-300"
+                  >
+                    <span className="inline-flex min-w-0 items-center gap-2">
+                      <Ticket className="h-4 w-4 shrink-0 text-brand-600" aria-hidden />
+                      <span className="font-semibold text-navy-900">{b.reference}</span>
+                      <span className="truncate text-xs text-navy-500">
+                        {fmtDT(b.startAt)} → {fmtDT(b.endAt)}
+                      </span>
+                    </span>
+                    <StatusBadge status={b.status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <p className="mt-3 flex items-center gap-1.5 text-xs text-navy-400">
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" /> {labels.legend}

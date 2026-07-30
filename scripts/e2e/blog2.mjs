@@ -279,6 +279,7 @@ let previewUrl = "";
 
 // ----------------------------------------------------------- writer invites --
 let writerCtx;
+let writerId = "";
 {
   const p = await admin.newPage();
   await p.goto(`${BASE}/admin/blog`, { waitUntil: "domcontentloaded" });
@@ -300,6 +301,7 @@ let writerCtx;
   writerCtx = await ctx(null);
   const w = await writerCtx.newPage();
   const token = new URL(invite).searchParams.get("token") ?? "";
+  writerId = token.split(".")[0];
   await w.goto(`${BASE}/team/accept?token=${encodeURIComponent(token)}`, {
     waitUntil: "domcontentloaded",
   });
@@ -360,11 +362,29 @@ let writerCtx;
   check("removing the writer clears the row", !after.includes(WRITER_EMAIL));
   await p.close();
 
-  // Their session is now just a traveller's — the console is gone.
+  // Removal disables the whole account, not just the console: their session
+  // now lands on the suspended sign-in screen.
   const w = await writerCtx.newPage();
   await w.goto(`${BASE}/admin/blog`, { waitUntil: "domcontentloaded" });
   await w.waitForLoadState("networkidle");
   check("the removed writer loses the console", !w.url().includes("/admin/blog"), w.url());
+  check("removal disables the account", w.url().includes("suspended=1"), w.url());
+
+  // The admin can lift the restriction from the user's profile.
+  const a = await admin.newPage();
+  await a.goto(`${BASE}/admin/users/${writerId}`, { waitUntil: "domcontentloaded" });
+  await settled(a);
+  await a.locator('form:has(input[name="state"][value="restore"]) button').click();
+  await a.waitForLoadState("networkidle");
+  await a.close();
+
+  await w.goto(`${BASE}/app`, { waitUntil: "domcontentloaded" });
+  await w.waitForLoadState("networkidle");
+  check(
+    "restoring un-restricts them as a customer",
+    w.url().includes("/app") && !w.url().includes("suspended"),
+    w.url()
+  );
   await w.close();
   await writerCtx.close();
 }

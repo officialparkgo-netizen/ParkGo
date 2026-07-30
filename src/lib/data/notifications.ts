@@ -45,6 +45,34 @@ export async function unreadCountForUser(userId: string): Promise<number> {
   return count ?? 0;
 }
 
+/** One note, many bells — the same row inserted for each recipient. */
+export async function notifyUsers(
+  userIds: string[],
+  note: { title: string; body: string; kind: Notification["kind"] }
+): Promise<void> {
+  if (userIds.length === 0) return;
+  if (!IS_LIVE) {
+    const { addNotification } = await import("@/lib/data/store");
+    for (const userId of userIds) addNotification({ userId, ...note });
+    return;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin()
+      .from("notifications")
+      .insert(
+        userIds.map((id) => ({
+          user_id: id,
+          title: note.title,
+          body: note.body,
+          kind: note.kind,
+        }))
+      );
+  } catch {
+    // A lost bell must never break the flow that rang it.
+  }
+}
+
 /** Opening the notifications page clears the unread badge. */
 export async function markAllNotificationsRead(userId: string): Promise<void> {
   if (!IS_LIVE) {

@@ -56,6 +56,7 @@ export default async function HostDashboard({
     updated?: string;
     verify?: string;
     cal?: string;
+    day?: string;
     vacation?: string;
     count?: string;
   }>;
@@ -64,7 +65,7 @@ export default async function HostDashboard({
   // Co-hosts only coordinate arrivals — their home is the Today board.
   if (user.cohostHostId) redirect("/host/today");
   const { t, locale } = await getI18n();
-  const { listed, updated, verify, cal, vacation, count } = await searchParams;
+  const { listed, updated, verify, cal, day, vacation, count } = await searchParams;
   const host = await getHostForUser(user);
 
   // A brand-new host has no host record / listings yet — show onboarding
@@ -118,10 +119,13 @@ export default async function HostDashboard({
     const m = earningsMonths.find((x) => x.key === monthKey(new Date(pay.createdAt)));
     if (m) m.value += pay.split.hostPayout;
   }
-  // Calendar month from ?cal=YYYY-MM (falls back to the current month).
+  // Calendar month from ?cal=YYYY-MM (falls back to the current month), and
+  // an optional opened day from ?day=1..31 (the component re-checks the range
+  // against the actual month length).
   const calMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(cal ?? "")
     ? (cal as string)
     : monthKey(nowDate);
+  const calDay = /^([1-9]|[12]\d|3[01])$/.test(day ?? "") ? Number(day) : null;
   const pendingPayouts = earnedPayments
     .filter((p) => p.payoutStatus !== "paid")
     .reduce((s, p) => s + p.split.hostPayout, 0);
@@ -523,16 +527,22 @@ export default async function HostDashboard({
           <Card className="p-5">
             <HostCalendar
               bookings={bookings.map((b) => ({
+                id: b.id,
+                reference: b.reference,
                 startAt: b.startAt,
                 endAt: b.endAt,
                 status: b.status,
               }))}
               month={calMonth}
+              selectedDay={calDay}
               localeTag={localeTag}
               labels={{
                 prev: t("host.cal.prev"),
                 next: t("host.cal.next"),
                 legend: t("host.cal.legend"),
+                dayTitle: t("host.cal.dayTitle"),
+                dayNone: t("host.cal.dayNone"),
+                dayClose: t("host.cal.dayClose"),
               }}
             />
           </Card>

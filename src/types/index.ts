@@ -727,7 +727,7 @@ export interface Notification {
   userId: UUID;
   title: string;
   body: string;
-  kind: "booking" | "verification" | "payout" | "system" | "handover";
+  kind: "booking" | "verification" | "payout" | "system" | "handover" | "support";
   read: boolean;
   createdAt: ISODateString;
 }

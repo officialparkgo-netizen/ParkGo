@@ -847,6 +847,9 @@ export async function createStaffAccount(
           locale: "en",
           admin_scope: scope,
           onboarded: true,
+          // Removal suspends the account; a fresh invite is the explicit
+          // decision to let them back in.
+          suspended: false,
         },
         { onConflict: "id" }
       )
@@ -860,9 +863,13 @@ export async function createStaffAccount(
 }
 
 /**
- * Revoke a limited staff account (support agent or writer): back to a plain
- * traveller. Deliberately refuses to touch full admins — only limited scopes
- * demote, so this can never be used to eject a peer.
+ * Revoke a limited staff account (support agent or writer): demoted to a
+ * plain traveller AND suspended, in one move. Removal means removal — an
+ * ex-agent keeping a working login would surprise the admin who just removed
+ * them. The suspension is lifted the normal way (the restore button on
+ * /admin/users/[id]) if the person should keep using ParkGo as a customer.
+ * Deliberately refuses to touch full admins — only limited scopes demote, so
+ * this can never be used to eject a peer.
  */
 export async function revokeSupportAgent(userId: string): Promise<boolean> {
   if (!IS_LIVE) {
@@ -871,13 +878,14 @@ export async function revokeSupportAgent(userId: string): Promise<boolean> {
     if (!u || u.role !== "admin" || u.adminScope === "full" || !u.adminScope) return false;
     u.role = "traveller";
     u.adminScope = undefined;
+    u.suspended = true;
     return true;
   }
   try {
     const { supabaseAdmin } = await import("@/lib/supabase/server");
     const { error } = await supabaseAdmin()
       .from("users")
-      .update({ role: "traveller", admin_scope: null })
+      .update({ role: "traveller", admin_scope: null, suspended: true })
       .eq("id", userId)
       .eq("role", "admin")
       // Limited scopes only — a full admin's row must be untouchable here.

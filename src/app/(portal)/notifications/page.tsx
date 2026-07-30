@@ -54,6 +54,10 @@ function notificationTarget(
       if (user.role === "host") return "/host/today";
       if (user.role === "admin") return "/admin/bookings";
       return "/app/trips";
+    case "support":
+      // Staff-only kind: the desk is one click away. Anyone else (an old
+      // notification on a demoted account) gets the public help page.
+      return user.role === "admin" ? "/admin/support" : "/help";
     default:
       return null; // announcements etc. — nothing to open
   }
