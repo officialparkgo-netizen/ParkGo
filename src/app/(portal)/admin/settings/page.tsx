@@ -318,6 +318,17 @@ export default async function AdminSettingsPage({
                   defaultValue={s.opsWebhookUrl ?? ""}
                 />
               </div>
+              <div>
+                <Label htmlFor="st-vat">{t("admin.settings.vatNumber")}</Label>
+                <Input
+                  id="st-vat"
+                  name="vatNumber"
+                  placeholder="GB123456789"
+                  defaultValue={s.vatNumber ?? ""}
+                  className="uppercase"
+                />
+                <p className="mt-1 text-xs text-navy-400">{t("admin.settings.vatHint")}</p>
+              </div>
             </div>
           </Card>
 

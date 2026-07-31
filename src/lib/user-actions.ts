@@ -96,6 +96,70 @@ export async function requestPrivacyAction(formData: FormData) {
   redirect("/account?privacy=1");
 }
 
+/**
+ * GDPR self-service, for real: the account holder deletes their own account,
+ * immediately. Typed confirmation, and blocked while money is still in
+ * flight — a live booking needs a reachable customer. Admin accounts refuse
+ * (demote first, so one admin can never quietly vanish); hosts with listings
+ * are sent to support, because their spaces may carry other people's
+ * bookings.
+ */
+export async function deleteOwnAccountAction(formData: FormData) {
+  const user = await requireUser();
+  const confirm = String(formData.get("confirm") || "").trim();
+  if (confirm !== "DELETE") redirect("/account?privacy=confirm");
+  if (user.role === "admin" || user.impersonatedBy) redirect("/account?privacy=admin");
+
+  if (user.role === "host") {
+    const { getHostForUser, getSpacesForHost } = await import("@/lib/data/hosts");
+    const host = await getHostForUser(user);
+    if (host && (await getSpacesForHost(host.id)).length > 0) {
+      redirect("/account?privacy=hostblocked");
+    }
+  }
+
+  // Any booking still to happen (or happening) keeps the account alive.
+  const { listBookingsForTraveller } = await import("@/lib/data/bookings");
+  const open = (await listBookingsForTraveller(user.id)).some(
+    (b) =>
+      (b.status === "requested" || b.status === "paid" || b.status === "active") &&
+      new Date(b.endAt).getTime() > Date.now()
+  );
+  if (open) redirect("/account?privacy=blocked");
+
+  const { selfDeleteAccount } = await import("@/lib/data/users");
+  const ok = await selfDeleteAccount(user.id);
+  if (!ok) redirect("/account?privacy=error");
+
+  // No PII in the trace — just that it happened.
+  try {
+    const { sendOpsAlert } = await import("@/lib/ops-alerts");
+    await sendOpsAlert(`🗑️ GDPR self-delete completed (user ${user.id.slice(0, 12)}…)`);
+  } catch {
+    // best-effort
+  }
+
+  // End the session: the account behind it no longer exists.
+  const { cookies } = await import("next/headers");
+  const { SESSION_COOKIE } = await import("@/lib/auth");
+  try {
+    (await cookies()).delete(SESSION_COOKIE);
+  } catch {
+    // suspended-account guard still locks them out on the next request
+  }
+  const { IS_LIVE } = await import("@/lib/config");
+  if (IS_LIVE) {
+    try {
+      const { createServerSupabase } = await import("@/lib/supabase/auth-server");
+      const supabase = await createServerSupabase();
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // the auth user is gone; a stale cookie cannot resolve to anyone
+    }
+  }
+  redirect("/login?deleted=1");
+}
+
 /** Admin/host self-service: toggle their own email-code second factor. */
 export async function setOwnTwofaAction(formData: FormData) {
   const user = await requireUser();

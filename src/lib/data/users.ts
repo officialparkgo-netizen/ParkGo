@@ -325,6 +325,28 @@ export async function anonymizeUserAdmin(userId: string): Promise<boolean> {
   return !error;
 }
 
+/**
+ * GDPR self-service: the account holder deletes themselves. Same scrub as the
+ * admin path, plus — in live mode — the Supabase Auth record itself is
+ * removed, so the email can no longer sign in and is free to register again.
+ * The profile row stays (scrubbed, suspended) because bookings and payments
+ * reference it for accounting.
+ */
+export async function selfDeleteAccount(userId: string): Promise<boolean> {
+  const ok = await anonymizeUserAdmin(userId);
+  if (!ok) return false;
+  if (IS_LIVE) {
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/server");
+      await supabaseAdmin().auth.admin.deleteUser(userId);
+    } catch {
+      // The profile is already scrubbed + suspended, so a failed auth delete
+      // still leaves no working login and no personal data on show.
+    }
+  }
+  return true;
+}
+
 /** Live only: last sign-in time from Supabase Auth (null in mock mode). */
 export async function getAuthLastSignIn(userId: string): Promise<string | null> {
   if (!IS_LIVE) return null;

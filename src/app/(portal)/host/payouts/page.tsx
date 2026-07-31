@@ -261,13 +261,22 @@ export default async function HostPayoutsPage({
           </div>
           <div className="flex flex-wrap gap-2">
             {taxYears.map((y) => (
-              <a
-                key={y}
-                href={`/host/export?taxyear=${y}`}
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                <Download className="h-4 w-4" /> {y}/{String(y + 1).slice(-2)}
-              </a>
+              <span key={y} className="inline-flex overflow-hidden rounded-xl border border-navy-200">
+                <a
+                  href={`/host/statement?year=${y}&basis=tax`}
+                  className="inline-flex items-center gap-1.5 bg-white px-3 py-2 text-sm font-semibold text-navy-700 hover:text-brand-700"
+                  data-taxyear-statement={y}
+                >
+                  {y}/{String(y + 1).slice(-2)}
+                </a>
+                <a
+                  href={`/host/statement.csv?year=${y}&basis=tax`}
+                  aria-label={`CSV ${y}/${String(y + 1).slice(-2)}`}
+                  className="inline-flex items-center border-s border-navy-200 bg-navy-50 px-2.5 py-2 text-navy-600 hover:text-brand-700"
+                >
+                  <Download className="h-4 w-4" />
+                </a>
+              </span>
             ))}
           </div>
         </Card>

@@ -76,6 +76,12 @@ function clean(patch: Partial<PlatformSettings>): Partial<PlatformSettings> {
   if (patch.announcement !== undefined)
     out.announcement = String(patch.announcement).trim().slice(0, 300) || undefined;
   if (patch.announcementOn !== undefined) out.announcementOn = !!patch.announcementOn;
+  if (patch.vatNumber !== undefined) {
+    // Loose shape check only (GB999999999 / IE9S99999L …) — the admin typing
+    // it is the authority; an empty value turns invoices back into receipts.
+    const vat = String(patch.vatNumber).trim().toUpperCase().slice(0, 20);
+    out.vatNumber = /^[A-Z]{2}[A-Z0-9 ]{2,}$/.test(vat) ? vat : undefined;
+  }
   return out;
 }
 

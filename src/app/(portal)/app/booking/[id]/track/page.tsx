@@ -15,6 +15,7 @@ import { CameraView } from "@/components/portal/camera-view";
 import { HandoverPanel } from "@/components/portal/handover-panel";
 import { DriverChat } from "@/components/portal/driver-chat";
 import { ReviewForm } from "@/components/portal/review-form";
+import { IS_LIVE } from "@/lib/config";
 import { requireRole } from "@/lib/auth";
 import {
   getAirport,
@@ -300,7 +301,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
           ((booking.status === "paid" || booking.status === "active") &&
             new Date(booking.endAt).getTime() < Date.now())) && (
           <div className="mx-auto max-w-xl">
-            <ReviewForm bookingId={booking.id} />
+            <ReviewForm bookingId={booking.id} allowPhotos={IS_LIVE} />
           </div>
         )}
         {booking.status === "reviewed" && (

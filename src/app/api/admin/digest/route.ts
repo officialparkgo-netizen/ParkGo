@@ -76,6 +76,16 @@ export async function GET(request: Request) {
     // best-effort
   }
 
+  // Scheduled marketing campaigns whose moment has passed. On Hobby the
+  // daily digest is the only sweep, so "scheduled for 3pm" means "that day".
+  let campaignsSent = 0;
+  try {
+    const { sweepDueCampaigns } = await import("@/lib/campaign-send");
+    campaignsSent = await sweepDueCampaigns();
+  } catch {
+    // best-effort
+  }
+
   // Blog drafts scheduled for a moment that has now passed. The public
   // listing also publishes due drafts on read, but that needs a reader — this
   // covers a quiet night, and announces (newsletter + IndexNow) what it flips.
@@ -123,6 +133,7 @@ export async function GET(request: Request) {
     flightsChecked,
     flightsExtended,
     postsPublished,
+    campaignsSent,
     slaBreaches,
     emailed: summary.emailed,
     recipients: summary.sentTo.length,

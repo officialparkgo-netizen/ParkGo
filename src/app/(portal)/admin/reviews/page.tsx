@@ -98,6 +98,21 @@ export default async function AdminReviewsPage() {
                     {r.comment}
                   </p>
                 )}
+                {(r.photos?.length ?? 0) > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {r.photos!.slice(0, 3).map((url) => (
+                      <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt=""
+                          className={`h-16 w-16 rounded-lg object-cover ring-1 ring-navy-100 ${r.hidden ? "opacity-40" : ""}`}
+                          loading="lazy"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </Card>

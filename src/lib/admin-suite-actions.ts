@@ -208,51 +208,75 @@ export async function setClaimStatusAction(formData: FormData) {
   revalidatePath("/admin/claims");
 }
 
-/** Email an announcement to a whole audience (capped; logged). */
-export async function broadcastEmailAction(formData: FormData) {
+/**
+ * Write a campaign: sent to its segment right now, or stored with a send
+ * time and delivered by the daily digest sweep. Audiences resolve at send
+ * time, and the addresses themselves are never stored.
+ */
+export async function createCampaignAction(formData: FormData) {
   const admin = await requireFinanceAdmin();
-  const audience = String(formData.get("audience") || "");
+  const { isSegmentKey } = await import("@/lib/segments");
+  const segment = String(formData.get("segment") || "");
   const subject = String(formData.get("subject") || "").trim().slice(0, 150);
   const message = String(formData.get("message") || "").trim().slice(0, 5000);
-  if (!subject || !message || !["waitlist", "hosts", "travellers"].includes(audience)) {
+  const sendAtRaw = String(formData.get("sendAt") || "").trim();
+  if (!subject || !message || !isSegmentKey(segment)) {
     redirect("/admin/broadcast?error=1");
   }
 
-  let emails: string[] = [];
-  if (audience === "waitlist") {
-    emails = (await listWaitlist().catch(() => [])).map((w) => w.email);
-  } else {
-    const users = await listAllUsers();
-    emails = users
-      .filter((u) => (audience === "hosts" ? u.role === "host" : u.role === "traveller"))
-      .map((u) => u.email);
-  }
-  emails = [...new Set(emails.filter(Boolean))].slice(0, 200);
+  // A parseable future moment schedules; anything else sends now.
+  const sendAtMs = sendAtRaw ? Date.parse(sendAtRaw) : NaN;
+  const scheduled = Number.isFinite(sendAtMs) && sendAtMs > Date.now();
 
-  const html = emailShell(
-    `<p style="white-space:pre-line">${message.replace(/</g, "&lt;")}</p>`
-  );
-  let sent = 0;
-  if (isEmailConfigured()) {
-    for (const to of emails) {
-      try {
-        await sendEmail(to, subject, html);
-        sent += 1;
-      } catch {
-        // keep going — one bad address must not stop the batch
-      }
-    }
+  const { createCampaign, markCampaignSent } = await import("@/lib/data/campaigns");
+  const { resolveSegmentEmails } = await import("@/lib/segments");
+  const recipientCount = (await resolveSegmentEmails(segment)).length;
+  const campaign = await createCampaign({
+    subject,
+    message,
+    segment,
+    sendAt: scheduled ? new Date(sendAtMs).toISOString() : undefined,
+    recipientCount,
+    createdBy: admin.name,
+  });
+  if (!campaign) redirect("/admin/broadcast?error=1");
+
+  if (scheduled) {
+    await recordAdminAction(
+      admin,
+      "broadcast.scheduled",
+      "broadcast",
+      segment,
+      `${subject} → ~${recipientCount} recipients at ${new Date(sendAtMs).toISOString()}`
+    );
+    redirect("/admin/broadcast?scheduled=1");
   }
+
+  const { deliverCampaign } = await import("@/lib/campaign-send");
+  const counts = await deliverCampaign(campaign);
+  await markCampaignSent(campaign.id, counts);
   await recordAdminAction(
     admin,
     "broadcast.sent",
     "broadcast",
-    audience,
-    `${subject} → ${emails.length} recipients${isEmailConfigured() ? "" : " (email not configured — preview)"}`
+    segment,
+    `${subject} → ${counts.recipients} recipients${isEmailConfigured() ? "" : " (email not configured — preview)"}`
   );
   redirect(
-    `/admin/broadcast?sent=${sent}&total=${emails.length}${isEmailConfigured() ? "" : "&preview=1"}`
+    `/admin/broadcast?sent=${counts.sent}&total=${counts.recipients}${isEmailConfigured() ? "" : "&preview=1"}`
   );
+}
+
+/** Cancel a scheduled campaign before the sweep picks it up. */
+export async function cancelCampaignAction(formData: FormData) {
+  const admin = await requireFinanceAdmin();
+  const id = String(formData.get("campaignId") || "");
+  const { cancelCampaign } = await import("@/lib/data/campaigns");
+  if (id && (await cancelCampaign(id))) {
+    await recordAdminAction(admin, "broadcast.cancelled", "broadcast", id);
+  }
+  revalidatePath("/admin/broadcast");
+  redirect("/admin/broadcast?cancelled=1");
 }
 
 /** Best-effort "something needs an admin" email (verification, ticket, claim). */
@@ -308,6 +332,7 @@ export async function savePlatformSettingsAction(formData: FormData) {
     opsWebhookUrl: String(formData.get("opsWebhookUrl") || ""),
     announcement: String(formData.get("announcement") || ""),
     announcementOn: formData.get("announcementOn") === "on",
+    vatNumber: String(formData.get("vatNumber") || ""),
   });
   await recordAdminAction(admin, "settings.updated", "broadcast", "platform");
   revalidatePath("/admin/settings");

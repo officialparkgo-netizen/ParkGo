@@ -7,7 +7,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n/client";
 
-export function ReviewForm({ bookingId }: { bookingId: string }) {
+export function ReviewForm({
+  bookingId,
+  allowPhotos = false,
+}: {
+  bookingId: string;
+  /** Photo uploads need live-mode storage; mock hides the field entirely. */
+  allowPhotos?: boolean;
+}) {
   const t = useT();
   const [state, action, pending] = useActionState<ReviewState, FormData>(
     submitReviewAction,
@@ -53,6 +60,22 @@ export function ReviewForm({ bookingId }: { bookingId: string }) {
         placeholder={t("app.review.placeholder")}
         className="mt-3 w-full rounded-xl border border-navy-200 px-3.5 py-2.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
       />
+      {allowPhotos && (
+        <div className="mt-3" data-review-photos>
+          <label htmlFor={`rev-photos-${bookingId}`} className="mb-1 block text-xs font-bold text-navy-600">
+            {t("app.review.photos")}
+          </label>
+          <input
+            id={`rev-photos-${bookingId}`}
+            name="photos"
+            type="file"
+            accept="image/*"
+            multiple
+            className="w-full text-sm text-navy-600 file:mr-2 file:rounded-lg file:border-0 file:bg-navy-100 file:px-3 file:py-2 file:text-sm file:font-bold file:text-navy-800"
+          />
+          <p className="mt-1 text-xs text-navy-400">{t("app.review.photosHint")}</p>
+        </div>
+      )}
       <Button type="submit" disabled={pending} className="mt-3">
         {pending ? t("app.review.submitting") : t("app.review.submitReview")}
       </Button>

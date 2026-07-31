@@ -391,12 +391,27 @@ export async function submitReviewAction(
   if (booking.status === "reviewed") return { error: "You've already reviewed this trip." };
   if (!finished) return { error: "You can review after your trip ends." };
 
+  // Up to three photos. Live-only (mock has no storage) and best-effort: a
+  // failed upload never blocks the words.
+  const photos: string[] = [];
+  for (const entry of formData.getAll("photos").slice(0, 3)) {
+    if (!(entry instanceof File) || entry.size === 0) continue;
+    try {
+      const { uploadSpacePhoto } = await import("@/lib/storage");
+      const url = await uploadSpacePhoto(entry, "reviews");
+      if (url) photos.push(url);
+    } catch {
+      // skip this photo
+    }
+  }
+
   const review = await createSpaceReview({
     bookingId,
     authorId: user.id,
     spaceId: booking.spaceId,
     rating,
     comment,
+    ...(photos.length ? { photos } : {}),
   });
   if (!review) return { error: "You've already reviewed this trip." };
 

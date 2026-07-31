@@ -239,20 +239,56 @@ export default async function AdminPaymentsPage({
                   {t("admin.stripe.disputesEmpty")}
                 </div>
               )}
-              {disputes.map((d) => (
-                <div key={d.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div>
-                    <div className="font-semibold text-navy-900">
-                      {formatMoney(d.amount, d.currency === "EUR" ? "EUR" : "GBP")}
+              {disputes.map((d) => {
+                // The payment intent points back at our payment row, and the
+                // payment row at the booking — so the row can name the trip.
+                const payment = d.paymentIntent
+                  ? payments.find((p) => p.externalRef === d.paymentIntent)
+                  : undefined;
+                const booking = payment
+                  ? bookings.find((b) => b.id === payment.bookingId)
+                  : undefined;
+                const dueSoon =
+                  !!d.dueBy && new Date(d.dueBy).getTime() - Date.now() < 3 * 86_400_000;
+                return (
+                  <div key={d.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 font-semibold text-navy-900">
+                        {formatMoney(d.amount, d.currency === "EUR" ? "EUR" : "GBP")}
+                        {booking && (
+                          <Link
+                            href={`/admin/bookings?q=${booking.reference}`}
+                            className="font-mono text-xs font-bold text-brand-700 hover:underline"
+                          >
+                            {booking.reference}
+                          </Link>
+                        )}
+                      </div>
+                      <div className="text-xs text-navy-400">
+                        {d.reason} · {formatDate(d.created)}
+                        {d.dueBy && (
+                          <span className={dueSoon ? "font-bold text-red-600" : ""}>
+                            {" "}· {t("admin.disputes.dueBy")} {formatDate(d.dueBy)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-xs text-navy-400">
-                      {d.reason} · {formatDate(d.created)}
+                    <div className="flex shrink-0 items-center gap-2">
+                      <StatusBadge status={d.status} />
+                      <a
+                        href={`https://dashboard.stripe.com/disputes/${d.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                      >
+                        {t("admin.disputes.evidence")}
+                      </a>
                     </div>
                   </div>
-                  <StatusBadge status={d.status} />
-                </div>
-              ))}
+                );
+              })}
             </Card>
+            <p className="mt-2 text-xs text-navy-400">{t("admin.disputes.hint")}</p>
           </section>
         )}
       </div>

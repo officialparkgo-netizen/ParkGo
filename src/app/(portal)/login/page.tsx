@@ -34,9 +34,9 @@ const PANEL_TRUST = [
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string; suspended?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; suspended?: string; deleted?: string }>;
 }) {
-  const { next, error, suspended } = await searchParams;
+  const { next, error, suspended, deleted } = await searchParams;
   const { t } = await getI18n();
 
   return (
@@ -89,6 +89,11 @@ export default async function LoginPage({
             {suspended && (
               <p className="mx-auto mb-6 max-w-md rounded-xl bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-700">
                 {t("login.suspended")}
+              </p>
+            )}
+            {deleted && (
+              <p className="mx-auto mb-6 max-w-md rounded-xl bg-go-50 px-4 py-3 text-center text-sm font-medium text-go-700" data-deleted-banner>
+                {t("login.deleted")}
               </p>
             )}
             {IS_LIVE ? (

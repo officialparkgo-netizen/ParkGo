@@ -28,7 +28,7 @@ export const CANCEL_FREE_WINDOW_MS = 24 * 60 * 60 * 1000;
 // migrations (approval, bay_index …) simply come back null on older DBs.
 const BOOKING_COLS = "*";
 const PAYMENT_COLS =
-  "id, booking_id, provider, method, amount, currency, split, payout_status, created_at";
+  "id, booking_id, provider, method, amount, currency, split, payout_status, external_ref, created_at";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function bookingFromRow(r: any): Booking {
@@ -82,6 +82,7 @@ function paymentFromRow(r: any): Payment {
     currency: r.currency,
     split: r.split,
     payoutStatus: r.payout_status,
+    externalRef: r.external_ref ?? undefined,
     createdAt: r.created_at,
   };
 }

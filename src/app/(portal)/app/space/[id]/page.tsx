@@ -330,6 +330,21 @@ export default async function SpaceDetail({
                           <Stars rating={r.rating} />
                         </div>
                         <p className="mt-1.5 text-sm text-navy-600">{r.comment}</p>
+                        {(r.photos?.length ?? 0) > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2" data-review-photos>
+                            {r.photos!.slice(0, 3).map((url) => (
+                              <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={url}
+                                  alt={t("app.review.photoAlt")}
+                                  className="h-20 w-20 rounded-lg object-cover ring-1 ring-navy-100"
+                                  loading="lazy"
+                                />
+                              </a>
+                            ))}
+                          </div>
+                        )}
                         <p className="mt-1 text-xs text-navy-400">{formatDate(r.createdAt)}</p>
                         {r.reply && (
                           <div className="mt-2 rounded-lg bg-navy-50 px-3 py-2">

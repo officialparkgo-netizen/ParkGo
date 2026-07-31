@@ -310,6 +310,10 @@ export interface StripeDisputeSummary {
   reason: string;
   status: string;
   created: string;
+  /** Evidence deadline — the date that decides whether the money comes back. */
+  dueBy?: string;
+  /** The payment intent, which is how a dispute finds its booking. */
+  paymentIntent?: string;
 }
 
 /** Open Stripe disputes/chargebacks. GATED: empty until Stripe is configured. */
@@ -324,6 +328,11 @@ export async function listStripeDisputes(): Promise<StripeDisputeSummary[]> {
       reason: d.reason ?? "unknown",
       status: d.status ?? "unknown",
       created: new Date(d.created * 1000).toISOString(),
+      dueBy: d.evidence_details?.due_by
+        ? new Date(d.evidence_details.due_by * 1000).toISOString()
+        : undefined,
+      paymentIntent:
+        typeof d.payment_intent === "string" ? d.payment_intent : d.payment_intent?.id,
     }));
   } catch {
     return [];

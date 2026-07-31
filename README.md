@@ -293,6 +293,7 @@ or paste each file into the **Supabase SQL editor**:
 | `0026_guest_suite2.sql` | Cancellation protection, host car-care services, gift cards, trip passes, loyalty counter, flight tracking columns, condition photos, date waitlist, group bookings, company accounts, claim photos |
 | `0027_blog.sql` | Blog platform: admin-written articles with drafts, publishing and covers |
 | `0028_blog_platform.sql` | Blog round two: scheduled publishing, linked translations, view/helpful stats, revision history, newsletter subscribers |
+| `0029_reviews_campaigns.sql` | Photo reviews + scheduled/segmented email campaigns |
 
 RLS keeps each role to its own rows; the exact address and camera stream are
 released only to the paying traveller. KYC files live in the **private**
@@ -442,7 +443,7 @@ the site's own type and palette.
 
 ## Go-live checklist
 
-1. **Supabase**: create the project, run migrations **0001 → 0028**, run
+1. **Supabase**: create the project, run migrations **0001 → 0029**, run
    `launch_cleanup.sql` on launch day to drop demo rows.
 
    Migrations are applied by hand, so there is always a gap between a deploy and

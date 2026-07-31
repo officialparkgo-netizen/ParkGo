@@ -17,8 +17,8 @@ export const dynamic = "force-dynamic";
  *
  * Configure in Stripe: Developers -> Webhooks -> endpoint
  *   https://www.parkgo.ai/api/stripe/webhook
- * listening to checkout.session.completed (+ async_payment_succeeded), and put
- * the signing secret in STRIPE_WEBHOOK_SECRET.
+ * listening to checkout.session.completed (+ async_payment_succeeded) and
+ * charge.dispute.created, and put the signing secret in STRIPE_WEBHOOK_SECRET.
  */
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -72,6 +72,39 @@ export async function POST(request: Request) {
           });
         }
       }
+    }
+  }
+
+  // A chargeback landed. Money is now on a deadline — every full admin's
+  // bell rings (the notification links to /admin/payments), plus the ops
+  // webhook for whoever watches Slack.
+  if (event.type === "charge.dispute.created") {
+    const dispute = event.data.object as Stripe.Dispute;
+    const amount = (dispute.amount / 100).toFixed(2);
+    const currency = dispute.currency?.toUpperCase() ?? "GBP";
+    try {
+      const { sendOpsAlert } = await import("@/lib/ops-alerts");
+      await sendOpsAlert(
+        `⚠️ Chargeback opened: ${currency} ${amount} · ${dispute.reason ?? "unknown"} — evidence due ${
+          dispute.evidence_details?.due_by
+            ? new Date(dispute.evidence_details.due_by * 1000).toISOString().slice(0, 10)
+            : "soon"
+        }`
+      );
+    } catch {
+      // best-effort
+    }
+    try {
+      const { listAdminUsers } = await import("@/lib/data/users");
+      const { notifyUsers } = await import("@/lib/data/notifications");
+      const admins = (await listAdminUsers()).filter((u) => !u.adminScope);
+      await notifyUsers(admins.map((u) => u.id), {
+        title: `Chargeback opened · ${currency} ${amount}`,
+        body: `${dispute.reason ?? "unknown"} — respond in /admin/payments before the evidence deadline.`,
+        kind: "payout",
+      });
+    } catch {
+      // best-effort
     }
   }
 

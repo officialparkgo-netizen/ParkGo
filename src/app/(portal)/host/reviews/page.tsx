@@ -84,6 +84,21 @@ export default async function HostReviewsPage({
                   </span>
                 </div>
                 {r.comment && <p className="mt-2 text-sm text-navy-700">{r.comment}</p>}
+                {(r.photos?.length ?? 0) > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2" data-review-photos>
+                    {r.photos!.slice(0, 3).map((url) => (
+                      <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt=""
+                          className="h-16 w-16 rounded-lg object-cover ring-1 ring-navy-100"
+                          loading="lazy"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
 
                 {r.reply ? (
                   <div className="mt-3 rounded-xl bg-navy-50 px-3.5 py-2.5">

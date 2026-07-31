@@ -593,6 +593,8 @@ export interface Payment {
   currency: "GBP" | "EUR";
   split: PaymentSplit;
   payoutStatus: PayoutStatus;
+  /** Provider-side id (Stripe payment intent) — how disputes find their booking. */
+  externalRef?: string;
   createdAt: ISODateString;
 }
 
@@ -615,6 +617,8 @@ export interface Review {
   /** Host's public reply, shown under the review. */
   reply?: string;
   repliedAt?: ISODateString;
+  /** Traveller photos (storage URLs, up to 3). */
+  photos?: string[];
 }
 
 // -----------------------------------------------------------------------------
@@ -684,6 +688,29 @@ export interface PlatformSettings {
   /** Site-wide announcement banner (marketing pages). */
   announcement?: string;
   announcementOn: boolean;
+  /**
+   * The platform's VAT registration number. While unset, the booking receipt
+   * stays a receipt; once set it renders as a VAT invoice with the VAT share
+   * broken out.
+   */
+  vatNumber?: string;
+}
+
+/** Marketing email written in /admin/broadcast — immediate or scheduled. */
+export interface Campaign {
+  id: UUID;
+  subject: string;
+  message: string;
+  /** Audience key resolved by src/lib/segments.ts. */
+  segment: string;
+  /** When to send; null/undefined = was sent immediately. */
+  sendAt?: ISODateString;
+  sentAt?: ISODateString;
+  cancelledAt?: ISODateString;
+  sentCount: number;
+  recipientCount: number;
+  createdBy: string;
+  createdAt: ISODateString;
 }
 
 export type ClaimStatus = "open" | "in_review" | "resolved" | "rejected";

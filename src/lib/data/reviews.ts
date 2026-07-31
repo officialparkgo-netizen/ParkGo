@@ -25,6 +25,7 @@ function fromRow(r: any): Review {
     hidden: !!r.hidden,
     reply: r.reply ?? undefined,
     repliedAt: r.replied_at ?? undefined,
+    photos: Array.isArray(r.photos) ? r.photos.filter((p: unknown) => typeof p === "string") : undefined,
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -75,6 +76,8 @@ export async function createSpaceReview(input: {
   spaceId: string;
   rating: number;
   comment: string;
+  /** Storage URLs uploaded by the submit action (max 3, enforced there). */
+  photos?: string[];
 }): Promise<Review | null> {
   if (!IS_LIVE) {
     const review = mockAddReview({
@@ -85,6 +88,7 @@ export async function createSpaceReview(input: {
       subjectType: "space",
       rating: input.rating,
       comment: input.comment,
+      ...(input.photos?.length ? { photos: input.photos } : {}),
     });
     mockSetBookingStatus(input.bookingId, "reviewed");
     return review;
@@ -101,7 +105,7 @@ export async function createSpaceReview(input: {
     .maybeSingle();
   if (existing) return null;
 
-  const { data: row, error } = await admin
+  let { data: row, error } = await admin
     .from("reviews")
     .insert({
       booking_id: input.bookingId,
@@ -111,9 +115,26 @@ export async function createSpaceReview(input: {
       subject_type: "space",
       rating: input.rating,
       comment: input.comment,
+      ...(input.photos?.length ? { photos: input.photos } : {}),
     })
     .select(COLS)
     .single();
+  if (error && input.photos?.length) {
+    // Migration 0029 not applied yet — save the words, drop the pictures.
+    ({ data: row, error } = await admin
+      .from("reviews")
+      .insert({
+        booking_id: input.bookingId,
+        author_id: input.authorId,
+        author_role: "traveller",
+        subject_id: input.spaceId,
+        subject_type: "space",
+        rating: input.rating,
+        comment: input.comment,
+      })
+      .select(COLS)
+      .single());
+  }
   if (error || !row) return null;
 
   await admin.from("bookings").update({ status: "reviewed" }).eq("id", input.bookingId);

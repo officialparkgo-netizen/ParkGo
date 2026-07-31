@@ -25,6 +25,7 @@ import { adminNav, hostNav, travellerNav } from "@/components/portal/navs";
 import { PasswordForm } from "@/components/auth/password-form";
 import { requireUser } from "@/lib/auth";
 import {
+  deleteOwnAccountAction,
   requestPrivacyAction,
   setOwnTwofaAction,
   updateOwnProfileAction,
@@ -141,9 +142,34 @@ export default async function AccountPage({
             {t("account.profile.invalid")}
           </div>
         )}
-        {privacy && (
+        {privacy === "1" && (
           <div className="flex items-center gap-2 rounded-2xl border border-go-200 bg-go-50 px-4 py-3 text-sm font-semibold text-go-700">
             <CheckCircle2 className="h-5 w-5 shrink-0" /> {t("account.privacy.done")}
+          </div>
+        )}
+        {privacy === "confirm" && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" data-delete-confirm-error>
+            {t("account.delete.confirmError")}
+          </div>
+        )}
+        {privacy === "blocked" && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700" data-delete-blocked>
+            {t("account.delete.blocked")}
+          </div>
+        )}
+        {privacy === "hostblocked" && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            {t("account.delete.hostBlocked")}
+          </div>
+        )}
+        {privacy === "admin" && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            {t("account.delete.adminBlocked")}
+          </div>
+        )}
+        {privacy === "error" && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            {t("account.delete.error")}
           </div>
         )}
 
@@ -566,26 +592,45 @@ export default async function AccountPage({
             <ShieldCheck className="h-4 w-4 text-brand-700" /> {t("account.privacy.title")}
           </h2>
           <p className="mb-4 mt-1 text-sm text-navy-500">{t("account.privacy.sub")}</p>
-          <div className="flex flex-wrap gap-2">
-            <form action={requestPrivacyAction}>
-              <input type="hidden" name="kind" value="export" />
-              <button
-                type="submit"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                <FileDown className="h-3.5 w-3.5" /> {t("account.privacy.export")}
-              </button>
-            </form>
-            <form action={requestPrivacyAction}>
-              <input type="hidden" name="kind" value="delete" />
-              <button
-                type="submit"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
-              >
-                <Trash2 className="h-3.5 w-3.5" /> {t("account.privacy.delete")}
-              </button>
-            </form>
-          </div>
+          <form action={requestPrivacyAction}>
+            <input type="hidden" name="kind" value="export" />
+            <button
+              type="submit"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              <FileDown className="h-3.5 w-3.5" /> {t("account.privacy.export")}
+            </button>
+          </form>
+
+          {/* Deletion happens here and now — not a request someone processes
+              later. Typed confirmation, because there is no undo. */}
+          {user.role !== "admin" && (
+            <div className="mt-5 rounded-2xl border border-red-200 bg-red-50/50 p-4" data-delete-account>
+              <h3 className="flex items-center gap-1.5 text-sm font-bold text-red-700">
+                <Trash2 className="h-4 w-4" /> {t("account.delete.title")}
+              </h3>
+              <p className="mt-1 text-xs text-navy-600">{t("account.delete.sub")}</p>
+              <form action={deleteOwnAccountAction} className="mt-3 flex flex-wrap items-end gap-2">
+                <div className="min-w-44 flex-1">
+                  <Label htmlFor="delete-confirm">{t("account.delete.typeDelete")}</Label>
+                  <Input
+                    id="delete-confirm"
+                    name="confirm"
+                    autoComplete="off"
+                    placeholder="DELETE"
+                    className="uppercase"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-red-600 px-4 text-sm font-bold text-white transition-colors hover:bg-red-700"
+                  data-delete-submit
+                >
+                  <Trash2 className="h-4 w-4" /> {t("account.delete.button")}
+                </button>
+              </form>
+            </div>
+          )}
         </Card>
 
         <p className="flex items-center gap-2 text-xs text-navy-400">

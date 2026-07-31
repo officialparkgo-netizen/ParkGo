@@ -315,7 +315,7 @@ export const payments: Payment[] = [
 // Reviews
 // -----------------------------------------------------------------------------
 export const reviews: Review[] = [
-  { id: "rev_1", bookingId: "bk_past", authorId: "user_traveller", authorRole: "traveller", subjectId: "space_lhr_2", subjectType: "space", rating: 5, comment: "Spotless, secure and the live camera gave real peace of mind. Driver was early.", createdAt: iso(-14 * DAY) },
+  { id: "rev_1", bookingId: "bk_past", authorId: "user_traveller", authorRole: "traveller", subjectId: "space_lhr_2", subjectType: "space", rating: 5, comment: "Spotless, secure and the live camera gave real peace of mind. Driver was early.", createdAt: iso(-14 * DAY), photos: ["/images/demo-review-bay.svg"] },
   { id: "rev_2", bookingId: "bk_past", authorId: "user_host2", authorRole: "host", subjectId: "user_traveller", subjectType: "traveller", rating: 5, comment: "Lovely traveller, left the bay tidy. Welcome back any time.", createdAt: iso(-14 * DAY) },
   { id: "rev_3", bookingId: "bk_past", authorId: "user_traveller", authorRole: "traveller", subjectId: "drv_sam", subjectType: "driver", rating: 5, comment: "Smooth, professional handover.", createdAt: iso(-14 * DAY) },
 ];
