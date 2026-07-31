@@ -203,16 +203,16 @@ export default async function HomePage() {
       </section>
 
       {/* ----------------------------------------------------------- Airports */}
-      <div className="border-y border-navy-100 bg-white">
+      <div className="bg-gradient-to-br from-brand-700 to-navy-800">
         <Container className="flex flex-wrap items-center gap-x-4 gap-y-1 py-4">
-          <span className="text-sm font-semibold text-navy-400">{t("home.airports.near")}</span>
+          <span className="text-sm font-semibold text-white/70">{t("home.airports.near")}</span>
           {airports.map((a) => (
             <Link
               key={a.slug}
               href={`/airports/${a.slug}`}
               // A 20px-tall row of links is a thumb-miss on a phone; the
               // padding brings each one to a comfortable target.
-              className="-mx-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-navy-700 transition-colors hover:bg-navy-50 hover:text-brand-700"
+              className="-mx-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10 hover:text-white"
             >
               {a.name}
             </Link>
