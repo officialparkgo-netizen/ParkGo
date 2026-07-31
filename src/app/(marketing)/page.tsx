@@ -192,9 +192,11 @@ export default async function HomePage() {
               src="/images/hero.webp"
               alt="ParkGo Airport Parking"
               fill
-              sizes="(min-width: 1280px) 470px, (min-width: 1024px) 38vw, 100vw"
+              sizes="(min-width: 1280px) 40vw, (min-width: 1024px) 38vw, 100vw"
               className="object-cover rounded-2xl shadow-2xl"
+              quality={90}
               priority
+              unoptimized
             />
           </div>
         </Container>
