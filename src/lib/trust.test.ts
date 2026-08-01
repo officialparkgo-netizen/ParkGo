@@ -35,6 +35,16 @@ describe("computeTrustScore", () => {
     expect(score.score).toBeLessThanOrEqual(100);
   });
 
+  it("rises with good reviews and falls with bad ones", () => {
+    const goods = Array.from({ length: 10 }, (_, i) => review(5, i));
+    const bads = Array.from({ length: 10 }, (_, i) => review(1, i));
+    const good = computeTrustScore({ ...base, verification: "approved", reviews: goods });
+    const none = computeTrustScore({ ...base, verification: "approved", reviews: [] });
+    const bad = computeTrustScore({ ...base, verification: "approved", reviews: bads });
+    expect(good.score).toBeGreaterThan(none.score);
+    expect(bad.score).toBeLessThan(none.score);
+  });
+
   it("rewards approved verification over unverified", () => {
     const reviews = [review(5, 1), review(4, 2)];
     const approved = computeTrustScore({ ...base, verification: "approved", reviews });

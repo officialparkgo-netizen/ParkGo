@@ -34,7 +34,8 @@ import { StatCard } from "@/components/portal/stat-card";
 import { hostNav } from "@/components/portal/navs";
 import { trustBand } from "@/lib/trust";
 import { requireRole } from "@/lib/auth";
-import { getAirport, trustScoreFor } from "@/lib/data/store";
+import { getAirport } from "@/lib/data/store";
+import { trustForHost } from "@/lib/data/trust";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { computeListingQuality } from "@/lib/host-insights";
 import {
@@ -105,7 +106,7 @@ export default async function HostDashboard({
       b,
     ])
   );
-  const trust = trustScoreFor(host.id, "host");
+  const trust = await trustForHost(host);
   const band = trustBand(trust.score);
 
   // Cancelled bookings are refunded — exclude their payments from earnings.
@@ -306,7 +307,7 @@ export default async function HostDashboard({
           <StatCard label={t("host.stat.pendingPayouts")} value={formatMoney(pendingPayouts)} sub={t("host.stat.pendingPayoutsSub")} icon={CalendarCheck} tone="accent" href="/host/payouts" />
           <StatCard label={t("host.stat.upcoming")} value={String(upcomingCount)} sub={t("host.stat.upcomingSub")} icon={CalendarCheck} tone="brand" href="/host#bookings" />
           <StatCard label={t("host.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("host.total")}`} icon={Warehouse} tone="brand" href="/host#listings" />
-          <StatCard label={t("host.stat.trustScore")} value={`${trust.score}`} sub={`${band.label} · ${host.rating.toFixed(1)}★`} icon={Star} tone="navy" href="/host/reviews" />
+          <StatCard label={t("host.stat.trustScore")} value={`${trust.score}`} sub={`${band.label} · ${trust.avgRating.toFixed(1)}★${trust.reviewCount ? ` · ${trust.reviewCount}` : ""}`} icon={Star} tone="navy" href="/host/reviews" />
         </div>
 
         {/* Earnings trend */}

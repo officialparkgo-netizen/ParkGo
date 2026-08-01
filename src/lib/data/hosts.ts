@@ -216,6 +216,29 @@ export async function getHostById(id: string): Promise<Host | null> {
   return data ? hostFromRow(data) : null;
 }
 
+/**
+ * Recompute the host's public rating from the reviews on their spaces and
+ * store it — called whenever a review lands, so the number travellers see on
+ * listings is never stale. Best-effort: the review itself already exists.
+ */
+export async function refreshHostRating(hostId: string): Promise<void> {
+  try {
+    const { listReviewsForHostSpaces } = await import("@/lib/data/reviews");
+    const { averageRating } = await import("@/lib/trust");
+    const spaces = await getSpacesForHost(hostId);
+    const avg = averageRating(await listReviewsForHostSpaces(spaces.map((s) => s.id)));
+    if (!IS_LIVE) {
+      const { setHostRating } = await import("@/lib/data/store");
+      setHostRating(hostId, avg);
+      return;
+    }
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin().from("hosts").update({ rating: avg }).eq("id", hostId);
+  } catch {
+    // rating refresh is cosmetic next to the review itself
+  }
+}
+
 /** Search live listings at an airport, apply filters, and price each result. */
 export async function searchLiveSpaces(query: SearchQuery): Promise<SearchResult[]> {
   const airport = getAirport(query.airportSlug);

@@ -121,6 +121,12 @@ export const getMockPasswordHash = (userId: string): string | undefined =>
 // Hosts & spaces
 // -----------------------------------------------------------------------------
 export const getHost = (id: string) => db.hosts.find((h) => h.id === id);
+
+/** Keep the host's public rating in step with their reviews. */
+export function setHostRating(hostId: string, rating: number): void {
+  const host = getHost(hostId);
+  if (host) host.rating = rating;
+}
 export const getHostByUserId = (userId: string) =>
   db.hosts.find((h) => h.userId === userId);
 

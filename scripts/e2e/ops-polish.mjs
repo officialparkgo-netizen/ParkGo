@@ -147,6 +147,21 @@ async function settled(page) {
   check("the host trust-score block opens reviews", true);
   await hc0.close();
 
+  // A host with real reviews shows a real average — not the placeholder 0.0.
+  const gc0 = await ctx("user_host2");
+  const gp0 = await gc0.newPage();
+  await gp0.goto(`${BASE}/host`, { waitUntil: "domcontentloaded" });
+  await settled(gp0);
+  const trustCard = (
+    await gp0.locator('[data-stat-link]:has-text("Trust score")').innerText()
+  ).replace(/\n/g, " ");
+  check(
+    "the trust score is computed from real reviews",
+    /[1-5]\.\d★/.test(trustCard) && !trustCard.includes("0.0★"),
+    trustCard.slice(0, 60)
+  );
+  await gc0.close();
+
   const ac0 = await ctx("user_admin");
   const ap0 = await ac0.newPage();
   await ap0.goto(`${BASE}/admin`, { waitUntil: "domcontentloaded" });

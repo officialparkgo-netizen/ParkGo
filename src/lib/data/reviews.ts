@@ -91,6 +91,10 @@ export async function createSpaceReview(input: {
       ...(input.photos?.length ? { photos: input.photos } : {}),
     });
     mockSetBookingStatus(input.bookingId, "reviewed");
+    // The host's public rating follows their reviews, up or down.
+    const { getSpaceById, refreshHostRating } = await import("@/lib/data/hosts");
+    const mockSpace = await getSpaceById(input.spaceId);
+    if (mockSpace) await refreshHostRating(mockSpace.hostId);
     return review;
   }
 
@@ -152,6 +156,11 @@ export async function createSpaceReview(input: {
       .update({ rating: avg, review_count: all.length })
       .eq("id", input.spaceId);
   }
+
+  // The host's public rating follows their reviews, up or down.
+  const { getSpaceById, refreshHostRating } = await import("@/lib/data/hosts");
+  const space = await getSpaceById(input.spaceId);
+  if (space) await refreshHostRating(space.hostId);
 
   return fromRow(row);
 }
