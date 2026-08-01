@@ -124,7 +124,47 @@ async function settled(page) {
 
   const desk = await settled(p);
   check("the desk shows the new ticket", desk.includes(`bell-${RUN}@example.com`));
+
+  // The same alert on the dashboard is a link too — straight to the desk.
+  await p.goto(`${BASE}/admin`, { waitUntil: "domcontentloaded" });
+  await settled(p);
+  const dashAlert = p.locator('[data-dash-alert]:has-text("support ticket")').first();
+  check("the admin dashboard alert is a link", (await dashAlert.count()) === 1);
+  await dashAlert.click();
+  await p.waitForURL("**/admin/support**", { timeout: 15000 });
+  check("clicking it opens the ticket desk from the dashboard", true);
   await a.close();
+}
+
+// -------------- a message alert on the host dashboard opens that chat ----
+{
+  const tcx = await ctx("user_traveller");
+  const tpg = await tcx.newPage();
+  await tpg.goto(`${BASE}/app/booking/bk_active`, { waitUntil: "domcontentloaded" });
+  const thread = tpg.locator("[data-booking-thread]");
+  await thread.waitFor({ timeout: 15000 });
+  const keysMsg = `Where do I leave the keys? (${RUN})`;
+  await thread.locator('input[name="text"]').fill(keysMsg);
+  await thread.locator('button[type="submit"]').click();
+  await tpg.waitForFunction(
+    (needle) =>
+      document.querySelector("[data-booking-thread]")?.textContent?.includes(needle) ?? false,
+    keysMsg,
+    { timeout: 15000 }
+  );
+  await tcx.close();
+
+  const hcx = await ctx("user_host");
+  const hpg = await hcx.newPage();
+  await hpg.goto(`${BASE}/host`, { waitUntil: "domcontentloaded" });
+  await settled(hpg);
+  const alert = hpg.locator('[data-dash-alert]:has-text("New message")').first();
+  check("a new message shows on the host dashboard as a link", (await alert.count()) === 1);
+  await alert.click();
+  await hpg.waitForURL("**/host/bookings/**", { timeout: 15000 });
+  const bookingPage = await settled(hpg);
+  check("it opens that booking's chat", bookingPage.includes(keysMsg));
+  await hcx.close();
 }
 
 // ------------------------- resolved tickets: visitor sees it, moves on ----
@@ -148,6 +188,10 @@ async function settled(page) {
   await vp.fill('input[placeholder="Your email"]', visitorEmail);
   await vp.click('button:has-text("Send to the team")');
   await vp.waitForSelector("[data-live-note]", { timeout: 15000 });
+  // The reference line lands a render behind the live note — wait for it.
+  await vp.waitForFunction(() => /SP-[A-Z0-9]+/.test(document.body.innerText), undefined, {
+    timeout: 15000,
+  });
   const firstRef = (await vp.locator("body").innerText()).match(/SP-[A-Z0-9]+/)?.[0] ?? "";
 
   // …the team resolves it…
@@ -199,6 +243,15 @@ async function settled(page) {
   await vp.fill('input[placeholder="Your email"]', visitorEmail);
   await vp.click('button:has-text("Send to the team")');
   await vp.waitForSelector("[data-live-note]", { timeout: 15000 });
+  // Wait for a reference that is actually the NEW ticket's, not a leftover.
+  await vp.waitForFunction(
+    (prev) => {
+      const m = document.body.innerText.match(/SP-[A-Z0-9]+/);
+      return !!m && m[0] !== prev;
+    },
+    firstRef,
+    { timeout: 15000 }
+  );
   const secondRef = (await vp.locator("body").innerText()).match(/SP-[A-Z0-9]+/)?.[0] ?? "";
   check(
     "escalating again mints a NEW ticket",

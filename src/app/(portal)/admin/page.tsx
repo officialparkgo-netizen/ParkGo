@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   Banknote,
   CalendarCheck,
+  ChevronRight,
   Globe,
   History,
   LayoutGrid,
@@ -27,7 +28,12 @@ import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
 import { getHostsByIds, listAllSpaces } from "@/lib/data/hosts";
 import { listPendingVerificationsLive } from "@/lib/data/verifications";
-import { listAllBookings, listAllPayments } from "@/lib/data/bookings";
+import {
+  listAllBookings,
+  listAllPayments,
+  listBookingsByReferences,
+} from "@/lib/data/bookings";
+import { notificationRefs, notificationTarget } from "@/lib/notification-target";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { getUsersByIds, listAllUsers } from "@/lib/data/users";
 import { listSupportTickets } from "@/lib/data/support";
@@ -183,6 +189,10 @@ export default async function AdminDashboard({
       : null;
 
   const alerts = (await listNotificationsForUser(user.id)).slice(0, 6);
+  // Booking references the alerts mention → each row links to its booking.
+  const alertRefs = new Map(
+    (await listBookingsByReferences(notificationRefs(alerts))).map((b) => [b.reference, b])
+  );
 
   return (
     <PortalShell user={user} nav={adminNav} title="admin.pageTitle">
@@ -555,31 +565,51 @@ export default async function AdminDashboard({
           </div>
         </section>
 
-        {/* Alerts (cancellations, refunds, new activity for the admin) */}
+        {/* Alerts (cancellations, refunds, new activity for the admin) —
+            each one opens what it announces: a support alert lands on the
+            ticket desk, a booking-shaped one on that booking. */}
         {alerts.length > 0 && (
           <section id="alerts" className="scroll-mt-20">
             <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
               <ShieldAlert className="h-5 w-5 text-navy-500" /> {t("admin.section.alerts")}
             </h3>
             <Card className="divide-y divide-navy-100">
-              {alerts.map((n) => (
-                <div key={n.id} className="flex items-start gap-3 p-4">
-                  <span
-                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                      n.read ? "bg-navy-200" : "bg-go-500"
-                    }`}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-navy-900">{n.title}</span>
-                      <span className="shrink-0 text-xs text-navy-400">
-                        {formatDateTime(n.createdAt)}
-                      </span>
+              {alerts.map((n) => {
+                const target = notificationTarget(n, user, alertRefs);
+                const row = (
+                  <>
+                    <span
+                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                        n.read ? "bg-navy-200" : "bg-go-500"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-navy-900">{n.title}</span>
+                        <span className="shrink-0 text-xs text-navy-400">
+                          {formatDateTime(n.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-navy-600">{n.body}</p>
                     </div>
-                    <p className="text-sm text-navy-600">{n.body}</p>
+                  </>
+                );
+                return target ? (
+                  <Link
+                    key={n.id}
+                    href={target}
+                    data-dash-alert
+                    className="group flex items-start gap-3 p-4 transition-colors hover:bg-navy-50/60"
+                  >
+                    {row}
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-navy-400 transition-colors group-hover:text-brand-700 rtl:-scale-x-100" />
+                  </Link>
+                ) : (
+                  <div key={n.id} className="flex items-start gap-3 p-4">
+                    {row}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </Card>
           </section>
         )}

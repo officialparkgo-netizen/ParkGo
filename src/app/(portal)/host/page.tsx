@@ -37,7 +37,12 @@ import { requireRole } from "@/lib/auth";
 import { getAirport, trustScoreFor } from "@/lib/data/store";
 import { getHostForUser, getSpacesForHost } from "@/lib/data/hosts";
 import { computeListingQuality } from "@/lib/host-insights";
-import { listBookingsForHost, listPaymentsForHost } from "@/lib/data/bookings";
+import {
+  listBookingsByReferences,
+  listBookingsForHost,
+  listPaymentsForHost,
+} from "@/lib/data/bookings";
+import { notificationRefs, notificationTarget } from "@/lib/notification-target";
 import { getUsersByIds } from "@/lib/data/users";
 import { listNotificationsForUser } from "@/lib/data/notifications";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/utils";
@@ -92,6 +97,14 @@ export default async function HostDashboard({
   const payments = await listPaymentsForHost(host.id);
   const travellerMap = await getUsersByIds(bookings.map((b) => b.travellerId));
   const notifications = (await listNotificationsForUser(user.id)).slice(0, 5);
+  // The "PG-…" references the alerts mention, resolved so each row can link
+  // straight to its booking (where the guest chat lives).
+  const notifRefs = new Map(
+    (await listBookingsByReferences(notificationRefs(notifications))).map((b) => [
+      b.reference,
+      b,
+    ])
+  );
   const trust = trustScoreFor(host.id, "host");
   const band = trustBand(trust.score);
 
@@ -346,31 +359,50 @@ export default async function HostDashboard({
           </Card>
         )}
 
-        {/* Notifications */}
+        {/* Notifications — each one opens the place it is about: a message
+            alert lands on that booking's chat, a payout on the payouts page. */}
         {notifications.length > 0 && (
           <section>
             <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900">
               <Bell className="h-5 w-5 text-navy-500" /> {t("portal.notifications")}
             </h3>
             <Card className="divide-y divide-navy-100">
-              {notifications.map((n) => (
-                <div key={n.id} className="flex items-start gap-3 p-4">
-                  <span
-                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                      n.read ? "bg-navy-200" : "bg-go-500"
-                    }`}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-navy-900">{n.title}</span>
-                      <span className="shrink-0 text-xs text-navy-400">
-                        {formatDateTime(n.createdAt)}
-                      </span>
+              {notifications.map((n) => {
+                const target = notificationTarget(n, user, notifRefs);
+                const row = (
+                  <>
+                    <span
+                      className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                        n.read ? "bg-navy-200" : "bg-go-500"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-navy-900">{n.title}</span>
+                        <span className="shrink-0 text-xs text-navy-400">
+                          {formatDateTime(n.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-navy-600">{n.body}</p>
                     </div>
-                    <p className="text-sm text-navy-600">{n.body}</p>
+                  </>
+                );
+                return target ? (
+                  <Link
+                    key={n.id}
+                    href={target}
+                    data-dash-alert
+                    className="group flex items-start gap-3 p-4 transition-colors hover:bg-navy-50/60"
+                  >
+                    {row}
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-navy-400 transition-colors group-hover:text-brand-700 rtl:-scale-x-100" />
+                  </Link>
+                ) : (
+                  <div key={n.id} className="flex items-start gap-3 p-4">
+                    {row}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </Card>
           </section>
         )}

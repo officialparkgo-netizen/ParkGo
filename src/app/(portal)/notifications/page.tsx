@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Bell, ChevronRight } from "lucide-react";
-import type { Notification, User } from "@/types";
 import { Card } from "@/components/ui/card";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNavFor, cohostNav, hostNav, travellerNav } from "@/components/portal/navs";
@@ -11,6 +10,7 @@ import {
   markAllNotificationsRead,
 } from "@/lib/data/notifications";
 import { listBookingsByReferences } from "@/lib/data/bookings";
+import { notificationRefs, notificationTarget } from "@/lib/notification-target";
 import { formatDateTime } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
@@ -20,48 +20,6 @@ export const metadata: Metadata = pageMetadata({
   path: "/notifications",
   noindex: true,
 });
-
-const REF_RE = /PG-[A-Z0-9]{4,8}/;
-
-/**
- * Where a notification should take you. Booking-shaped ones carry a "PG-…"
- * reference we resolve to the role's booking page (the chat lives there);
- * the rest fall back to the section the kind belongs to.
- */
-function notificationTarget(
-  n: Notification,
-  user: User,
-  byRef: Map<string, { id: string }>
-): string | null {
-  const ref = `${n.title} ${n.body}`.match(REF_RE)?.[0];
-  const booking = ref ? byRef.get(ref) : undefined;
-  if (booking) {
-    if (user.role === "host") return `/host/bookings/${booking.id}`;
-    if (n.kind === "handover") return `/app/booking/${booking.id}/track`;
-    return `/app/booking/${booking.id}`; // traveller — and admins may view too
-  }
-  switch (n.kind) {
-    case "payout":
-      if (user.role === "host") return "/host/payouts";
-      if (user.role === "admin") return "/admin/payments";
-      return "/app/trips";
-    case "verification":
-      if (user.role === "host") return "/host/verify";
-      if (user.role === "admin") return "/admin/verification";
-      return rolePath(user.role);
-    case "booking":
-    case "handover":
-      if (user.role === "host") return "/host/today";
-      if (user.role === "admin") return "/admin/bookings";
-      return "/app/trips";
-    case "support":
-      // Staff-only kind: the desk is one click away. Anyone else (an old
-      // notification on a demoted account) gets the public help page.
-      return user.role === "admin" ? "/admin/support" : "/help";
-    default:
-      return null; // announcements etc. — nothing to open
-  }
-}
 
 export default async function NotificationsPage() {
   const user = await requireUser();
@@ -80,9 +38,7 @@ export default async function NotificationsPage() {
         : travellerNav;
 
   // One lookup for every reference mentioned across the list.
-  const refs = notifications.flatMap(
-    (n) => `${n.title} ${n.body}`.match(REF_RE) ?? []
-  );
+  const refs = notificationRefs(notifications);
   const byRef = new Map(
     (await listBookingsByReferences(refs)).map((b) => [b.reference, b])
   );
