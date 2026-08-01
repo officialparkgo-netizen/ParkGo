@@ -96,8 +96,10 @@ export async function submitSupportTicket(input: {
   // "My car is stuck behind the gate" jumps the queue ahead of "how do I get
   // a VAT receipt" — read from what the visitor actually typed.
   const priority = detectPriority(said);
-  // Which language to answer in. A signed-in user's saved locale beats a guess.
-  const locale = me?.locale ?? detectLocale(said);
+  // Which language to answer in. What they actually typed beats everything —
+  // an account set to English can still write Arabic — and the saved locale
+  // only decides when the script is inconclusive (Latin text).
+  const locale = detectLocale(said, me?.locale ?? "en");
   const phone = String(input.phone || "").replace(/[^\d+ ]/g, "").trim().slice(0, 24);
   const callbackAt =
     input.callbackAt && !Number.isNaN(Date.parse(input.callbackAt))

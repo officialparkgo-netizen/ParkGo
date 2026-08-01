@@ -190,6 +190,82 @@ const visitor = await ctx();
   await ac.close();
 }
 
+// ------------- any language from any account: the text decides, not the
+// ------------- saved setting. An English-set account writing Arabic still
+// ------------- gets carried across — thread and support ticket alike.
+const ARABIC_MSG = "سيارتي الكهربائية لا تشحن في الموقف";
+{
+  const tc = await browser.newContext();
+  await tc.addCookies([
+    { name: "parkgo_cookie_consent", value: "all", url: BASE },
+    { name: "parkgo_session", value: "user_traveller", url: BASE },
+  ]);
+
+  // The booking thread: account says English, the message says Arabic.
+  const tp = await tc.newPage();
+  await tp.goto(`${BASE}/app/booking/bk_active`, { waitUntil: "domcontentloaded" });
+  const thread = tp.locator("[data-booking-thread]");
+  await thread.waitFor({ timeout: 15000 });
+  await thread.locator('input[name="text"]').fill(ARABIC_MSG);
+  await thread.locator('button[type="submit"]').click();
+  await tp.waitForFunction(
+    (needle) =>
+      document.querySelector("[data-booking-thread]")?.textContent?.includes(needle) ?? false,
+    ARABIC_MSG,
+    { timeout: 15000 }
+  );
+  const guestView = await thread.innerText();
+  check(
+    "an English-set guest can still write Arabic in the thread",
+    guestView.includes(ARABIC_MSG) && guestView.includes(DEMO)
+  );
+
+  const hc2 = await browser.newContext();
+  await hc2.addCookies([
+    { name: "parkgo_cookie_consent", value: "all", url: BASE },
+    { name: "parkgo_session", value: "user_host", url: BASE },
+  ]);
+  const hp2 = await hc2.newPage();
+  await hp2.goto(`${BASE}/host/bookings/bk_active`, { waitUntil: "domcontentloaded" });
+  const hostThread2 = hp2.locator("[data-booking-thread]");
+  await hostThread2.waitFor({ timeout: 15000 });
+  const hostView2 = await hostThread2.innerText();
+  check(
+    "the host still gets a rendering — the account setting didn't matter",
+    hostView2.includes(DEMO) && hostView2.includes(ARABIC_MSG)
+  );
+  await hc2.close();
+
+  // The support widget, signed in: no email step, same detection.
+  const sp = await tc.newPage();
+  await sp.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+  await sp.click('button[aria-label="Open support chat"]');
+  await sp.waitForSelector('[role="dialog"]');
+  await sp.fill('input[placeholder="Type your question…"]', ARABIC_MSG);
+  await sp.keyboard.press("Enter");
+  try {
+    await sp.waitForSelector("[data-live-note]", { timeout: 9000 });
+  } catch {
+    await sp.click('button:has-text("Talk to a human")');
+    await sp.waitForSelector("[data-live-note]", { timeout: 15000 });
+  }
+  check("a signed-in Arabic chat escalates without an email step", true);
+  await tc.close();
+
+  const ac = await adminCtx();
+  const ap = await ac.newPage();
+  await ap.goto(`${BASE}/admin/support`, { waitUntil: "domcontentloaded" });
+  const body = await mainText(ap);
+  const line = body.split("\n").find((l) => l.includes(ARABIC_MSG)) ?? "";
+  check(
+    "the agent gets English for it despite the English account setting",
+    line.includes(DEMO),
+    line.slice(0, 60)
+  );
+  check("and the ticket is badged العربية for the reply direction", body.includes("العربية"));
+  await ac.close();
+}
+
 // ----------------- the guest ↔ host booking thread gets the same treatment --
 const GUEST_MSG = "میں کل صبح چھ بجے پہنچوں گا، گیٹ کوڈ بتا دیں";
 const HOST_REPLY = "The gate code is 4321, see you tomorrow morning.";

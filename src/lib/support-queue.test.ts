@@ -197,6 +197,14 @@ describe("language detection", () => {
     expect(detectLocale("")).toBe("en");
   });
 
+  it("lets a saved locale break ties, but never overrule the script", () => {
+    // An account set to Urdu writing Latin text: the saved choice decides.
+    expect(detectLocale("thanks, that worked", "ur")).toBe("ur");
+    // An account set to English writing Arabic: what was typed decides.
+    expect(detectLocale("أين سيارتي من فضلك", "en")).toBe("ar");
+    expect(detectLocale("我的预订在哪里", "ur")).toBe("zh");
+  });
+
   it("judges a thread by what the visitor said, not the bot", () => {
     expect(
       detectThreadLocale([

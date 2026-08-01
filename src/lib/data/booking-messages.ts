@@ -50,13 +50,27 @@ async function renderForRecipient(
       getUserProfile(booking.travellerId),
       getUserProfile(host.userId),
     ]);
-    const senderLocale = (from === "host" ? hostUser : traveller)?.locale;
+    const saved = (from === "host" ? hostUser : traveller)?.locale;
     const readerLocale = (from === "host" ? traveller : hostUser)?.locale;
-    if (!senderLocale || !readerLocale || senderLocale === readerLocale) return {};
+    if (!readerLocale) return {};
 
-    const out = await translateText(text, readerLocale, senderLocale);
+    // The script of the message beats the account setting — someone whose
+    // account says English can still type Arabic, and it is the Arabic that
+    // needs carrying across. The saved language only breaks Latin-script ties.
+    const { detectLocale } = await import("@/lib/support-lang");
+    const detected = detectLocale(text);
+    const senderWrote = detected !== "en" ? detected : (saved ?? "en");
+    if (senderWrote === readerLocale) return {};
+
+    // Only a script-confident guess is worth asserting to the provider; for
+    // Latin text the provider's own detection beats a saved-locale hunch.
+    const out = await translateText(
+      text,
+      readerLocale,
+      detected !== "en" ? detected : undefined
+    );
     if (!out?.text || out.text.trim() === text) return {};
-    return { translated: out.text.slice(0, 2000), sourceLocale: senderLocale };
+    return { translated: out.text.slice(0, 2000), sourceLocale: senderWrote };
   } catch {
     return {};
   }
