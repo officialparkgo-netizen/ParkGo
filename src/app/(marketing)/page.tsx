@@ -32,6 +32,8 @@ import { SearchWidget } from "@/components/marketing/search-widget";
 import { WaitlistForm } from "@/components/marketing/waitlist-form";
 import { FeatureCarousel } from "@/components/marketing/feature-carousel";
 import { getAirports } from "@/lib/data/store";
+import { LOCALES } from "@/lib/i18n/config";
+import { StatCounter } from "@/components/marketing/stat-counter";
 import { listAllSpaces } from "@/lib/data/hosts";
 import { formatMoney } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
@@ -449,17 +451,32 @@ export default async function HomePage() {
       </Section>
 
       {/* --------------------------------------------------------- Stats */}
+      {/* Real numbers, counted from the same data the product runs on: the
+          destination list and the locale registry. "100%" is policy, not a
+          metric — a listing cannot go live before its host passes
+          verification. The count-up is decoration; the server renders the
+          final figures, so no-JS and reduced-motion readers see them as-is. */}
       <Section className="pt-0">
-        <div className="reveal-stagger grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
+        <div className="reveal-stagger relative grid gap-8 overflow-hidden rounded-2xl bg-gradient-to-br from-navy-800 to-navy-950 p-10 text-center sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-navy-700/60">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-24 -end-24 h-64 w-64 rounded-full bg-brand-500/15 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-28 -start-16 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl"
+          />
           {[
             { k: String(getAirports().length), v: t("home.stats.airports") },
             { k: t("home.stats.onePrice"), v: t("home.stats.onePriceLabel") },
             { k: "100%", v: t("home.stats.verified") },
-            { k: "5", v: t("home.stats.languages") },
+            { k: String(LOCALES.length), v: t("home.stats.languages") },
           ].map((s) => (
-            <div key={s.v}>
-              <div className="text-4xl font-extrabold text-white">{s.k}</div>
-              <div className="mt-1 text-sm text-navy-200">{s.v}</div>
+            <div key={s.v} className="relative lg:px-6">
+              <div className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+                <StatCounter value={s.k} />
+              </div>
+              <div className="mt-1.5 text-sm font-medium text-navy-200">{s.v}</div>
             </div>
           ))}
         </div>
