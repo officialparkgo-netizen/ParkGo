@@ -22,7 +22,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav, supportAgentNav } from "@/components/portal/navs";
 import { requireRole, requireOpsAdmin } from "@/lib/auth";
-import { listSupportTickets } from "@/lib/data/support";
+import { healSupportTicketTranslations, listSupportTickets } from "@/lib/data/support";
 import { resolveSupportTicketAction } from "@/lib/support-actions";
 import {
   assignTicketToAction,
@@ -123,6 +123,12 @@ export default async function AdminSupportPage({
     .filter((x) => (filter === "urgent" ? x.priority === "urgent" : true))
     .filter((x) => (filter === "snoozed" ? isSnoozed(x) : true))
     .slice(0, 20);
+
+  // Older tickets that missed their translation moment (key added later,
+  // pre-detection builds) are repaired right here, where an agent is looking.
+  if (translating) {
+    await Promise.all(supportTickets.map((tk) => healSupportTicketTranslations(tk)));
+  }
 
   // Attachment links expire, so the ones rendered here are freshly signed.
   const signed = new Map(

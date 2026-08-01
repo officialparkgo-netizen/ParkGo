@@ -26,7 +26,10 @@ import { cohostNav, hostNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getHostById, getHostForUser, getSpaceById } from "@/lib/data/hosts";
 import { getBookingById, listBookingsForHost } from "@/lib/data/bookings";
-import { listMessagesForBooking } from "@/lib/data/booking-messages";
+import {
+  healBookingThreadTranslations,
+  listMessagesForBooking,
+} from "@/lib/data/booking-messages";
 import { getUserProfile } from "@/lib/data/users";
 import { hostCheckInAction, hostCheckOutAction } from "@/lib/host-suite-actions";
 import {
@@ -86,6 +89,9 @@ export default async function HostBookingDetailPage({
   ).length;
   const isBlocked = (host.blockedGuests ?? []).includes(booking.travellerId);
   const pending = booking.approval === "pending" && booking.status === "paid";
+
+  // Older thread messages that missed their translation moment heal on open.
+  await healBookingThreadTranslations(booking.id);
 
   return (
     <PortalShell

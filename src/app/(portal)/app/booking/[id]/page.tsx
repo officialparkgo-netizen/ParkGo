@@ -45,7 +45,10 @@ import { travellerNav } from "@/components/portal/navs";
 import { requireRole } from "@/lib/auth";
 import { getAirport } from "@/lib/data/store";
 import { getBookingById } from "@/lib/data/bookings";
-import { listMessagesForBooking } from "@/lib/data/booking-messages";
+import {
+  healBookingThreadTranslations,
+  listMessagesForBooking,
+} from "@/lib/data/booking-messages";
 import { getPlatformSettings } from "@/lib/data/settings";
 import { getHostById, getSpaceById } from "@/lib/data/hosts";
 import { getUserProfile } from "@/lib/data/users";
@@ -116,6 +119,8 @@ export default async function BookingPage({
   const hostUser = host ? await getUserProfile(host.userId) : null;
   const currency = booking.price.currency;
   const paid = booking.status !== "requested" && booking.status !== "cancelled";
+  // Older thread messages that missed their translation moment heal on open.
+  if (paid) await healBookingThreadTranslations(booking.id);
   const { listClaimsForBooking } = await import("@/lib/data/claims");
   const claims = await listClaimsForBooking(booking.id);
   const conditionPhotos = await listConditionPhotos(booking.id).catch(() => []);

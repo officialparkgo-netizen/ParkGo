@@ -26,6 +26,26 @@ function fromRow(r: any): BookingMessage {
  * underneath. Best-effort throughout: no provider, same language on both
  * sides, or an outage, and the message simply travels untranslated.
  */
+/** The two sides' saved languages, or null when the booking can't be resolved. */
+async function threadLocales(
+  bookingId: string
+): Promise<{ traveller?: Locale; host?: Locale } | null> {
+  const { getBookingById } = await import("@/lib/data/bookings");
+  const booking = await getBookingById(bookingId);
+  if (!booking) return null;
+  const { getSpaceById, getHostById } = await import("@/lib/data/hosts");
+  const space = await getSpaceById(booking.spaceId);
+  const host = space ? await getHostById(space.hostId) : null;
+  if (!host) return null;
+
+  const { getUserProfile } = await import("@/lib/data/users");
+  const [traveller, hostUser] = await Promise.all([
+    getUserProfile(booking.travellerId),
+    getUserProfile(host.userId),
+  ]);
+  return { traveller: traveller?.locale, host: hostUser?.locale };
+}
+
 async function renderForRecipient(
   bookingId: string,
   from: "host" | "traveller",
@@ -35,21 +55,9 @@ async function renderForRecipient(
     const { isTranslationConfigured, translateForReader } = await import("@/lib/translate");
     if (!isTranslationConfigured()) return {};
 
-    const { getBookingById } = await import("@/lib/data/bookings");
-    const booking = await getBookingById(bookingId);
-    if (!booking) return {};
-    const { getSpaceById, getHostById } = await import("@/lib/data/hosts");
-    const space = await getSpaceById(booking.spaceId);
-    const host = space ? await getHostById(space.hostId) : null;
-    if (!host) return {};
-
-    const { getUserProfile } = await import("@/lib/data/users");
-    const [traveller, hostUser] = await Promise.all([
-      getUserProfile(booking.travellerId),
-      getUserProfile(host.userId),
-    ]);
-    const saved = (from === "host" ? hostUser : traveller)?.locale;
-    const readerLocale = (from === "host" ? traveller : hostUser)?.locale;
+    const sides = await threadLocales(bookingId);
+    const saved = from === "host" ? sides?.host : sides?.traveller;
+    const readerLocale = from === "host" ? sides?.traveller : sides?.host;
     if (!readerLocale) return {};
 
     // What was typed decides the language, not the account setting — the
@@ -63,6 +71,51 @@ async function renderForRecipient(
     };
   } catch {
     return {};
+  }
+}
+
+/**
+ * Repair missing renderings in an existing thread, and persist the repair.
+ *
+ * Messages sent before the provider key existed — or before migration 0030
+ * gave live threads somewhere to store a rendering — stayed as sent, and
+ * always would have: translation happens at write time. The booking pages
+ * call this on open (never the 4-second poll), so history heals the moment
+ * someone actually looks at it. Bounded to the last five untranslated
+ * messages; plain-English messages cost nothing to skip.
+ */
+export async function healBookingThreadTranslations(bookingId: string): Promise<void> {
+  try {
+    const { isTranslationConfigured, translateForReader } = await import("@/lib/translate");
+    if (!isTranslationConfigured()) return;
+    const sides = await threadLocales(bookingId);
+    if (!sides) return;
+
+    const messages = await listMessagesForBooking(bookingId);
+    const missing = messages.filter((m) => !!m.text && !m.translated).slice(-5);
+    for (const m of missing) {
+      const reader = m.from === "host" ? sides.traveller : sides.host;
+      const saved = m.from === "host" ? sides.host : sides.traveller;
+      if (!reader) continue;
+      const out = await translateForReader(m.text, reader, saved);
+      if (!out) continue;
+      // Mock messages are the store's own objects — mutating them IS the
+      // persistence. Live rows are copies, so write the repair back.
+      m.translated = out.text.slice(0, 2000);
+      if (out.source) m.sourceLocale = out.source;
+      if (IS_LIVE) {
+        const { supabaseAdmin } = await import("@/lib/supabase/server");
+        await supabaseAdmin()
+          .from("booking_messages")
+          .update({
+            translated: m.translated,
+            ...(m.sourceLocale ? { source_locale: m.sourceLocale } : {}),
+          })
+          .eq("id", m.id);
+      }
+    }
+  } catch {
+    // healing is opportunistic — the thread renders fine without it
   }
 }
 

@@ -82,23 +82,31 @@ export async function createSupportTicket(
 ): Promise<SupportTicket> {
   if (!IS_LIVE) return addSupportTicketMock(entry);
 
-  const { data, error } = await supabaseAdmin()
-    .from("support_tickets")
-    .insert({
-      name: entry.name,
-      email: entry.email,
-      topic: entry.topic,
-      transcript: entry.transcript,
-      ...(entry.userId ? { user_id: entry.userId } : {}),
-      ...(entry.priority ? { priority: entry.priority } : {}),
-      ...(entry.locale ? { locale: entry.locale } : {}),
-      ...(entry.phone ? { phone: entry.phone } : {}),
-      ...(entry.callbackAt ? { callback_at: entry.callbackAt } : {}),
-      ...(entry.assignedTo ? { assigned_to: entry.assignedTo } : {}),
-      ...(entry.tags?.length ? { tags: entry.tags } : {}),
-    })
-    .select(COLS)
-    .single();
+  const insert = (withLocale: boolean) =>
+    supabaseAdmin()
+      .from("support_tickets")
+      .insert({
+        name: entry.name,
+        email: entry.email,
+        topic: entry.topic,
+        transcript: entry.transcript,
+        ...(entry.userId ? { user_id: entry.userId } : {}),
+        ...(entry.priority ? { priority: entry.priority } : {}),
+        ...(withLocale && entry.locale ? { locale: entry.locale } : {}),
+        ...(entry.phone ? { phone: entry.phone } : {}),
+        ...(entry.callbackAt ? { callback_at: entry.callbackAt } : {}),
+        ...(entry.assignedTo ? { assigned_to: entry.assignedTo } : {}),
+        ...(entry.tags?.length ? { tags: entry.tags } : {}),
+      })
+      .select(COLS)
+      .single();
+
+  let { data, error } = await insert(true);
+  // A pre-0030 check constraint doesn't know "ar" yet. The customer's ticket
+  // must survive that — retry without the language rather than losing it.
+  if (error && entry.locale) {
+    ({ data, error } = await insert(false));
+  }
 
   if (error) throw new Error(`support ticket insert failed: ${error.message}`);
   return fromRow(data as TicketRow);
@@ -155,6 +163,65 @@ export async function setSupportTicketAssigned(
     .update({ assigned_to: adminName.slice(0, 120) })
     .eq("id", id);
   return !error;
+}
+
+/**
+ * Repair a ticket's missing translations in place, and persist the repair.
+ *
+ * Translations are stored at write time — which means a ticket written before
+ * the provider key existed (or before per-message detection shipped) shows an
+ * agent raw Arabic forever, however healthy translation is today. The queue
+ * page calls this for the tickets on screen: the language field is corrected
+ * from what the visitor actually wrote (that is the reply direction), and up
+ * to five untranslated visitor messages get their English rendering. Opening
+ * the queue is the moment an agent needs it, so that is when it heals.
+ */
+export async function healSupportTicketTranslations(ticket: SupportTicket): Promise<void> {
+  try {
+    const { isTranslationConfigured, translateForReader } = await import("@/lib/translate");
+    if (!isTranslationConfigured()) return;
+
+    let localeChanged = false;
+    const { detectThreadLocale } = await import("@/lib/support-lang");
+    const spoken = detectThreadLocale(ticket.transcript);
+    if ((!ticket.locale || ticket.locale === "en") && spoken !== "en") {
+      ticket.locale = spoken;
+      localeChanged = true;
+    }
+
+    let transcriptChanged = false;
+    const missing = ticket.transcript
+      .filter((m) => m.role === "user" && !!m.text && !m.translated)
+      .slice(0, 5);
+    for (const m of missing) {
+      const out = await translateForReader(m.text, "en", ticket.locale);
+      if (!out) continue;
+      m.translated = out.text.slice(0, 4000);
+      const source = out.source ?? (ticket.locale !== "en" ? ticket.locale : undefined);
+      if (source) m.sourceLocale = source;
+      transcriptChanged = true;
+    }
+
+    // Mock tickets are the store's own objects — the mutation above IS the
+    // persistence. Live rows were copied out of Postgres, so write back.
+    if (!IS_LIVE || (!transcriptChanged && !localeChanged)) return;
+    if (transcriptChanged) {
+      await supabaseAdmin()
+        .from("support_tickets")
+        .update({ transcript: ticket.transcript })
+        .eq("id", ticket.id);
+    }
+    if (localeChanged) {
+      // Separately, so a pre-0030 check constraint refusing "ar" cannot take
+      // the transcript repair down with it.
+      await supabaseAdmin()
+        .from("support_tickets")
+        .update({ locale: ticket.locale })
+        .eq("id", ticket.id);
+    }
+  } catch {
+    // healing is opportunistic — the queue renders fine without it
+  }
 }
 
 /** One ticket by id (mock + live). */

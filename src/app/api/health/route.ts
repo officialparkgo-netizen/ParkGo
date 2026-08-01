@@ -10,9 +10,14 @@ export const dynamic = "force-dynamic";
  * confirm live mode is wired correctly in each Vercel environment.
  */
 export async function GET() {
+  const { isTranslationConfigured } = await import("@/lib/translate");
   return NextResponse.json({
     mode: PARKGO_MODE,
     isLive: IS_LIVE,
+    // Which build is actually serving — Vercel stamps the deploy's commit.
+    // Short SHA only: enough to answer "did my push arrive?", nothing more.
+    commit: (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7) || null,
+    translation: isTranslationConfigured(),
     present: {
       PARKGO_MODE: process.env.PARKGO_MODE ?? null,
       NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
