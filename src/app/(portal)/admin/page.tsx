@@ -220,14 +220,15 @@ export default async function AdminDashboard({
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <StatCard label={t("admin.stat.hostReview")} value={String(pending.length)} sub={t("admin.stat.hostReviewSub")} icon={ShieldAlert} tone="accent" />
-          <StatCard label={t("admin.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("admin.total")}`} icon={Warehouse} tone="brand" />
+          <StatCard label={t("admin.stat.hostReview")} value={String(pending.length)} sub={t("admin.stat.hostReviewSub")} icon={ShieldAlert} tone="accent" href="/admin/verification" />
+          <StatCard label={t("admin.stat.liveListings")} value={String(liveCount)} sub={`${spaces.length} ${t("admin.total")}`} icon={Warehouse} tone="brand" href="/admin/listings" />
           <StatCard
             label={t("admin.stat.users")}
             value={String(allUsers.length)}
             sub={`${travellerCount} ${t("admin.stat.travellers")} · ${hostCount} ${t("admin.stat.hosts")}`}
             icon={Users}
             tone="navy"
+            href="/admin/users"
           />
           <StatCard
             label={t("admin.stat.bookings")}
@@ -235,6 +236,7 @@ export default async function AdminDashboard({
             sub={`${activeBookings} ${t("admin.stat.bookingsActive")}`}
             icon={CalendarCheck}
             tone="brand"
+            href="/admin/bookings"
           />
           <StatCard
             label={t("admin.stat.gmv")}
@@ -244,14 +246,16 @@ export default async function AdminDashboard({
             }`}
             icon={Banknote}
             tone="go"
+            href="/admin/payments"
           />
-          <StatCard label={t("admin.stat.payoutsDue")} value={formatMoney(payoutsDue)} sub={t("admin.stat.payoutsDueSub")} icon={Banknote} tone="navy" />
+          <StatCard label={t("admin.stat.payoutsDue")} value={formatMoney(payoutsDue)} sub={t("admin.stat.payoutsDueSub")} icon={Banknote} tone="navy" href="/admin/payments" />
           <StatCard
             label={t("admin.stat.avgBooking")}
             value={formatMoney(avgBookingValue)}
             sub={t("admin.stat.avgBookingSub")}
             icon={TrendingUp}
             tone="go"
+            href="/admin/analytics"
           />
           <StatCard
             label={t("admin.stat.cancelRate")}
@@ -259,6 +263,7 @@ export default async function AdminDashboard({
             sub={`${rangeCancelled} ${t("admin.stat.cancelledSub")}`}
             icon={XCircle}
             tone="accent"
+            href="/admin/bookings"
           />
         </div>
 

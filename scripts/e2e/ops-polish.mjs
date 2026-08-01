@@ -136,6 +136,36 @@ async function settled(page) {
   await a.close();
 }
 
+// ------------- the dashboard stat blocks are links to their sections ----
+{
+  const hc0 = await ctx("user_host");
+  const hp0 = await hc0.newPage();
+  await hp0.goto(`${BASE}/host`, { waitUntil: "domcontentloaded" });
+  await settled(hp0);
+  await hp0.locator('[data-stat-link]:has-text("Trust score")').click();
+  await hp0.waitForURL("**/host/reviews**", { timeout: 15000 });
+  check("the host trust-score block opens reviews", true);
+  await hc0.close();
+
+  const ac0 = await ctx("user_admin");
+  const ap0 = await ac0.newPage();
+  await ap0.goto(`${BASE}/admin`, { waitUntil: "domcontentloaded" });
+  await settled(ap0);
+  await ap0.locator("[data-stat-link]").first().click();
+  await ap0.waitForURL("**/admin/verification**", { timeout: 15000 });
+  check("the admin verification block opens the review queue", true);
+  await ac0.close();
+
+  const tc0 = await ctx("user_traveller");
+  const tp0 = await tc0.newPage();
+  await tp0.goto(`${BASE}/app`, { waitUntil: "domcontentloaded" });
+  await settled(tp0);
+  await tp0.locator("[data-stat-link]").first().click();
+  await tp0.waitForURL("**/app/trips**", { timeout: 15000 });
+  check("the traveller stat block opens trips", true);
+  await tc0.close();
+}
+
 // -------------- a message alert on the host dashboard opens that chat ----
 {
   const tcx = await ctx("user_traveller");

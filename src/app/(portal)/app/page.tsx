@@ -87,6 +87,7 @@ export default async function TravellerDashboard() {
               sub={t("app.dash.stat.upcomingSub")}
               icon={CalendarCheck}
               tone="brand"
+              href="/app/trips"
             />
             <StatCard
               label={t("app.dash.stat.trips")}
@@ -94,6 +95,7 @@ export default async function TravellerDashboard() {
               sub={t("app.dash.stat.tripsSub")}
               icon={Ticket}
               tone="navy"
+              href="/app/trips"
             />
             <StatCard
               label={t("app.dash.stat.toReview")}
@@ -101,6 +103,7 @@ export default async function TravellerDashboard() {
               sub={t("app.dash.stat.toReviewSub")}
               icon={Star}
               tone="go"
+              href="/app/trips"
             />
           </div>
         )}
