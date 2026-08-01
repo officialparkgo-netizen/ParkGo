@@ -31,19 +31,23 @@ async function translateForTeam(
   transcript: { role: "bot" | "user"; text: string }[],
   locale: Locale
 ): Promise<SupportMessage[]> {
-  const { isTranslationConfigured, translateText, worthTranslating } = await import(
-    "@/lib/translate"
-  );
-  if (locale === "en" || !isTranslationConfigured()) return transcript;
+  const { isTranslationConfigured, translateForReader } = await import("@/lib/translate");
+  if (!isTranslationConfigured()) return transcript;
 
+  // Per message, not per ticket: an English-set account writing Arabic — or
+  // Spanish, which no script gives away — still reaches the agent in English.
   return Promise.all(
     transcript.map(async (m) => {
-      if (m.role !== "user" || !worthTranslating(m.text, locale)) return m;
+      if (m.role !== "user") return m;
       try {
-        const out = await translateText(m.text, "en", locale);
-        return out?.text && out.text.trim() !== m.text
-          ? { ...m, translated: out.text.slice(0, 4000), sourceLocale: locale }
-          : m;
+        const out = await translateForReader(m.text, "en", locale);
+        if (!out) return m;
+        const source = out.source ?? (locale !== "en" ? locale : undefined);
+        return {
+          ...m,
+          translated: out.text.slice(0, 4000),
+          ...(source ? { sourceLocale: source } : {}),
+        };
       } catch {
         return m;
       }

@@ -1,5 +1,6 @@
 import "server-only";
 import type { Locale } from "@/types";
+import { detectLocale } from "@/lib/support-lang";
 
 /**
  * Machine translation for support, so an agent who reads only English can
@@ -180,4 +181,80 @@ export function carriesLanguage(text: string): boolean {
 export function worthTranslating(text: string, detected: Locale): boolean {
   if (detected === "en") return false;
   return carriesLanguage(text);
+}
+
+/**
+ * Common English words — evidence that Latin-script text really is English.
+ * The everyday grammar words plus the vocabulary of this product, so "where
+ * is my booking" and "gate code please" both count as English on sight.
+ */
+const ENGLISH_HINTS = new Set([
+  "a", "an", "the", "i", "you", "we", "he", "she", "they", "it", "my", "your",
+  "our", "me", "us", "is", "are", "was", "were", "be", "been", "am", "do",
+  "does", "did", "have", "has", "had", "can", "could", "will", "would",
+  "should", "to", "of", "in", "on", "at", "for", "and", "or", "but", "not",
+  "no", "yes", "ok", "okay", "please", "thanks", "thank", "hi", "hello",
+  "hey", "need", "want", "help", "where", "when", "what", "how", "why",
+  "who", "this", "that", "there", "here", "with", "from", "about", "if",
+  "get", "got", "see", "come", "coming", "leave", "leaving", "arrive",
+  "arriving", "late", "early", "today", "tomorrow", "tonight", "morning",
+  "evening", "night", "now", "soon", "car", "vehicle", "booking", "book",
+  "parking", "park", "space", "bay", "gate", "code", "key", "keys", "refund",
+  "cancel", "charge", "charging", "charger", "driver", "transfer", "airport",
+  "terminal", "flight", "host", "guest", "message", "call", "phone", "email",
+]);
+
+/**
+ * Latin-script text that looks like no English at all — "hola", "merci",
+ * "dziękuję bardzo". Digit-bearing tokens (references, codes, plates) are
+ * never language, and a single English hint is enough to stand down.
+ */
+export function probablyForeignLatin(text: string): boolean {
+  const stripped = text.replace(/https?:\/\/\S+/g, " ").trim();
+  if (!stripped || /[؀-ۿऀ-ॿ一-鿿]/.test(stripped)) return false;
+  const tokens = stripped
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (tokens.length === 0 || tokens.some((w) => /\d/.test(w))) return false;
+  return !tokens.some((w) => ENGLISH_HINTS.has(w));
+}
+
+/**
+ * Render one message for a specific reader — the shared brain behind the
+ * support desk and the booking thread.
+ *
+ * What was typed always beats what an account is set to: script (or German
+ * vocabulary) decides when it can, the sender's saved language only breaks
+ * Latin-script ties, and Latin text that looks like no English at all is
+ * probed with the provider's own detection — that is what carries "hola"
+ * from an English-set account to an English-reading host. Returns null when
+ * there is nothing worth doing; the original is never replaced either way.
+ */
+export async function translateForReader(
+  text: string,
+  reader: Locale,
+  senderSaved?: Locale
+): Promise<{ text: string; source?: Locale } | null> {
+  const body = text.trim();
+  if (!body || !isTranslationConfigured()) return null;
+
+  const detected = detectLocale(body);
+  const wrote = detected !== "en" ? detected : senderSaved && senderSaved !== "en" ? senderSaved : "en";
+
+  if (wrote === reader) {
+    // Both sides on the same language — only visibly-foreign Latin text
+    // ("hola" between two English accounts) is still worth a probe.
+    if (!(detected === "en" && probablyForeignLatin(body))) return null;
+  } else if (detected === "en" && !carriesLanguage(body) && !probablyForeignLatin(body)) {
+    // Unconfident Latin one-worders ("ok") carry no language to move.
+    return null;
+  }
+
+  // Assert a source only when the script is sure of it; for Latin text the
+  // provider's own detection beats a saved-locale hunch every time.
+  const out = await translateText(body, reader, detected !== "en" ? detected : undefined);
+  if (!out?.text || out.text.trim() === body) return null;
+  return { text: out.text, ...(detected !== "en" ? { source: detected } : {}) };
 }

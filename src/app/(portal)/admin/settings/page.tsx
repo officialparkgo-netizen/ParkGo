@@ -409,6 +409,8 @@ export default async function AdminSettingsPage({
               ok: t("admin.settings.translateOk"),
               failed: t("admin.settings.translateFailed"),
               off: t("admin.settings.translateOffHint"),
+              threadOk: t("admin.settings.translateThreadOk"),
+              threadMissing: t("admin.settings.translateThreadMissing"),
             }}
           />
         </Card>

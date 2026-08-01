@@ -284,6 +284,8 @@ export interface TranslationCheckState {
   samples?: { lang: string; text: string; ok: boolean }[];
   failed?: boolean;
   off?: boolean;
+  /** Whether booking-chat translations can actually be stored (migration 0030). */
+  thread?: "ready" | "missing";
 }
 
 /**
@@ -318,8 +320,27 @@ export async function runTranslationCheckAction(
       samples.push({ lang, text: "", ok: false });
     }
   }
-  if (!samples.some((s) => s.ok)) return { failed: true };
-  return { provider: translationProvider() ?? "", samples };
+
+  // A working key is only half the story on live: the booking-chat columns
+  // come from migration 0030, and until it runs, thread translations are
+  // silently dropped at insert. Say so here, where the admin is looking.
+  let thread: TranslationCheckState["thread"] = "ready";
+  const { IS_LIVE } = await import("@/lib/config");
+  if (IS_LIVE) {
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/server");
+      const { error } = await supabaseAdmin()
+        .from("booking_messages")
+        .select("translated")
+        .limit(1);
+      if (error) thread = "missing";
+    } catch {
+      thread = "missing";
+    }
+  }
+
+  if (!samples.some((s) => s.ok)) return { failed: true, thread };
+  return { provider: translationProvider() ?? "", samples, thread };
 }
 
 /** Best-effort "something needs an admin" email (verification, ticket, claim). */

@@ -206,19 +206,17 @@ export async function appendSupportThreadMessage(
    * the ticket still reads the same in six months if the provider is gone.
    */
   if (msg.text && (role === "user" || role === "agent")) {
-    const { detectLocale } = await import("@/lib/support-lang");
-    const { translateText, worthTranslating } = await import("@/lib/translate");
+    const { translateText, translateForReader } = await import("@/lib/translate");
 
     if (role === "user") {
-      const sourceLocale = detectLocale(msg.text);
-      if (worthTranslating(msg.text, sourceLocale)) {
-        const out = await translateText(msg.text, "en", sourceLocale);
-        // No provider, or a failed call: the agent still gets the original and
-        // the language badge, which is exactly the behaviour before this.
-        if (out?.text && out.text.trim() !== msg.text) {
-          msg.translated = out.text.slice(0, 4000);
-          msg.sourceLocale = sourceLocale;
-        }
+      // The shared reader logic: script decides where it can, and Latin text
+      // that looks like no English ("hola") is probed with the provider — so
+      // any language reaches the agent, whatever the account is set to. A
+      // failed call changes nothing: the agent still gets the original.
+      const out = await translateForReader(msg.text, "en");
+      if (out) {
+        msg.translated = out.text.slice(0, 4000);
+        if (out.source) msg.sourceLocale = out.source;
       }
     } else {
       /**

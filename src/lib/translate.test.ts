@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   carriesLanguage,
   isTranslationConfigured,
+  probablyForeignLatin,
   translateText,
   translationProvider,
   worthTranslating,
@@ -196,6 +197,31 @@ describe("carriesLanguage", () => {
     expect(carriesLanguage("ok")).toBe(false);
     expect(carriesLanguage("PG-7F3K9")).toBe(false);
     expect(carriesLanguage("https://www.parkgo.ai/app/booking/abc")).toBe(false);
+  });
+});
+
+describe("probablyForeignLatin", () => {
+  it("flags Latin text with no English in it", () => {
+    expect(probablyForeignLatin("hola")).toBe(true);
+    expect(probablyForeignLatin("merci beaucoup")).toBe(true);
+    expect(probablyForeignLatin("dziękuję bardzo")).toBe(true);
+  });
+
+  it("stands down on anything that reads as English", () => {
+    expect(probablyForeignLatin("how are you")).toBe(false);
+    expect(probablyForeignLatin("the gate code please")).toBe(false);
+    expect(probablyForeignLatin("ok")).toBe(false);
+    expect(probablyForeignLatin("thanks")).toBe(false);
+  });
+
+  it("never treats references, codes or links as language", () => {
+    expect(probablyForeignLatin("PG-7F3K9")).toBe(false);
+    expect(probablyForeignLatin("4321")).toBe(false);
+    expect(probablyForeignLatin("https://www.parkgo.ai/app")).toBe(false);
+  });
+
+  it("leaves non-Latin scripts to the script detector", () => {
+    expect(probablyForeignLatin("سيارتي لا تشحن")).toBe(false);
   });
 });
 

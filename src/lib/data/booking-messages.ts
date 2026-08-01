@@ -32,10 +32,8 @@ async function renderForRecipient(
   text: string
 ): Promise<Pick<BookingMessage, "translated" | "sourceLocale">> {
   try {
-    const { isTranslationConfigured, translateText, carriesLanguage } = await import(
-      "@/lib/translate"
-    );
-    if (!isTranslationConfigured() || !carriesLanguage(text)) return {};
+    const { isTranslationConfigured, translateForReader } = await import("@/lib/translate");
+    if (!isTranslationConfigured()) return {};
 
     const { getBookingById } = await import("@/lib/data/bookings");
     const booking = await getBookingById(bookingId);
@@ -54,23 +52,15 @@ async function renderForRecipient(
     const readerLocale = (from === "host" ? traveller : hostUser)?.locale;
     if (!readerLocale) return {};
 
-    // The script of the message beats the account setting — someone whose
-    // account says English can still type Arabic, and it is the Arabic that
-    // needs carrying across. The saved language only breaks Latin-script ties.
-    const { detectLocale } = await import("@/lib/support-lang");
-    const detected = detectLocale(text);
-    const senderWrote = detected !== "en" ? detected : (saved ?? "en");
-    if (senderWrote === readerLocale) return {};
-
-    // Only a script-confident guess is worth asserting to the provider; for
-    // Latin text the provider's own detection beats a saved-locale hunch.
-    const out = await translateText(
-      text,
-      readerLocale,
-      detected !== "en" ? detected : undefined
-    );
-    if (!out?.text || out.text.trim() === text) return {};
-    return { translated: out.text.slice(0, 2000), sourceLocale: senderWrote };
+    // What was typed decides the language, not the account setting — the
+    // shared reader logic scripts-detects, probes foreign-looking Latin text
+    // ("hola") with the provider, and stands down on plain English.
+    const out = await translateForReader(text, readerLocale, saved);
+    if (!out) return {};
+    return {
+      translated: out.text.slice(0, 2000),
+      ...(out.source ? { sourceLocale: out.source } : {}),
+    };
   } catch {
     return {};
   }

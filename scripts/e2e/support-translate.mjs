@@ -220,6 +220,20 @@ const ARABIC_MSG = "سيارتي الكهربائية لا تشحن في الم�
     guestView.includes(ARABIC_MSG) && guestView.includes(DEMO)
   );
 
+  // A Latin-script language with no script to give it away: "hola" between
+  // two English-set accounts still gets probed and carried across.
+  await thread.locator('input[name="text"]').fill("hola amigo");
+  await thread.locator('button[type="submit"]').click();
+  await tp.waitForFunction(
+    () =>
+      document
+        .querySelector("[data-booking-thread]")
+        ?.textContent?.includes("configured] hola amigo") ?? false,
+    undefined,
+    { timeout: 15000 }
+  );
+  check("Spanish from an English account is probed and rendered too", true);
+
   const hc2 = await browser.newContext();
   await hc2.addCookies([
     { name: "parkgo_cookie_consent", value: "all", url: BASE },
@@ -360,6 +374,10 @@ const HOST_REPLY = "The gate code is 4321, see you tomorrow morning.";
     "the run-test card answers in all five languages",
     ["ur", "hi", "de", "zh", "ar"].every((l) => rows.includes(l)),
     rows.join(",")
+  );
+  check(
+    "and reports the booking-chat storage state",
+    (await ap.locator('[data-translate-thread="ready"]').count()) === 1
   );
   await ac.close();
 }

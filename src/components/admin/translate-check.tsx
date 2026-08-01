@@ -22,6 +22,8 @@ export function TranslateCheck({
     ok: string;
     failed: string;
     off: string;
+    threadOk: string;
+    threadMissing: string;
   };
 }) {
   const [state, action, pending] = useActionState<TranslationCheckState, FormData>(
@@ -55,6 +57,21 @@ export function TranslateCheck({
       {state.failed && (
         <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-red-600" data-translate-check-failed>
           <XCircle className="h-4 w-4 shrink-0" /> {labels.failed}
+        </p>
+      )}
+      {state.thread && (
+        <p
+          className={`mt-2 flex items-center gap-1.5 text-sm font-semibold ${
+            state.thread === "ready" ? "text-go-700" : "text-red-600"
+          }`}
+          data-translate-thread={state.thread}
+        >
+          {state.thread === "ready" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <XCircle className="h-4 w-4 shrink-0" />
+          )}
+          {state.thread === "ready" ? labels.threadOk : labels.threadMissing}
         </p>
       )}
       {state.samples && state.samples.length > 0 && (
