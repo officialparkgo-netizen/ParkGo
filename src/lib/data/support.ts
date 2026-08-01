@@ -1,4 +1,4 @@
-import type { SupportMessage, SupportNote, SupportTicket } from "@/types";
+import type { Locale, SupportMessage, SupportNote, SupportTicket } from "@/types";
 import { IS_LIVE } from "@/lib/config";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { sortQueue } from "@/lib/support-queue";
@@ -224,6 +224,20 @@ export async function healSupportTicketTranslations(ticket: SupportTicket): Prom
   }
 }
 
+/** Follow the visitor across languages: replies target the latest one. */
+export async function setSupportTicketLocale(id: string, locale: Locale): Promise<void> {
+  try {
+    if (!IS_LIVE) {
+      const { patchSupportTicket } = await import("@/lib/data/store");
+      patchSupportTicket(id, { locale });
+      return;
+    }
+    await supabaseAdmin().from("support_tickets").update({ locale }).eq("id", id);
+  } catch {
+    // a pre-0030 constraint refusing "ar" only costs the reply translation
+  }
+}
+
 /** One ticket by id (mock + live). */
 export async function getSupportTicketById(id: string): Promise<SupportTicket | null> {
   if (!IS_LIVE) return getSupportTicketsMock().find((x) => x.id === id) ?? null;
@@ -285,6 +299,14 @@ export async function appendSupportThreadMessage(
         msg.translated = out.text.slice(0, 4000);
         if (out.source) msg.sourceLocale = out.source;
       }
+
+      // People change language mid-conversation — a chat opened in Arabic can
+      // carry on in Urdu. Replies target the ticket language, so it follows
+      // the visitor's latest confident language; English never flips it,
+      // because "ok thanks" from an Urdu speaker is not a switch.
+      const { detectLocale } = await import("@/lib/support-lang");
+      const spoke = detectLocale(msg.text);
+      if (spoke !== "en") await setSupportTicketLocale(id, spoke);
     } else {
       /**
        * The reply goes back in the visitor's language. Read from the ticket

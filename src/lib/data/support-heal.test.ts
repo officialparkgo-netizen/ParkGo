@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { SupportTicket } from "@/types";
 import {
+  appendSupportThreadMessage,
   createSupportTicket,
   getSupportTicketById,
   healSupportTicketTranslations,
@@ -55,6 +56,16 @@ describe("healSupportTicketTranslations", () => {
     await healSupportTicketTranslations(ticket);
     expect(ticket.locale).toBeUndefined();
     expect(ticket.transcript[1].translated).toBeUndefined();
+  });
+
+  it("follows the visitor's latest language mid-thread", async () => {
+    const ticket = await arabicTicket();
+    // A chat opened in Arabic carries on in Urdu — replies must re-aim.
+    await appendSupportThreadMessage(ticket.id, "user", "میری بکنگ کہاں ہے");
+    expect((await getSupportTicketById(ticket.id))?.locale).toBe("ur");
+    // "ok" carries no language — it must not flip the direction back.
+    await appendSupportThreadMessage(ticket.id, "user", "ok");
+    expect((await getSupportTicketById(ticket.id))?.locale).toBe("ur");
   });
 
   it("leaves a ticket with a known language and full renderings alone", async () => {

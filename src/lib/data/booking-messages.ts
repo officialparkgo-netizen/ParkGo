@@ -1,5 +1,6 @@
 import type { Booking, BookingMessage, Locale } from "@/types";
 import { IS_LIVE } from "@/lib/config";
+import { detectLocale } from "@/lib/support-lang";
 
 // Traveller ↔ host thread on a booking (arrival coordination, gate codes…).
 const g = globalThis as unknown as { __parkgoBookingMsgs?: BookingMessage[] };
@@ -26,6 +27,27 @@ function fromRow(r: any): BookingMessage {
  * underneath. Best-effort throughout: no provider, same language on both
  * sides, or an outage, and the message simply travels untranslated.
  */
+/**
+ * The language one side of the thread actually reads: the latest message THEY
+ * wrote whose script gives its language away, falling back to their saved
+ * account language. An account left on English stops mattering the moment
+ * someone writes their first Urdu line — from then on, what the other side
+ * sends is rendered into Urdu for them.
+ */
+function sideLocale(
+  messages: BookingMessage[],
+  side: "host" | "traveller",
+  saved?: Locale
+): Locale | undefined {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (m.from !== side) continue;
+    const spoke = detectLocale(m.text);
+    if (spoke !== "en") return spoke;
+  }
+  return saved;
+}
+
 /** The two sides' saved languages, or null when the booking can't be resolved. */
 async function threadLocales(
   bookingId: string
@@ -56,8 +78,15 @@ async function renderForRecipient(
     if (!isTranslationConfigured()) return {};
 
     const sides = await threadLocales(bookingId);
-    const saved = from === "host" ? sides?.host : sides?.traveller;
-    const readerLocale = from === "host" ? sides?.traveller : sides?.host;
+    if (!sides) return {};
+    const messages = await listMessagesForBooking(bookingId);
+    const readerSide = from === "host" ? ("traveller" as const) : ("host" as const);
+    const saved = from === "host" ? sides.host : sides.traveller;
+    const readerLocale = sideLocale(
+      messages,
+      readerSide,
+      readerSide === "traveller" ? sides.traveller : sides.host
+    );
     if (!readerLocale) return {};
 
     // What was typed decides the language, not the account setting — the
@@ -94,7 +123,12 @@ export async function healBookingThreadTranslations(bookingId: string): Promise<
     const messages = await listMessagesForBooking(bookingId);
     const missing = messages.filter((m) => !!m.text && !m.translated).slice(-5);
     for (const m of missing) {
-      const reader = m.from === "host" ? sides.traveller : sides.host;
+      const readerSide = m.from === "host" ? ("traveller" as const) : ("host" as const);
+      const reader = sideLocale(
+        messages,
+        readerSide,
+        readerSide === "traveller" ? sides.traveller : sides.host
+      );
       const saved = m.from === "host" ? sides.host : sides.traveller;
       if (!reader) continue;
       const out = await translateForReader(m.text, reader, saved);

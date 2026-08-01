@@ -248,6 +248,21 @@ const ARABIC_MSG = "سيارتي الكهربائية لا تشحن في الم�
     "the host still gets a rendering — the account setting didn't matter",
     hostView2.includes(DEMO) && hostView2.includes(ARABIC_MSG)
   );
+
+  // The reader's language comes from what THEY write, not their setting: the
+  // guest's account still says English, but they wrote Arabic above — so the
+  // host's plain-English reply is rendered for them anyway.
+  await hostThread2.locator('input[name="text"]').fill("See you at the gate tonight");
+  await hostThread2.locator('button[type="submit"]').click();
+  await tp.waitForFunction(
+    () =>
+      document
+        .querySelector("[data-booking-thread]")
+        ?.textContent?.includes("configured] See you at the gate tonight") ?? false,
+    undefined,
+    { timeout: 20000 }
+  );
+  check("an English reply is rendered for the guest who writes Arabic", true);
   await hc2.close();
 
   // The support widget, signed in: no email step, same detection.
@@ -264,7 +279,6 @@ const ARABIC_MSG = "سيارتي الكهربائية لا تشحن في الم�
     await sp.waitForSelector("[data-live-note]", { timeout: 15000 });
   }
   check("a signed-in Arabic chat escalates without an email step", true);
-  await tc.close();
 
   const ac = await adminCtx();
   const ap = await ac.newPage();
@@ -277,6 +291,18 @@ const ARABIC_MSG = "سيارتي الكهربائية لا تشحن في الم�
     line.slice(0, 60)
   );
   check("and the ticket is badged العربية for the reply direction", body.includes("العربية"));
+
+  // The visitor now carries on in Urdu in the same live thread — the reply
+  // direction follows their latest language, not their first one.
+  await sp.fill('input[placeholder="Type your question…"]', "میری بکنگ کہاں ہے");
+  await sp.keyboard.press("Enter");
+  await sp.waitForTimeout(2000);
+  await tc.close();
+
+  await ap.goto(`${BASE}/admin/support`, { waitUntil: "domcontentloaded" });
+  await mainText(ap);
+  const card = await ap.locator('[data-ticket="traveller@parkgo.demo"]').first().innerText();
+  check("a mid-chat switch to Urdu re-aims the replies", card.includes("اردو"), card.slice(0, 60));
   await ac.close();
 }
 
