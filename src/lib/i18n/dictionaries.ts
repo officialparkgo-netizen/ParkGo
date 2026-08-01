@@ -129,4 +129,42 @@ const zh: Dict = {
   "common.email": "电子邮箱",
 };
 
-export const dictionaries: Record<Locale, Dict> = { en, ur, hi, de, zh };
+const ar: Dict = {
+  "brand.tagline": "اركن بذكاء. سافر بسهولة.",
+  "nav.travellers": "للمسافرين",
+  "nav.hosts": "للمضيفين",
+  "nav.transfer": "لشركاء النقل",
+  "nav.pricing": "الأسعار",
+  "nav.trust": "الثقة والسلامة",
+  "nav.how": "كيف يعمل",
+  "nav.signin": "تسجيل الدخول",
+  "nav.getStarted": "ابدأ الآن",
+  "hero.title": "موقف المطار والنقل وشحن EV والأمان — في حجز واحد.",
+  "hero.subtitle":
+    "يجمع ParkGo موقفاً خاصاً موثّقاً ونقلاً مرخّصاً إلى الصالة وشحن EV وأماناً مباشراً في سعر واحد ودفعة واحدة. في المملكة المتحدة وأيرلندا.",
+  "hero.searchCta": "ابحث عن موقف",
+  "hero.trustline": "مضيفون موثّقون · سائقون مرخّصون · كاميرا مباشرة · CCTV",
+  "common.search": "بحث",
+  "common.book": "احجز الآن",
+  "common.learnMore": "اعرف المزيد",
+  "common.joinWaitlist": "انضم إلى قائمة الانتظار",
+  "common.email": "البريد الإلكتروني",
+  "common.submit": "إرسال",
+  "value.bundle.title": "باقة واحدة، سعر واحد",
+  "value.bundle.body": "موقف + نقل مرخّص + شحن EV + أمان، تُجمع عند الدفع.",
+  "value.trust.title": "موثّق وآمن",
+  "value.trust.body": "مضيفون موثّقو الهوية، سائقون مرخّصون، CCTV وكاميرا مباشرة لسيارتك.",
+  "value.realtime.title": "مباشر يوم السفر",
+  "value.realtime.body": "تتبّع سائقك، راقب سيارتك، وأكّد تسليماً موثّقاً داخل التطبيق.",
+  "value.ev.title": "جاهز للسيارات الكهربائية",
+  "value.ev.body": "رشّح بخيار الشحن في الموقع وعد إلى سيارة مشحونة.",
+  "footer.product": "المنتج",
+  "footer.company": "الشركة",
+  "footer.legal": "قانوني",
+  "footer.rights": "جميع الحقوق محفوظة.",
+  "waitlist.title": "كن أول من يركن بذكاء",
+  "waitlist.body": "انضم إلى قائمة الانتظار وسنخبرك عند إطلاق ParkGo في مطارك.",
+  "waitlist.success": "أنت على القائمة. سنتواصل معك.",
+};
+
+export const dictionaries: Record<Locale, Dict> = { en, ur, hi, de, zh, ar };

@@ -279,6 +279,43 @@ export async function cancelCampaignAction(formData: FormData) {
   redirect("/admin/broadcast?cancelled=1");
 }
 
+export interface TranslationCheckState {
+  provider?: string;
+  samples?: { lang: string; text: string }[];
+  failed?: boolean;
+  off?: boolean;
+}
+
+/**
+ * Round-trip a real sentence through the live translation provider, so the
+ * admin can see a freshly pasted API key working (or failing) right here —
+ * not when the first Urdu customer does. Read-only: nothing is stored.
+ */
+export async function runTranslationCheckAction(
+  _prev: TranslationCheckState,
+  _formData: FormData
+): Promise<TranslationCheckState> {
+  await requireFinanceAdmin();
+  const { isTranslationConfigured, translateText, translationProvider } = await import(
+    "@/lib/translate"
+  );
+  if (!isTranslationConfigured()) return { off: true };
+
+  const sample = "Your booking is confirmed — see you at the airport.";
+  const targets = ["ur", "ar", "de"] as const;
+  const samples: { lang: string; text: string }[] = [];
+  for (const lang of targets) {
+    try {
+      const out = await translateText(sample, lang, "en");
+      if (out?.text && out.text.trim() !== sample) samples.push({ lang, text: out.text });
+    } catch {
+      // counted below — an empty result set IS the failure signal
+    }
+  }
+  if (samples.length === 0) return { failed: true };
+  return { provider: translationProvider() ?? "", samples };
+}
+
 /** Best-effort "something needs an admin" email (verification, ticket, claim). */
 export async function notifyAdminsByEmail(subject: string, bodyHtml: string): Promise<void> {
   try {

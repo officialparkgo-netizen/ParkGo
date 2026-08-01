@@ -41,6 +41,7 @@ const DATE_LOCALE: Record<string, string> = {
   hi: "hi-IN",
   de: "de-DE",
   zh: "zh-CN",
+  ar: "ar-AE",
 };
 
 const LANG_NAMES: Record<string, string> = {
@@ -49,6 +50,7 @@ const LANG_NAMES: Record<string, string> = {
   hi: "हिन्दी",
   de: "Deutsch",
   zh: "中文",
+  ar: "العربية",
 };
 
 export async function generateStaticParams() {

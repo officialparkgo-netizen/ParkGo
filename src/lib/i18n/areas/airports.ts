@@ -467,4 +467,94 @@ export const airports: AreaDict = {
     "airport.ctaBody":
       "比较经过验证的车位，添加持牌接送和电动车充电，只需支付一个透明价格。",
   },
+  ar: {
+    "airport.home": "الرئيسية",
+    "airport.parkingSuffix": "مواقف",
+    "airport.countryIE": "أيرلندا",
+    "airport.countryUK": "المملكة المتحدة",
+    "airport.heroTitleSuffix": "مواقف المطار",
+    "airport.heroSubtitleA": "مواقف خاصة موثّقة قرب ",
+    "airport.heroSubtitleB":
+      "، مع نقل مرخّص إلى الصالة وشحن EV وأمان مباشر — حجز واحد وسعر واحد شفاف.",
+    "airport.parkingFrom": "المواقف ابتداءً من",
+    "airport.findParkingAt": "ابحث عن موقف في",
+    "airport.seeAvailableSpaces": "شاهد المواقف المتاحة",
+    "airport.verifiedHosts": "مضيفون موثّقون",
+    "airport.licensedDrivers": "سائقون مرخّصون",
+    "airport.liveCameraCctv": "كاميرا مباشرة وكاميرات CCTV",
+
+    "airport.atAGlance": "لمحة سريعة",
+    "airport.parkingNear": "مواقف قرب",
+    "airport.factSpaces": "مواقف موثّقة",
+    "airport.factFrom": "ابتداءً من",
+    "airport.comingSoon": "قريباً",
+    "airport.factEv": "مع شحن EV",
+    "airport.factCamera": "مع كاميرا مباشرة",
+    "airport.terminalsServed": "الصالات المخدومة",
+
+    "airport.availableNow": "متاح الآن",
+    "airport.spacesHeadingA": "مواقف موثّقة قرب",
+    "airport.spacesBody":
+      "كل موقف موثّق الهوية، مع المسافة الحقيقية إلى صالتك وتسعير شفاف وتقييمات من مسافرين ركنوا هنا فعلاً.",
+
+    "airport.emptyTitleA": "نجهّز المواقف في",
+    "airport.emptyBodyA": "القوائم هنا تنطلق قريباً. انضم إلى قائمة الانتظار وسنخبرك لحظة أن",
+    "airport.emptyBodyB": "تصبح متاحة.",
+
+    "airport.whyEyebrow": "لماذا ParkGo",
+    "airport.whyHeadingA": "لماذا تحجز مواقف",
+    "airport.whyHeadingB": "مع ParkGo",
+    "airport.why1.title": "حجز واحد، سعر واحد",
+    "airport.why1.bodyA": "الموقف، ونقل مرخّص إلى صالة",
+    "airport.why1.bodyB": "، وشحن EV والأمان — كلها بسعر واحد شفاف.",
+    "airport.why2.title": "موثّق ومرخّص",
+    "airport.why2.body":
+      "كل مضيف موثّق الهوية وكل سائق نقل مرخّص ومؤمَّن. لا قوائم مجهولة.",
+    "airport.why3.title": "شاهدها مباشرة",
+    "airport.why3.body":
+      "تتبّع سائقك المرخّص على خريطة مباشرة وراقب سيارتك المركونة بالكاميرا، من صالة المغادرة نفسها.",
+    "airport.why4.title": "دقائق من الصالة",
+    "airport.why4.bodyA": "المواقف الخاصة قريبة من",
+    "airport.why4.bodyB": "، فيكون نقلك قصيراً ومتوقعاً وبلا توتر.",
+
+    "airport.faqEyebrow": "معلومات مفيدة",
+    "airport.faqHeadingA": "أسئلة شائعة عن المواقف",
+    "airport.faqIntroA": "أكثر ما يسأل عنه المسافرون حول المواقف في",
+    "airport.faq1.qA": "كم تكلفة المواقف في",
+    "airport.faq1.qB": "؟",
+    "airport.faq1.aA": "المواقف الخاصة الموثّقة قرب",
+    "airport.faq1.aB":
+      "على ParkGo. ولأن الموقف والنقل المرخّص وأي شحن EV تُجمع في حجز واحد، فإن الإجمالي الذي تراه عند الدفع هو ما تدفعه فعلاً — بلا رسوم حافلات منفصلة.",
+    "airport.faq1.fromPrice": "تبدأ من",
+    "airport.faq1.perDay": "في اليوم",
+    "airport.faq1.competitive": "تبدأ من أسعار يومية منافسة",
+    "airport.faq2.qA": "كيف أنتقل من الموقف إلى صالة",
+    "airport.faq2.qB": "؟",
+    "airport.faq2.aA":
+      "أضف نقلاً مرخّصاً إلى حجزك ليقلّك سائق موثّق ومؤمَّن في رحلة قصيرة إلى صالة",
+    "airport.faq2.aB":
+      "الخاصة بك. يمكنك تتبّعه مباشرة على الخريطة، ويُؤكَّد التسليم برمز لمرة واحدة.",
+    "airport.faq3.q": "هل سيارتي آمنة أثناء غيابي؟",
+    "airport.faq3.aA": "المواقف قرب",
+    "airport.faq3.aB":
+      "يستضيفها مضيفون موثّقو الهوية، وكثير منها يوفر كاميرات CCTV أو كاميرا مباشرة تتابعها من هاتفك — فتطمئن على سيارتك من صالة المغادرة أو حتى من الخارج.",
+    "airport.faq4ev.qA": "هل يمكنني شحن سيارتي الكهربائية في",
+    "airport.faq4ev.qB": "؟",
+    "airport.faq4ev.aA": "نعم —",
+    "airport.faq4ev.aSpace": "موقف",
+    "airport.faq4ev.aSpaces": "مواقف",
+    "airport.faq4ev.aNear": "قرب",
+    "airport.faq4ev.aB":
+      "توفر شحن EV بتسعير شفاف لكل kWh ضمن إجماليك الموحّد. رشّح نتائج البحث بخيار شحن EV وعد إلى سيارة مشحونة.",
+    "airport.faq4t.qA": "أي الصالات يغطيها ParkGo في",
+    "airport.faq4t.qB": "؟",
+    "airport.faq4t.aA": "يعرض ParkGo مواقف موثّقة تخدم كل صالة في",
+    "airport.faq4t.aB":
+      ". كل قائمة تُظهر زمن القيادة الحقيقي إلى الصالات، لتختار الموقف الأنسب لمغادرتك.",
+
+    "airport.ctaHeadingA": "جاهز للركن في",
+    "airport.ctaHeadingB": "؟",
+    "airport.ctaBody":
+      "قارن المواقف الموثّقة، وأضف نقلاً مرخّصاً وشحن EV، وادفع سعراً واحداً شفافاً.",
+  },
 };

@@ -1351,4 +1351,274 @@ export const marketingB: AreaDict = {
       "我们正公开打造 ParkGo，并逐个机场上线。加入等候名单，与我们共同成长。",
     "about.waitlist.cta": "了解运作方式",
   },
+
+  ar: {
+    // ---------------------------------------------------------------- Travellers
+    "travellers.badge": "للمسافرين",
+    "travellers.hero.title": "اركن وتنقّل واشحن — كله مرتّب في حجز واحد",
+    "travellers.hero.subtitle":
+      "يحوّل ParkGo أكثر أجزاء السفر إرهاقًا إلى أسهلها. سعر واحد شفاف، وأشخاص موثّقون، وتتبّع مباشر من بحثك عن موقف حتى هبوطك عائدًا إلى المنزل.",
+    "travellers.hero.cta.book": "ابدأ الحجز",
+    "travellers.hero.cta.how": "شاهد كيف تعمل",
+    "travellers.trust.hosts": "مضيفون موثّقون",
+    "travellers.trust.drivers": "سائقون مرخّصون",
+    "travellers.trust.camera": "كاميرات CCTV وكاميرا مباشرة",
+
+    "travellers.benefits.eyebrow": "لماذا يختار المسافرون ParkGo",
+    "travellers.benefits.title": "كل ما تحتاجه رحلتك، من دون أي عناء",
+    "travellers.benefits.body":
+      "جمعنا في باقة واحدة الأشياء التي اعتدت حجزها منفصلة — وأضفنا الثقة والرؤية الواضحة التي كانت مواقف المطارات تفتقر إليها دائمًا.",
+    "travellers.benefit.oneprice.title": "سعر واحد، حجز واحد",
+    "travellers.benefit.oneprice.body":
+      "الموقف والتوصيل المرخّص وشحن EV في عملية دفع واحدة شفافة. من دون التنقّل بين التطبيقات، ومن دون إضافات خفية.",
+    "travellers.benefit.verified.title": "موثّق وآمن",
+    "travellers.benefit.verified.body":
+      "كل مضيف متحقَّق من هويته، وكل سائق مرخّص ومؤمَّن عليه. مع كاميرات CCTV وتسليمات موثّقة طوال الرحلة.",
+    "travellers.benefit.tracking.title": "تتبّع مباشر وكاميرا",
+    "travellers.benefit.tracking.body":
+      "تابع سائقك على خريطة مباشرة، وشاهد سيارتك المركونة عبر كاميرا في التطبيق مع شارة LIVE.",
+    "travellers.benefit.ev.title": "شحن EV",
+    "travellers.benefit.ev.body":
+      "أضف شحنًا أثناء سفرك لدى المضيفين الذين يوفّرون شاحنًا. واهبط لتجد سيارتك جاهزة للانطلاق.",
+    "travellers.benefit.multilingual.title": "متعدد اللغات",
+    "travellers.benefit.multilingual.body":
+      "استخدم ParkGo بلغتك — أربع لغات عند الإطلاق في أنحاء المملكة المتحدة وأيرلندا، مع المزيد لاحقًا.",
+    "travellers.benefit.corporate.title": "حسابات الشركات",
+    "travellers.benefit.corporate.body":
+      "تسافر من أجل العمل؟ حجوزات مركزية، وفوترة شهرية، ودعم ذو أولوية للفرق.",
+    "travellers.benefit.referral.title": "برنامج الإحالة",
+    "travellers.benefit.referral.body":
+      "شارك ParkGo مع الأصدقاء والعائلة، ويحصل كلاكما على مكافأة عندما يقومون برحلتهم الأولى.",
+    "travellers.benefit.cheaper.title": "غالبًا أرخص",
+    "travellers.benefit.cheaper.body":
+      "الممرّات المنزلية الموثّقة القريبة من صالة المطار غالبًا ما تكون أرخص من مواقف الإقامة الطويلة الرسمية — من دون انتظار الحافلة المكوكية.",
+
+    "travellers.how.eyebrow": "كيف تعمل الخدمة",
+    "travellers.how.title": "احجز خلال دقائق، وتكون رحلتك بأكملها مرتّبة",
+    "travellers.how.step1.title": "ابحث وقارن",
+    "travellers.how.step1.body":
+      "اختر مطارك وتواريخك. شاهد مواقف موثّقة مع السعر والمسافة وشحن EV والتقييمات.",
+    "travellers.how.step2.title": "كوّن باقتك",
+    "travellers.how.step2.body":
+      "أضف توصيلًا مرخّصًا وشحن EV. سعر واحد، ودفع آمن واحد.",
+    "travellers.how.step3.title": "اركن، تتبّع، سافر",
+    "travellers.how.step3.body":
+      "احصل على رمز QR، وتتبّع سائقك مباشرة، وشاهد سيارتك، وأكّد تسليمًا موثّقًا.",
+    "travellers.how.cta": "شاهد الرحلة كاملة",
+
+    "travellers.faq.eyebrow": "جيد أن تعرفه",
+    "travellers.faq.title": "الأسئلة التي يطرحها المسافرون أولًا",
+    "travellers.faq.body": "بضع إجابات سريعة قبل أن تحجز. وهناك الكثير غيرها في صفحة الأسئلة الشائعة الكاملة.",
+    "travellers.faq.cta": "اقرأ الأسئلة الشائعة كاملة",
+    "travellers.faq.q1": "هل سيارتي بأمان أثناء غيابي؟",
+    "travellers.faq.a1":
+      "المضيفون متحقَّق من هوياتهم، ويمكن أن تشمل المواقف كاميرات CCTV، ويمكنك مشاهدة كاميرا مباشرة في التطبيق. ويُستخدم في التسليم والاستلام كليهما تسليم موثّق ومسجَّل.",
+    "travellers.faq.q2": "ماذا لو تأخّرت رحلتي الجوية؟",
+    "travellers.faq.a2":
+      "حجزك وتوصيل عودتك مرتبطان برحلتك، لذا يُتعامل مع التأخير بسلاسة — فلن تفقد موقفك ولا وسيلة عودتك إلى المنزل.",
+    "travellers.faq.q3": "هل يمكنني الدفع دفعة واحدة؟",
+    "travellers.faq.a3":
+      "نعم. يُجمع الموقف والتوصيل وشحن EV في سعر واحد شفاف مع رسوم خدمة صغيرة تُعرض بوضوح.",
+
+    "travellers.waitlist.title": "كن أول من يحجز في مطارك",
+    "travellers.waitlist.body":
+      "نحن بصدد الانطلاق في أنحاء المملكة المتحدة وأيرلندا. انضم إلى قائمة الانتظار وسنخبرك لحظة انطلاق ParkGo من المطار الذي تسافر منه.",
+
+    // -------------------------------------------------------------------- Hosts
+    "hosts.badge": "للمضيفين وأصحاب العقارات",
+    "hosts.hero.title": "اكسب من ممرّ منزلي قرب المطار",
+    "hosts.hero.subtitle":
+      "إذا كنت تسكن قرب مطار في المملكة المتحدة أو أيرلندا، فإن ممرّك المنزلي أو فناءك أو مساحتك الفارغة يمكن أن تُدرّ عليك دخلًا. وثّق حسابك، وأدرج موقفك خلال دقائق، واحتفظ بالنصيب الأكبر من كل حجز.",
+    "hosts.hero.cta.list": "أدرج موقفك",
+    "hosts.hero.cta.onboarding": "كيف يعمل التسجيل",
+    "hosts.hero.keep": "احتفظ بنسبة ~{pct}% من الموقف",
+    "hosts.hero.travellers": "مسافرون موثّقون",
+
+    "hosts.earnings.label": "ما تحتفظ به",
+    "hosts.earnings.ofBooking": "من كل حجز موقف",
+    "hosts.earnings.indicative": "استرشادي",
+    "hosts.earnings.travellerPays": "ما يدفعه المسافر مقابل الموقف",
+    "hosts.earnings.commission": "عمولة ParkGo",
+    "hosts.earnings.youReceive": "ما تستلمه",
+    "hosts.earnings.note":
+      "تخضع إيرادات شحن EV للتقسيم نفسه — فالشاحن ملكك. الأرقام استرشادية وستُؤكَّد عند الإطلاق.",
+
+    "hosts.why.eyebrow": "لماذا تستضيف مع ParkGo",
+    "trav.compare.eyebrow": "قارن",
+    "trav.compare.heading": "ParkGo مقابل مواقف المطار المعتادة",
+    "trav.compare.sub": "ما الذي تحصل عليه مع موقف خاص موثّق بدلًا من موقف السيارات الرسمي.",
+    "trav.compare.col.feature": "ما يهمّ",
+    "trav.compare.col.official": "موقف المطار المعتاد",
+    "trav.compare.price": "السعر لليوم الواحد",
+    "trav.compare.price.official": "عادةً £20–£40",
+    "trav.compare.price.parkgo": "من £6 — يحدّد المضيفون السعر",
+    "trav.compare.camera": "شاهد سيارتك بنفسك",
+    "trav.compare.camera.official": "—",
+    "trav.compare.camera.parkgo": "عرض كاميرا مباشرة + شارات CCTV",
+    "trav.compare.cancel": "الإلغاء",
+    "trav.compare.cancel.official": "غالبًا ما تُطبَّق رسوم",
+    "trav.compare.cancel.parkgo": "مجانًا حتى 24 ساعة قبل التسليم",
+    "trav.compare.transfer": "التوصيل إلى صالة المطار",
+    "trav.compare.transfer.official": "حافلة مكوكية مشتركة",
+    "trav.compare.transfer.parkgo": "سيارة أجرة خاصة مرخّصة ضمن الحجز نفسه",
+    "trav.compare.ev": "شحن EV",
+    "trav.compare.ev.official": "مواقف محدودة",
+    "trav.compare.ev.parkgo": "إضافة قابلة للحجز في مواقف كثيرة",
+    "trav.compare.support": "الدعم",
+    "trav.compare.support.official": "طوابير انتظار هاتفية",
+    "trav.compare.support.parkgo": "محادثة فورية بـ5 لغات",
+    "trav.compare.note": "مقارنة استرشادية — تختلف الأسعار والسياسات في الموقع حسب المطار والمشغّل.",
+    "hosts.calc.eyebrow": "أرباحك",
+    "hosts.calc.heading": "كم يمكن أن يكسب موقفك؟",
+    "hosts.calc.sub": "حرّك أشرطة التمرير — سعرك، وأوقات توفّرك.",
+    "hosts.calc.price": "سعرك لليوم الواحد",
+    "hosts.calc.days": "الأيام المحجوزة شهريًا",
+    "hosts.calc.monthly": "الأرباح الشهرية المقدَّرة",
+    "hosts.calc.yearly": "سنويًا",
+    "hosts.calc.youKeep": "تحتفظ بـ",
+    "hosts.calc.note": "هذا تقدير وليس ضمانًا — تعتمد الأرباح الفعلية على الطلب وسعرك وأوقات توفّرك.",
+    "hosts.why.title": "استثمر مساحتك غير المستخدَمة",
+    "hosts.why.body":
+      "يبحث المسافرون عن مكان آمن ومريح لترك سيارتهم فيه. وإذا كنت قريبًا من صالة مطار، فموقفك هو ذلك المكان بالضبط.",
+    "hosts.why.economics.title": "عائد مجزٍ",
+    "hosts.why.economics.body":
+      "احتفظ بنحو {pct}% من كل حجز موقف، إضافة إلى إيرادات شحن EV حيثما توفّره.",
+    "hosts.why.usewhat.title": "استخدم ما لديك",
+    "hosts.why.usewhat.body":
+      "ممرّ منزلي، أو فناء، أو موقف فائض — من دون أعمال بناء أو معدّات جديدة لتبدأ.",
+    "hosts.why.ev.title": "اكسب أكثر مع شحن EV",
+    "hosts.why.ev.body": "أدرج شاحنًا واحصل على إيرادات شحن EV أثناء غياب المسافرين.",
+    "hosts.why.risk.title": "مخاطر أقل",
+    "hosts.why.risk.body":
+      "مسافرون موثّقون، وكاميرات CCTV اختيارية، وتسليمات موثّقة — ما يعني مفاجآت أقل.",
+
+    "hosts.onboarding.eyebrow": "الإعداد",
+    "hosts.onboarding.title": "من التسجيل إلى الانطلاق في خطوات واضحة قليلة",
+    "hosts.onboarding.body":
+      "بُني التسجيل حول الثقة من الجانبين. يُوثَّق كل مضيف قبل أن يتمكّن أي مسافر من الحجز.",
+    "hosts.onboarding.identity.title": "وثّق هويتك",
+    "hosts.onboarding.identity.body":
+      "يؤكّد فحص KYC سريع هويتك. وتُشفَّر المستندات وتُخزَّن بمعزل عن ملفك الشخصي.",
+    "hosts.onboarding.address.title": "وثّق عنوانك",
+    "hosts.onboarding.address.body":
+      "نتأكّد من موقع المساحة التي تريد إدراجها ليعرف المسافرون بالضبط أين يركنون سياراتهم.",
+    "hosts.onboarding.details.title": "أضف تفاصيل العقار",
+    "hosts.onboarding.details.body":
+      "الصور، وأبعاد الموقف، وملاحظات الوصول، وما إذا كنت توفّر شحن EV أو كاميرات CCTV — وهي الأمور التي يصفّي المسافرون بحثهم بحسبها.",
+    "hosts.onboarding.declaration.title": "إقرار حق الإدراج",
+    "hosts.onboarding.declaration.body":
+      "أكّد أن لديك الحق في تأجير المساحة (كمالك أو بإذن) وأنها آمنة وقانونية الاستخدام.",
+    "hosts.onboarding.bank.title": "أضف بياناتك البنكية",
+    "hosts.onboarding.bank.body":
+      "أخبرنا إلى أين نرسل مدفوعاتك. تُشفَّر البيانات البنكية ولا تظهر للمسافرين أبدًا.",
+    "hosts.onboarding.review.title": "مراجعة الامتثال",
+    "hosts.onboarding.review.body":
+      "يراجع فريقنا إدراجك في ضوء معايير الثقة والسلامة لدينا قبل أن ينطلق.",
+    "hosts.onboarding.golive.title": "انطلق واكسب",
+    "hosts.onboarding.golive.body":
+      "حدّد أوقات توفّرك وسعرك. ويبدأ ظهور موقفك في عمليات بحث المسافرين على الفور.",
+
+    "hosts.trust.eyebrow": "الثقة والحماية",
+    "hosts.trust.title": "مصمَّمة لحماية المضيفين بقدر المسافرين",
+    "hosts.trust.body":
+      "أنت تدعو شخصًا لاستخدام مساحتك، لذا فالثقة مهمة. يوثّق ParkGo الطرفين ويحتفظ بسجل واضح ومسجَّل لكل حجز.",
+    "hosts.trust.travellers.title": "مسافرون موثّقون",
+    "hosts.trust.travellers.body":
+      "تأتي الحجوزات من عملاء حقيقيين ومسجَّلين لدى ParkGo — ويمكنك أنت أيضًا تقييمهم.",
+    "hosts.trust.cctv.title": "خيار كاميرات CCTV وكاميرا مباشرة",
+    "hosts.trust.cctv.body":
+      "أضف كاميرا إلى إدراجك لمزيد من الطمأنينة، لك وللمسافر على حدٍّ سواء.",
+    "hosts.trust.handover.title": "تسليمات موثّقة",
+    "hosts.trust.handover.body":
+      "يُؤكَّد كل تسليم واستلام برمز يُستخدم مرة واحدة، بختم زمني وتسجيل في السجل.",
+    "hosts.trust.terms.title": "شروط واضحة",
+    "hosts.trust.terms.body":
+      "شروط واضحة للمضيفين، وإقرار محدَّد لحق الإدراج، ودعم من المنصة إذا حدث أي خلل.",
+    "hosts.trust.cta": "اقرأ عن الثقة والسلامة",
+
+    "hosts.payouts.title": "مدفوعات بسيطة وآمنة",
+    "hosts.payouts.percompleted.title": "تُدفع عن كل حجز مكتمل",
+    "hosts.payouts.percompleted.body":
+      "تُصرف الأرباح بعد اكتمال كل رحلة — من دون متابعة أو فوترة من جانبك.",
+    "hosts.payouts.tobank.title": "مباشرة إلى حسابك البنكي",
+    "hosts.payouts.tobank.body":
+      "تُحوَّل المدفوعات إلى البيانات البنكية المشفَّرة التي تضيفها أثناء التسجيل.",
+    "hosts.payouts.statements.title": "كشوف واضحة",
+    "hosts.payouts.statements.body":
+      "اطّلع على كل حجز، والعمولة المقتطعة، ومدفوعاتك في مكان واحد.",
+    "hosts.payouts.setprice.title": "أنت من يحدّد السعر",
+    "hosts.payouts.setprice.body":
+      "اختر سعرك اليومي وأوقات توفّرك — وارفعه في فترات الذروة متى شئت.",
+    "hosts.payouts.cta": "اطّلع على اقتصاديات الاستضافة",
+
+    "hosts.waitlist.title": "مستعد لتكسب من موقفك؟",
+    "hosts.waitlist.body":
+      "انضم إلى قائمة انتظار المضيفين، وسندعوك لتوثيق حسابك وإدراج موقفك حالما ننطلق بالقرب منك.",
+    "hosts.waitlist.nospam": "من دون التزام — أدرج موقفك فقط عندما تكون مستعدًا.",
+
+    // -------------------------------------------------------------------- About
+    "about.badge": "عن ParkGo",
+    "about.hero.title": "نجعل الوصول إلى المطار سلسًا في المملكة المتحدة وأيرلندا",
+    "about.hero.subtitle":
+      "يجمع ParkGo الموقف والتوصيل المرخّص وشحن EV والحماية المباشرة في حجز واحد موثوق — ليكون الوصول إلى رحلتك الجزء الأسهل منها.",
+
+    "about.mission.eyebrow": "مهمتنا",
+    "about.mission.title": "موقف لكل رحلة، مبني على الثقة",
+    "about.mission.body":
+      "نؤمن بأن الوصول إلى المطار ينبغي أن يكون مصمَّمًا بعناية تضاهي الرحلة الجوية نفسها. مهمتنا هي ربط المضيفين الموثّقين، ومشغّل توصيل مستقل ومرخّص، والمسافرين في رحلة واحدة شفافة — في أنحاء المملكة المتحدة وأيرلندا وبلغتك.",
+
+    "about.problem.title": "المشكلة",
+    "about.problem.body":
+      "السفر عبر المطار مجزّأ. تحجز الموقف على موقع، والتوصيل على موقع آخر، وتبحث عن شحن EV بشكل منفصل، ولا يسعك إلا أن تأمل أن تكون سيارتك بأمان أثناء غيابك. الأسعار غير واضحة، والحافلات المكوكية بطيئة، ولا رؤية حقيقية في اليوم الذي يهم فيه الأمر.",
+    "about.problem.point1": "حجوزات متعددة، وأسعار متعددة",
+    "about.problem.point2": "لا رؤية واضحة لمكان سيارتك أو سائقك",
+    "about.problem.point3": "ثقة محدودة وتحقّق متفاوت",
+
+    "about.approach.title": "نهجنا",
+    "about.approach.body":
+      "يجمع ParkGo الرحلة بأكملها في عملية دفع واحدة، ثم يجعلها مرئية وقابلة للتحقّق. مضيفون موثّقون، وسائقون مرخّصون، وسعر شفاف واحد، وتتبّع مباشر مع كاميرا في التطبيق وتسليمات موثّقة من البداية إلى النهاية.",
+    "about.approach.point1": "حجز واحد، وسعر واحد، وتطبيق واحد",
+    "about.approach.point2": "تحقّق ثنائي الجانب وتقييم للثقة",
+    "about.approach.point3": "تتبّع مباشر، وكاميرا، وتسليمات موثّقة",
+
+    "about.values.eyebrow": "ما نقدّره",
+    "about.values.title": "المبادئ التي يقوم عليها المنتج",
+    "about.value.trust.title": "الثقة أولًا",
+    "about.value.trust.body":
+      "التحقّق والرؤية الواضحة والسجلات الدقيقة في صميم كل قرار نتّخذه.",
+    "about.value.integrated.title": "متكامل حقًا",
+    "about.value.integrated.body":
+      "حجز واحد، وسعر واحد، وتطبيق واحد — نرفض أن نطلق تجربة مبعثرة أخرى.",
+    "about.value.human.title": "إنساني بطبيعته",
+    "about.value.human.body":
+      "متعدد اللغات، وسهل الوصول، وداعم. فالسفر مرهق بما يكفي أصلًا.",
+    "about.value.fair.title": "منفتح وعادل",
+    "about.value.fair.body":
+      "تسعير شفاف للمسافرين، واقتصاديات عادلة وقابلة للتخصيص للمضيفين والشركاء.",
+
+    "about.team.eyebrow": "فريقنا",
+    "about.team.title": "الأشخاص الذين يبنون ParkGo",
+    "about.team.body":
+      "فريق صغير ومركَّز مهووس بالثقة والتصميم وإيصال المسافرين إلى رحلاتهم من دون إرهاق.",
+    "about.team.role.ceo": "المؤسّس والرئيس التنفيذي",
+    "about.team.role.product": "رئيس قسم المنتج",
+    "about.team.role.engineering": "رئيس قسم الهندسة",
+    "about.team.role.trust": "قائد فريق الثقة والسلامة",
+    "about.team.growing": "نحن نتوسّع — طالع الوظائف الشاغرة على",
+    "about.team.contactPage": "صفحة التواصل",
+
+    "about.vision.mission.k": "1 مهمة",
+    "about.vision.mission.v": "وصول سلس إلى المطار",
+    "about.vision.region.k": "المملكة المتحدة وأيرلندا",
+    "about.vision.region.v": "حيث ننطلق أولًا",
+    "about.vision.sides.k": "3 أطراف",
+    "about.vision.sides.v": "المسافرون والمضيفون والشركاء",
+    "about.vision.trust.k": "مبني على الثقة",
+    "about.vision.trust.v": "تحقّق في كل خطوة",
+
+    "about.waitlist.title": "رافقنا في هذه الرحلة",
+    "about.waitlist.body":
+      "نبني ParkGo علنًا وننطلق مطارًا تلو الآخر. انضم إلى قائمة الانتظار وانمُ معنا.",
+    "about.waitlist.cta": "شاهد كيف تعمل الخدمة",
+  },
 };

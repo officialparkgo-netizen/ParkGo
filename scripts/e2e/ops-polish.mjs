@@ -127,6 +127,88 @@ async function settled(page) {
   await a.close();
 }
 
+// ------------------------- resolved tickets: visitor sees it, moves on ----
+{
+  // A visitor with a live ticket…
+  const v = await ctx(null);
+  const vp = await v.newPage();
+  await vp.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
+  await vp.click('button[aria-label="Open support chat"]');
+  await vp.waitForSelector('[role="dialog"]');
+  await vp.fill('input[placeholder="Type your question…"]', "My gate code is not working at all");
+  await vp.keyboard.press("Enter");
+  const emailBox = vp.locator('input[placeholder="Your email"]');
+  try {
+    await emailBox.waitFor({ timeout: 6000 });
+  } catch {
+    await vp.click('button:has-text("Talk to a human")');
+    await emailBox.waitFor({ timeout: 10000 });
+  }
+  const visitorEmail = `resolved-${RUN}@example.com`;
+  await vp.fill('input[placeholder="Your email"]', visitorEmail);
+  await vp.click('button:has-text("Send to the team")');
+  await vp.waitForSelector("[data-live-note]", { timeout: 15000 });
+  const firstRef = (await vp.locator("body").innerText()).match(/SP-[A-Z0-9]+/)?.[0] ?? "";
+
+  // …the team resolves it…
+  const a = await ctx("user_admin");
+  const ap = await a.newPage();
+  await ap.goto(`${BASE}/admin/support`, { waitUntil: "domcontentloaded" });
+  await settled(ap);
+  await ap
+    .locator(`[data-ticket="${visitorEmail}"] button:has-text("Mark handled")`)
+    .click();
+  await ap.waitForLoadState("networkidle");
+
+  // …and the visitor's widget says so, in the thread and on a banner.
+  await vp.waitForSelector("[data-resolved-note]", { timeout: 20000 });
+  check("the visitor is told the ticket is resolved", true);
+  const widgetText = await vp.locator('[role="dialog"]').innerText();
+  check(
+    "the resolved line lands in the transcript too",
+    /marked this conversation as resolved/i.test(widgetText)
+  );
+  check("a new-conversation button appears", (await vp.locator("[data-new-ticket]").count()) === 1);
+
+  // Typing into the resolved thread reopens it for the team.
+  await vp.fill('input[placeholder="Type your question…"]', "Actually it is still broken");
+  await vp.keyboard.press("Enter");
+  await vp.waitForTimeout(1500);
+  await ap.goto(`${BASE}/admin/support`, { waitUntil: "domcontentloaded" });
+  await settled(ap);
+  const ticketCard = await ap.locator(`[data-ticket="${visitorEmail}"]`).innerText();
+  check("a visitor reply reopens the ticket", /Open/i.test(ticketCard), ticketCard.slice(0, 80));
+
+  // Resolve again, then take the fresh-start path: a brand-new ticket ref.
+  await ap.locator(`[data-ticket="${visitorEmail}"] button:has-text("Mark handled")`).click();
+  await ap.waitForLoadState("networkidle");
+  await vp.waitForSelector("[data-new-ticket]", { timeout: 20000 });
+  await vp.locator("[data-new-ticket]").click();
+  await vp.waitForSelector("[data-resolved-note]", { state: "detached", timeout: 15000 });
+  check("the widget resets to a fresh chat", true);
+
+  await vp.fill('input[placeholder="Type your question…"]', "Now I have a totally different question");
+  await vp.keyboard.press("Enter");
+  const emailBox2 = vp.locator('input[placeholder="Your email"]');
+  try {
+    await emailBox2.waitFor({ timeout: 6000 });
+  } catch {
+    await vp.click('button:has-text("Talk to a human")');
+    await emailBox2.waitFor({ timeout: 10000 });
+  }
+  await vp.fill('input[placeholder="Your email"]', visitorEmail);
+  await vp.click('button:has-text("Send to the team")');
+  await vp.waitForSelector("[data-live-note]", { timeout: 15000 });
+  const secondRef = (await vp.locator("body").innerText()).match(/SP-[A-Z0-9]+/)?.[0] ?? "";
+  check(
+    "escalating again mints a NEW ticket",
+    !!secondRef && secondRef !== firstRef,
+    `${firstRef} → ${secondRef}`
+  );
+  await v.close();
+  await a.close();
+}
+
 await browser.close();
 console.log([...ok, ...bad].join("\n"));
 console.log(

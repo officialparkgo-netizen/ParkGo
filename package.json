@@ -22,7 +22,8 @@
     "e2e:blog": "node scripts/e2e/blog.mjs",
     "e2e:blog2": "node scripts/e2e/blog2.mjs",
     "e2e:ops": "node scripts/e2e/ops-polish.mjs",
-    "e2e:round8": "node scripts/e2e/round8.mjs"
+    "e2e:round8": "node scripts/e2e/round8.mjs",
+    "e2e:rtl": "node scripts/e2e/rtl-arabic.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.65.0",

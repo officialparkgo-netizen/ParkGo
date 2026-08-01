@@ -73,7 +73,7 @@ export default async function HostPayoutsPage({
   // Full history, newest first, grouped by calendar month with a subtotal
   // (refunded payouts don't count towards the month's total).
   const localeTag =
-    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN" }[locale] ?? "en-GB";
+    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN", ar: "ar-AE" }[locale] ?? "en-GB";
   const sorted = [...payments].sort(
     (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)
   );

@@ -217,6 +217,31 @@ export async function POST(request: NextRequest) {
 
   if (!text.trim() && !attachment) return Response.json({ error: "empty" }, { status: 400 });
 
+  // A visitor replying to a resolved thread reopens it — their message must
+  // land in the live queue, not in a pile nobody watches. The desk hears
+  // about it the same way it hears about a new ticket.
+  if (access.role === "user") {
+    try {
+      const current = await getSupportTicketById(access.ticketId);
+      if (current?.status === "resolved") {
+        const { reopenSupportTicket } = await import("@/lib/data/support");
+        await reopenSupportTicket(access.ticketId);
+        const { sendOpsAlert } = await import("@/lib/ops-alerts");
+        await sendOpsAlert(`↩️ Ticket reopened by the visitor · ${supportRef(access.ticketId)}`);
+        const { listAdminUsers } = await import("@/lib/data/users");
+        const { notifyUsers } = await import("@/lib/data/notifications");
+        const team = (await listAdminUsers()).filter((u) => u.adminScope !== "content");
+        await notifyUsers(team.map((u) => u.id), {
+          title: `↩️ Ticket reopened · ${supportRef(access.ticketId)}`,
+          body: (current.name || current.email) + " replied after it was resolved.",
+          kind: "support",
+        });
+      }
+    } catch {
+      // reopening is best-effort; the message itself must still land
+    }
+  }
+
   const ok = await appendSupportThreadMessage(
     access.ticketId,
     access.role,
@@ -239,4 +264,21 @@ export async function POST(request: NextRequest) {
 
   const ticket = await getSupportTicketById(access.ticketId);
   return Response.json({ ticket: ticket && (await view(ticket, access.role)) });
+}
+
+/**
+ * "Start a new conversation": the visitor detaches their browser from the
+ * old thread. The ticket itself is untouched — only the signed cookie goes,
+ * so the next escalation mints a fresh ticket instead of appending to a
+ * resolved one.
+ */
+export async function DELETE(request: NextRequest) {
+  const ticketId = parseSupportToken(request.cookies.get(SUPPORT_COOKIE)?.value);
+  if (!ticketId) return Response.json({ error: "not found" }, { status: 404 });
+  const res = Response.json({ ok: true });
+  res.headers.append(
+    "set-cookie",
+    `${SUPPORT_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+  );
+  return res;
 }

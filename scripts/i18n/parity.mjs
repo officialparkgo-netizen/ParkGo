@@ -13,7 +13,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const AREAS_DIR = "src/lib/i18n/areas";
-const LOCALES = ["ur", "hi", "de", "zh"];
+const LOCALES = ["ur", "hi", "de", "zh", "ar"];
 
 /**
  * Areas that must be complete in every locale. The marketing copy is a content

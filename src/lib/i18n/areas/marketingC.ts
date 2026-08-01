@@ -1260,4 +1260,255 @@ export const marketingC: AreaDict = {
     "contact.cta.how": "运作方式",
     "contact.cta.note": "覆盖英国和爱尔兰 — 机场、城市与活动场馆。",
   },
+
+  ar: {
+    // ---------------------------------------------------------------- Pricing
+    "pricing.hero.badge": "شفافية بالتصميم",
+    "pricing.hero.title": "سعر واحد واضح. لا مفاجآت عند البوابة.",
+    "pricing.hero.subtitle":
+      "يجمع ParkGo الموقف والتوصيل المرخّص وشحن EV في سعر واحد مع رسوم خدمة صغيرة تُعرض بوضوح. ويكسب المضيفون بشروط عادلة وشفافة.",
+    "pricing.hero.ctaStart": "ابدأ الحجز",
+    "pricing.hero.ctaHow": "كيف تُحسب الباقة",
+
+    "pricing.bundle.eyebrow": "سعر الباقة",
+    "pricing.bundle.title": "أربع خدمات، وسعر واحد تفهمه خلال ثوانٍ",
+    "pricing.bundle.body":
+      "بدلًا من ثلاث عمليات دفع وحسابٍ ذهني، يعرض لك ParkGo مجموعًا واحدًا قبل أن تدفع. وإليك كيف يتوزّع مثال استرشادي لباقة.",
+    "pricing.bundle.point1": "موقف يومي من المضيف الموثّق الذي تختاره",
+    "pricing.bundle.point2": "توصيل مرخّص إلى صالة المطار، ذهابًا وإيابًا",
+    "pricing.bundle.point3": "شحن EV اختياري حيثما يوفّره المضيف",
+    "pricing.bundle.point4": "رسوم خدمة ثابتة قدرها {fee}، تُعرض قبل الدفع",
+
+    "pricing.receipt.label": "باقة استرشادية",
+    "pricing.receipt.parking": "موقف موثّق",
+    "pricing.receipt.parkingNote": "ممرّ منزلي للمضيف قرب صالة المطار",
+    "pricing.receipt.transfer": "توصيل مرخّص",
+    "pricing.receipt.transferNote": "ذهابًا وإيابًا، بسائق مرخّص",
+    "pricing.receipt.ev": "شحن EV",
+    "pricing.receipt.evNote": "شحن اختياري",
+    "pricing.receipt.fee": "رسوم الخدمة",
+    "pricing.receipt.feeNote": "رسوم منصة ثابتة",
+    "pricing.receipt.total": "سعر واحد عند الدفع",
+    "pricing.receipt.disclaimer":
+      "مثال استرشادي فقط. يعتمد سعرك على المطار والتواريخ والإضافات التي تختارها.",
+
+    "pricing.economics.eyebrow": "كيف تُحسب الباقة",
+    "pricing.economics.title": "اقتصاديات عادلة، بشرح واضح",
+    "pricing.economics.body":
+      "يأخذ ParkGo عمولة على الموقف ورسوم خدمة ثابتة صغيرة. ويُدرَج التوصيل المرخّص عبر مشغّل متكامل معنا. ويمكن للجميع أن يروا بالضبط إلى أين تذهب الأموال.",
+
+    "pricing.econ.hosts.who": "المضيفون",
+    "pricing.econ.hosts.line": "على الموقف وشحن EV",
+    "pricing.econ.hosts.keep": "احتفظ بنسبة ~{pct}%",
+    "pricing.econ.hosts.body":
+      "تُقتطع العمولة عن كل حجز موقف؛ وتخضع إيرادات شحن EV للتقسيم نفسه لأن الشاحن ملك المضيف.",
+    "pricing.econ.transfer.who": "التوصيل المرخّص",
+    "pricing.econ.transfer.commission": "مشمول",
+    "pricing.econ.transfer.line": "ضمن سعر باقتك",
+    "pricing.econ.transfer.keep": "من دون تسجيل شركاء",
+    "pricing.econ.transfer.body":
+      "يقدّم التوصيل إلى صالة المطار مشغّل مستقل مرخّص ومؤمَّن عليه، متكامل مع ParkGo عبر واجهة API. ولا يوجد أسطول لتسجيله — فهو ببساطة مضمَّن في سعرك الواحد.",
+    "pricing.econ.fee.who": "رسوم الخدمة",
+    "pricing.econ.fee.line": "ثابتة، لكل حجز",
+    "pricing.econ.fee.keep": "تُعرض عند الدفع",
+    "pricing.econ.fee.body":
+      "رسوم منصة ثابتة وصغيرة تُضاف مرة واحدة لكل حجز. ولا تُخفى أبدًا — يراها المسافرون قبل أن يدفعوا.",
+
+    "pricing.econ.ctaHost": "اكسب كمضيف",
+    "pricing.econ.ctaTransfer": "كيف يعمل التوصيل",
+    "pricing.econ.note": "عمولة استرشادية بنسبة ~{pct}% على الموقف. وستُؤكَّد النسب عند الإطلاق.",
+
+    "pricing.more.eyebrow": "طرق أخرى للتوفير",
+    "pricing.more.title": "مصمَّم للفرق وللمشاركة",
+
+    "pricing.corporate.title": "حسابات الشركات",
+    "pricing.corporate.body":
+      "مركِّز سفر فريقك في حساب واحد، بفوترة موحَّدة ودعم ذي أولوية.",
+    "pricing.corporate.point1": "فوترة شهرية بدلًا من بطاقات لكل رحلة",
+    "pricing.corporate.point2": "حجوزات مركزية لجميع مسافري فريقك",
+    "pricing.corporate.point3": "دعم ذو أولوية للرحلات الحسّاسة زمنيًا",
+    "pricing.corporate.point4": "كشوف واضحة لتسهيل احتساب النفقات",
+    "pricing.corporate.cta": "تحدّث إلينا عن الفرق",
+
+    "pricing.referral.title": "برنامج الإحالة",
+    "pricing.referral.body":
+      "أعجبك ParkGo؟ شاركه. وعندما يقوم صديقك برحلته الأولى، يحصل كلاكما على مكافأة.",
+    "pricing.referral.point1": "شارك رابط الإحالة الخاص بك",
+    "pricing.referral.point2": "يحصل صديقك على مكافأة ترحيبية",
+    "pricing.referral.point3": "تُكافَأ بعد إتمام رحلتهم الأولى",
+    "pricing.referral.point4": "أحِل بقدر ما تشاء من الأشخاص",
+    "pricing.referral.cta": "ابدأ السفر",
+
+    "pricing.included.eyebrow": "مشمول في كل حجز",
+    "pricing.included.title": "يشمل السعر دائمًا الأجزاء المهمة",
+    "pricing.included.verified.title": "أشخاص موثّقون",
+    "pricing.included.verified.body": "مضيفون متحقَّق من هوياتهم، وسائقون مرخّصون ومؤمَّن عليهم — دائمًا.",
+    "pricing.included.secure.title": "دفع آمن",
+    "pricing.included.secure.body": "عملية دفع شفافة واحدة، مع عرض المجموع مسبقًا.",
+    "pricing.included.noFees.title": "لا رسوم خفية",
+    "pricing.included.noFees.body": "رسوم المنصة الوحيدة هي رسوم الخدمة الثابتة، وتُعرض قبل الدفع.",
+    "pricing.included.live.title": "يوم سفر مباشر",
+    "pricing.included.live.body": "تتبّع مباشر، وكاميرا في التطبيق، وتسليمات موثّقة من دون أي تكلفة إضافية.",
+
+    "pricing.cta.title": "شاهد سعرك قبل أن تلتزم",
+    "pricing.cta.body":
+      "ابدأ حجزًا للحصول على مجموع شفاف واحد لمطارك وتواريخك — من دون الحاجة إلى حساب لمجرد الاطّلاع.",
+    "pricing.cta.start": "ابدأ الحجز",
+    "pricing.cta.how": "كيف تعمل الخدمة",
+
+    // -------------------------------------------------------- Trust & safety
+    "trust.hero.badge": "الثقة والسلامة",
+    "trust.hero.title": "سلامة تراها، وبيانات تثق بها",
+    "trust.hero.subtitle":
+      "بُني ParkGo على التحقّق والرؤية الواضحة وحماية صارمة للبيانات. وإليك بالضبط كيف نحافظ على سلامة المسافرين والمضيفين — وكيف نتعامل مع بياناتك.",
+    "trust.hero.ctaData": "البيانات والخصوصية",
+    "trust.hero.ctaFaq": "اقرأ الأسئلة الشائعة",
+
+    "trust.pillars.eyebrow": "السلامة من الجانبين",
+    "trust.pillars.title": "أشخاص موثّقون ولحظات موثّقة",
+    "trust.pillars.body":
+      "الثقة ليست شارة — بل مجموعة من الفحوصات تجري قبل كل حجز وأثناءه وبعده.",
+
+    "trust.pillar.verification.title": "تحقّق ثنائي الجانب",
+    "trust.pillar.verification.body":
+      "يُوثَّق طرفا كل حجز. يستكمل المضيفون فحوصات الهوية والعنوان؛ ويسجّل المسافرون حسابات حقيقية؛ ويتولّى مشغّل مرخّص التوصيل إلى صالة المطار.",
+    "trust.pillar.idHosts.title": "مضيفون متحقَّق من هوياتهم",
+    "trust.pillar.idHosts.body":
+      "يجتاز كل مضيف فحص هوية KYC وإقرار حق الإدراج قبل أن ينطلق أي موقف.",
+    "trust.pillar.operator.title": "مشغّل توصيل مرخّص ومؤمَّن عليه",
+    "trust.pillar.operator.body":
+      "يقدّم توصيلك إلى صالة المطار مشغّل مستقل مرخّص ومؤمَّن عليه، متكامل عبر واجهة API. ويقع امتثال التشغيل والمركبات والسائقين على عاتقهم؛ بينما يحتفظ ParkGo بجانب الثقة الذي يواجه العميل — الموقع المباشر والتسليم الموثّق.",
+    "trust.pillar.cctv.title": "كاميرات CCTV وكاميرا مباشرة",
+    "trust.pillar.cctv.body":
+      "يمكن أن تشمل المواقف كاميرات CCTV، ويمكن للمسافرين مشاهدة كاميرا مباشرة لسيارتهم في التطبيق مع شارة LIVE وختم زمني.",
+    "trust.pillar.handovers.title": "تسليمات موثّقة",
+    "trust.pillar.handovers.body":
+      "يُؤكَّد كل من التسليم والاستلام برمز يُستخدم مرة واحدة، ما ينشئ سلسلة عهدة موقّتة زمنيًا ومسجَّلة.",
+    "trust.pillar.scoring.title": "تقييم ثقة ثنائي الجانب",
+    "trust.pillar.scoring.body":
+      "يقيّم المسافرون والمضيفون بعضهم بعضًا بعد كل رحلة، ويمكنك أيضًا تقييم توصيلك. وتحافظ التقييمات على نزاهة الشبكة وجودتها العالية.",
+
+    "trust.handover.eyebrow": "التسليم الموثّق",
+    "trust.handover.title": "سلسلة عهدة واضحة ومسجَّلة",
+    "trust.handover.body":
+      "التسليم هو اللحظة الأهم على الإطلاق. ويحوّله ParkGo إلى حدث مؤكَّد وموقّت زمنيًا بحيث لا يبقى أي شكّ في من كانت السيارة بحوزته ومتى.",
+    "trust.handover.codes.title": "رموز تُستخدم مرة واحدة",
+    "trust.handover.codes.body": "يؤكّد الطرفان رمزًا فريدًا عند التسليم والاستلام.",
+    "trust.handover.logged.title": "موقّت زمنيًا ومسجَّل",
+    "trust.handover.logged.body": "يُسجَّل كل تأكيد مع وقته، ما ينشئ أثرًا قابلًا للتدقيق.",
+    "trust.handover.context.title": "سياق مباشر",
+    "trust.handover.context.body":
+      "يمنح الموقع المباشر والكاميرا في التطبيق الجميع الصورة نفسها في الوقت الفعلي.",
+    "trust.handover.confirmed": "تم تأكيد التسليم",
+    "trust.handover.oneTimeCode": "رمز يُستخدم مرة واحدة",
+    "trust.handover.byBoth": "تم التأكيد من الطرفين · 14:32",
+    "trust.handover.step1": "أكّد المضيف التسليم",
+    "trust.handover.step2": "أكّد السائق الاستلام",
+    "trust.handover.step3": "سُجِّل الحدث في سجل التدقيق",
+
+    "trust.data.eyebrow": "حماية البيانات",
+    "trust.data.title": "متوافق مع لائحة GDPR وهيئة ICO، بحكم التصميم",
+    "trust.data.body":
+      "نتعامل مع بياناتك على أنها أمانة نرعاها، لا ملكية نمتلكها. ويقوم نهجنا على مبادئ اللائحة العامة لحماية البيانات في المملكة المتحدة (UK GDPR) وإرشادات مكتب مفوّض المعلومات (ICO).",
+    "trust.data.minimal.title": "بيانات في حدها الأدنى",
+    "trust.data.minimal.body":
+      "لا نجمع سوى ما يحتاجه الحجز فعليًا — لا أكثر. وتقليل البيانات هو المبدأ الافتراضي.",
+    "trust.data.lawful.title": "أساس قانوني وموافقة",
+    "trust.data.lawful.body":
+      "لكل استخدام لبياناتك أساس قانوني. وحين نعتمد على الموافقة، تكون محدَّدة ومستنيرة وسهلة السحب.",
+    "trust.data.retention.title": "مدة احتفاظ محدَّدة",
+    "trust.data.retention.body":
+      "تُحفَظ البيانات الشخصية للمدة اللازمة فقط، ثم تُحذَف أو تُجرَّد من هويتها وفق جدول احتفاظ محدَّد.",
+    "trust.data.requests.title": "طلبات أصحاب البيانات",
+    "trust.data.requests.body":
+      "يمكنك الوصول إلى بياناتك أو تصحيحها أو تصديرها أو حذفها. ونلتزم بطلبات أصحاب البيانات بما يتوافق مع اللائحة العامة لحماية البيانات في المملكة المتحدة (UK GDPR).",
+    "trust.data.kyc.title": "بيانات KYC منفصلة ومشفَّرة",
+    "trust.data.kyc.body":
+      "تُشفَّر وثائق الهوية والوثائق البنكية وتُخزَّن بمعزل عن بيانات ملفك الشخصي اليومية.",
+    "trust.data.audit.title": "سجلات التدقيق",
+    "trust.data.audit.body":
+      "تُسجَّل الإجراءات الحسّاسة في سجل تدقيق بحيث يمكن مراجعة الوصول ومحاسبته.",
+    "trust.data.rls.title": "الحد الأدنى من الصلاحيات والأمان على مستوى الصف (RLS)",
+    "trust.data.rls.body":
+      "تعني ضوابط الوصول الصارمة والأمان على مستوى الصف ألا يرى الأشخاص والخدمات إلا ما يحق لهم رؤيته.",
+    "trust.data.breach.title": "الاستجابة للاختراقات",
+    "trust.data.breach.body":
+      "تضمن آلية محدَّدة للتعامل مع الحوادث احتواء أي خلل وتقييمه والإبلاغ عنه بسرعة إن وقع.",
+
+    "trust.security.eyebrow": "خلف الكواليس",
+    "trust.security.title": "أمان مدمج في صميم المنصة",
+    "trust.security.body":
+      "النوايا الحسنة وحدها لا تكفي — فالحماية يجب أن تُهندَس داخل المنصة. وهذه هي الضوابط التي تقف خلف كل حجز.",
+    "trust.security.encryption.title": "تشفير البيانات الحسّاسة",
+    "trust.security.encryption.body":
+      "تُشفَّر وثائق الهوية والوثائق المتعلقة بالدفع أثناء التخزين وأثناء النقل.",
+    "trust.security.rls.title": "الحد الأدنى من الصلاحيات والأمان على مستوى الصف",
+    "trust.security.rls.body": "يُقصَر الوصول على الحد الأدنى اللازم، ويُفرَض ذلك على مستوى طبقة البيانات.",
+    "trust.security.audit.title": "سجلات التدقيق",
+    "trust.security.audit.body":
+      "تُسجَّل العمليات الحسّاسة بحيث يمكن مراجعة الوصول ومحاسبته.",
+    "trust.security.breach.title": "استجابة محدَّدة للاختراقات",
+    "trust.security.breach.body": "آلية واضحة للتعامل مع الحوادث تتيح احتواءها وتقييمها والإبلاغ عنها من دون تأخير.",
+
+    "trust.cta.title": "لديك سؤال عن السلامة أو الخصوصية؟",
+    "trust.cta.body":
+      "يسعدنا أن نشرح لك أي شيء عن كيفية توثيقنا للأشخاص أو تعاملنا مع بياناتك. تواصل معنا وسنرشدك إلى التفاصيل.",
+    "trust.cta.contact": "تواصل معنا",
+    "trust.cta.faq": "اقرأ الأسئلة الشائعة",
+    "trust.cta.note": "يجري التحقّق وإعادة التحقّق باستمرار، وليس فقط عند التسجيل.",
+
+    // --------------------------------------------------------------- Contact
+    "contact.hero.badge": "تواصل معنا",
+    "contact.hero.title": "يسعدنا أن نسمع منك",
+    "contact.hero.subtitle":
+      "المسافرون والمضيفون والفرق — مهما تحتاج، فريق الدعم لدينا في أنحاء المملكة المتحدة وأيرلندا حاضر للمساعدة.",
+
+    "contact.channels.eyebrow": "ابقَ على تواصل",
+    "contact.channels.title": "اختر صندوق البريد المناسب، أو أرسل لنا رسالة مباشرة",
+    "contact.channels.body":
+      "يبني ParkGo وصولًا متكاملًا إلى المطارات في المملكة المتحدة وأيرلندا. ونهدف إلى الرد على كل استفسار بسرعة — اختر الفريق المناسب، أو استخدم النموذج وسنوجّهه نيابة عنك.",
+    "contact.channel.support.title": "الدعم",
+    "contact.channel.support.body": "أسئلة عن حجز، أو حسابك، أو المدفوعات.",
+    "contact.channel.partnerships.title": "الشراكات",
+    "contact.channel.partnerships.body": "الاستضافة على نطاق واسع أو سفر الشركات لفريقك.",
+    "contact.channel.press.title": "الإعلام واستفسارات عامة",
+    "contact.channel.press.body": "استفسارات إعلامية وكل ما عدا ذلك.",
+
+    "contact.teams.text": "هل تُعِدّ سفرًا لفريق؟",
+    "contact.teams.link": "اطّلع على حسابات الشركات",
+    "contact.teams.suffix": "للفوترة الشهرية والدعم ذي الأولوية.",
+
+    "contact.form.title": "أرسل لنا رسالة",
+    "contact.form.subtitle": "املأ النموذج وسنعاود التواصل معك عبر البريد الإلكتروني.",
+    "contact.form.name": "الاسم",
+    "contact.form.namePh": "اسمك",
+    "contact.form.email": "البريد الإلكتروني",
+    "contact.form.emailPh": "you@email.com",
+    "contact.form.message": "الرسالة",
+    "contact.form.messagePh": "كيف يمكننا مساعدتك؟",
+    "contact.form.submit": "إرسال الرسالة",
+    "contact.form.sending": "جارٍ الإرسال…",
+    "contact.form.disclaimer": "لن نستخدم بياناتك إلا للرد على هذا الاستفسار.",
+    "contact.form.successTitle": "تم إرسال الرسالة",
+    "contact.form.successBody":
+      "شكرًا لتواصلك معنا — سنرد على بريدك الإلكتروني في أقرب وقت ممكن.",
+
+    "contact.quick.eyebrow": "قبل أن تكتب إلينا",
+    "contact.quick.title": "قد تجد إجابتك هنا بشكل أسرع",
+    "contact.quick.faq.title": "اقرأ الأسئلة الشائعة",
+    "contact.quick.faq.body": "تُجاب معظم الأسئلة هنا.",
+    "contact.quick.travellers.title": "للمسافرين",
+    "contact.quick.travellers.body": "كيف يعمل الحجز ويوم السفر.",
+    "contact.quick.hosts.title": "للمضيفين",
+    "contact.quick.hosts.body": "أدرج موقفًا وابدأ الكسب.",
+    "contact.quick.trust.title": "الثقة والسلامة",
+    "contact.quick.trust.body": "كيف نحافظ على أمان كل حجز.",
+
+    "contact.cta.title": "مستعد لتركن بذكاء وتسافر براحة؟",
+    "contact.cta.body":
+      "ابدأ حجزًا أو اكتشف كيف يجمع ParkGo الموقف والتوصيل وشحن EV في رحلة واحدة موثوقة.",
+    "contact.cta.start": "ابدأ الحجز",
+    "contact.cta.how": "كيف تعمل الخدمة",
+    "contact.cta.note": "مواقف في أنحاء المملكة المتحدة وأيرلندا — مطارات ومدن وفعاليات.",
+  },
 };

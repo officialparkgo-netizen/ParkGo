@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Headset,
   Languages,
+  MessageCircle,
   Paperclip,
   PhoneCall,
   Send,
@@ -289,6 +290,30 @@ export function SupportWidget() {
   function onSolved() {
     push({ role: "user", text: t("support.yes") }, { role: "bot", text: t("support.great") });
     setBotLink(null);
+    setStage("topics");
+  }
+
+  /**
+   * A clean slate after a resolved ticket: drop the server-side cookie so the
+   * next escalation mints a NEW ticket, then reset the widget to the guided
+   * assistant. The old thread stays on the server, untouched.
+   */
+  async function startNewConversation() {
+    try {
+      await fetch("/api/support/thread", { method: "DELETE" });
+    } catch {
+      // resetting locally still works; worst case the next escalation resumes
+    }
+    setThread(null);
+    setSentRef(null);
+    setRated(false);
+    setCsatComment("");
+    setBotLink(null);
+    setRateLimited(false);
+    setUploadError(false);
+    setInput("");
+    setPhone("");
+    setMessages([{ role: "bot", text: t("support.greeting") }]);
     setStage("topics");
   }
 
@@ -591,6 +616,13 @@ export function SupportWidget() {
                 className="space-y-2 rounded-2xl border border-navy-100 bg-white p-3 text-center"
                 data-csat
               >
+                <p
+                  className="rounded-lg bg-go-50 px-2.5 py-1.5 text-xs font-bold text-go-700"
+                  data-resolved-note
+                >
+                  ✓ {t("support.resolvedNote")}
+                  {thread.ref ? ` · ${thread.ref}` : ""}
+                </p>
                 <p className="text-xs font-semibold text-navy-700">
                   {rated || thread.csat ? t("support.csat.thanks") : t("support.csat.ask")}
                 </p>
@@ -623,6 +655,16 @@ export function SupportWidget() {
                     </div>
                   </>
                 )}
+                {/* A fresh start — new ticket, new ref; the old thread keeps
+                    living on the server. Typing here instead reopens it. */}
+                <button
+                  type="button"
+                  onClick={startNewConversation}
+                  data-new-ticket
+                  className="inline-flex items-center gap-1.5 rounded-full border border-brand-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" aria-hidden /> {t("support.newTicket")}
+                </button>
               </div>
             )}
 

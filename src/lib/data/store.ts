@@ -909,6 +909,14 @@ export function resolveSupportTicket(id: string): boolean {
   return true;
 }
 
+/** A visitor replying to a closed thread reopens it — silence would strand them. */
+export function reopenSupportTicket(id: string): boolean {
+  const t = supportTickets.find((x) => x.id === id);
+  if (!t) return false;
+  t.status = "open";
+  return true;
+}
+
 /** Assign an open ticket to an admin (display name). */
 export function assignSupportTicket(id: string, adminName: string): SupportTicket | undefined {
   const t = supportTickets.find((x) => x.id === id);

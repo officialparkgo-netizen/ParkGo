@@ -182,6 +182,14 @@ describe("language detection", () => {
     expect(detectLocale("我的预订在哪里")).toBe("zh");
   });
 
+  it("splits the Arabic script: Urdu-only letters decide Urdu, else Arabic", () => {
+    // Plain Arabic — no ٹ/ڈ/ے/ک/ی extensions anywhere.
+    expect(detectLocale("أين سيارتي من فضلك")).toBe("ar");
+    expect(detectLocale("لا أستطيع إلغاء الحجز")).toBe("ar");
+    // The same question in Urdu carries ک/ی/ے forms Arabic never uses.
+    expect(detectLocale("میری بکنگ کہاں ہے")).toBe("ur");
+  });
+
   it("needs real evidence for German and defaults to English", () => {
     expect(detectLocale("Wo ist mein Parkplatz bitte")).toBe("de");
     expect(detectLocale("Können Sie helfen")).toBe("de");

@@ -151,7 +151,7 @@ export default async function AdminDashboard({
 
   // Monthly GMV (last six months) + booking revenue per destination.
   const localeTag =
-    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN" }[locale] ?? "en-GB";
+    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN", ar: "ar-AE" }[locale] ?? "en-GB";
   const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   const nowDate = new Date();
   const revenueMonths = Array.from({ length: 6 }, (_, i) => {

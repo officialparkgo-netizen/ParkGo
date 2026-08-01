@@ -96,7 +96,7 @@ export default async function HomePage() {
       "@type": "ContactPoint",
       contactType: "customer support",
       email: COMPANY.supportEmail,
-      availableLanguage: ["en", "ur", "hi", "de", "zh"],
+      availableLanguage: ["en", "ur", "hi", "de", "zh", "ar"],
     },
   };
 

@@ -53,7 +53,7 @@ export async function saveArticleAction(
     tags: parseTags(String(formData.get("tags") || "")),
     coverUrl: String(formData.get("coverUrl") || "") || undefined,
     scheduledAt: String(formData.get("scheduledAt") || "") || undefined,
-    lang: (["en", "ur", "hi", "de", "zh"].includes(langRaw) ? langRaw : "en") as Locale,
+    lang: (["en", "ur", "hi", "de", "zh", "ar"].includes(langRaw) ? langRaw : "en") as Locale,
     translationOf: String(formData.get("translationOf") || "") || undefined,
   };
 

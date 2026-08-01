@@ -19,7 +19,7 @@ export type Pence = number;
 // there is no transfer/driver user role — the user-facing roles are three.
 export type Role = "traveller" | "host" | "admin";
 
-export type Locale = "en" | "ur" | "hi" | "de" | "zh";
+export type Locale = "en" | "ur" | "hi" | "de" | "zh" | "ar";
 
 export interface User {
   id: UUID;

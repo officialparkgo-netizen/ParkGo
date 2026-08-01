@@ -30,6 +30,7 @@ const DATE_LOCALE: Record<string, string> = {
   hi: "hi-IN",
   de: "de-DE",
   zh: "zh-CN",
+  ar: "ar-AE",
 };
 
 const PER_PAGE = 12;

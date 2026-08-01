@@ -42,7 +42,7 @@ type TicketRow = {
   locale?: string | null;
 };
 
-const LOCALES = ["en", "ur", "hi", "de", "zh"] as const;
+const LOCALES = ["en", "ur", "hi", "de", "zh", "ar"] as const;
 
 function fromRow(r: TicketRow): SupportTicket {
   return {
@@ -123,6 +123,24 @@ export async function setSupportTicketResolved(id: string): Promise<boolean> {
     .from("support_tickets")
     .update({ status: "resolved" })
     .eq("id", id);
+  return !error;
+}
+
+/**
+ * Back to open. A visitor who replies to a resolved thread is telling us it
+ * is not resolved — leaving the ticket closed would file their message where
+ * nobody looks.
+ */
+export async function reopenSupportTicket(id: string): Promise<boolean> {
+  if (!IS_LIVE) {
+    const { reopenSupportTicket: reopenMock } = await import("@/lib/data/store");
+    return reopenMock(id);
+  }
+  const { error } = await supabaseAdmin()
+    .from("support_tickets")
+    .update({ status: "open" })
+    .eq("id", id)
+    .eq("status", "resolved");
   return !error;
 }
 

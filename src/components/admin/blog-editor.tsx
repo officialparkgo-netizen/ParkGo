@@ -29,6 +29,7 @@ const LANGS: { code: Locale; label: string }[] = [
   { code: "hi", label: "हिन्दी" },
   { code: "de", label: "Deutsch" },
   { code: "zh", label: "中文" },
+  { code: "ar", label: "العربية" },
 ];
 
 export interface EditorLabels {

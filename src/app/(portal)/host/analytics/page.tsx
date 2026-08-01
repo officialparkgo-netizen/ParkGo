@@ -28,7 +28,7 @@ export default async function HostAnalyticsPage() {
   if (user.cohostHostId) redirect("/host/today");
   const { t, locale } = await getI18n();
   const localeTag =
-    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN" }[locale] ?? "en-GB";
+    { en: "en-GB", ur: "ur-PK", hi: "hi-IN", de: "de-DE", zh: "zh-CN", ar: "ar-AE" }[locale] ?? "en-GB";
   const host = await ensureHostForUser(user);
   const [bookings, spaces] = await Promise.all([
     listBookingsForHost(host.id),

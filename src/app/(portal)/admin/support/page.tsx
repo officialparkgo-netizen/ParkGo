@@ -382,7 +382,7 @@ export default async function AdminSupportPage({
               <div className="p-6 text-center text-navy-500">{t("admin.support.empty")}</div>
             )}
             {supportTickets.map((ticket) => (
-              <div key={ticket.id} className="p-4">
+              <div key={ticket.id} className="p-4" data-ticket={ticket.email}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="truncate font-semibold text-navy-900">

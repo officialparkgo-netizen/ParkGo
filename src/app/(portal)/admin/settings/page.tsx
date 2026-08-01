@@ -15,8 +15,10 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
 import { PortalShell } from "@/components/portal/shell";
 import { adminNav } from "@/components/portal/navs";
+import { TranslateCheck } from "@/components/admin/translate-check";
 import { requireFinanceAdmin } from "@/lib/auth";
 import { getPlatformSettings } from "@/lib/data/settings";
 import {
@@ -24,6 +26,7 @@ import {
   sendDigestNowAction,
 } from "@/lib/admin-suite-actions";
 import { isEmailConfigured } from "@/lib/email";
+import { translationProvider } from "@/lib/translate";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -43,6 +46,7 @@ export default async function AdminSettingsPage({
   const { saved, digest } = await searchParams;
   const s = await getPlatformSettings();
   const emailOk = isEmailConfigured();
+  const provider = translationProvider();
   // Saved macros first, then blank slots — always at least one empty row to
   // add the next one without a JS-driven "add row" button.
   const savedMacros = s.supportMacros ?? [];
@@ -378,6 +382,35 @@ export default async function AdminSettingsPage({
               <Send className="h-4 w-4" /> {t("admin.settings.digestNow")}
             </Button>
           </form>
+        </Card>
+
+        {/* Support translation — which provider is live, and a real round-trip
+            test so a freshly pasted key proves itself here, not on a customer. */}
+        <Card className="p-6" data-translation-card>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-lg font-bold text-navy-900">
+              {t("admin.settings.translate")}
+            </h3>
+            <Badge tone={provider ? "go" : "neutral"} data-translate-provider={provider ?? "off"}>
+              {provider === "google"
+                ? "Google Translate"
+                : provider === "deepl"
+                  ? "DeepL"
+                  : provider === "demo"
+                    ? "Demo"
+                    : t("admin.settings.translateOff")}
+            </Badge>
+          </div>
+          <p className="mb-4 mt-0.5 text-sm text-navy-500">{t("admin.settings.translateSub")}</p>
+          <TranslateCheck
+            labels={{
+              run: t("admin.settings.translateRun"),
+              running: t("admin.settings.translateRunning"),
+              ok: t("admin.settings.translateOk"),
+              failed: t("admin.settings.translateFailed"),
+              off: t("admin.settings.translateOffHint"),
+            }}
+          />
         </Card>
       </div>
     </PortalShell>

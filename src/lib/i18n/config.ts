@@ -15,6 +15,7 @@ export const LOCALES: {
   { code: "hi", label: "Hindi", nativeLabel: "हिन्दी", dir: "ltr", flag: "🇮🇳" },
   { code: "de", label: "German", nativeLabel: "Deutsch", dir: "ltr", flag: "🇩🇪" },
   { code: "zh", label: "Chinese", nativeLabel: "中文", dir: "ltr", flag: "🇨🇳" },
+  { code: "ar", label: "Arabic", nativeLabel: "العربية", dir: "rtl", flag: "🇸🇦" },
 ];
 
 export function localeMeta(code: Locale) {

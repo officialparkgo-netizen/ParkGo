@@ -283,6 +283,21 @@ export async function resolveSupportTicketAction(formData: FormData) {
     await setSupportTicketResolved(id);
     const { recordAdminAction } = await import("@/lib/data/admin-actions");
     await recordAdminAction(admin, "support.resolved", "user", id);
+
+    // Tell the visitor, in the thread, in THEIR language — the widget's
+    // banner only exists while the tab is open; this line survives in the
+    // transcript for whoever opens it tomorrow.
+    try {
+      const { getSupportTicketById, appendSupportThreadMessage } = await import(
+        "@/lib/data/support"
+      );
+      const { translator } = await import("@/lib/i18n");
+      const ticket = await getSupportTicketById(id);
+      const { t: say } = translator(ticket?.locale ?? "en");
+      await appendSupportThreadMessage(id, "bot", say("support.resolvedLine"));
+    } catch {
+      // the widget banner still announces it
+    }
   }
   revalidatePath("/admin");
   revalidatePath("/admin/support");
