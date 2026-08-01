@@ -281,7 +281,7 @@ export async function cancelCampaignAction(formData: FormData) {
 
 export interface TranslationCheckState {
   provider?: string;
-  samples?: { lang: string; text: string }[];
+  samples?: { lang: string; text: string; ok: boolean }[];
   failed?: boolean;
   off?: boolean;
 }
@@ -290,6 +290,10 @@ export interface TranslationCheckState {
  * Round-trip a real sentence through the live translation provider, so the
  * admin can see a freshly pasted API key working (or failing) right here —
  * not when the first Urdu customer does. Read-only: nothing is stored.
+ *
+ * Every supported language gets a row — read from the locale registry, so a
+ * seventh language shows up here the day it ships. A language the provider
+ * refuses stays visible as a failed row rather than quietly vanishing.
  */
 export async function runTranslationCheckAction(
   _prev: TranslationCheckState,
@@ -301,18 +305,20 @@ export async function runTranslationCheckAction(
   );
   if (!isTranslationConfigured()) return { off: true };
 
+  const { LOCALES } = await import("@/lib/i18n/config");
   const sample = "Your booking is confirmed — see you at the airport.";
-  const targets = ["ur", "ar", "de"] as const;
-  const samples: { lang: string; text: string }[] = [];
+  const targets = LOCALES.map((l) => l.code).filter((code) => code !== "en");
+  const samples: { lang: string; text: string; ok: boolean }[] = [];
   for (const lang of targets) {
     try {
       const out = await translateText(sample, lang, "en");
-      if (out?.text && out.text.trim() !== sample) samples.push({ lang, text: out.text });
+      const ok = !!out?.text && out.text.trim() !== sample;
+      samples.push({ lang, text: ok && out ? out.text : "", ok });
     } catch {
-      // counted below — an empty result set IS the failure signal
+      samples.push({ lang, text: "", ok: false });
     }
   }
-  if (samples.length === 0) return { failed: true };
+  if (!samples.some((s) => s.ok)) return { failed: true };
   return { provider: translationProvider() ?? "", samples };
 }
 

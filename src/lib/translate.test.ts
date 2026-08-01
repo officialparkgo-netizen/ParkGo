@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isTranslationConfigured, translateText, translationProvider, worthTranslating } from "./translate";
+import {
+  carriesLanguage,
+  isTranslationConfigured,
+  translateText,
+  translationProvider,
+  worthTranslating,
+} from "./translate";
 import { detectLocale } from "./support-lang";
 
 /**
@@ -172,6 +178,24 @@ describe("worthTranslating", () => {
 
   it("does not treat a bare link as language", () => {
     expect(worthTranslating("https://www.parkgo.ai/app/booking/abc", "de")).toBe(false);
+  });
+});
+
+describe("carriesLanguage", () => {
+  // The booking thread translates out of English too, so the gate has to
+  // work without knowing the language — English sentences included.
+  it("accepts an English sentence", () => {
+    expect(carriesLanguage("The gate code is 4321, see you tomorrow.")).toBe(true);
+  });
+
+  it("accepts a single non-Latin word", () => {
+    expect(carriesLanguage("مدد")).toBe(true);
+  });
+
+  it("rejects one Latin word, a reference, a bare link", () => {
+    expect(carriesLanguage("ok")).toBe(false);
+    expect(carriesLanguage("PG-7F3K9")).toBe(false);
+    expect(carriesLanguage("https://www.parkgo.ai/app/booking/abc")).toBe(false);
   });
 });
 

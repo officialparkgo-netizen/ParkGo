@@ -67,13 +67,14 @@ export async function POST(
   const message = await addBookingMessage({ bookingId: id, from: part.from, text });
   if (!message) return Response.json({ error: "failed" }, { status: 500 });
 
-  // Nudge the other side (best-effort, mirrors the old server action).
+  // Nudge the other side (best-effort, mirrors the old server action). The
+  // preview is in the recipient's language whenever a translation was stored.
   const recipient =
     part.from === "host" ? part.booking.travellerId : part.hostUserId;
   if (recipient) {
     const note = {
       title: `New message · ${part.booking.reference}`,
-      body: text.trim().slice(0, 120),
+      body: (message.translated ?? message.text).slice(0, 120),
       kind: "booking" as const,
     };
     if (!IS_LIVE) {

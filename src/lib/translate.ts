@@ -163,17 +163,21 @@ async function viaGoogle(
 }
 
 /**
- * Should this message be translated for the team at all?
- *
- * Deliberately conservative. A one-word "ok", a booking reference or a bare
- * URL carries no language, and running it through a translator produces noise
- * that makes the thread harder to read rather than easier.
+ * Does this text carry enough language to be worth a provider call at all?
+ * A one-word "ok", a booking reference or a bare URL carries no language, and
+ * running it through a translator produces noise that makes a thread harder
+ * to read rather than easier.
  */
-export function worthTranslating(text: string, detected: Locale): boolean {
-  if (detected === "en") return false;
+export function carriesLanguage(text: string): boolean {
   const stripped = text.replace(/https?:\/\/\S+/g, " ").trim();
   // Two words, or any non-Latin script at all — a single Urdu word is still
   // a word an English reader cannot read.
   const hasNonLatin = /[؀-ۿऀ-ॿ一-鿿]/.test(stripped);
   return hasNonLatin || stripped.split(/\s+/).filter(Boolean).length >= 2;
+}
+
+/** Should this message be translated into English for the team at all? */
+export function worthTranslating(text: string, detected: Locale): boolean {
+  if (detected === "en") return false;
+  return carriesLanguage(text);
 }

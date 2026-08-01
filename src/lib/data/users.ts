@@ -7,6 +7,7 @@ import {
   setUserSuspended as mockSetUserSuspended,
   setUserOnboarded as mockSetUserOnboarded,
   setUserTwofa as mockSetUserTwofa,
+  setUserLocale as mockSetUserLocale,
   updateUserProfile as mockUpdateUserProfile,
 } from "@/lib/data/store";
 
@@ -210,6 +211,25 @@ export async function setUserOnboarded(userId: string): Promise<void> {
 }
 
 /** Self-service: turn the admin email-code second factor on or off. */
+/**
+ * Persist the language someone chose in the switcher. This is what makes
+ * support tickets and booking-thread translation know each side's language —
+ * best-effort by design: a failed write must never break changing the UI
+ * language (the cookie still wins for rendering).
+ */
+export async function setUserLocale(userId: string, locale: User["locale"]): Promise<void> {
+  if (!IS_LIVE) {
+    mockSetUserLocale(userId, locale);
+    return;
+  }
+  try {
+    const { supabaseAdmin } = await import("@/lib/supabase/server");
+    await supabaseAdmin().from("users").update({ locale }).eq("id", userId);
+  } catch {
+    // pre-0030 databases don't know "ar" yet — the cookie keeps working
+  }
+}
+
 export async function setUserTwofa(userId: string, enabled: boolean): Promise<User | null> {
   if (!IS_LIVE) return mockSetUserTwofa(userId, enabled) ?? null;
 

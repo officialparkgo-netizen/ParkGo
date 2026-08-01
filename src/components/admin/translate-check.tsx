@@ -62,14 +62,31 @@ export function TranslateCheck({
           <p className="flex items-center gap-1.5 text-sm font-semibold text-go-700">
             <CheckCircle2 className="h-4 w-4 shrink-0" /> {labels.ok} ({state.provider})
           </p>
-          {state.samples.map((s) => (
-            <p key={s.lang} className="rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-800">
-              <span className="me-2 font-mono text-xs font-bold uppercase text-navy-400">
-                {s.lang}
-              </span>
-              <span dir="auto">{s.text}</span>
-            </p>
-          ))}
+          {state.samples.map((s) =>
+            s.ok ? (
+              <p
+                key={s.lang}
+                className="rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-800"
+                data-translate-check-row={s.lang}
+              >
+                <span className="me-2 font-mono text-xs font-bold uppercase text-navy-400">
+                  {s.lang}
+                </span>
+                <span dir="auto">{s.text}</span>
+              </p>
+            ) : (
+              // One refused language stays on the board — a missing row would
+              // read as "everything works" when it doesn't.
+              <p
+                key={s.lang}
+                className="flex items-center rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
+                data-translate-check-lang-failed={s.lang}
+              >
+                <span className="me-2 font-mono text-xs font-bold uppercase">{s.lang}</span>
+                <XCircle className="h-4 w-4 shrink-0" />
+              </p>
+            )
+          )}
         </div>
       )}
     </div>

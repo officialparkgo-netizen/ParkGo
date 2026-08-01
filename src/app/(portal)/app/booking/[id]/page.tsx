@@ -669,6 +669,8 @@ export default async function BookingPage({
                     you: t("thread.you"),
                     other: t("thread.host"),
                     error: t("thread.error"),
+                    original: t("admin.sup.original"),
+                    sentAs: t("thread.sentAs"),
                   }}
                 />
               </div>

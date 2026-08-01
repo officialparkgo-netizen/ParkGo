@@ -832,6 +832,13 @@ export interface BookingMessage {
   bookingId: UUID;
   from: "host" | "traveller";
   text: string;
+  /**
+   * The same message rendered in the OTHER side's language, stored at send
+   * time (see booking-messages.ts). The original is never replaced.
+   */
+  translated?: string;
+  /** The sender's locale when a translation was stored. */
+  sourceLocale?: Locale;
   at: ISODateString;
 }
 

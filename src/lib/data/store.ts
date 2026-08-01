@@ -189,6 +189,14 @@ export function setUserTwofa(userId: string, enabled: boolean): User | undefined
   return user;
 }
 
+/** Remember which language this person reads the site in. */
+export function setUserLocale(userId: string, locale: User["locale"]): User | undefined {
+  const user = getUser(userId);
+  if (!user) return undefined;
+  user.locale = locale;
+  return user;
+}
+
 /** Self-service profile edit (name, phone, avatar, traveller vehicle). */
 export function updateUserProfile(
   userId: string,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessageCircle, Send } from "lucide-react";
+import { Languages, MessageCircle, Send } from "lucide-react";
 import type { BookingMessage } from "@/types";
 import { Card } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/utils";
@@ -30,6 +30,10 @@ export function BookingThread({
     you: string;
     other: string;
     error: string;
+    /** "Original" — under a translated incoming message. */
+    original: string;
+    /** "Sent as" — under your own message, showing the other side's rendering. */
+    sentAs: string;
   };
 }) {
   const [messages, setMessages] = useState<BookingMessage[]>(initial);
@@ -127,7 +131,30 @@ export function BookingThread({
                     : "rounded-bl-md bg-navy-50 text-navy-800"
                 }`}
               >
-                <p className="whitespace-pre-line">{m.text}</p>
+                {/* The reader's language leads; what was actually typed stays
+                    underneath. My own bubble is the mirror image: my words,
+                    then what the other side was shown. */}
+                <p className="whitespace-pre-line" dir="auto">
+                  {mine ? m.text : (m.translated ?? m.text)}
+                </p>
+                {m.translated && (
+                  <p
+                    className={`mt-1 flex items-start gap-1 border-t pt-1 text-[11px] ${
+                      mine
+                        ? "border-white/30 text-white/80"
+                        : "border-navy-200/70 text-navy-500"
+                    }`}
+                    data-msg-translated
+                  >
+                    <Languages className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                    <span dir="auto">
+                      <span className="sr-only">
+                        {mine ? labels.sentAs : labels.original}:{" "}
+                      </span>
+                      {mine ? m.translated : m.text}
+                    </span>
+                  </p>
+                )}
                 <p
                   className={`mt-0.5 text-[10px] ${
                     mine ? "text-white/70" : "text-navy-400"

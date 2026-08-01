@@ -190,6 +190,104 @@ const visitor = await ctx();
   await ac.close();
 }
 
+// ----------------- the guest ↔ host booking thread gets the same treatment --
+const GUEST_MSG = "میں کل صبح چھ بجے پہنچوں گا، گیٹ کوڈ بتا دیں";
+const HOST_REPLY = "The gate code is 4321, see you tomorrow morning.";
+{
+  // The guest chooses اردو in the switcher — that choice is what tells the
+  // thread which language each side reads.
+  const tc = await browser.newContext();
+  await tc.addCookies([
+    { name: "parkgo_cookie_consent", value: "all", url: BASE },
+    { name: "parkgo_session", value: "user_traveller", url: BASE },
+  ]);
+  const tp = await tc.newPage();
+  await tp.goto(`${BASE}/app`, { waitUntil: "domcontentloaded" });
+  await tp.locator('button[aria-label^="Language:"]').first().click();
+  await tp.locator('[role="option"]:has-text("اردو")').first().click();
+  await tp.waitForFunction(() => document.documentElement.lang === "ur", { timeout: 15000 });
+  check("the guest switches the site to Urdu", true);
+
+  // Their message goes out in Urdu…
+  await tp.goto(`${BASE}/app/booking/bk_active`, { waitUntil: "domcontentloaded" });
+  const thread = tp.locator("[data-booking-thread]");
+  await thread.waitFor({ timeout: 15000 });
+  await thread.locator('input[name="text"]').fill(GUEST_MSG);
+  await thread.locator('button[type="submit"]').click();
+  await tp.waitForFunction(
+    (needle) =>
+      document.querySelector("[data-booking-thread]")?.textContent?.includes(needle) ?? false,
+    GUEST_MSG,
+    { timeout: 15000 }
+  );
+  const guestView = await thread.innerText();
+  check("the guest sends in their own language", guestView.includes(GUEST_MSG));
+  check(
+    "and can see what the host will be shown",
+    guestView.includes(DEMO),
+    guestView.includes(DEMO) ? "" : guestView.slice(-120)
+  );
+
+  // …and the host reads it in theirs, original kept underneath.
+  const hc = await browser.newContext();
+  await hc.addCookies([
+    { name: "parkgo_cookie_consent", value: "all", url: BASE },
+    { name: "parkgo_session", value: "user_host", url: BASE },
+  ]);
+  const hp = await hc.newPage();
+  await hp.goto(`${BASE}/host/bookings/bk_active`, { waitUntil: "domcontentloaded" });
+  const hostThread = hp.locator("[data-booking-thread]");
+  await hostThread.waitFor({ timeout: 15000 });
+  const hostView = await hostThread.innerText();
+  check("the host is shown a rendering they can read", hostView.includes(DEMO));
+  check("the guest's original survives beside it", hostView.includes(GUEST_MSG));
+
+  // The reply crosses back the other way.
+  await hostThread.locator('input[name="text"]').fill(HOST_REPLY);
+  await hostThread.locator('button[type="submit"]').click();
+  await hp.waitForFunction(
+    (needle) =>
+      document.querySelector("[data-booking-thread]")?.textContent?.includes(needle) ?? false,
+    HOST_REPLY,
+    { timeout: 15000 }
+  );
+  check("the host replies in English", true);
+
+  // The guest's page polls every few seconds — the reply arrives translated,
+  // with the host's English underneath.
+  await tp.waitForFunction(
+    (needle) =>
+      document.querySelector("[data-booking-thread]")?.textContent?.includes(needle) ?? false,
+    HOST_REPLY,
+    { timeout: 20000 }
+  );
+  const guestAfter = await thread.innerText();
+  const translatedLines = await thread.locator("[data-msg-translated]").count();
+  check("the reply reaches the guest with a rendering for them", translatedLines >= 2);
+  check("the host's exact words are still there", guestAfter.includes(HOST_REPLY));
+  await tc.close();
+  await hc.close();
+}
+
+// --------------------- the settings test card covers every language we ship --
+{
+  const ac = await adminCtx();
+  const ap = await ac.newPage();
+  await ap.goto(`${BASE}/admin/settings`, { waitUntil: "domcontentloaded" });
+  await mainText(ap);
+  await ap.locator("[data-translate-check-run]").click();
+  await ap.waitForSelector("[data-translate-check-ok]", { timeout: 20000 });
+  const rows = await ap
+    .locator("[data-translate-check-row]")
+    .evaluateAll((els) => els.map((e) => e.dataset.translateCheckRow));
+  check(
+    "the run-test card answers in all five languages",
+    ["ur", "hi", "de", "zh", "ar"].every((l) => rows.includes(l)),
+    rows.join(",")
+  );
+  await ac.close();
+}
+
 await browser.close();
 console.log([...ok, ...bad].join("\n"));
 console.log(

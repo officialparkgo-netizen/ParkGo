@@ -12,4 +12,18 @@ export async function setLocale(locale: Locale) {
     maxAge: 60 * 60 * 24 * 365,
     sameSite: "lax",
   });
+
+  // Signed in? Remember it on the account too. The cookie renders this
+  // browser; the saved locale is what tells support and the booking thread
+  // which language to translate for this person everywhere else.
+  try {
+    const { getCurrentUser } = await import("@/lib/auth");
+    const me = await getCurrentUser();
+    if (me) {
+      const { setUserLocale } = await import("@/lib/data/users");
+      await setUserLocale(me.id, locale);
+    }
+  } catch {
+    // language switching must never fail because of the profile write
+  }
 }
