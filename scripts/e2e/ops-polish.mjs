@@ -169,6 +169,14 @@ async function settled(page) {
   await ap0.locator("[data-stat-link]").first().click();
   await ap0.waitForURL("**/admin/verification**", { timeout: 15000 });
   check("the admin verification block opens the review queue", true);
+
+  // The trust list the admin reads is the same real blend the hosts see.
+  const trustSection = await ap0.locator("#trust").innerText();
+  check(
+    "the admin trust list carries real review averages",
+    /[1-5]\.\d★/.test(trustSection),
+    trustSection.replace(/\n/g, " ").slice(0, 80)
+  );
   await ac0.close();
 
   const tc0 = await ctx("user_traveller");

@@ -19,7 +19,7 @@ import { PortalShell } from "@/components/portal/shell";
 import { StatusBadge } from "@/components/portal/status";
 import { adminNav } from "@/components/portal/navs";
 import { trustBand } from "@/lib/trust";
-import { hostTrustScore } from "@/lib/admin-insights";
+import { trustForHost } from "@/lib/data/trust";
 import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { reviewVerificationAction } from "@/lib/booking-actions";
 import { getHostsByIds, listAllHosts, listAllSpaces } from "@/lib/data/hosts";
@@ -50,9 +50,17 @@ export default async function AdminVerificationPage() {
   const hostUserMap = await getUsersByIds(
     [...spaceHostMap.values()].map((h) => h.userId)
   );
-  const trustRows = (await listAllHosts())
-    .map((h) => ({ name: h.displayName, type: "Host", score: hostTrustScore(h) }))
-    .sort((a, b) => b.score.score - a.score.score);
+  // Real scores — the same reviews/reliability/tenure blend the host sees on
+  // their own dashboard, never a placeholder.
+  const trustRows = (
+    await Promise.all(
+      (await listAllHosts()).map(async (h) => ({
+        name: h.displayName,
+        type: "Host",
+        score: await trustForHost(h),
+      }))
+    )
+  ).sort((a, b) => b.score.score - a.score.score);
 
   return (
     <PortalShell user={user} nav={adminNav} title="admin.section.verificationQueue">
@@ -197,7 +205,11 @@ export default async function AdminVerificationPage() {
                 <div key={row.type + row.name} className="flex items-center justify-between p-4">
                   <div>
                     <div className="font-semibold text-navy-900">{row.name}</div>
-                    <div className="text-xs text-navy-400">{row.type === "Host" ? t("admin.hostType") : row.type}</div>
+                    <div className="text-xs text-navy-400">
+                      {row.type === "Host" ? t("admin.hostType") : row.type}
+                      {row.score.reviewCount > 0 &&
+                        ` · ${row.score.avgRating.toFixed(1)}★ · ${row.score.reviewCount}`}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="h-2 w-24 overflow-hidden rounded-full bg-navy-100">
