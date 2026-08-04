@@ -38,8 +38,8 @@ export function notificationTarget(
       return "/app/trips";
     case "support":
       // Staff-only kind: the desk is one click away. Anyone else (an old
-      // notification on a demoted account) gets the public help page.
-      return user.role === "admin" ? "/admin/support" : "/help";
+      // notification on a demoted account) gets the public FAQ.
+      return user.role === "admin" ? "/admin/support" : "/faq";
     default:
       return null; // announcements etc. — nothing to open
   }
