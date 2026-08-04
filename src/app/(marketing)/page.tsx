@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
+  Languages,
   BadgeCheck,
   Banknote,
   Bell,
@@ -182,6 +183,9 @@ export default async function HomePage() {
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarCheck className="h-4 w-4 text-go-600" /> {t("home.hero.trust.cancel")}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Languages className="h-4 w-4 text-go-600" /> {t("home.hero.trust.lang")}
               </span>
             </p>
           </div>

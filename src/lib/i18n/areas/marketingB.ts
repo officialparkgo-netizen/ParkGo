@@ -210,12 +210,12 @@ export const marketingB: AreaDict = {
     "about.badge": "About ParkGo",
     "about.hero.title": "Making airport access seamless for the UK & Ireland",
     "about.hero.subtitle":
-      "ParkGo brings parking, licensed transfers, EV charging and live security into one trusted booking — so getting to your flight is the easy part of the trip.",
+      "ParkGo is live across the UK & Ireland — a verified private space, a licensed transfer, EV charging and live security in one booking, with support in six languages.",
 
     "about.mission.eyebrow": "Our mission",
     "about.mission.title": "Parking for every journey, built on trust",
     "about.mission.body":
-      "We believe getting to the airport should be as well designed as the flight itself. Our mission is to connect verified hosts, an independent licensed transfer operator and travellers in a single, transparent journey — across the UK & Ireland and in your language.",
+      "We believe getting to the airport should be as well designed as the flight itself. Our mission is to connect verified hosts, licensed transfer partners and travellers in a single, transparent journey — across the UK & Ireland, in six languages, with a human answer whenever you need one.",
 
     "about.problem.title": "The problem",
     "about.problem.body":
@@ -226,7 +226,7 @@ export const marketingB: AreaDict = {
 
     "about.approach.title": "Our approach",
     "about.approach.body":
-      "ParkGo bundles the whole journey into one checkout, then makes it visible and verifiable. Verified hosts, licensed drivers, a single transparent price, and live tracking with an in-app camera and verified handovers from start to finish.",
+      "ParkGo bundles the whole journey into one checkout, then makes it visible and verifiable. Verified hosts, licensed drivers, one transparent price, live tracking with an in-app camera — and trust scores built from real reviews, completed trips and verification, never from claims.",
     "about.approach.point1": "One booking, one price, one app",
     "about.approach.point2": "Two-sided verification and trust scoring",
     "about.approach.point3": "Live tracking, camera and verified handovers",
@@ -247,9 +247,9 @@ export const marketingB: AreaDict = {
       "Transparent pricing for travellers and fair, configurable economics for hosts and partners.",
 
     "about.team.eyebrow": "Our team",
-    "about.team.title": "The people building ParkGo",
+    "about.team.title": "A founder-led team, hands on every day",
     "about.team.body":
-      "A small, focused team obsessed with trust, design and getting travellers to their flight without the stress.",
+      "ParkGo is built hands-on by a small founder-led team across product, engineering, trust and support — verifying every host, answering travellers in six languages, and shipping improvements to the live product every week.",
     "about.team.role.ceo": "Founder & CEO",
     "about.team.role.product": "Head of Product",
     "about.team.role.engineering": "Head of Engineering",
@@ -266,9 +266,13 @@ export const marketingB: AreaDict = {
     "about.vision.trust.k": "Built to trust",
     "about.vision.trust.v": "Verification at every step",
 
-    "about.waitlist.title": "Come along for the journey",
+    "about.stats.airports": "Airports & cities",
+    "about.stats.languages": "Languages",
+    "about.stats.services": "Services in one booking",
+    "about.stats.checkout": "Checkout, one clear price",
+    "about.waitlist.title": "ParkGo is live — see it for yourself",
     "about.waitlist.body":
-      "We're building ParkGo in the open and launching airport by airport. Join the waitlist and grow with us.",
+      "Book a verified space with transfer and EV charging in one checkout, or put your driveway to work. It takes minutes — and our team is one message away, in six languages.",
     "about.waitlist.cta": "See how it works",
   },
 
@@ -480,12 +484,12 @@ export const marketingB: AreaDict = {
     "about.badge": "پارک گو کے بارے میں",
     "about.hero.title": "برطانیہ اور آئرلینڈ کے لیے ایئرپورٹ تک رسائی کو بے رکاوٹ بنانا",
     "about.hero.subtitle":
-      "پارک گو پارکنگ، لائسنس یافتہ ٹرانسفرز، ای وی چارجنگ اور لائیو سیکیورٹی کو ایک قابل اعتماد بکنگ میں لاتا ہے — تاکہ اپنی پرواز تک پہنچنا سفر کا آسان حصہ ہو۔",
+      "پارک گو برطانیہ اور آئرلینڈ میں لائیو ہے — تصدیق شدہ نجی جگہ، لائسنس یافتہ ٹرانسفر، ای وی چارجنگ اور لائیو سیکیورٹی ایک ہی بکنگ میں، اور چھ زبانوں میں سپورٹ کے ساتھ۔",
 
     "about.mission.eyebrow": "ہمارا مشن",
     "about.mission.title": "ہر سفر کے لیے پارکنگ، اعتماد کی بنیاد پر",
     "about.mission.body":
-      "ہمارا ماننا ہے کہ ایئرپورٹ تک پہنچنا اتنا ہی اچھی طرح ڈیزائن کیا جانا چاہیے جتنی خود پرواز۔ ہمارا مشن تصدیق شدہ میزبانوں، ایک آزاد لائسنس یافتہ ٹرانسفر آپریٹر اور مسافروں کو ایک واحد، شفاف سفر میں جوڑنا ہے — برطانیہ اور آئرلینڈ بھر میں اور آپ کی زبان میں۔",
+      "ہمارا ماننا ہے کہ ایئرپورٹ تک پہنچنا بھی اتنا ہی عمدہ ہونا چاہیے جتنی پرواز۔ ہمارا مشن تصدیق شدہ میزبانوں، لائسنس یافتہ ٹرانسفر پارٹنرز اور مسافروں کو ایک شفاف سفر میں جوڑنا ہے — برطانیہ اور آئرلینڈ بھر میں، چھ زبانوں میں، اور جب ضرورت ہو تو انسانی جواب کے ساتھ۔",
 
     "about.problem.title": "مسئلہ",
     "about.problem.body":
@@ -496,7 +500,7 @@ export const marketingB: AreaDict = {
 
     "about.approach.title": "ہمارا طریقہ",
     "about.approach.body":
-      "پارک گو پورے سفر کو ایک چیک آؤٹ میں جوڑتا ہے، پھر اسے قابلِ مشاہدہ اور قابلِ تصدیق بناتا ہے۔ تصدیق شدہ میزبان، لائسنس یافتہ ڈرائیور، ایک واحد شفاف قیمت، اور شروع سے آخر تک ایپ میں کیمرہ اور تصدیق شدہ ہینڈ اوور کے ساتھ لائیو ٹریکنگ۔",
+      "پارک گو پورے سفر کو ایک ہی چیک آؤٹ میں سمیٹتا ہے، پھر اسے نظر آنے والا اور قابلِ تصدیق بناتا ہے۔ تصدیق شدہ میزبان، لائسنس یافتہ ڈرائیور، ایک شفاف قیمت، اِن ایپ کیمرے کے ساتھ لائیو ٹریکنگ — اور ایسے ٹرسٹ اسکور جو اصلی جائزوں، مکمل سفروں اور تصدیق سے بنتے ہیں، دعووں سے نہیں۔",
     "about.approach.point1": "ایک بکنگ، ایک قیمت، ایک ایپ",
     "about.approach.point2": "دو طرفہ تصدیق اور اعتماد سکورنگ",
     "about.approach.point3": "لائیو ٹریکنگ، کیمرہ اور تصدیق شدہ ہینڈ اوور",
@@ -517,9 +521,9 @@ export const marketingB: AreaDict = {
       "مسافروں کے لیے شفاف قیمتیں اور میزبانوں اور شراکت داروں کے لیے منصفانہ، قابلِ ترتیب معاشیات۔",
 
     "about.team.eyebrow": "ہماری ٹیم",
-    "about.team.title": "پارک گو بنانے والے لوگ",
+    "about.team.title": "بانی کی قیادت میں ٹیم، ہر روز خود موجود",
     "about.team.body":
-      "ایک چھوٹی، مرکوز ٹیم جو اعتماد، ڈیزائن اور مسافروں کو بغیر تناؤ کے ان کی پرواز تک پہنچانے کی دھن میں ہے۔",
+      "پارک گو ایک چھوٹی، بانی کی قیادت والی ٹیم خود بناتی ہے — پروڈکٹ، انجینئرنگ، ٹرسٹ اور سپورٹ میں: ہر میزبان کی تصدیق، چھ زبانوں میں مسافروں کو جواب، اور ہر ہفتے لائیو پروڈکٹ میں بہتری۔",
     "about.team.role.ceo": "بانی اور سی ای او",
     "about.team.role.product": "سربراہ پروڈکٹ",
     "about.team.role.engineering": "سربراہ انجینئرنگ",
@@ -536,9 +540,13 @@ export const marketingB: AreaDict = {
     "about.vision.trust.k": "اعتماد کے لیے بنایا گیا",
     "about.vision.trust.v": "ہر مرحلے پر تصدیق",
 
-    "about.waitlist.title": "اس سفر میں ہمارے ساتھ چلیں",
+    "about.stats.airports": "ایئرپورٹس اور شہر",
+    "about.stats.languages": "زبانیں",
+    "about.stats.services": "ایک بکنگ میں خدمات",
+    "about.stats.checkout": "چیک آؤٹ، ایک صاف قیمت",
+    "about.waitlist.title": "پارک گو لائیو ہے — خود دیکھ لیجیے",
     "about.waitlist.body":
-      "ہم پارک گو کو کھلے عام بنا رہے ہیں اور ایک ایک ایئرپورٹ لانچ کر رہے ہیں۔ ویٹ لسٹ میں شامل ہوں اور ہمارے ساتھ بڑھیں۔",
+      "ایک ہی چیک آؤٹ میں ٹرانسفر اور ای وی چارجنگ سمیت تصدیق شدہ جگہ بک کریں، یا اپنی ڈرائیو وے سے کمانا شروع کریں۔ چند منٹ لگتے ہیں — اور ہماری ٹیم چھ زبانوں میں بس ایک پیغام کے فاصلے پر ہے۔",
     "about.waitlist.cta": "دیکھیں یہ کیسے کام کرتا ہے",
   },
 
@@ -750,12 +758,12 @@ export const marketingB: AreaDict = {
     "about.badge": "ParkGo के बारे में",
     "about.hero.title": "यूके और आयरलैंड के लिए एयरपोर्ट तक पहुँच को निर्बाध बनाना",
     "about.hero.subtitle":
-      "ParkGo पार्किंग, लाइसेंस प्राप्त ट्रांसफर, ईवी चार्जिंग और लाइव सुरक्षा को एक भरोसेमंद बुकिंग में लाता है — ताकि अपनी उड़ान तक पहुँचना यात्रा का आसान हिस्सा हो।",
+      "ParkGo यूके और आयरलैंड में लाइव है — सत्यापित निजी जगह, लाइसेंस प्राप्त ट्रांसफर, ईवी चार्जिंग और लाइव सुरक्षा एक ही बुकिंग में, छह भाषाओं में सहायता के साथ।",
 
     "about.mission.eyebrow": "हमारा मिशन",
     "about.mission.title": "हर सफ़र के लिए पार्किंग, भरोसे की बुनियाद पर",
     "about.mission.body":
-      "हमारा मानना है कि एयरपोर्ट तक पहुँचना उतना ही अच्छी तरह डिज़ाइन किया जाना चाहिए जितनी उड़ान खुद। हमारा मिशन सत्यापित होस्ट, एक स्वतंत्र लाइसेंस प्राप्त ट्रांसफर ऑपरेटर और यात्रियों को एक एकल, पारदर्शी यात्रा में जोड़ना है — यूके और आयरलैंड भर में और आपकी भाषा में।",
+      "हमारा मानना है कि एयरपोर्ट तक पहुँचना भी उड़ान जितना ही सुव्यवस्थित होना चाहिए। हमारा मिशन सत्यापित होस्ट, लाइसेंस प्राप्त ट्रांसफर पार्टनर और यात्रियों को एक पारदर्शी यात्रा में जोड़ना है — यूके और आयरलैंड भर में, छह भाषाओं में, और ज़रूरत पड़ने पर इंसानी जवाब के साथ।",
 
     "about.problem.title": "समस्या",
     "about.problem.body":
@@ -766,7 +774,7 @@ export const marketingB: AreaDict = {
 
     "about.approach.title": "हमारा दृष्टिकोण",
     "about.approach.body":
-      "ParkGo पूरी यात्रा को एक चेकआउट में जोड़ता है, फिर उसे दृश्यमान और सत्यापन योग्य बनाता है। सत्यापित होस्ट, लाइसेंस प्राप्त ड्राइवर, एक एकल पारदर्शी कीमत, और शुरू से अंत तक ऐप में कैमरा और सत्यापित हैंडओवर के साथ लाइव ट्रैकिंग।",
+      "ParkGo पूरी यात्रा को एक ही चेकआउट में समेटता है, फिर उसे दृश्य और सत्यापन-योग्य बनाता है। सत्यापित होस्ट, लाइसेंस प्राप्त ड्राइवर, एक पारदर्शी क़ीमत, इन-ऐप कैमरे के साथ लाइव ट्रैकिंग — और ऐसे ट्रस्ट स्कोर जो असली समीक्षाओं, पूरी हुई यात्राओं और सत्यापन से बनते हैं, दावों से नहीं।",
     "about.approach.point1": "एक बुकिंग, एक कीमत, एक ऐप",
     "about.approach.point2": "दो-तरफा सत्यापन और भरोसा स्कोरिंग",
     "about.approach.point3": "लाइव ट्रैकिंग, कैमरा और सत्यापित हैंडओवर",
@@ -787,9 +795,9 @@ export const marketingB: AreaDict = {
       "यात्रियों के लिए पारदर्शी मूल्य निर्धारण और होस्ट और भागीदारों के लिए निष्पक्ष, विन्यास योग्य अर्थशास्त्र।",
 
     "about.team.eyebrow": "हमारी टीम",
-    "about.team.title": "ParkGo बनाने वाले लोग",
+    "about.team.title": "संस्थापक के नेतृत्व वाली टीम, हर दिन खुद मौजूद",
     "about.team.body":
-      "एक छोटी, केंद्रित टीम जो भरोसे, डिज़ाइन और यात्रियों को बिना तनाव के उनकी उड़ान तक पहुँचाने की धुन में है।",
+      "ParkGo को एक छोटी, संस्थापक के नेतृत्व वाली टीम खुद बनाती है — प्रोडक्ट, इंजीनियरिंग, ट्रस्ट और सपोर्ट में: हर होस्ट का सत्यापन, छह भाषाओं में यात्रियों को जवाब, और हर हफ़्ते लाइव प्रोडक्ट में सुधार।",
     "about.team.role.ceo": "संस्थापक और सीईओ",
     "about.team.role.product": "प्रमुख उत्पाद",
     "about.team.role.engineering": "प्रमुख इंजीनियरिंग",
@@ -806,9 +814,13 @@ export const marketingB: AreaDict = {
     "about.vision.trust.k": "भरोसे के लिए बनाया गया",
     "about.vision.trust.v": "हर चरण पर सत्यापन",
 
-    "about.waitlist.title": "इस यात्रा में हमारे साथ चलें",
+    "about.stats.airports": "एयरपोर्ट और शहर",
+    "about.stats.languages": "भाषाएँ",
+    "about.stats.services": "एक बुकिंग में सेवाएँ",
+    "about.stats.checkout": "चेकआउट, एक साफ़ क़ीमत",
+    "about.waitlist.title": "ParkGo लाइव है — खुद देख लीजिए",
     "about.waitlist.body":
-      "हम ParkGo को खुले तौर पर बना रहे हैं और एक-एक एयरपोर्ट लॉन्च कर रहे हैं। वेटलिस्ट में शामिल हों और हमारे साथ बढ़ें।",
+      "एक ही चेकआउट में ट्रांसफर और ईवी चार्जिंग समेत सत्यापित जगह बुक करें, या अपनी ड्राइववे से कमाना शुरू करें। बस कुछ मिनट लगते हैं — और हमारी टीम छह भाषाओं में, एक संदेश की दूरी पर है।",
     "about.waitlist.cta": "देखें यह कैसे काम करता है",
   },
 
@@ -1020,12 +1032,12 @@ export const marketingB: AreaDict = {
     "about.badge": "Über ParkGo",
     "about.hero.title": "Nahtloser Flughafenzugang für Großbritannien & Irland",
     "about.hero.subtitle":
-      "ParkGo vereint Parken, lizenzierte Transfers, das Laden von E-Autos und Live-Sicherheit in einer vertrauenswürdigen Buchung — damit die Anreise zum Flug der einfache Teil der Reise ist.",
+      "ParkGo ist in Großbritannien und Irland live — geprüfter privater Stellplatz, lizenzierter Transfer, E-Auto-Laden und Live-Sicherheit in einer Buchung, mit Support in sechs Sprachen.",
 
     "about.mission.eyebrow": "Unsere Mission",
     "about.mission.title": "Parken für jede Fahrt, auf Vertrauen gebaut",
     "about.mission.body":
-      "Wir glauben, dass die Anreise zum Flughafen genauso gut gestaltet sein sollte wie der Flug selbst. Unsere Mission ist es, geprüfte Gastgeber, einen unabhängigen lizenzierten Transferbetreiber und Reisende in einer einzigen, transparenten Reise zu verbinden — in ganz Großbritannien & Irland und in Ihrer Sprache.",
+      "Wir finden: Der Weg zum Flughafen sollte so gut durchdacht sein wie der Flug selbst. Unsere Mission ist es, geprüfte Gastgeber, lizenzierte Transferpartner und Reisende in einer transparenten Reise zu verbinden — in Großbritannien und Irland, in sechs Sprachen, mit einer menschlichen Antwort, wann immer sie gebraucht wird.",
 
     "about.problem.title": "Das Problem",
     "about.problem.body":
@@ -1036,7 +1048,7 @@ export const marketingB: AreaDict = {
 
     "about.approach.title": "Unser Ansatz",
     "about.approach.body":
-      "ParkGo bündelt die gesamte Reise in einem Checkout und macht sie dann sichtbar und überprüfbar. Geprüfte Gastgeber, lizenzierte Fahrer, ein einziger transparenter Preis und Live-Tracking mit In-App-Kamera und geprüften Übergaben von Anfang bis Ende.",
+      "ParkGo bündelt die ganze Reise in einen Checkout — und macht sie dann sichtbar und überprüfbar. Geprüfte Gastgeber, lizenzierte Fahrer, ein transparenter Preis, Live-Tracking mit In-App-Kamera — und Vertrauenswerte aus echten Bewertungen, abgeschlossenen Reisen und Verifizierung, nie aus Behauptungen.",
     "about.approach.point1": "Eine Buchung, ein Preis, eine App",
     "about.approach.point2": "Beidseitige Verifizierung und Vertrauensbewertung",
     "about.approach.point3": "Live-Tracking, Kamera und geprüfte Übergaben",
@@ -1057,9 +1069,9 @@ export const marketingB: AreaDict = {
       "Transparente Preise für Reisende und faire, konfigurierbare Wirtschaftlichkeit für Gastgeber und Partner.",
 
     "about.team.eyebrow": "Unser Team",
-    "about.team.title": "Die Menschen, die ParkGo bauen",
+    "about.team.title": "Ein gründergeführtes Team, jeden Tag selbst dabei",
     "about.team.body":
-      "Ein kleines, fokussiertes Team, besessen von Vertrauen, Design und dem stressfreien Weg der Reisenden zu ihrem Flug.",
+      "ParkGo wird von einem kleinen, gründergeführten Team selbst gebaut — über Produkt, Engineering, Trust und Support hinweg: jeder Gastgeber wird geprüft, Reisende bekommen Antworten in sechs Sprachen, und jede Woche gehen Verbesserungen ins Live-Produkt.",
     "about.team.role.ceo": "Gründer & CEO",
     "about.team.role.product": "Leiter Produkt",
     "about.team.role.engineering": "Leiter Technik",
@@ -1076,9 +1088,13 @@ export const marketingB: AreaDict = {
     "about.vision.trust.k": "Auf Vertrauen gebaut",
     "about.vision.trust.v": "Verifizierung bei jedem Schritt",
 
-    "about.waitlist.title": "Kommen Sie mit auf die Reise",
+    "about.stats.airports": "Flughäfen & Städte",
+    "about.stats.languages": "Sprachen",
+    "about.stats.services": "Leistungen in einer Buchung",
+    "about.stats.checkout": "Checkout, ein klarer Preis",
+    "about.waitlist.title": "ParkGo ist live — überzeugen Sie sich selbst",
     "about.waitlist.body":
-      "Wir bauen ParkGo offen auf und starten Flughafen für Flughafen. Treten Sie der Warteliste bei und wachsen Sie mit uns.",
+      "Buchen Sie einen geprüften Stellplatz mit Transfer und E-Auto-Laden in einem Checkout — oder lassen Sie Ihre Einfahrt Geld verdienen. Es dauert Minuten, und unser Team ist in sechs Sprachen nur eine Nachricht entfernt.",
     "about.waitlist.cta": "So funktioniert's",
   },
 
@@ -1290,12 +1306,12 @@ export const marketingB: AreaDict = {
     "about.badge": "关于 ParkGo",
     "about.hero.title": "让英国和爱尔兰的机场出行畅通无阻",
     "about.hero.subtitle":
-      "ParkGo 将停车、持牌接送、电动车充电和实时安防整合为一次值得信赖的预订 — 让前往航班成为旅程中最轻松的部分。",
+      "ParkGo 已在英国和爱尔兰上线——经验证的私人车位、持牌接送、电动车充电与实时安防尽在一次预订，并提供六种语言的支持。",
 
     "about.mission.eyebrow": "我们的使命",
     "about.mission.title": "建立在信任之上、服务每段旅程的停车平台",
     "about.mission.body":
-      "我们相信，前往机场的过程应当与航班本身一样精心设计。我们的使命是把认证房东、独立的持牌接送运营商和旅客连接到一段统一、透明的旅程中 — 覆盖英国和爱尔兰，并以您的语言呈现。",
+      "我们相信，去机场的路应当和航班本身一样精心设计。我们的使命是把经过验证的房东、持牌接送伙伴和旅客连接在一段透明的旅程中——覆盖英国和爱尔兰，支持六种语言，需要时随时有真人回应。",
 
     "about.problem.title": "问题所在",
     "about.problem.body":
@@ -1306,7 +1322,7 @@ export const marketingB: AreaDict = {
 
     "about.approach.title": "我们的方法",
     "about.approach.body":
-      "ParkGo 将整段旅程整合到一次结账中，再让它可视化、可验证。认证房东、持牌司机、单一透明价格，以及从头到尾配备应用内摄像头和已验证交接的实时追踪。",
+      "ParkGo 把整段旅程装进一次结账，然后让它全程可见、可验证。经过验证的房东、持牌司机、一个透明的价格、带应用内摄像头的实时追踪——信任分来自真实评价、完成的行程和验证，绝不来自空口宣称。",
     "about.approach.point1": "一次预订，一个价格，一个应用",
     "about.approach.point2": "双向验证与信任评分",
     "about.approach.point3": "实时追踪、摄像头与已验证的交接",
@@ -1327,9 +1343,9 @@ export const marketingB: AreaDict = {
       "为旅客提供透明定价，为房东和合作伙伴提供公平、可配置的收益机制。",
 
     "about.team.eyebrow": "我们的团队",
-    "about.team.title": "打造 ParkGo 的团队",
+    "about.team.title": "创始人亲自带队，每天亲力亲为",
     "about.team.body":
-      "一支精悍专注的团队，执着于信任、设计，以及让旅客毫无压力地赶上航班。",
+      "ParkGo 由一支创始人亲自带领的小团队打造——横跨产品、工程、信任与客服：验证每一位房东，用六种语言回应旅客，每周都为线上产品交付改进。",
     "about.team.role.ceo": "创始人兼首席执行官",
     "about.team.role.product": "产品负责人",
     "about.team.role.engineering": "工程负责人",
@@ -1346,9 +1362,13 @@ export const marketingB: AreaDict = {
     "about.vision.trust.k": "为信任而生",
     "about.vision.trust.v": "每一步都经过验证",
 
-    "about.waitlist.title": "与我们一同踏上旅程",
+    "about.stats.airports": "机场与城市",
+    "about.stats.languages": "种语言",
+    "about.stats.services": "项服务一次预订",
+    "about.stats.checkout": "次结账，一个透明价格",
+    "about.waitlist.title": "ParkGo 已经上线——亲自体验一下",
     "about.waitlist.body":
-      "我们正公开打造 ParkGo，并逐个机场上线。加入等候名单，与我们共同成长。",
+      "在一次结账中预订经验证的车位、接送和电动车充电，或让您的车道开始赚钱。只需几分钟——我们的团队用六种语言随时待命，一条消息即达。",
     "about.waitlist.cta": "了解运作方式",
   },
 
@@ -1560,12 +1580,12 @@ export const marketingB: AreaDict = {
     "about.badge": "عن ParkGo",
     "about.hero.title": "نجعل الوصول إلى المطار سلسًا في المملكة المتحدة وأيرلندا",
     "about.hero.subtitle":
-      "يجمع ParkGo الموقف والتوصيل المرخّص وشحن EV والحماية المباشرة في حجز واحد موثوق — ليكون الوصول إلى رحلتك الجزء الأسهل منها.",
+      "ParkGo متاح الآن في المملكة المتحدة وأيرلندا — موقف خاص موثّق ونقل مرخّص وشحن EV وأمان مباشر في حجز واحد، مع دعم بست لغات.",
 
     "about.mission.eyebrow": "مهمتنا",
     "about.mission.title": "موقف لكل رحلة، مبني على الثقة",
     "about.mission.body":
-      "نؤمن بأن الوصول إلى المطار ينبغي أن يكون مصمَّمًا بعناية تضاهي الرحلة الجوية نفسها. مهمتنا هي ربط المضيفين الموثّقين، ومشغّل توصيل مستقل ومرخّص، والمسافرين في رحلة واحدة شفافة — في أنحاء المملكة المتحدة وأيرلندا وبلغتك.",
+      "نؤمن بأن الوصول إلى المطار يجب أن يكون بإتقان الرحلة نفسها. مهمتنا ربط مضيفين موثّقين وشركاء نقل مرخّصين ومسافرين في رحلة واحدة شفافة — عبر المملكة المتحدة وأيرلندا، بست لغات، مع إجابة إنسانية متى احتجت إليها.",
 
     "about.problem.title": "المشكلة",
     "about.problem.body":
@@ -1576,7 +1596,7 @@ export const marketingB: AreaDict = {
 
     "about.approach.title": "نهجنا",
     "about.approach.body":
-      "يجمع ParkGo الرحلة بأكملها في عملية دفع واحدة، ثم يجعلها مرئية وقابلة للتحقّق. مضيفون موثّقون، وسائقون مرخّصون، وسعر شفاف واحد، وتتبّع مباشر مع كاميرا في التطبيق وتسليمات موثّقة من البداية إلى النهاية.",
+      "يجمع ParkGo الرحلة كاملة في دفعة واحدة، ثم يجعلها مرئية وقابلة للتحقق. مضيفون موثّقون، سائقون مرخّصون، سعر واحد شفاف، وتتبّع مباشر بكاميرا داخل التطبيق — ودرجات ثقة تُبنى من تقييمات حقيقية ورحلات مكتملة وتحقق فعلي، لا من ادعاءات.",
     "about.approach.point1": "حجز واحد، وسعر واحد، وتطبيق واحد",
     "about.approach.point2": "تحقّق ثنائي الجانب وتقييم للثقة",
     "about.approach.point3": "تتبّع مباشر، وكاميرا، وتسليمات موثّقة",
@@ -1597,9 +1617,9 @@ export const marketingB: AreaDict = {
       "تسعير شفاف للمسافرين، واقتصاديات عادلة وقابلة للتخصيص للمضيفين والشركاء.",
 
     "about.team.eyebrow": "فريقنا",
-    "about.team.title": "الأشخاص الذين يبنون ParkGo",
+    "about.team.title": "فريق يقوده المؤسس، حاضر بنفسه كل يوم",
     "about.team.body":
-      "فريق صغير ومركَّز مهووس بالثقة والتصميم وإيصال المسافرين إلى رحلاتهم من دون إرهاق.",
+      "يُبنى ParkGo يدويًا بفريق صغير يقوده المؤسس — عبر المنتج والهندسة والثقة والدعم: نتحقق من كل مضيف، ونجيب المسافرين بست لغات، ونطلق تحسينات على المنتج المباشر كل أسبوع.",
     "about.team.role.ceo": "المؤسّس والرئيس التنفيذي",
     "about.team.role.product": "رئيس قسم المنتج",
     "about.team.role.engineering": "رئيس قسم الهندسة",
@@ -1616,9 +1636,13 @@ export const marketingB: AreaDict = {
     "about.vision.trust.k": "مبني على الثقة",
     "about.vision.trust.v": "تحقّق في كل خطوة",
 
-    "about.waitlist.title": "رافقنا في هذه الرحلة",
+    "about.stats.airports": "مطارات ومدن",
+    "about.stats.languages": "لغات",
+    "about.stats.services": "خدمات في حجز واحد",
+    "about.stats.checkout": "دفعة واحدة وسعر واضح",
+    "about.waitlist.title": "ParkGo متاح الآن — جرّبه بنفسك",
     "about.waitlist.body":
-      "نبني ParkGo علنًا وننطلق مطارًا تلو الآخر. انضم إلى قائمة الانتظار وانمُ معنا.",
+      "احجز موقفًا موثّقًا مع النقل وشحن EV في دفعة واحدة، أو اجعل ممرّ سيارتك يعمل لحسابك. الأمر يستغرق دقائق — وفريقنا على بُعد رسالة واحدة، بست لغات.",
     "about.waitlist.cta": "شاهد كيف تعمل الخدمة",
   },
 };

@@ -25,7 +25,7 @@ const en: Dict = {
   "hero.airport": "Airport",
   "hero.from": "From",
   "hero.to": "To",
-  "hero.trustline": "Verified hosts · Licensed drivers · Live camera · CCTV",
+  "hero.trustline": "Verified hosts · Licensed drivers · Live camera · Support in 6 languages",
   "common.search": "Search",
   "common.book": "Book now",
   "common.learnMore": "Learn more",
@@ -143,7 +143,7 @@ const ar: Dict = {
   "hero.subtitle":
     "يجمع ParkGo موقفاً خاصاً موثّقاً ونقلاً مرخّصاً إلى الصالة وشحن EV وأماناً مباشراً في سعر واحد ودفعة واحدة. في المملكة المتحدة وأيرلندا.",
   "hero.searchCta": "ابحث عن موقف",
-  "hero.trustline": "مضيفون موثّقون · سائقون مرخّصون · كاميرا مباشرة · CCTV",
+  "hero.trustline": "مضيفون موثّقون · سائقون مرخّصون · كاميرا مباشرة · دعم بست لغات",
   "common.search": "بحث",
   "common.book": "احجز الآن",
   "common.learnMore": "اعرف المزيد",

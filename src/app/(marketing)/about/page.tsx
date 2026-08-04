@@ -4,10 +4,10 @@ import {
   ArrowRight,
   Compass,
   Globe2,
-  Handshake,
   Heart,
-  Lightbulb,
+  Languages,
   Layers,
+  MapPin,
   ShieldCheck,
   Sparkles,
   Target,
@@ -18,30 +18,18 @@ import { Section, Container, Eyebrow } from "@/components/ui/section";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { WaitlistForm } from "@/components/marketing/waitlist-form";
+import { StatCounter } from "@/components/marketing/stat-counter";
 import { pageMetadata } from "@/lib/seo";
-import { initials } from "@/lib/utils";
+import { getAirports } from "@/lib/data/store";
+import { LOCALES } from "@/lib/i18n/config";
 import { getI18n } from "@/lib/i18n";
 
 export const metadata = pageMetadata({
-  title: "About & team",
+  title: "About ParkGo",
   description:
-    "Making airport access seamless across the UK & Ireland — parking, licensed transfers, EV charging and live security in one trusted booking.",
+    "Live across the UK & Ireland — verified parking, licensed transfers, EV charging and live security in one booking, with support in six languages.",
   path: "/about",
 });
-
-function avatarClasses(tone: "brand" | "go" | "accent" | "navy") {
-  switch (tone) {
-    case "brand":
-      return "bg-brand-100 text-brand-700";
-    case "go":
-      return "bg-go-100 text-go-700";
-    case "accent":
-      return "bg-accent-100 text-accent-700";
-    default:
-      return "bg-navy-100 text-navy-800";
-  }
-}
 
 export default async function AboutPage() {
   const { t } = await getI18n();
@@ -53,11 +41,13 @@ export default async function AboutPage() {
     { icon: Globe2, tone: "navy" as const, title: t("about.value.fair.title"), body: t("about.value.fair.body") },
   ];
 
-  const team = [
-    { name: "Alex Morgan", role: t("about.team.role.ceo"), tone: "brand" as const },
-    { name: "Priya Shah", role: t("about.team.role.product"), tone: "go" as const },
-    { name: "Daniel Okoye", role: t("about.team.role.engineering"), tone: "accent" as const },
-    { name: "Sofia Lindqvist", role: t("about.team.role.trust"), tone: "navy" as const },
+  // Real numbers, read from the same registries the product runs on — the
+  // moment a seventh language or a new airport ships, this page says so.
+  const stats = [
+    { icon: MapPin, k: String(getAirports().length), v: t("about.stats.airports") },
+    { icon: Languages, k: String(LOCALES.length), v: t("about.stats.languages") },
+    { icon: Layers, k: "4", v: t("about.stats.services") },
+    { icon: Target, k: "1", v: t("about.stats.checkout") },
   ];
 
   return (
@@ -192,22 +182,6 @@ export default async function AboutPage() {
             {t("about.team.body")}
           </p>
         </div>
-        <div className="reveal-stagger mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {team.map((m) => (
-            <Card key={m.name} className="p-7 text-center">
-              <div
-                className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full text-xl font-extrabold ${avatarClasses(
-                  m.tone
-                )}`}
-                aria-hidden
-              >
-                {initials(m.name)}
-              </div>
-              <h3 className="mt-4 text-lg font-bold text-navy-900">{m.name}</h3>
-              <p className="text-sm text-brand-700">{m.role}</p>
-            </Card>
-          ))}
-        </div>
         <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-sm text-navy-500">
           <Users className="h-4 w-4" /> {t("about.team.growing")}{" "}
           <Link href="/contact" className="font-semibold text-brand-700 hover:text-brand-700">
@@ -217,28 +191,22 @@ export default async function AboutPage() {
         </p>
       </Section>
 
-      {/* ----------------------------------------------------- Vision strip */}
+      {/* ---------------------------------------- Real numbers, live today */}
       <Section>
-        <div className="grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { icon: Target, k: t("about.vision.mission.k"), v: t("about.vision.mission.v") },
-            { icon: Globe2, k: t("about.vision.region.k"), v: t("about.vision.region.v") },
-            { icon: Handshake, k: t("about.vision.sides.k"), v: t("about.vision.sides.v") },
-            { icon: Lightbulb, k: t("about.vision.trust.k"), v: t("about.vision.trust.v") },
-          ].map((s) => (
+        <div className="grid gap-8 rounded-2xl bg-navy-800 p-10 text-center sm:grid-cols-2 lg:grid-cols-4" data-about-stats>
+          {stats.map((s) => (
             <div key={s.v}>
-              <s.icon className="mx-auto mb-3 h-7 w-7 text-go-200" />
-              <div className="text-2xl font-extrabold text-white">{s.k}</div>
-              <div
-                className="mt-1 text-sm text-navy-200"
-                dangerouslySetInnerHTML={{ __html: s.v }}
-              />
+              <s.icon className="mx-auto mb-3 h-7 w-7 text-go-200" aria-hidden />
+              <div className="text-3xl font-extrabold text-white" data-stat-counter data-stat-target={s.k}>
+                <StatCounter value={s.k} />
+              </div>
+              <div className="mt-1 text-sm text-navy-200">{s.v}</div>
             </div>
           ))}
         </div>
       </Section>
 
-      {/* --------------------------------------------------------- Waitlist */}
+      {/* ------------------------------------------------------- Live CTA */}
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-700 to-navy-800">
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden />
         <Container className="relative py-16 text-center">
@@ -250,18 +218,31 @@ export default async function AboutPage() {
             <p className="mt-3 text-brand-100">
               {t("about.waitlist.body")}
             </p>
-            <div className="mx-auto mt-7 max-w-lg">
-              <WaitlistForm dark />
-            </div>
-            <div className="mt-6">
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/how-it-works"
+                href="/app/search"
+                className={buttonVariants({
+                  className: "bg-white text-navy-900 hover:bg-brand-50",
+                })}
+              >
+                {t("hero.searchCta")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
+              </Link>
+              <Link
+                href="/hosts"
                 className={buttonVariants({
                   variant: "outline",
                   className: "border-white/30 bg-white/10 text-white hover:bg-white/20",
                 })}
               >
-                {t("about.waitlist.cta")} <ArrowRight className="h-4 w-4" />
+                {t("nav.hosts")}
+              </Link>
+            </div>
+            <div className="mt-6">
+              <Link
+                href="/how-it-works"
+                className="text-sm font-semibold text-brand-100 hover:text-white"
+              >
+                {t("about.waitlist.cta")} →
               </Link>
             </div>
           </div>
