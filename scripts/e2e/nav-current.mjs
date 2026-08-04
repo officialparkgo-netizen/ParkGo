@@ -34,6 +34,15 @@ for (const [path, expected] of CASES) {
         JSON.stringify(desktopMarked));
   if (expected) check(`${path}: marks only one link`, desktopMarked.length === 1, `${desktopMarked.length}`);
 }
+// No raw i18n keys may ever reach a visitor — a missing dictionary entry
+// renders as its own key ("hero.searchCta"), which is exactly this shape.
+for (const path of ["/", "/about", "/hosts", "/travellers", "/pricing"]) {
+  await p.goto(BASE + path, { waitUntil: "networkidle" });
+  const body = await p.evaluate(() => document.body.innerText);
+  const leak = body.match(/\b(hero|home|nav|common|about|footer|value|waitlist|travellers|hosts|pricing)\.[a-zA-Z]+(\.[a-zA-Z]+)*\b/);
+  check(`${path}: no raw translation keys leak`, !leak, leak?.[0] ?? "");
+}
+
 // the underline should actually be visible on the active one
 await p.goto(BASE + "/hosts", { waitUntil: "networkidle" });
 const vis = await p.evaluate(() => {

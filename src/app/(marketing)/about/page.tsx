@@ -225,7 +225,7 @@ export default async function AboutPage() {
                   className: "bg-white text-navy-900 hover:bg-brand-50",
                 })}
               >
-                {t("hero.searchCta")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
+                {t("nav.findParking")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
               </Link>
               <Link
                 href="/hosts"
