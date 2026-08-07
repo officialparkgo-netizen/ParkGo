@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   CalendarCheck,
   CheckCircle2,
+  ChevronDown,
   Download,
   FileText,
   Mail,
@@ -55,10 +56,20 @@ export default async function AdminVerificationPage() {
   );
   // Approval must not bury the record: the reviewed history stays readable
   // right under the queue — who was approved or rejected, with what, when.
-  const reviewed = (await listAllVerificationsLive())
+  // One row per host (the latest decision); repeat submissions collapse into
+  // a count instead of five identical lines.
+  const allReviewed = (await listAllVerificationsLive())
     .filter((v) => v.status === "approved" || v.status === "rejected")
-    .sort((a, b) => (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? ""))
-    .slice(0, 8);
+    .sort((a, b) => (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? ""));
+  const submissionCounts = new Map<string, number>();
+  for (const v of allReviewed) {
+    submissionCounts.set(v.subjectId, (submissionCounts.get(v.subjectId) ?? 0) + 1);
+  }
+  const latestBySubject = new Map<string, (typeof allReviewed)[number]>();
+  for (const v of allReviewed) {
+    if (!latestBySubject.has(v.subjectId)) latestBySubject.set(v.subjectId, v);
+  }
+  const reviewed = [...latestBySubject.values()].slice(0, 10);
   const reviewedHostMap = await getHostsByIds(
     reviewed.filter((v) => v.subjectType === "host").map((v) => v.subjectId)
   );
@@ -211,30 +222,75 @@ export default async function AdminVerificationPage() {
         {/* Reviewed history — the record survives the decision */}
         {reviewed.length > 0 && (
           <section id="history">
-            <h3 className="mb-3 text-lg font-bold text-navy-900">
-              {t("admin.verif.history")}
-            </h3>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="text-lg font-bold text-navy-900">
+                {t("admin.verif.history")}
+              </h3>
+              <a
+                href="/admin/export?type=verifications"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                <Download className="h-4 w-4" /> {t("admin.exportCsv")}
+              </a>
+            </div>
             <Card className="divide-y divide-navy-100" data-verif-history>
               {reviewed.map((v) => {
                 const host = v.subjectType === "host" ? reviewedHostMap.get(v.subjectId) : null;
+                const count = submissionCounts.get(v.subjectId) ?? 1;
                 return (
-                  <div key={v.id} className="p-4">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <details key={v.id} className="group p-4" data-verif-row>
+                    <summary className="flex cursor-pointer flex-wrap items-center gap-2 [&::-webkit-details-marker]:hidden">
                       <span className="font-semibold text-navy-900">
                         {host?.displayName ?? v.subjectId}
                       </span>
                       <StatusBadge status={v.status} />
+                      {count > 1 && (
+                        <Badge tone="neutral">
+                          {count} {t("admin.verif.submissions")}
+                        </Badge>
+                      )}
                       <span className="ms-auto text-xs text-navy-400">
                         {v.reviewedAt ? formatDate(v.reviewedAt) : "—"}
                       </span>
+                      <ChevronDown
+                        className="h-4 w-4 shrink-0 text-navy-400 transition-transform group-open:rotate-180"
+                        aria-hidden
+                      />
+                    </summary>
+
+                    {/* The full record, one click away — every document with
+                        its date, both timestamps, and the reviewer's note. */}
+                    <div className="mt-3 rounded-xl bg-navy-50/60 p-3">
+                      <ul className="space-y-1.5">
+                        {v.documents.map((d) => (
+                          <li key={d.id} className="flex items-center gap-2 text-sm text-navy-700">
+                            <FileText className="h-4 w-4 shrink-0 text-navy-400" aria-hidden />
+                            {d.label}
+                            <span className="ms-auto text-xs text-navy-400">
+                              {formatDate(d.uploadedAt)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 border-t border-navy-200/60 pt-2 text-xs text-navy-500">
+                        {v.submittedAt && (
+                          <span>
+                            <span className="font-semibold">{t("host.verify.submittedOn")}:</span>{" "}
+                            {formatDate(v.submittedAt)}
+                          </span>
+                        )}
+                        {v.reviewedAt && (
+                          <span>
+                            <span className="font-semibold">{t("host.verify.reviewedOn")}:</span>{" "}
+                            {formatDate(v.reviewedAt)}
+                          </span>
+                        )}
+                      </div>
+                      {v.notes && (
+                        <p className="mt-2 text-xs italic text-navy-600">“{v.notes}”</p>
+                      )}
                     </div>
-                    <p className="mt-1 text-xs text-navy-500">
-                      {v.documents.map((d) => d.label).join(" · ")}
-                    </p>
-                    {v.notes && (
-                      <p className="mt-1 text-xs italic text-navy-500">“{v.notes}”</p>
-                    )}
-                  </div>
+                  </details>
                 );
               })}
             </Card>

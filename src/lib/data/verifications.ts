@@ -34,6 +34,10 @@ export async function submitHostVerification(
 ): Promise<Verification | null> {
   if (!IS_LIVE) return null; // mock demo hosts are pre-seeded
 
+  // Last line of defence against duplicates: even if two submits race past
+  // the page, only one pending verification may exist per host.
+  if (await hasPendingHostVerification(hostId)) return null;
+
   const { supabaseAdmin } = await import("@/lib/supabase/server");
   const admin = supabaseAdmin();
 

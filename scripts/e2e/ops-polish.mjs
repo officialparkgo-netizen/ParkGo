@@ -263,11 +263,18 @@ async function settled(page) {
     await ap.goto(`${BASE}/admin/verification`, { waitUntil: "domcontentloaded" });
     await settled(ap);
   }
-  const history = await ap.locator("[data-verif-history]").innerText();
+  const derekRows = ap.locator('[data-verif-row]:has-text("Derek\'s Yard")');
+  check("one row per host, however many submissions", (await derekRows.count()) === 1);
+  await derekRows.first().locator("summary").click();
+  const record = await derekRows.first().innerText();
   check(
-    "the admin still sees the reviewed record",
-    history.includes("Derek's Yard") && history.includes("Passport"),
-    history.replace(/\n/g, " ").slice(0, 80)
+    "the full record opens on click",
+    record.includes("Passport") && record.includes("Utility bill"),
+    record.replace(/\n/g, " ").slice(0, 80)
+  );
+  check(
+    "the history has its own export",
+    (await ap.locator('#history a[href*="type=verifications"]').count()) === 1
   );
   await ac.close();
 

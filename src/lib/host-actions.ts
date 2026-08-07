@@ -12,7 +12,10 @@ import {
   updateHostBio,
   updateSpaceForHost,
 } from "@/lib/data/hosts";
-import { submitHostVerification } from "@/lib/data/verifications";
+import {
+  hasPendingHostVerification,
+  submitHostVerification,
+} from "@/lib/data/verifications";
 import { uploadKycDoc, uploadSpacePhoto } from "@/lib/storage";
 import { isStripeConfigured, createHostOnboardingLink } from "@/lib/stripe";
 
@@ -179,6 +182,16 @@ export async function submitKycAction(formData: FormData) {
   const user = await requireRole("host");
   const host = await ensureHostForUser(user);
   if (host.verificationStatus === "approved") redirect("/host");
+  // One submission in flight at a time — a double click, a re-opened old tab
+  // or a back-button resubmit must not stack five identical requests in the
+  // admin queue.
+  if (
+    host.verificationStatus === "in_review" ||
+    host.verificationStatus === "pending" ||
+    (await hasPendingHostVerification(host.id))
+  ) {
+    redirect("/host/verify");
+  }
 
   const legalName = String(formData.get("legalName") || "").trim();
   const address = String(formData.get("address") || "").trim();
