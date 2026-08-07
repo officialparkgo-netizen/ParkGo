@@ -56,6 +56,8 @@ export default async function NewSpacePage() {
                     slug: a.slug,
                     name: a.name,
                     code: !a.kind || a.kind === "airport" ? a.code : undefined,
+                    lat: a.lat,
+                    lng: a.lng,
                   }))}
                   defaultSlug="heathrow"
                   labels={{
@@ -64,6 +66,7 @@ export default async function NewSpacePage() {
                     request: t("host.new.locRequest"),
                     sentTitle: t("host.new.locSentTitle"),
                     sentBody: t("host.new.locSentBody"),
+                    near: t("host.new.locNear"),
                   }}
                 />
               </div>

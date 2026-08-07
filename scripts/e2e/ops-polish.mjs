@@ -232,6 +232,24 @@ async function settled(page) {
     "the destination field filters as you type",
     (await hp.locator("[data-loc-option]").count()) >= 1
   );
+
+  // A host types their own town — the nearest covered airport is offered.
+  // The geocoder is stubbed so mock mode answers like live does.
+  await hp.route("**/api/geo/suggest*", (route) =>
+    route.fulfill({
+      json: { suggestions: [{ label: "Stockport", lat: 53.408, lng: -2.149, type: "place" }] },
+    })
+  );
+  await box.fill("stockport");
+  await hp.waitForSelector("[data-loc-near]", { timeout: 15000 });
+  const near = await hp.locator("[data-loc-near]").first().innerText();
+  check(
+    "an unlisted town suggests the nearest covered airport",
+    /Manchester/.test(near),
+    near.replace(/\n/g, " ")
+  );
+  await hp.unroute("**/api/geo/suggest*");
+
   await box.fill(`Faisalabad Intl (${RUN})`);
   await hp.locator("[data-loc-request]").click();
   await hp.waitForSelector("[data-loc-sent]", { timeout: 15000 });

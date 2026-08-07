@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { CheckCircle2, Loader2, MapPin, Plus, Search } from "lucide-react";
 import { requestNewLocationAction } from "@/lib/host-suite-actions";
 
@@ -15,7 +15,7 @@ export function LocationPicker({
   defaultSlug,
   labels,
 }: {
-  airports: { slug: string; name: string; code?: string }[];
+  airports: { slug: string; name: string; code?: string; lat: number; lng: number }[];
   defaultSlug: string;
   labels: {
     placeholder: string;
@@ -23,6 +23,7 @@ export function LocationPicker({
     request: string;
     sentTitle: string;
     sentBody: string;
+    near: string;
   };
 }) {
   const byNameOf = (slug: string) => {
@@ -50,6 +51,65 @@ export function LocationPicker({
     setQuery(`${a.name}${a.code ? ` (${a.code})` : ""}`);
     setOpen(false);
   };
+
+  /**
+   * Hosts type their own town, not the airport's name — "stockport", not
+   * "Manchester (MAN)". When nothing in the registry matches, the query is
+   * geocoded (same endpoint the search box uses) and the nearest covered
+   * locations are offered by distance, with the request-a-location path kept
+   * underneath for places we genuinely don't serve yet.
+   */
+  const [nearby, setNearby] = useState<
+    { slug: string; name: string; code?: string; miles: number }[] | null
+  >(null);
+  const seq = useRef(0);
+  useEffect(() => {
+    const q = query.trim();
+    if (filtered.length > 0 || q.length < 3) {
+      setNearby(null);
+      return;
+    }
+    const mine = ++seq.current;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/geo/suggest?q=${encodeURIComponent(q)}`);
+        const data = (await res.json()) as {
+          suggestions?: { lat?: number; lng?: number }[];
+        };
+        if (seq.current !== mine) return;
+        const hit = (data.suggestions ?? []).find(
+          (s) => typeof s.lat === "number" && typeof s.lng === "number"
+        ) as { lat: number; lng: number } | undefined;
+        if (!hit) {
+          setNearby(null);
+          return;
+        }
+        const rad = (d: number) => (d * Math.PI) / 180;
+        const milesTo = (a: { lat: number; lng: number }) => {
+          const dLat = rad(a.lat - hit.lat);
+          const dLng = rad(a.lng - hit.lng);
+          const h =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(rad(hit.lat)) * Math.cos(rad(a.lat)) * Math.sin(dLng / 2) ** 2;
+          return 2 * 3959 * Math.asin(Math.sqrt(h));
+        };
+        const near = airports
+          .map((a) => ({
+            slug: a.slug,
+            name: a.name,
+            code: a.code,
+            miles: Math.round(milesTo(a)),
+          }))
+          .sort((x, y) => x.miles - y.miles)
+          .filter((x) => x.miles <= 120)
+          .slice(0, 2);
+        setNearby(near.length ? near : null);
+      } catch {
+        if (seq.current === mine) setNearby(null);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query, filtered.length, airports]);
 
   const requestPlace = () => {
     const place = query.trim();
@@ -113,6 +173,31 @@ export function LocationPicker({
           ))}
           {filtered.length === 0 && (
             <div className="p-2.5">
+              {nearby && nearby.length > 0 && (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">
+                    {labels.near}
+                  </p>
+                  <div className="mb-1 mt-1.5 space-y-1">
+                    {nearby.map((a) => (
+                      <button
+                        key={a.slug}
+                        type="button"
+                        data-loc-near={a.slug}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => pick(a)}
+                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-navy-700 hover:bg-navy-50"
+                      >
+                        <MapPin className="h-4 w-4 shrink-0 text-go-600" aria-hidden />
+                        {a.name}
+                        {a.code ? ` (${a.code})` : ""}
+                        <span className="ms-auto text-xs text-navy-400">~{a.miles} mi</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="my-2 border-t border-navy-100" />
+                </>
+              )}
               <p className="text-sm font-semibold text-navy-700">{labels.missing}</p>
               <button
                 type="button"
