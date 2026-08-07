@@ -68,7 +68,11 @@ export default async function AdminAuditPage() {
               <div key={a.id} className="flex items-start justify-between gap-3 p-3.5 text-sm">
                 <div className="min-w-0">
                   <span className="font-semibold text-navy-900">{a.adminName}</span>{" "}
-                  <span className="font-mono text-xs text-navy-500">{a.action}</span>
+                  {/* Action codes are data, not translations — marked so the
+                      site-wide raw-key scanner knows to leave them alone. */}
+                  <span className="font-mono text-xs text-navy-500" data-raw-code>
+                    {a.action}
+                  </span>
                   <span className="text-xs text-navy-400"> · {a.targetType} {a.targetId}</span>
                   {a.detail && <p className="truncate text-navy-600">{a.detail}</p>}
                 </div>

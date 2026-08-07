@@ -127,7 +127,14 @@ for (const locale of ["en", "ar"]) {
         continue;
       }
       await p.waitForTimeout(250);
-      const body = await p.evaluate(() => document.body.innerText);
+      // Elements marked data-raw-code (audit-log action codes) are data that
+      // legitimately looks key-shaped — dropped from the live DOM before the
+      // read. innerText (not textContent) keeps block boundaries as line
+      // breaks, so "…the app." + "EV…" never fuses into a fake key.
+      const body = await p.evaluate(() => {
+        document.querySelectorAll("[data-raw-code]").forEach((n) => n.remove());
+        return document.body.innerText;
+      });
       const leak = body.match(LEAK);
       check(`[${locale}] ${path}`, !leak, leak ? `leaks "${leak[0]}"` : "");
     } catch (err) {

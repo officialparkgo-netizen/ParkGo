@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
+import { LocationPicker } from "@/components/host/location-picker";
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/components/portal/shell";
 import { hostNav } from "@/components/portal/navs";
@@ -50,26 +51,21 @@ export default async function NewSpacePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="airportSlug">{t("search.destination")}</Label>
-                <Select id="airportSlug" name="airportSlug" defaultValue="heathrow">
-                  <optgroup label={t("search.group.airports")}>
-                    {airports
-                      .filter((a) => !a.kind || a.kind === "airport")
-                      .map((a) => (
-                        <option key={a.slug} value={a.slug}>
-                          {a.name} ({a.code})
-                        </option>
-                      ))}
-                  </optgroup>
-                  <optgroup label={t("search.group.places")}>
-                    {airports
-                      .filter((a) => a.kind && a.kind !== "airport")
-                      .map((a) => (
-                        <option key={a.slug} value={a.slug}>
-                          {a.name}
-                        </option>
-                      ))}
-                  </optgroup>
-                </Select>
+                <LocationPicker
+                  airports={airports.map((a) => ({
+                    slug: a.slug,
+                    name: a.name,
+                    code: !a.kind || a.kind === "airport" ? a.code : undefined,
+                  }))}
+                  defaultSlug="heathrow"
+                  labels={{
+                    placeholder: t("host.new.locPh"),
+                    missing: t("host.new.locMissing"),
+                    request: t("host.new.locRequest"),
+                    sentTitle: t("host.new.locSentTitle"),
+                    sentBody: t("host.new.locSentBody"),
+                  }}
+                />
               </div>
               <div>
                 <Label htmlFor="pricePerDay">{t("host.new.pricePerDay")}</Label>

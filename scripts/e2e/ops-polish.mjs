@@ -220,6 +220,69 @@ async function settled(page) {
   await hcx.close();
 }
 
+// -------------- a host can request a location we don't cover yet ---------
+{
+  const hc = await ctx("user_host");
+  const hp = await hc.newPage();
+  await hp.goto(`${BASE}/host/new`, { waitUntil: "domcontentloaded" });
+  await settled(hp);
+  const box = hp.locator("[data-loc-picker] input[role=combobox]");
+  await box.fill("heathrow");
+  check(
+    "the destination field filters as you type",
+    (await hp.locator("[data-loc-option]").count()) >= 1
+  );
+  await box.fill(`Faisalabad Intl (${RUN})`);
+  await hp.locator("[data-loc-request]").click();
+  await hp.waitForSelector("[data-loc-sent]", { timeout: 15000 });
+  check("an uncovered place can be requested", true);
+  await hc.close();
+
+  const ac = await ctx("user_admin");
+  const ap = await ac.newPage();
+  await ap.goto(`${BASE}/admin/support`, { waitUntil: "domcontentloaded" });
+  const desk = await settled(ap);
+  check(
+    "the request lands on the team's desk",
+    desk.includes("new-location") && desk.includes(`Faisalabad Intl (${RUN})`)
+  );
+  await ac.close();
+}
+
+// ------- verification data stays visible after the decision is made ------
+{
+  const ac = await ctx("user_admin");
+  const ap = await ac.newPage();
+  await ap.goto(`${BASE}/admin/verification`, { waitUntil: "domcontentloaded" });
+  await settled(ap);
+  // First run approves Derek; later runs find him already in the history.
+  const approve = ap.locator('button:has-text("Approve")').first();
+  if (await approve.count()) {
+    await approve.click();
+    await ap.waitForLoadState("networkidle");
+    await ap.goto(`${BASE}/admin/verification`, { waitUntil: "domcontentloaded" });
+    await settled(ap);
+  }
+  const history = await ap.locator("[data-verif-history]").innerText();
+  check(
+    "the admin still sees the reviewed record",
+    history.includes("Derek's Yard") && history.includes("Passport"),
+    history.replace(/\n/g, " ").slice(0, 80)
+  );
+  await ac.close();
+
+  const dc = await ctx("user_host3");
+  const dp = await dc.newPage();
+  await dp.goto(`${BASE}/host/verify`, { waitUntil: "domcontentloaded" });
+  await settled(dp);
+  const summary = await dp.locator("[data-verify-summary]").innerText();
+  check(
+    "the host still sees what they submitted after approval",
+    summary.includes("Passport") && summary.includes("Utility bill")
+  );
+  await dc.close();
+}
+
 // ------------------------- resolved tickets: visitor sees it, moves on ----
 {
   // A visitor with a live ticket…

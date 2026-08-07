@@ -15,6 +15,7 @@ import {
   latestVerificationForHost,
 } from "@/lib/data/verifications";
 import { submitKycAction } from "@/lib/host-actions";
+import { formatDate } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -36,11 +37,13 @@ export default async function HostVerifyPage() {
     (host.verificationStatus === "in_review" ||
       host.verificationStatus === "pending" ||
       (await hasPendingHostVerification(host.id)));
-  // Rejected? Show the admin's reason so the host knows what to fix.
-  const latest =
-    !verified && !underReview ? await latestVerificationForHost(host.id) : null;
+  // Always loaded: after approval it powers the submitted-details summary,
+  // after rejection it carries the admin's reason.
+  const latest = await latestVerificationForHost(host.id);
   const rejectionReason =
-    latest?.status === "rejected" && latest.notes ? latest.notes : null;
+    !verified && !underReview && latest?.status === "rejected" && latest.notes
+      ? latest.notes
+      : null;
 
   return (
     <PortalShell user={user} nav={hostNav} title="host.verify.pageTitle">
@@ -92,17 +95,56 @@ export default async function HostVerifyPage() {
         )}
 
         {verified ? (
-          <Card className="border-go-200 bg-go-50/40 p-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-go-100 text-go-700">
-              <BadgeCheck className="h-7 w-7" />
-            </div>
-            <h2 className="text-xl font-extrabold text-navy-900">
-              {t("host.verify.doneTitle")}
-            </h2>
-            <p className="mx-auto mt-2 max-w-sm text-sm text-navy-600">
-              {t("host.verify.doneBody")}
-            </p>
-          </Card>
+          <>
+            <Card className="border-go-200 bg-go-50/40 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-go-100 text-go-700">
+                <BadgeCheck className="h-7 w-7" />
+              </div>
+              <h2 className="text-xl font-extrabold text-navy-900">
+                {t("host.verify.doneTitle")}
+              </h2>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-navy-600">
+                {t("host.verify.doneBody")}
+              </p>
+            </Card>
+
+            {/* Approval must not make the record disappear — what was
+                submitted, and when it was reviewed, stays readable. */}
+            {latest && (
+              <Card className="p-5" data-verify-summary>
+                <h3 className="text-sm font-bold text-navy-900">
+                  {t("host.verify.summaryTitle")}
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {latest.documents.map((d) => (
+                    <li key={d.id} className="flex items-center gap-2 text-sm text-navy-700">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-go-100 text-[10px] font-bold text-go-700">
+                        ✓
+                      </span>
+                      {d.label}
+                      <span className="ms-auto text-xs text-navy-400">
+                        {formatDate(d.uploadedAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-navy-100 pt-3 text-xs text-navy-500">
+                  {latest.submittedAt && (
+                    <span>
+                      <span className="font-semibold">{t("host.verify.submittedOn")}:</span>{" "}
+                      {formatDate(latest.submittedAt)}
+                    </span>
+                  )}
+                  {latest.reviewedAt && (
+                    <span>
+                      <span className="font-semibold">{t("host.verify.reviewedOn")}:</span>{" "}
+                      {formatDate(latest.reviewedAt)}
+                    </span>
+                  )}
+                </div>
+              </Card>
+            )}
+          </>
         ) : underReview ? (
           <Card className="p-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-50 text-accent-700">

@@ -23,7 +23,10 @@ import { trustForHost } from "@/lib/data/trust";
 import { requireRole, requireOpsAdmin } from "@/lib/auth";
 import { reviewVerificationAction } from "@/lib/booking-actions";
 import { getHostsByIds, listAllHosts, listAllSpaces } from "@/lib/data/hosts";
-import { listPendingVerificationsLive } from "@/lib/data/verifications";
+import {
+  listAllVerificationsLive,
+  listPendingVerificationsLive,
+} from "@/lib/data/verifications";
 import { getUsersByIds } from "@/lib/data/users";
 import { formatDate } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
@@ -50,6 +53,16 @@ export default async function AdminVerificationPage() {
   const hostUserMap = await getUsersByIds(
     [...spaceHostMap.values()].map((h) => h.userId)
   );
+  // Approval must not bury the record: the reviewed history stays readable
+  // right under the queue — who was approved or rejected, with what, when.
+  const reviewed = (await listAllVerificationsLive())
+    .filter((v) => v.status === "approved" || v.status === "rejected")
+    .sort((a, b) => (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? ""))
+    .slice(0, 8);
+  const reviewedHostMap = await getHostsByIds(
+    reviewed.filter((v) => v.subjectType === "host").map((v) => v.subjectId)
+  );
+
   // Real scores — the same reviews/reliability/tenure blend the host sees on
   // their own dashboard, never a placeholder.
   const trustRows = (
@@ -194,6 +207,39 @@ export default async function AdminVerificationPage() {
             </div>
           )}
         </section>
+
+        {/* Reviewed history — the record survives the decision */}
+        {reviewed.length > 0 && (
+          <section id="history">
+            <h3 className="mb-3 text-lg font-bold text-navy-900">
+              {t("admin.verif.history")}
+            </h3>
+            <Card className="divide-y divide-navy-100" data-verif-history>
+              {reviewed.map((v) => {
+                const host = v.subjectType === "host" ? reviewedHostMap.get(v.subjectId) : null;
+                return (
+                  <div key={v.id} className="p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-navy-900">
+                        {host?.displayName ?? v.subjectId}
+                      </span>
+                      <StatusBadge status={v.status} />
+                      <span className="ms-auto text-xs text-navy-400">
+                        {v.reviewedAt ? formatDate(v.reviewedAt) : "—"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-navy-500">
+                      {v.documents.map((d) => d.label).join(" · ")}
+                    </p>
+                    {v.notes && (
+                      <p className="mt-1 text-xs italic text-navy-500">“{v.notes}”</p>
+                    )}
+                  </div>
+                );
+              })}
+            </Card>
+          </section>
+        )}
 
         {/* Trust scores — quality signal for the hosts being reviewed */}
         <section id="trust">

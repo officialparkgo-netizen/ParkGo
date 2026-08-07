@@ -169,3 +169,53 @@ export async function setBookingAlertsAction(formData: FormData) {
   revalidatePath("/account");
   redirect(`/account?alerts=${on ? "on" : "off"}`);
 }
+
+/**
+ * A host wants to list somewhere ParkGo doesn't cover yet. The request lands
+ * as a support ticket — real workflow, real inbox, nothing to lose track of —
+ * and rings the ops channel and the team's bells. Coverage grows where hosts
+ * actually are, not where we guess.
+ */
+export async function requestNewLocationAction(
+  place: string
+): Promise<{ ok?: boolean }> {
+  const user = await requireRole("host");
+  const clean = String(place || "").trim().slice(0, 120);
+  if (clean.length < 2) return {};
+  try {
+    const { createSupportTicket } = await import("@/lib/data/support");
+    const ticket = await createSupportTicket({
+      name: user.name,
+      email: user.email,
+      topic: "new-location",
+      userId: user.id,
+      locale: user.locale,
+      transcript: [
+        {
+          role: "user",
+          text: `Host location request: "${clean}"`,
+          at: new Date().toISOString(),
+        },
+      ],
+    });
+
+    const { sendOpsAlert } = await import("@/lib/ops-alerts");
+    await sendOpsAlert(`📍 New location requested by ${user.name}: ${clean}`);
+    try {
+      const { listAdminUsers } = await import("@/lib/data/users");
+      const { notifyUsers } = await import("@/lib/data/notifications");
+      const { supportRef } = await import("@/lib/support-thread");
+      const team = (await listAdminUsers()).filter((u) => u.adminScope !== "content");
+      await notifyUsers(team.map((u) => u.id), {
+        title: `📍 New location request · ${supportRef(ticket.id)}`,
+        body: `${user.name} · ${clean}`,
+        kind: "support",
+      });
+    } catch {
+      // the ticket itself is the record; a lost bell is cosmetic
+    }
+    return { ok: true };
+  } catch {
+    return {};
+  }
+}
