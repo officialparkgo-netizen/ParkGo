@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useTransition } from "react";
-import { CheckCircle2, Loader2, MapPin, Plus } from "lucide-react";
+import { CheckCircle2, Loader2, MapPin, Plus, Search } from "lucide-react";
 import { requestNewLocationAction } from "@/lib/host-suite-actions";
 
 /**
@@ -66,6 +66,10 @@ export function LocationPicker({
   return (
     <div ref={wrapRef} className="relative" data-loc-picker>
       <input type="hidden" name="airportSlug" value={slug} />
+      <Search
+        className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400"
+        aria-hidden
+      />
       <input
         value={query}
         onChange={(e) => {
@@ -83,7 +87,7 @@ export function LocationPicker({
           }, 150);
         }}
         placeholder={labels.placeholder}
-        className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
+        className="w-full rounded-xl border border-navy-200 bg-white ps-9 pe-3.5 py-2.5 text-sm text-navy-900 placeholder:text-navy-400 focus:border-brand-400 focus:outline-none"
         role="combobox"
         aria-expanded={open}
         aria-autocomplete="list"
