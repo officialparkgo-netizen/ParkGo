@@ -259,13 +259,44 @@ export default async function AdminVerificationPage() {
                     </summary>
 
                     {/* The full record, one click away — every document with
-                        its date, both timestamps, and the reviewer's note. */}
+                        its date, both timestamps, and the reviewer's note.
+                        Image documents render as thumbnails streamed from the
+                        private KYC store; everything opens in the viewer. */}
                     <div className="mt-3 rounded-xl bg-navy-50/60 p-3">
+                      {v.documents.some((d) => /\.(png|jpe?g|webp|gif)$/i.test(d.fileRef)) && (
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {v.documents
+                            .filter((d) => /\.(png|jpe?g|webp|gif)$/i.test(d.fileRef))
+                            .map((d) => (
+                              <a
+                                key={d.id}
+                                href={`/admin/kyc?ref=${encodeURIComponent(d.fileRef)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={d.label}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={`/admin/kyc?ref=${encodeURIComponent(d.fileRef)}`}
+                                  alt={d.label}
+                                  className="h-20 w-28 rounded-lg border border-navy-200 object-cover"
+                                />
+                              </a>
+                            ))}
+                        </div>
+                      )}
                       <ul className="space-y-1.5">
                         {v.documents.map((d) => (
-                          <li key={d.id} className="flex items-center gap-2 text-sm text-navy-700">
+                          <li key={d.id} className="flex items-center gap-2 text-sm">
                             <FileText className="h-4 w-4 shrink-0 text-navy-400" aria-hidden />
-                            {d.label}
+                            <a
+                              href={`/admin/kyc?ref=${encodeURIComponent(d.fileRef)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-semibold text-brand-700 hover:underline"
+                            >
+                              {d.label}
+                            </a>
                             <span className="ms-auto text-xs text-navy-400">
                               {formatDate(d.uploadedAt)}
                             </span>

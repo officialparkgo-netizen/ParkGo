@@ -115,13 +115,45 @@ export default async function HostVerifyPage() {
                 <h3 className="text-sm font-bold text-navy-900">
                   {t("host.verify.summaryTitle")}
                 </h3>
+                {/* Image documents preview inline, streamed from the private
+                    store through the host's own viewer — their files, their
+                    eyes, nobody else's. */}
+                {latest.documents.some((d) => /\.(png|jpe?g|webp|gif)$/i.test(d.fileRef)) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {latest.documents
+                      .filter((d) => /\.(png|jpe?g|webp|gif)$/i.test(d.fileRef))
+                      .map((d) => (
+                        <a
+                          key={d.id}
+                          href={`/host/kyc?ref=${encodeURIComponent(d.fileRef)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={d.label}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/host/kyc?ref=${encodeURIComponent(d.fileRef)}`}
+                            alt={d.label}
+                            className="h-20 w-28 rounded-lg border border-navy-200 object-cover"
+                          />
+                        </a>
+                      ))}
+                  </div>
+                )}
                 <ul className="mt-3 space-y-2">
                   {latest.documents.map((d) => (
                     <li key={d.id} className="flex items-center gap-2 text-sm text-navy-700">
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-go-100 text-[10px] font-bold text-go-700">
                         ✓
                       </span>
-                      {d.label}
+                      <a
+                        href={`/host/kyc?ref=${encodeURIComponent(d.fileRef)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-semibold text-brand-700 hover:underline"
+                      >
+                        {d.label}
+                      </a>
                       <span className="ms-auto text-xs text-navy-400">
                         {formatDate(d.uploadedAt)}
                       </span>
